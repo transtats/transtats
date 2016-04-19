@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block pagebanner %}
+    <div style="padding:20px">
+      <div class="container well well-lg">
+        <h2>Welcome!</h2>
+        <p style="font-size:large;">An analytics to translation statistics of registered packages. This helps package maintainers, developers and content translators to have consolidated translation progress report handy. And to keep it updated this synchronises with translation platform at regular intervals.</p>
+        <p>
+            <a class="btn btn-default btn-lg" href="#" role="button">Demo</a>
+            <a class="btn btn-primary btn-lg" href="{% url 'register' %}" role="button">Sign Up &raquo;</a>
+        </p>
+      </div>
+    </div>
+{% endblock %}
+
+{% block pagecontent %}
+<div style="padding-left:200px">
+    <div class="content-section-a">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Track translation progress</h3>
+                    <p style="font-size: medium;">In development of localised software we need to track translations per languages, native releases, repository releases, bugfixes and many more. Transanalytics collects templates, figure-out their translations, analyse statistics and generate reports.</p>
+                </div>
+                <div class="col-lg-4 col-lg-offset-1 col-sm-5">
+                    <img class="img-responsive" src="/static/img/bar_chart.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+    <!-- /.content-section-a -->
+
+    <div class="content-section-b">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-lg-offset-1 col-sm-push-4  col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Frequent sync with repositories</h3>
+                    <p style="font-size: medium;">Transanalytics pulls data from code and translation repositories at regular intervals to ensure correct and latest data representations. Snapshots are also kept to manage diffs and growth analysis. On the top of all, it is configuration based.</p>
+                </div>
+                <div class="col-lg-4 col-sm-pull-5  col-sm-5">
+                    <img class="img-responsive" src="/static/img/sync.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+
+    <div class="content-section-a">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Tap ship-to-locations readiness</h3>
+                    <p style="font-size: medium;">Set location based milestones. Drive translation of your application for the locations carrying high demands, regulate its pace and ensure timely delivery. Experience the globalisation view.</p>
+                </div>
+                <div class="col-lg-4 col-lg-offset-1 col-sm-5">
+                    <img class="img-responsive" src="/static/img/world.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+    <!-- /.content-section-a -->
+</div>
+{% endblock %}

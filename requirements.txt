@@ -1,0 +1,5 @@
+Django==1.9.5
+flake8==2.5.4
+mccabe==0.4.0
+pep8==1.7.0
+pyflakes==1.0.0
