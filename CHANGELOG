@@ -1,2 +1,5 @@
 * Wed Apr 20 2016 Sundeep Anand <suanand@redhat.com>
+- add SQLAlchemy and re-structure
+
+* Wed Apr 20 2016 Sundeep Anand <suanand@redhat.com>
 - initial structure with django
