@@ -19,20 +19,28 @@
 # You should have received a copy of the GNU General Public License
 # along with transanalytics.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.test import TestCase
+from transanalytics import settings
 
-# Create your tests here.
 
-from selenium import webdriver
-from socket import error as SocketError
-import errno
+class MySQLAlchemySessionMiddleware(object):
+    def process_request(self, request):
+        request.db_session = settings.Session()
 
-try:
-    browser = webdriver.Firefox()
-    browser.get('http://127.0.0.1:8000/')
-except SocketError as e:
-    if e.errno != errno.ECONNRESET:
-        raise # Not error we are looking for
-    pass # Handle error here.
-else:
-    assert 'transanalytics' in browser.title
+    def process_response(self, request, response):
+        try:
+            session = request.db_session
+        except AttributeError:
+            return response
+        try:
+            session.commit()
+            return response
+        except:
+            session.rollback()
+            raise
+
+    def process_exception(self, request, exception):
+        try:
+            session = request.db_session
+        except AttributeError:
+            return
+        session.rollback()
