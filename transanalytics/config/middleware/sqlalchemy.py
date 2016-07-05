@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with transanalytics.  If not, see <http://www.gnu.org/licenses/>.
 
-from transanalytics import settings
+from .. import settings
 
 
 class MySQLAlchemySessionMiddleware(object):

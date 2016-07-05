@@ -32,7 +32,7 @@ try:
     browser.get('http://127.0.0.1:8000/')
 except SocketError as e:
     if e.errno != errno.ECONNRESET:
-        raise # Not error we are looking for
-    pass # Handle error here.
+        raise   # Not error we are looking for
+    pass   # Handle error here.
 else:
     assert 'transanalytics' in browser.title

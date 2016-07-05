@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
+import sqlalchemy
+import sqlalchemy.orm
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -49,9 +51,10 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'config.middleware.sqlalchemy.MySQLAlchemySessionMiddleware'
 ]
 
-ROOT_URLCONF = 'transanalytics.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -72,7 +75,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'transanalytics.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
@@ -161,3 +164,8 @@ LOGGING = {
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# sqlalchemy
+DATABASE_URL = "mysql+pymysql://root:Mysql369@localhost/transanalytics?host=localhost?port=3306"
+engine = sqlalchemy.create_engine(DATABASE_URL)
+Session = sqlalchemy.orm.sessionmaker(bind=engine)
