@@ -69,3 +69,4 @@ target/
 
 # IDE
 .idea/
+*/*/*/keys.json

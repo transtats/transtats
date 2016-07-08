@@ -19,12 +19,12 @@
 # You should have received a copy of the GNU General Public License
 # along with transanalytics.  If not, see <http://www.gnu.org/licenses/>.
 
-from .. import settings
+from ..settings import base
 
 
 class MySQLAlchemySessionMiddleware(object):
     def process_request(self, request):
-        request.db_session = settings.Session()
+        request.db_session = base.Session()
 
     def process_response(self, request, response):
         try:
