@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block pagebanner %}
+    <div style="padding:20px">
+      <div class="container well well-lg">
+        <h2>Features</h2>
+      </div>
+    </div>
+{% endblock %}
+
+{% block extrascript %}
+<style type="text/css">
+    img {
+      display: block;
+      max-width:150px;
+      max-height:150px;
+      width: auto;
+      height: auto;
+    }
+</style>
+{% endblock %}
+
+{% block pagecontent %}
+<div style="padding-left:200px">
+    <div class="content-section-a">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Track translation progress</h3>
+                    <p style="font-size: medium;">In development of localised software, translation progress needs to be monitored on the basis of languages and release streams. Transanalytics collects templates, figure-out their translations, analyse statistics and generate reports.</p>
+                </div>
+                <div class="col-lg-4 col-lg-offset-1 col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <img class="img-responsive" src="/static/img/chart.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+    <!-- /.content-section-a -->
+
+    <div class="content-section-b">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-lg-offset-1 col-sm-push-4  col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Frequent sync with repositories</h3>
+                    <p style="font-size: medium;">Transanalytics pulls data from code and translation repositories at regular intervals to ensure correct and latest data representations. Snapshots are also kept to manage diffs and growth analysis.</p>
+                </div>
+                <div class="col-lg-5 col-sm-pull-4  col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <img class="img-responsive" src="/static/img/sync.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+
+    <div class="content-section-a">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Verify with release streams</h3>
+                    <p style="font-size: medium;">Sometimes translation platform shows good progress yet it is found that package released does not contain the latest. Transanalytics never let you miss string freeze and ensure to bundle the latest.</p>
+                </div>
+                <div class="col-lg-4 col-lg-offset-1 col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <img class="img-responsive" src="/static/img/check.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+    <!-- /.content-section-a -->
+    <div class="content-section-b">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-lg-offset-1 col-sm-push-4  col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Package list & language sets</h3>
+                    <p style="font-size: medium;">How about consolidate stats for the list of packages for a languages set? Languages set and list of packages can be created and maintained by registered users. Custom view experience.</p>
+                </div>
+                <div class="col-lg-5 col-sm-pull-4  col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <img class="img-responsive" src="/static/img/custom.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+</div>
+{% endblock %}
