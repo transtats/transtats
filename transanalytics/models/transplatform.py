@@ -19,12 +19,19 @@
 # You should have received a copy of the GNU General Public License
 # along with transanalytics.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import url
-from django.views.generic.base import TemplateView
-from .views import HomeTemplateView
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
 
-urlpatterns = [
-    url(r'^$', HomeTemplateView.as_view(), name="home"),
-    url(r'^register$', TemplateView.as_view(template_name="register.html"), name="register"),
-    url(r'^features$', TemplateView.as_view(template_name="features.html"), name="features"),
-]
+Base = declarative_base()
+
+
+class TransPlatform(Base):
+    """
+    Translation Platforms Model
+    """
+    __tablename__ = 'transplatform'
+
+    platform_id = Column(Integer, primary_key=True)
+    engine_name = Column(String(30))
+    api_url = Column(String(30))
+    server_status = Column(Integer)

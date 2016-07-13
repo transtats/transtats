@@ -19,6 +19,23 @@
 # You should have received a copy of the GNU General Public License
 # along with transanalytics.  If not, see <http://www.gnu.org/licenses/>.
 
+from django.core.urlresolvers import reverse
 from django.shortcuts import render
+from django.views.generic import TemplateView
 
-# Create your views here.
+
+class HomeTemplateView(TemplateView):
+    """
+    Home Page Template View
+    """
+    template_name = "home.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        :param kwargs:
+        :return: context_data
+        """
+        context_data = super(TemplateView, self).get_context_data(**kwargs)
+        context_data['some_string'] = "Hey! I m writing the web!! Super Cool :)"
+        return context_data
