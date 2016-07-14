@@ -18,3 +18,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with transanalytics.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Managers Package
+Controller Layer, includes business/application logic.
+"""

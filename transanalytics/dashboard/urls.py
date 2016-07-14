@@ -21,7 +21,7 @@
 
 from django.conf.urls import url
 from django.views.generic.base import TemplateView
-from .views import HomeTemplateView
+from .views.home import HomeTemplateView
 
 urlpatterns = [
     url(r'^$', HomeTemplateView.as_view(), name="home"),

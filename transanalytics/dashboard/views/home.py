@@ -19,6 +19,28 @@
 # You should have received a copy of the GNU General Public License
 # along with transanalytics.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.db import models
+from django.views.generic import TemplateView
 
-# Create your models here.
+from ..managers.transplatform import TransPlatformManager
+
+
+class HomeTemplateView(TemplateView):
+    """
+    Home Page Template View
+    """
+    template_name = "home.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        :param kwargs:
+        :return: context_data
+        """
+        context_data = super(TemplateView, self).get_context_data(**kwargs)
+
+        transplatform_manager = TransPlatformManager(self.request)
+        platform_details = transplatform_manager.get_translation_platform()
+
+        context_data['some_string'] = "Hey! I m writing the web!! Super Cool :)"
+        context_data['platform_details'] = platform_details
+        return context_data

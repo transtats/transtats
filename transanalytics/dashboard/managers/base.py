@@ -18,3 +18,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with transanalytics.  If not, see <http://www.gnu.org/licenses/>.
+
+
+class BaseManager(object):
+    """
+    Base Manager: create app context, process view request object
+    """
+
+    db_session = None
+
+    def __init__(self, *args, **kwargs):
+        # the first argument needs to be view request
+        self.db_session = args[0].db_session
