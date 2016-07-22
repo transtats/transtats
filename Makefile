@@ -6,7 +6,7 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 
 lint:
-	flake8 --ignore=E501,F401,F403 transanalytics
+	flake8 --ignore=E501,F401,F403 transtats
 
 devel:
 	pip install -r requirements.txt

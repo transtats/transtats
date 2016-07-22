@@ -1,4 +1,5 @@
 ##### Thu Jul 14 2016 Sundeep Anand <suanand@redhat.com>
+* rename project to transtats
 * add view, manager and model
 * add features page, zanata api
 * link travis and readmedocs

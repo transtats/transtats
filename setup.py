@@ -11,7 +11,7 @@ with open(os.path.join(os.path.dirname(__file__), "requirements/base.txt"), 'rb'
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
-    name='transanalytics',
+    name='transtats',
     version='0.0.1',
     packages=find_packages(),
     include_package_data=True,
@@ -19,7 +19,7 @@ setup(
     license='GPLv3 License',
     description='An analytics to translation statistics',
     long_description=README,
-    url='https://transanalytics-suanand.rhcloud.com',
+    url='https://transtats-suanand.rhcloud.com',
     author='Sundeep Anand',
     author_email='suanand@redhat.com',
     classifiers=[
