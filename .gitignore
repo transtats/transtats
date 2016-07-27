@@ -66,6 +66,7 @@ target/
 # db related
 */*.sqlite3
 */*/migrations/
+*/database.json
 
 # IDE
 .idea/

@@ -3,12 +3,7 @@
 {% block pagebanner %}
     <div style="padding:20px">
       <div class="container well well-lg">
-        <h2>Welcome!</h2>
-        <p style="font-size:large;">An analytics to translation statistics of registered packages. This helps package maintainers, developers and content translators to have consolidated translation progress report handy. And to keep it updated this synchronises with translation platform at regular intervals.</p>
-        <p>
-            <a class="btn btn-default btn-lg" href="{% url 'features' %}" role="button">Features</a>
-            <a class="btn btn-primary btn-lg" href="{% url 'register' %}" role="button">Sign Up &raquo;</a>
-        </p>
+        <p style="font-size:large;">{{ some_string }}</p>
       </div>
     </div>
 {% endblock %}

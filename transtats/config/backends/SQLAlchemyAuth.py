@@ -19,28 +19,29 @@
 # You should have received a copy of the GNU General Public License
 # along with transtats.  If not, see <http://www.gnu.org/licenses/>.
 
-from ..settings import base
+from sqlalchemy.orm.exc import NoResultFound
+from transtats.config.settings.base import Session
+from transtats.dashboard.models.user import User
 
 
-class SQLAlchemySessionMiddleware(object):
-    def process_request(self, request):
-        request.db_session = base.Session()
+class SQLAlchemyUserBackend(object):
+    supports_anonymous_user = True
+    supports_inactive_user = True
 
-    def process_response(self, request, response):
+    def __init__(self):
+        self.session = Session()
+
+    def authenticate(self, username=None, password=None):
         try:
-            session = request.db_session
-        except AttributeError:
-            return response
-        try:
-            session.commit()
-            return response
-        except:
-            session.rollback()
-            raise
+            user = self.session.query(User).filter_by(username=username).one()
+            if user.check_password(password):
+                return user
+        except NoResultFound:
+            return None
 
-    def process_exception(self, request, exception):
+    def get_user(self, user_id):
         try:
-            session = request.db_session
-        except AttributeError:
-            return
-        session.rollback()
+            user = self.session.query(User).filter_by(id=user_id).one()
+        except NoResultFound:
+            return None
+        return user

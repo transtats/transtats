@@ -74,7 +74,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'config.middleware.sqlalchemy.MySQLAlchemySessionMiddleware'
+    'config.middleware.sqlalchemy.SQLAlchemySessionMiddleware'
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -186,10 +186,13 @@ LOGGING = {
     }
 }
 
+# Authentication Backend
+AUTHENTICATION_BACKENDS = ('config.backends.SQLAlchemyAuth.SQLAlchemyUserBackend',)
+
 # Email Backend
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # creating SQLAlchemy Session
-DATABASE_URL = get_secret("DATABASE_URL")
-engine = sqlalchemy.create_engine(DATABASE_URL)
+DATABASE_URL = get_secret("DATABASE_URL_PGSQL")
+engine = sqlalchemy.create_engine(DATABASE_URL, isolation_level="SERIALIZABLE")
 Session = sqlalchemy.orm.sessionmaker(bind=engine)
