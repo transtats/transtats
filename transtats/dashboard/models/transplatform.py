@@ -32,6 +32,7 @@ class TransPlatform(Base):
     __tablename__ = 'transplatform'
 
     platform_id = Column(Integer, primary_key=True)
-    engine_name = Column(String(30))
-    api_url = Column(String(30))
-    server_status = Column(Integer)
+    engine_name = Column(String(50))
+    subject = Column(String(50))
+    api_url = Column(String(200))
+    server_status = Column(String(50))

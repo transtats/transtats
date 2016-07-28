@@ -8,5 +8,8 @@ clean-pyc:
 lint:
 	flake8 --ignore=E501,F401,F403 transtats
 
+migrate:
+	alembic -h
+
 devel:
-	pip install -r requirements.txt
+	pip install -r requirements/base.txt

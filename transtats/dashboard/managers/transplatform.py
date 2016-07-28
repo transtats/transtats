@@ -33,9 +33,16 @@ class TransPlatformManager(BaseManager):
         fetch translation platforms from db, zanata as of now!
         """
         platform = {}
-        translation_platform = self.db_session.query(TransPlatform).filter_by(engine_name='zanata').first()
+        '''
+        zanata_platform = TransPlatform(engine_name='zanata', api_url='http://translate.zanata.org',
+                                        server_status='active', subject='public', platform_id=3)
+        self.db_session.add(zanata_platform)
+        self.db_session.commit()
+        '''
+        translation_platform = self.db_session.query(TransPlatform).filter_by(subject='public').first()
         if translation_platform:
             platform['url'] = translation_platform.api_url
             platform['engine'] = translation_platform.engine_name
+            platform['subject'] = translation_platform.subject
             platform['state'] = translation_platform.server_status
         return platform

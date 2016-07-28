@@ -193,6 +193,6 @@ AUTHENTICATION_BACKENDS = ('config.backends.SQLAlchemyAuth.SQLAlchemyUserBackend
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # creating SQLAlchemy Session
-DATABASE_URL = get_secret("DATABASE_URL_PGSQL")
+DATABASE_URL = get_secret("DATABASE_URL")
 engine = sqlalchemy.create_engine(DATABASE_URL, isolation_level="SERIALIZABLE")
 Session = sqlalchemy.orm.sessionmaker(bind=engine)

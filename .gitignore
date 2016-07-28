@@ -67,6 +67,7 @@ target/
 */*.sqlite3
 */*/migrations/
 */database.json
+alembic.ini
 
 # IDE
 .idea/
