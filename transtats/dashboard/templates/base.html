@@ -27,6 +27,13 @@
 	}
     </style>
 
+    <!-- jQuery and Bootstrap core JS -->
+    <script src="/static/js/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')</script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="/static/js/ie10-viewport-bug-workaround.js"></script>
+
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="/static/js/ie8-responsive-file-warning.js"></script><![endif]-->
     <script src="/static/js/ie-emulation-modes-warning.js"></script>
@@ -55,17 +62,10 @@
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-right">
                 <li><a href="{% url 'features' %}">Features</a></li>
+                <li><a href="{% url 'settings' %}">Settings</a></li>
                 <li class="active"><a href="{% url 'register' %}" role="button">Sign Up &raquo;</a></li>
               </ul>
-              <form class="navbar-form navbar-right">
-                <div class="form-group">
-                  <input type="text" placeholder="Email" class="form-control">
-                </div>
-                <div class="form-group">
-                  <input type="password" placeholder="Password" class="form-control">
-                </div>
-                <button type="submit" class="btn btn-success">Sign in</button>
-              </form>
+              {% include "login.html" %}
             </div><!--/.navbar-collapse -->
           </div>
         </nav>
@@ -81,20 +81,10 @@
         <hr>
         <footer>
             <div class="container">
-                <p>&copy; 2016 Translation Analytics | <a href="{% url 'home' %}">Home</a> | <a href="{% url 'register' %}">Sign Up</a> | <a href="#">Privacy Policy</a> | <a href="#">Terms and Conditions</a></p>
+                <p>&copy; 2016 {{ app_name }} | <a href="{% url 'home' %}">Home</a> | <a href="{% url 'register' %}">Sign Up</a> | <a href="#">Privacy Policy</a> | <a href="#">Terms and Conditions</a></p>
             </div>
         </footer>
     {% endblock %}
-
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')</script>
-    <script src="/static/js/bootstrap.min.js"></script>
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="/static/js/ie10-viewport-bug-workaround.js"></script>
-
     {% block extrafooter %}{% endblock %}
   </body>
 </html>

@@ -22,9 +22,24 @@
 from django.conf.urls import url
 from django.views.generic.base import TemplateView
 from .views.home import HomeTemplateView
+from .views.settings import AppSettingsView, TransPlatformSettingsView
 
 urlpatterns = [
     url(r'^$', HomeTemplateView.as_view(), name="home"),
     url(r'^register$', TemplateView.as_view(template_name="register.html"), name="register"),
     url(r'^features$', TemplateView.as_view(template_name="features.html"), name="features"),
+    url(r'^settings$', AppSettingsView.as_view(), name="settings"),
+    url(r'^settings/translation-platfroms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
+    url(r'^settings/release-streams$', TemplateView.as_view(template_name="settings/release_streams.html"),
+        name="settings-release-streams"),
+    url(r'^settings/packages$', TemplateView.as_view(template_name="settings/packages.html"),
+        name="settings-packages"),
+    url(r'^settings/languages$', TemplateView.as_view(template_name="settings/languages.html"),
+        name="settings-languages"),
+    url(r'^settings/notification$', TemplateView.as_view(template_name="settings/notification.html"),
+        name="settings-notification"),
+    url(r'^settings/scheduler$', TemplateView.as_view(template_name="settings/scheduler.html"),
+        name="settings-scheduler"),
+    url(r'^settings/stats-views$', TemplateView.as_view(template_name="settings/stats_views.html"),
+        name="settings-stats-views"),
 ]

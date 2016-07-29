@@ -1,0 +1,13 @@
+{% extends "settings/settings_base.html" %}
+
+{% block extrascript %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#tab-summary').addClass('active');
+    })
+</script>
+{% endblock %}
+
+{% block tabcontent %}
+<h5>This section would summarise settings current state!!</h5>
+{% endblock %}

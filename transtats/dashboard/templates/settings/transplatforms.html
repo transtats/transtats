@@ -1,0 +1,21 @@
+{% extends "settings/settings_base.html" %}
+
+{% block extrascript %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#tab-trans-platforms').addClass('active');
+    })
+</script>
+{% endblock %}
+
+{% block tabcontent %}
+<h5>This section would include translation platforms (Zanata, Transifex) stuff!!</h5>
+<table class="table table-striped">
+{% for detail, value in platform_details.items %}
+    <tr>
+        <td>{{ detail }}</td>
+        <td>{{ value }}</td>
+    </tr>
+{% endfor %}
+</table>
+{% endblock %}
