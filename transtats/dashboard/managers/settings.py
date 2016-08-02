@@ -32,6 +32,5 @@ class AppSettingsManager(BaseManager):
         """
         fetch translation platforms from db, zanata as of now!
         """
-        platforms = {}
-        platform = self.db_session.query(TransPlatform).all()
+        platforms = self.db_session.query(TransPlatform).all()
         return platforms

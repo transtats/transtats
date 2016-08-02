@@ -29,7 +29,7 @@ urlpatterns = [
     url(r'^register$', TemplateView.as_view(template_name="register.html"), name="register"),
     url(r'^features$', TemplateView.as_view(template_name="features.html"), name="features"),
     url(r'^settings$', AppSettingsView.as_view(), name="settings"),
-    url(r'^settings/translation-platfroms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
+    url(r'^settings/translation-platforms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
     url(r'^settings/release-streams$', TemplateView.as_view(template_name="settings/release_streams.html"),
         name="settings-release-streams"),
     url(r'^settings/packages$', TemplateView.as_view(template_name="settings/packages.html"),

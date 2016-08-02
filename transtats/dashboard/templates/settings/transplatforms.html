@@ -1,6 +1,7 @@
 {% extends "settings/settings_base.html" %}
 
 {% block extrascript %}
+{{ block.super }}
 <script type="text/javascript">
     $(document).ready(function() {
         $('#tab-trans-platforms').addClass('active');
@@ -9,13 +10,45 @@
 {% endblock %}
 
 {% block tabcontent %}
-<h5>This section would include translation platforms (Zanata, Transifex) stuff!!</h5>
-<table class="table table-striped">
-{% for detail, value in platform_details.items %}
-    <tr>
-        <td>{{ detail }}</td>
-        <td>{{ value }}</td>
-    </tr>
-{% endfor %}
-</table>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="text-right">
+            <button type="button" class="btn btn-default">Add Server Instance</button>
+        </div>
+    </div>
+</div>
+<hr/>
+{% if platforms %}
+    <div class="row">
+    {% for platform in platforms %}
+      <div class="col-sm-6 col-md-4">
+        <div class="thumbnail">
+          <div class="caption">
+            <h3>{{ platform.engine_name|capfirst }} <small>{{ platform.subject }}</small>
+                {% if platform.server_status == 'active' %}
+                    <span class="glyphicon glyphicon-ok-circle" style="color:green"></span>
+                {% else %}
+                    <span class="glyphicon glyphicon-ban-circle" style="color:orange"></span>
+                {% endif %}</h3>
+            <p><a href="{{ platform.api_url }}" target="_blank">{{ platform.api_url }}</a>
+                <span class="glyphicon glyphicon-link" aria-hidden="true"></span></p>
+            <p>
+                <a href="#" class="btn btn-default" role="button">Edit URL</a>
+                {% if platform.server_status == 'active' %}
+                    <a href="#" class="btn btn-default" role="button">Deactivate</a>
+                {% else %}
+                    <a href="#" class="btn btn-default" role="button">Activate</a>
+                    <a href="#" class="btn btn-danger" role="button">Remove</a>
+                {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+{% else %}
+    <p>
+        Add server instance of a translation platform to list it here.
+    </p>
+{% endif %}
 {% endblock %}

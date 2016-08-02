@@ -21,7 +21,6 @@
 
 from django.views.generic import ListView, TemplateView
 from ..managers.settings import AppSettingsManager
-from ..managers.transplatform import TransPlatformManager
 
 
 class AppSettingsView(ListView):
@@ -49,8 +48,8 @@ class TransPlatformSettingsView(TemplateView):
         """
         context_data = super(TemplateView, self).get_context_data(**kwargs)
 
-        transplatform_manager = TransPlatformManager(self.request)
-        platform_details = transplatform_manager.get_translation_platform()
+        app_settings_manager = AppSettingsManager(self.request)
+        platforms = app_settings_manager.get_translation_platforms()
 
-        context_data['platform_details'] = platform_details
+        context_data['platforms'] = platforms
         return context_data
