@@ -22,7 +22,9 @@
 from django.conf.urls import url
 from django.views.generic.base import TemplateView
 from .views.home import HomeTemplateView
-from .views.settings import AppSettingsView, TransPlatformSettingsView
+from .views.settings import (
+    AppSettingsView, TransPlatformSettingsView, LanguagesSettingsView
+)
 
 urlpatterns = [
     url(r'^$', HomeTemplateView.as_view(), name="home"),
@@ -34,8 +36,7 @@ urlpatterns = [
         name="settings-release-streams"),
     url(r'^settings/packages$', TemplateView.as_view(template_name="settings/packages.html"),
         name="settings-packages"),
-    url(r'^settings/languages$', TemplateView.as_view(template_name="settings/languages.html"),
-        name="settings-languages"),
+    url(r'^settings/languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^settings/notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
     url(r'^settings/scheduler$', TemplateView.as_view(template_name="settings/scheduler.html"),

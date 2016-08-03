@@ -20,20 +20,19 @@
 # along with transtats.  If not, see <http://www.gnu.org/licenses/>.
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, String
 
 Base = declarative_base()
 
 
-class TransPlatform(Base):
+class Languages(Base):
     """
-    Translation Platforms Model
+    Languages Model
     """
-    __tablename__ = 'transplatform'
+    __tablename__ = 'locales'
 
-    platform_id = Column(Integer, primary_key=True)
-    engine_name = Column(String(50))
-    subject = Column(String(50))
-    api_url = Column(String(200))
-    platform_slug = Column(String(10), unique=True)
-    server_status = Column(String(50))
+    locale_id = Column(String(50), primary_key=True)
+    lang_name = Column(String(200), unique=True)
+    locale_alias = Column(String(50))
+    lang_status = Column(String(10))
+    lang_set = Column(String(50))

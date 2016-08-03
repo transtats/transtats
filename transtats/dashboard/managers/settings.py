@@ -20,6 +20,7 @@
 # along with transtats.  If not, see <http://www.gnu.org/licenses/>.
 
 from ..models.transplatform import TransPlatform
+from ..models.locales import Languages
 from .base import BaseManager
 
 
@@ -30,7 +31,24 @@ class AppSettingsManager(BaseManager):
 
     def get_translation_platforms(self):
         """
-        fetch translation platforms from db, zanata as of now!
+        fetch all translation platforms from db
         """
-        platforms = self.db_session.query(TransPlatform).all()
+        platforms = None
+        try:
+            platforms = self.db_session.query(TransPlatform).all()
+        except:
+            # log event, passing for now
+            pass
         return platforms
+
+    def get_locales(self):
+        """
+        fetch all languages from db
+        """
+        locales = None
+        try:
+            locales = self.db_session.query(Languages).order_by('lang_name').all()
+        except:
+            # log event, passing for now
+            pass
+        return locales

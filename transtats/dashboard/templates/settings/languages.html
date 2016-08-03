@@ -9,5 +9,68 @@
 {% endblock %}
 
 {% block tabcontent %}
-<h5>This section would include languages stuffs!!</h5>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="text-right">
+            <button type="button" class="btn btn-default">Add Language</button>
+        </div>
+    </div>
+</div>
+<hr/>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Language Sets</h3>
+  </div>
+  <div class="panel-body">
+      <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
+      default
+      &nbsp;
+      <span class="glyphicon glyphicon-tag" aria-hidden="true" style="color:brown"></span>
+      custom
+  </div>
+</div>
+
+<hr/>
+{% if locales %}
+    <table class="table table-hover">
+        <thead><tr>
+            <th>Language</th>
+            <th>Locale</th>
+            <th>Alias</th>
+            <th>Set</th>
+            <th>Status</th>
+        </tr></thead>
+        <tbody>
+        {% for lang in locales %}
+        <tr>
+            <td>{{ lang.lang_name }}</td>
+            <td>{{ lang.locale_id }}</td>
+            <td>
+                {% if lang.locale_alias %}
+                    {{ lang.locale_alias }}
+                {% else %}
+                    <button class="btn btn-small btn-link" type="button">Add</button>
+                {% endif %}
+            </td>
+            <td>
+                {% if lang.lang_set == 'default' %}
+                    <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
+                {% endif %}
+            </td>
+            <td>{% if lang.lang_status == 'active' %}
+                    <input type="checkbox" checked data-toggle="toggle">
+                {% else %}
+                    <input type="checkbox" data-toggle="toggle">
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>
+        Add language to list it here.
+    </p>
+{% endif %}
+
 {% endblock %}

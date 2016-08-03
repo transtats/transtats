@@ -3,4 +3,5 @@
 
 # Translation Stats
 
-This helps package maintainers, developers and content translators to have consolidated translation progress report handy.
+This helps developers, package maintainers and translators to have consolidated translation progress report handy.
+One can verify translation statistics against a release stream and set notifications.
