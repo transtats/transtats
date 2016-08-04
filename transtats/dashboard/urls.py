@@ -23,17 +23,18 @@ from django.conf.urls import url
 from django.views.generic.base import TemplateView
 from .views.home import HomeTemplateView
 from .views.settings import (
-    AppSettingsView, TransPlatformSettingsView, LanguagesSettingsView
+    AppSettingsView, TransPlatformSettingsView,
+    LanguagesSettingsView, ReleaseStreamSettingsView
 )
 
 urlpatterns = [
     url(r'^$', HomeTemplateView.as_view(), name="home"),
+    url(r'^admin', TemplateView.as_view(template_name="login.html"), name="admin-login"),
     url(r'^register$', TemplateView.as_view(template_name="register.html"), name="register"),
     url(r'^features$', TemplateView.as_view(template_name="features.html"), name="features"),
     url(r'^settings$', AppSettingsView.as_view(), name="settings"),
     url(r'^settings/translation-platforms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
-    url(r'^settings/release-streams$', TemplateView.as_view(template_name="settings/release_streams.html"),
-        name="settings-release-streams"),
+    url(r'^settings/release-streams$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
     url(r'^settings/packages$', TemplateView.as_view(template_name="settings/packages.html"),
         name="settings-packages"),
     url(r'^settings/languages$', LanguagesSettingsView.as_view(), name="settings-languages"),

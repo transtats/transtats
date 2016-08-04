@@ -74,3 +74,24 @@ class LanguagesSettingsView(TemplateView):
 
         context_data['locales'] = locales
         return context_data
+
+
+class ReleaseStreamSettingsView(TemplateView):
+    """
+    Release Streams Settings View
+    """
+    template_name = "settings/release_streams.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        :param kwargs:
+        :return: context_data
+        """
+        context_data = super(TemplateView, self).get_context_data(**kwargs)
+
+        app_settings_manager = AppSettingsManager(self.request)
+        relstreams = app_settings_manager.get_release_streams()
+
+        context_data['relstreams'] = relstreams
+        return context_data

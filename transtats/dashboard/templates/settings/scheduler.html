@@ -9,5 +9,22 @@
 {% endblock %}
 
 {% block tabcontent %}
-<h5>This section would include scheduler stuffs!!</h5>
+<h5>This section would include scheduler (background jobs) stuffs!!</h5><hr/>
+<div class="container">
+  <h4>Statistics</h4>
+  <p>Sync with Translation Platform every</p>
+  <div class="dropdown">
+    <button class="btn btn-default dropdown-toggle" type="button" id="menu1" data-toggle="dropdown">One
+    <span class="caret"></span></button>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+      <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Three</a></li>
+      <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Nine</a></li>
+      <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Eighteen</a></li>
+      <li role="presentation" class="divider"></li>
+      <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Never</a></li>
+    </ul>
+      Hour(s).
+  </div>
+</div>
+
 {% endblock %}

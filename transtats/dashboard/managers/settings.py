@@ -19,8 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with transtats.  If not, see <http://www.gnu.org/licenses/>.
 
-from ..models.transplatform import TransPlatform
 from ..models.locales import Languages
+from ..models.relstream import ReleaseStream
+from ..models.transplatform import TransPlatform
 from .base import BaseManager
 
 
@@ -52,3 +53,12 @@ class AppSettingsManager(BaseManager):
             # log event, passing for now
             pass
         return locales
+
+    def get_release_streams(self):
+        relstreams = None
+        try:
+            relstreams = self.db_session.query(ReleaseStream).all()
+        except:
+            # log event, passing for now
+            pass
+        return relstreams

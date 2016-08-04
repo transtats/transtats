@@ -9,5 +9,59 @@
 {% endblock %}
 
 {% block tabcontent %}
-<h5>This section would include release streams (RHEL, Fedora) stuffs!!</h5>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="text-right">
+            <button type="button" class="btn btn-default">Add Release Stream</button>
+        </div>
+    </div>
+</div>
+<hr/>
+{% if relstreams %}
+    <div class="row">
+    {% for relstream in relstreams %}
+      <div class="col-sm-6 col-md-4">
+        <div class="thumbnail">
+          <div class="caption">
+            <h3>{{ relstream.relstream_name }} <small>{{ relstream.relstream_built }}</small>
+                {% if relstream.relstream_status == 'active' %}
+                    <span class="glyphicon glyphicon-ok-circle" style="color:green"></span>
+                {% else %}
+                    <span class="glyphicon glyphicon-ban-circle" style="color:orange"></span>
+                {% endif %}</h3>
+            <p>
+                <a href="{{ relstream.web_url }}" target="_blank">{{ relstream.web_url }}</a>
+                <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
+            </p>
+            <p>
+                <span style="color:grey">Authentication type:</span> {{ relstream.auth_type|capfirst }}
+                <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+            </p>
+            <p>
+                <span style="color:grey">Source package format:</span> {{ relstream.srcpkg_format|upper }}
+                <span class="glyphicon glyphicon-briefcase" aria-hidden="true"></span>
+            </p>
+            <p>
+                <span style="color:grey">Message bus:</span> {{ relstream.amqp_server }}
+                <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+            </p>
+            <p>
+                <a href="#" class="btn btn-default" role="button">Edit</a>
+                {% if relstream.relstream_status == 'active' %}
+                    <a href="#" class="btn btn-default" role="button">Deactivate</a>
+                {% else %}
+                    <a href="#" class="btn btn-default" role="button">Activate</a>
+                    <a href="#" class="btn btn-danger" role="button">Remove</a>
+                {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+{% else %}
+    <p>
+        Add release stream/branch to list it here.
+    </p>
+{% endif %}
 {% endblock %}
