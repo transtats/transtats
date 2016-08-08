@@ -24,7 +24,8 @@ from django.views.generic.base import TemplateView
 from .views.home import HomeTemplateView
 from .views.settings import (
     AppSettingsView, TransPlatformSettingsView,
-    LanguagesSettingsView, ReleaseStreamSettingsView
+    LanguagesSettingsView, ReleaseStreamSettingsView,
+    PackageSettingsView
 )
 
 urlpatterns = [
@@ -35,8 +36,7 @@ urlpatterns = [
     url(r'^settings$', AppSettingsView.as_view(), name="settings"),
     url(r'^settings/translation-platforms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
     url(r'^settings/release-streams$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
-    url(r'^settings/packages$', TemplateView.as_view(template_name="settings/packages.html"),
-        name="settings-packages"),
+    url(r'^settings/packages$', PackageSettingsView.as_view(), name="settings-packages"),
     url(r'^settings/languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^settings/notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),

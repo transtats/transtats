@@ -1,4 +1,5 @@
-##### Thu Aug 04 2016 Sundeep Anand <suanand@redhat.com>
+##### Mon Aug 08 2016 Sundeep Anand <suanand@redhat.com>
+* add packages setting page
 * add languages, transplatform, relstreams settings pages (read-only)
 * add alembic and settings page/models
 * rename project to transtats, fix ui and migrate to PostgreSQL

@@ -22,6 +22,7 @@
 from ..models.locales import Languages
 from ..models.relstream import ReleaseStream
 from ..models.transplatform import TransPlatform
+from ..models.package import Packages
 from .base import BaseManager
 
 
@@ -62,3 +63,12 @@ class AppSettingsManager(BaseManager):
             # log event, passing for now
             pass
         return relstreams
+
+    def get_packages(self):
+        packages = None
+        try:
+            packages = self.db_session.query(Packages).order_by('transtats_lastupdated').all()
+        except:
+            # log event, passing for now
+            pass
+        return packages

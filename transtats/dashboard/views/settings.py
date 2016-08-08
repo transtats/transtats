@@ -95,3 +95,24 @@ class ReleaseStreamSettingsView(TemplateView):
 
         context_data['relstreams'] = relstreams
         return context_data
+
+
+class PackageSettingsView(TemplateView):
+    """
+    Release Streams Settings View
+    """
+    template_name = "settings/packages.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        :param kwargs:
+        :return: context_data
+        """
+        context_data = super(TemplateView, self).get_context_data(**kwargs)
+
+        app_settings_manager = AppSettingsManager(self.request)
+        packages = app_settings_manager.get_packages()
+
+        context_data['packages'] = packages
+        return context_data
