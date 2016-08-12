@@ -12,9 +12,14 @@
 {% block tabcontent %}
 <div class="row">
     <div class="col-xs-12">
-        <div class="text-right">
+        <span class="btn-group btn-breadcrumb">
+            <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+            <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+            <a href="{% url 'settings-trans-platforms' %}" class="btn btn-default">Translation Platforms</a>
+        </span>
+        <span class="pull-right">
             <button type="button" class="btn btn-default">Add Server Instance</button>
-        </div>
+        </span>
     </div>
 </div>
 <hr/>
@@ -33,12 +38,14 @@
             <p><a href="{{ platform.api_url }}" target="_blank">{{ platform.api_url }}</a>
                 <span class="glyphicon glyphicon-link" aria-hidden="true"></span></p>
             <p>
-                <a href="#" class="btn btn-default" role="button">Edit URL</a>
+                <a href="#" class="btn btn-default btn-small" role="button">Edit URL</a>
                 {% if platform.server_status == 'active' %}
-                    <a href="#" class="btn btn-default" role="button">Deactivate</a>
+                    <a href="#" class="btn btn-default btn-small" role="button">Deactivate</a>
                 {% else %}
-                    <a href="#" class="btn btn-default" role="button">Activate</a>
-                    <a href="#" class="btn btn-danger" role="button">Remove</a>
+                    <a href="#" class="btn btn-default btn-small" role="button">Activate</a>
+                    <a class="btn btn-danger btn-small">
+                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                    </a>
                 {% endif %}
             </p>
           </div>

@@ -3,8 +3,7 @@
 
 ## Translation Statistics
 
-Transtats is a django app for developers, package maintainers and translators to have consolidated translation progress report handy.
-Fetched translation statistics can be verified against a release stream/branch and notifications can be set.
+Transtats is a Django app, for developers, package maintainers and translators, with an idea of some solution around tracking translation progress of the package for downstream releases with respect to current development.
 
 #### Setup development environment: virtualenv
 
@@ -25,4 +24,9 @@ python manage.py runserver
 
 #### Contribution
 
-Feel free to submit feature requests and/or bug fixes.Transtats uses [travis](https://travis-ci.org/sundeep-co-in/transtats) and [waffle](https://waffle.io/sundeep-co-in/transtats).
+Feel free to submit feature requests and/or bug fixes. Transtats uses [travis](https://travis-ci.org/sundeep-co-in/transtats) and [waffle](https://waffle.io/sundeep-co-in/transtats).
+
+
+#### License
+
+[Apache License](http://www.apache.org/licenses/LICENSE-2.0), Version 2.0

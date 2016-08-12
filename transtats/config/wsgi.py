@@ -1,5 +1,5 @@
 """
-WSGI config for transanalytics project.
+WSGI config for transtats project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

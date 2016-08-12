@@ -1,6 +1,8 @@
 {% extends "settings/settings_base.html" %}
 
 {% block extrascript %}
+<link href="/static/css/bootstrap-toggle.min.css" rel="stylesheet">
+<script src="/static/js/bootstrap-toggle.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         $('#tab-languages').addClass('active');
@@ -11,9 +13,14 @@
 {% block tabcontent %}
 <div class="row">
     <div class="col-xs-12">
-        <div class="text-right">
+        <span class="btn-group btn-breadcrumb">
+            <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+            <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+            <a href="{% url 'settings-languages' %}" class="btn btn-default">Languages</a>
+        </span>
+        <span class="pull-right">
             <button type="button" class="btn btn-default">Add Language</button>
-        </div>
+        </span>
     </div>
 </div>
 <hr/>

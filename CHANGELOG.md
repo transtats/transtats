@@ -1,5 +1,6 @@
-##### Mon Aug 08 2016 Sundeep Anand <suanand@redhat.com>
-* add packages setting page
+##### Fri Aug 12 2016 Sundeep Anand <suanand@redhat.com>
+* moved to Apache Licence Version 2.0
+* add packages setting page and fix ui
 * add languages, transplatform, relstreams settings pages (read-only)
 * add alembic and settings page/models
 * rename project to transtats, fix ui and migrate to PostgreSQL

@@ -15,8 +15,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-toggle.min.css" rel="stylesheet">
-
+    <link href="/static/css/breadcrumbs-arrows.css" rel="stylesheet">
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <link href="/static/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
 
@@ -32,7 +31,6 @@
     <script src="/static/js/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')</script>
     <script src="/static/js/bootstrap.min.js"></script>
-    <script src="/static/js/bootstrap-toggle.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="/static/js/ie10-viewport-bug-workaround.js"></script>
 
@@ -83,7 +81,10 @@
         <hr>
         <footer>
             <div class="container">
-                <p>&copy; 2016 {{ app_name }} | <a href="{% url 'home' %}">Home</a> | <a href="{% url 'register' %}">Sign Up</a> | <a href="#">Privacy Policy</a> | <a href="#">Terms and Conditions</a></p>
+                <p>&copy; 2016 {{ app_name }} | <a href="{% url 'home' %}">Home</a> |
+                  <a href="{% url 'features' %}">Features</a> | <a href="{% url 'settings' %}">Settings</a> |
+                  <a href="{% url 'register' %}">Sign Up</a> | <a href="#">Privacy Policy</a> |
+                  <a href="#">Terms and Conditions</a></p>
             </div>
         </footer>
     {% endblock %}

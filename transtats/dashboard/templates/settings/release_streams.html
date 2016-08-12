@@ -11,9 +11,14 @@
 {% block tabcontent %}
 <div class="row">
     <div class="col-xs-12">
-        <div class="text-right">
+        <span class="btn-group btn-breadcrumb">
+            <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+            <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+            <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Release Streams</a>
+        </span>
+        <span class="pull-right">
             <button type="button" class="btn btn-default">Add Release Stream</button>
-        </div>
+        </span>
     </div>
 </div>
 <hr/>
@@ -46,14 +51,29 @@
                 <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
             </p>
             <p>
-                <a href="#" class="btn btn-default" role="button">Edit</a>
+                <a href="#" class="btn btn-default btn-small" role="button">Edit</a>
                 {% if relstream.relstream_status == 'active' %}
-                    <a href="#" class="btn btn-default" role="button">Deactivate</a>
+                    <a href="#" class="btn btn-default btn-small" role="button">Deactivate</a>
                 {% else %}
-                    <a href="#" class="btn btn-default" role="button">Activate</a>
-                    <a href="#" class="btn btn-danger" role="button">Remove</a>
+                    <a href="#" class="btn btn-default btn-small" role="button">Activate</a>
+                    <a class="btn btn-danger btn-small">
+                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                    </a>
                 {% endif %}
             </p>
+            <hr/>
+            <div class="list-group">
+              <a href="#" class="list-group-item">
+                <h4 class="list-group-item-heading">Release Stream Branches</h4>
+                <p class="list-group-item-text"><span class="text-success">RHEL 7.2</span>, <span class="text-info">RHEL 7.3</span> [...]</p>
+              </a>
+            </div>
+            <div class="list-group">
+              <a href="#" class="list-group-item">
+                <h4 class="list-group-item-heading">Release Schedule</h4>
+                <p class="list-group-item-text">Devel: String Freeze, QE [...]</p>
+              </a>
+            </div>
           </div>
         </div>
       </div>
