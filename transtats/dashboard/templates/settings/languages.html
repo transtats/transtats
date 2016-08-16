@@ -10,16 +10,29 @@
 </script>
 {% endblock %}
 
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-languages' %}" class="btn btn-default">Languages</a>
+{% endblock %}
+
 {% block tabcontent %}
 <div class="row">
     <div class="col-xs-12">
-        <span class="btn-group btn-breadcrumb">
-            <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
-            <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
-            <a href="{% url 'settings-languages' %}" class="btn btn-default">Languages</a>
+        <span>
+            <span class="badge">{{ locales|length }}</span> languages
+            {% if active_locales_len %}
+                <span class="badge">{{ active_locales_len }}</span> enabled
+            {% endif %}
+            {% if inactive_locales_len %}
+                <span class="badge">{{ inactive_locales_len }}</span> disabled
+            {% endif %}
+            {% if aliases_len %}
+                <span class="badge">{{ aliases_len }}</span> aliases
+            {% endif %}
         </span>
         <span class="pull-right">
-            <button type="button" class="btn btn-default">Add Language</button>
+            <button type="button" class="btn btn-default disabled">Add Language</button>
         </span>
     </div>
 </div>

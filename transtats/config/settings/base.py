@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'crispy_forms',
     'dashboard',
 ]
 
@@ -196,3 +197,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DATABASE_URL = get_secret("DATABASE_URL")
 engine = sqlalchemy.create_engine(DATABASE_URL, isolation_level="SERIALIZABLE")
 Session = sqlalchemy.orm.sessionmaker(bind=engine)
+
+# django-crispy-forms template pack
+CRISPY_TEMPLATE_PACK = 'bootstrap3'

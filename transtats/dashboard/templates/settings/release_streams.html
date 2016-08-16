@@ -8,16 +8,20 @@
 </script>
 {% endblock %}
 
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Release Streams</a>
+{% endblock %}
+
 {% block tabcontent %}
 <div class="row">
     <div class="col-xs-12">
-        <span class="btn-group btn-breadcrumb">
-            <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
-            <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
-            <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Release Streams</a>
+        <span>
+            <span class="badge">{{ relstreams|length }}</span> release stream.
         </span>
         <span class="pull-right">
-            <button type="button" class="btn btn-default">Add Release Stream</button>
+            <button type="button" class="btn btn-default disabled">Add Release Stream</button>
         </span>
     </div>
 </div>

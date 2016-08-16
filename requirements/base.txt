@@ -2,6 +2,7 @@ alabaster==0.7.8
 alembic==0.8.7
 Babel==2.3.4
 Django==1.9.2
+django-crispy-forms==1.6.0
 django-debug-toolbar==1.4
 docutils==0.12
 flake8==2.5.4

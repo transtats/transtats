@@ -21,10 +21,14 @@
 
     <!-- Custom styles for this template -->
     <style type="text/css">
-	body {
+      body {
         padding-top: 50px;
-  		padding-bottom: 10px;
-	}
+        padding-bottom: 10px;
+      }
+      .content-area {
+        padding: 20px;
+        min-height: 600px;
+      }
     </style>
 
     <!-- jQuery and Bootstrap core JS -->
@@ -71,14 +75,22 @@
         </nav>
     {% endblock %}
 
-    {% block pagebanner %}
-    {% endblock %}
-
-    {% block pagecontent %}
-	{% endblock %}
+    <div class="container content-area">
+        <div class="well well-lg">
+          {% block pagebanner %}{% endblock %}
+        </div>
+        <div class="col-xs-12">
+          <span class="btn-group btn-breadcrumb">
+            {% block navigation %}{% endblock %}
+          </span>
+        </div>
+        <div style="padding:10px" class="col-xs-12">
+          {% block pagecontent %}{% endblock %}
+        </div>
+    </div>
 
     {% block footer %}
-        <hr>
+        <hr/>
         <footer>
             <div class="container">
                 <p>&copy; 2016 {{ app_name }} | <a href="{% url 'home' %}">Home</a> |

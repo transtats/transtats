@@ -9,16 +9,26 @@
 </script>
 {% endblock %}
 
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-trans-platforms' %}" class="btn btn-default">Translation Platforms</a>
+{% endblock %}
+
 {% block tabcontent %}
 <div class="row">
     <div class="col-xs-12">
-        <span class="btn-group btn-breadcrumb">
-            <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
-            <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
-            <a href="{% url 'settings-trans-platforms' %}" class="btn btn-default">Translation Platforms</a>
+        <span>
+            <span class="badge">{{ platforms|length }}</span> platforms
+            {% if active_platforms_len %}
+                <span class="badge">{{ active_platforms_len }}</span> enabled
+            {% endif %}
+            {% if inactive_platforms_len %}
+                <span class="badge">{{ inactive_platforms_len }}</span> disabled
+            {% endif %}
         </span>
         <span class="pull-right">
-            <button type="button" class="btn btn-default">Add Server Instance</button>
+            <button type="button" class="btn btn-default disabled">Add Server Instance</button>
         </span>
     </div>
 </div>

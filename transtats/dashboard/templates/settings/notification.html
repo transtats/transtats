@@ -8,6 +8,12 @@
 </script>
 {% endblock %}
 
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-notification' %}" class="btn btn-default">Notification</a>
+{% endblock %}
+
 {% block tabcontent %}
 <h5>This section would include settings for notification stuffs!!</h5><hr/>
 <div class="alert alert-warning" role="alert">Devel: Heads up! Next release is just a couple of weeks ahead. New translations are available to be pulled.</div>

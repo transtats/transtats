@@ -8,16 +8,20 @@
 </script>
 {% endblock %}
 
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-scheduler' %}" class="btn btn-default">Scheduler</a>
+{% endblock %}
+
 {% block tabcontent %}
 <div class="row">
     <div class="col-xs-12">
-        <span class="btn-group btn-breadcrumb">
-            <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
-            <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
-            <a href="{% url 'settings-scheduler' %}" class="btn btn-default">Scheduler</a>
+        <span>
+            <span class="badge">1</span> task scheduled.
         </span>
         <span class="pull-right">
-            <button type="button" class="btn btn-default">Add Cron</button>
+            <button type="button" class="btn btn-default disabled">Add Cron</button>
         </span>
     </div>
 </div>

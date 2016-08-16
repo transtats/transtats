@@ -13,16 +13,20 @@
 </script>
 {% endblock %}
 
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-packages' %}" class="btn btn-default">Packages</a>
+{% endblock %}
+
 {% block tabcontent %}
 <div class="row">
     <div class="col-xs-12">
-        <span class="btn-group btn-breadcrumb">
-            <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
-            <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
-            <a href="{% url 'settings-packages' %}" class="btn btn-default">Packages</a>
+        <span>
+            <span class="badge">{{ packages|length }}</span> packages registered.
         </span>
         <div class="pull-right">
-            <button type="button" class="btn btn-default">Add Package</button>
+            <button type="button" class="btn btn-default disabled">Add Package</button>
         </div>
     </div>
 </div>
@@ -33,10 +37,10 @@
             <tr>
                 <th>Package</th>
                 <th>Upstream</th>
-                <th>Transplatform</th>
-                <th>Relstream</th>
-                <th>Lang Set</th>
-                <th>Stats Updated</th>
+                <th>Translation Platform</th>
+                <th>Release Stream</th>
+                <th>Language Set</th>
+                <th>Stats Last Updated</th>
                 <th>&nbsp;</th>
                 <th>&nbsp;</th>
             </tr>
@@ -45,10 +49,10 @@
             <tr>
                 <th>Package</th>
                 <th>Upstream</th>
-                <th>Transplatform</th>
-                <th>Relstream</th>
-                <th>Lang Set</th>
-                <th>Stats Updated</th>
+                <th>Translation Platform</th>
+                <th>Release Stream</th>
+                <th>Language Set</th>
+                <th>Stats Last Updated</th>
                 <th>&nbsp;</th>
                 <th>&nbsp;</th>
             </tr>

@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 
 {% block pagebanner %}
-    <div style="padding:20px">
-      <div class="container well well-lg">
-        <h2>App features and how it works...</h2>
-      </div>
+    <div class="page-header">
+      <h1>App features <small>and how it works...</small></h1>
     </div>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'features' %}" class="btn btn-default">Features</a>
 {% endblock %}
 
 {% block extrascript %}
@@ -21,7 +24,7 @@
 {% endblock %}
 
 {% block pagecontent %}
-<div style="padding-left:200px">
+<div style="padding-left:100px">
     <div class="content-section-a">
         <div class="container">
             <div class="row">
@@ -29,7 +32,7 @@
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
                     <h3 class="section-heading">Track translation progress</h3>
-                    <p style="font-size: medium;">In development of localised software, translation progress needs to be monitored on the basis of languages and release streams. {{ app_name }} collects templates, figure-out their translations, analyse statistics and generate reports.</p>
+                    <p style="font-size: medium;" class="text-justify">In development of localised software, translation progress needs to be monitored on the basis of languages and release streams. {{ app_name }} collects templates, figure-out their translations, analyse statistics and generate reports.</p>
                 </div>
                 <div class="col-lg-4 col-lg-offset-1 col-sm-5">
                     <hr class="section-heading-spacer">
@@ -48,7 +51,7 @@
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
                     <h3 class="section-heading">Frequent sync with repositories</h3>
-                    <p style="font-size: medium;">{{ app_name }} pulls data from code and translation repositories at regular intervals to ensure correct and latest data representations. Snapshots are also kept to manage diffs and growth analysis.</p>
+                    <p style="font-size: medium;" class="text-justify">{{ app_name }} pulls data from code and translation repositories at regular intervals to ensure correct and latest data representations. Snapshots are also kept to manage diffs and growth analysis.</p>
                 </div>
                 <div class="col-lg-5 col-sm-pull-4  col-sm-5">
                     <hr class="section-heading-spacer">
@@ -66,7 +69,7 @@
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
                     <h3 class="section-heading">Verify with release streams</h3>
-                    <p style="font-size: medium;">Sometimes translation platform shows good progress yet it is found that package released does not contain the latest. {{ app_name }} never let you miss string freeze and ensure to bundle the latest.</p>
+                    <p style="font-size: medium;" class="text-justify">Sometimes translation platform shows good progress yet it is found that package released does not contain the latest. {{ app_name }} never let you miss string freeze and ensure to bundle the latest.</p>
                 </div>
                 <div class="col-lg-4 col-lg-offset-1 col-sm-5">
                     <hr class="section-heading-spacer">
@@ -84,7 +87,7 @@
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
                     <h3 class="section-heading">Package list & language sets</h3>
-                    <p style="font-size: medium;">How about consolidate stats for the list of packages for a language set? Language set and list of packages can be created and maintained by registered users. Custom view experience.</p>
+                    <p style="font-size: medium;" class="text-justify">How about consolidate stats for the list of packages for a language set? Language set and list of packages can be created and maintained by registered users. Custom view experience.</p>
                 </div>
                 <div class="col-lg-5 col-sm-pull-4  col-sm-5">
                     <hr class="section-heading-spacer">

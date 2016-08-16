@@ -13,22 +13,23 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.views.generic import TemplateView
+from ..models.package import Packages
+from .base import BaseManager
 
 
-class HomeTemplateView(TemplateView):
+class PackagesManager(BaseManager):
     """
-    Home Page Template View
+    Packages Manager
     """
-    template_name = "home.html"
 
-    def get_context_data(self, **kwargs):
+    def get_packages(self):
         """
-        Build the Context Data
-        :param kwargs:
-        :return: context_data
+        fetch packages from db
         """
-        context_data = super(TemplateView, self).get_context_data(**kwargs)
-        context_data['description'] = \
-            "translation position of the package for downstream"
-        return context_data
+        try:
+            packages = self.db_session.query(Packages).order_by('transtats_lastupdated').all()
+        except:
+            # log event, passing for now
+            pass
+        else:
+            return packages

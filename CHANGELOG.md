@@ -1,4 +1,5 @@
-##### Fri Aug 12 2016 Sundeep Anand <suanand@redhat.com>
+##### Wed Aug 17 2016 Sundeep Anand <suanand@redhat.com>
+* add breadcrumb and streamline ui
 * moved to Apache Licence Version 2.0
 * add packages setting page and fix ui
 * add languages, transplatform, relstreams settings pages (read-only)

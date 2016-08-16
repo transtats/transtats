@@ -37,6 +37,18 @@ class AppSettingsManager(BaseManager):
             pass
         return platforms
 
+    def get_transplatforms_set(self):
+        """
+        Creates transplatform set on the basis of status
+        :return: tuple
+        """
+        platforms = self.get_translation_platforms()
+        if not platforms:
+            return
+        active_platforms = list(filter(lambda platform: platform.server_status == 'active', platforms))
+        inactive_platforms = list(set(platforms) - set(active_platforms))
+        return active_platforms, inactive_platforms
+
     def get_locales(self):
         """
         fetch all languages from db
@@ -49,7 +61,23 @@ class AppSettingsManager(BaseManager):
             pass
         return locales
 
+    def get_locales_set(self):
+        """
+        Creates locales set on the basis of status
+        :return: tuple
+        """
+        locales = self.get_locales()
+        if not locales:
+            return
+        active_locales = list(filter(lambda locale: locale.lang_status == 'active', locales))
+        inactive_locales = list(set(locales) - set(active_locales))
+        aliases = list(filter(lambda locale: locale.locale_alias is not None, locales))
+        return active_locales, inactive_locales, aliases
+
     def get_release_streams(self):
+        """
+        Fetch all release streams from the db
+        """
         relstreams = None
         try:
             relstreams = self.db_session.query(ReleaseStream).all()
@@ -57,12 +85,3 @@ class AppSettingsManager(BaseManager):
             # log event, passing for now
             pass
         return relstreams
-
-    def get_packages(self):
-        packages = None
-        try:
-            packages = self.db_session.query(Packages).order_by('transtats_lastupdated').all()
-        except:
-            # log event, passing for now
-            pass
-        return packages
