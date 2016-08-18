@@ -25,7 +25,7 @@ class Packages(Base):
     """
     __tablename__ = 'packages'
 
-    package_id = Column(Integer, primary_key=True)
+    package_id = Column(Integer, primary_key=True, autoincrement=True)
     package_name = Column(String(200), unique=True)
     upstream_url = Column(String(200), unique=True)
     transplatform_slug = Column(String(10))

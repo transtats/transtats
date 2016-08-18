@@ -13,21 +13,24 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
-
-Base = declarative_base()
+from ..models.relstream import ReleaseStream
+from .base import BaseManager
 
 
-class TransPlatform(Base):
+class ReleaseStreamManager(BaseManager):
     """
-    Translation Platforms Model
+    Release Stream Manager
     """
-    __tablename__ = 'transplatform'
-
-    platform_id = Column(Integer, primary_key=True, autoincrement=True)
-    engine_name = Column(String(50))
-    subject = Column(String(50))
-    api_url = Column(String(200))
-    platform_slug = Column(String(10), unique=True)
-    server_status = Column(String(50))
+    def get_active_relstreams(self):
+        """
+        Fetch slug and name for all active release streams
+        :return: tuple
+        """
+        streams = None
+        try:
+            streams = self.db_session.query(ReleaseStream.relstream_slug, ReleaseStream.relstream_name) \
+                .filter_by(relstream_status='active').all()
+        except:
+            # log event, passing for now
+            pass
+        return tuple(streams) if streams else ()

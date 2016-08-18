@@ -13,9 +13,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.views.generic import ListView, TemplateView
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.views.generic import (
+    ListView, TemplateView
+)
+from django.views.generic.edit import FormMixin
+
+from ..forms.packages import NewPackageForm
 from ..managers.settings import AppSettingsManager
 from ..managers.packages import PackagesManager
+from ..managers.relstream import ReleaseStreamManager
+from ..managers.transplatform import TransPlatformManager
+from ..utilities import get_manager
 
 
 class AppSettingsView(TemplateView):
@@ -33,13 +43,13 @@ class TransPlatformSettingsView(ListView):
     context_object_name = 'platforms'
 
     def get_queryset(self):
-        app_settings_manager = AppSettingsManager(self.request)
+        app_settings_manager = get_manager(AppSettingsManager, self)
         platforms = app_settings_manager.get_translation_platforms()
         return platforms
 
     def get_context_data(self, **kwargs):
         context = super(TransPlatformSettingsView, self).get_context_data(**kwargs)
-        app_settings_manager = AppSettingsManager(self.request)
+        app_settings_manager = get_manager(AppSettingsManager, self)
         platforms_set = app_settings_manager.get_transplatforms_set()
         if isinstance(platforms_set, tuple):
             active_platforms, inactive_platforms = platforms_set
@@ -56,13 +66,13 @@ class LanguagesSettingsView(ListView):
     context_object_name = 'locales'
 
     def get_queryset(self):
-        app_settings_manager = AppSettingsManager(self.request)
+        app_settings_manager = get_manager(AppSettingsManager, self)
         locales = app_settings_manager.get_locales()
         return locales
 
     def get_context_data(self, **kwargs):
         context = super(LanguagesSettingsView, self).get_context_data(**kwargs)
-        app_settings_manager = AppSettingsManager(self.request)
+        app_settings_manager = get_manager(AppSettingsManager, self)
         locales_set = app_settings_manager.get_locales_set()
         if isinstance(locales_set, tuple):
             active_locales, inactive_locales, aliases = locales_set
@@ -80,19 +90,49 @@ class ReleaseStreamSettingsView(ListView):
     context_object_name = 'relstreams'
 
     def get_queryset(self):
-        app_settings_manager = AppSettingsManager(self.request)
+        app_settings_manager = get_manager(AppSettingsManager, self)
         relstreams = app_settings_manager.get_release_streams()
         return relstreams
 
 
-class PackageSettingsView(ListView):
+class PackageSettingsView(FormMixin, ListView):
     """
     Packages Settings View
     """
     template_name = "settings/packages.html"
     context_object_name = 'packages'
+    success_url = '/settings/packages'
 
     def get_queryset(self):
-        packages_manager = PackagesManager(self.request)
+        packages_manager = get_manager(PackagesManager, self)
         packages = packages_manager.get_packages()
         return packages
+
+    def get_initial(self):
+        initials = {}
+        initials.update(dict(transplatform_slug='ZNTAFED'))
+        initials.update(dict(release_stream_slug='RHEL'))
+        initials.update(dict(lang_set='default'))
+        return initials
+
+    def get_form(self, form_class=None):
+        kwargs = {}
+        transplatform_manager = get_manager(TransPlatformManager, self)
+        active_platforms = transplatform_manager.get_active_transplatforms()
+        relstream_manager = get_manager(ReleaseStreamManager, self)
+        active_streams = relstream_manager.get_active_relstreams()
+        kwargs.update({'transplatform_choices': active_platforms})
+        kwargs.update({'relstream_choices': active_streams})
+        kwargs.update({'initial': self.get_initial()})
+        return NewPackageForm(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        packages_manager = get_manager(PackagesManager, self)
+        post_params = request.POST.dict().copy()
+        filter_params = ('csrfmiddlewaretoken', 'addPackage')
+        [post_params.pop(key) for key in filter_params]
+        if not packages_manager.add_package(**post_params):
+            messages.add_message(request, messages.ERROR, (
+                'Alas! Something unexpected happened. Please try adding your package again!'
+            ))
+        return HttpResponseRedirect(self.success_url)

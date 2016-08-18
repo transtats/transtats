@@ -19,7 +19,7 @@ import sqlalchemy as sa
 def upgrade():
     op.create_table(
         'transplatform',
-        sa.Column('platform_id', sa.Integer, primary_key=True),
+        sa.Column('platform_id', sa.Integer, primary_key=True, autoincrement=True),
         sa.Column('engine_name', sa.String(50), nullable=False),
         sa.Column('subject', sa.String(50)),
         sa.Column('api_url', sa.String(200)),

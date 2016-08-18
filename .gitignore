@@ -68,7 +68,9 @@ target/
 */*/migrations/
 */database.json
 alembic.ini
+alembic/test-data.sql
 
 # IDE
 .idea/
 */*/*/keys.json
+requirements/freeze.txt

@@ -1,4 +1,5 @@
-##### Wed Aug 17 2016 Sundeep Anand <suanand@redhat.com>
+##### Thu Aug 18 2016 Sundeep Anand <suanand@redhat.com>
+* add django-crispy-forms and enable add packages
 * add breadcrumb and streamline ui
 * moved to Apache Licence Version 2.0
 * add packages setting page and fix ui

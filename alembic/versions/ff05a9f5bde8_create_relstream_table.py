@@ -19,7 +19,7 @@ import sqlalchemy as sa
 def upgrade():
     op.create_table(
         'relstream',
-        sa.Column('relstream_id', sa.Integer, primary_key=True),
+        sa.Column('relstream_id', sa.Integer, primary_key=True, autoincrement=True),
         sa.Column('relstream_name', sa.String(50)),
         sa.Column('relstream_slug', sa.String(10), unique=True),
         sa.Column('relstream_server', sa.String(200), unique=True),

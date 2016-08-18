@@ -19,7 +19,7 @@ import sqlalchemy as sa
 def upgrade():
     op.create_table(
         'users',
-        sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
         sa.Column('username', sa.String(200), unique=True, nullable=False),
         sa.Column('salt', sa.String(10)),
         sa.Column('password', sa.String(123)),

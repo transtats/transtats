@@ -45,3 +45,17 @@ class TransPlatformManager(BaseManager):
             platform['subject'] = translation_platform.subject
             platform['state'] = translation_platform.server_status
         return platform
+
+    def get_active_transplatforms(self):
+        """
+        Fetch slug and api_url for all active transplatforms
+        :return: tuple
+        """
+        platforms = None
+        try:
+            platforms = self.db_session.query(TransPlatform.platform_slug, TransPlatform.api_url) \
+                .filter_by(server_status='active').all()
+        except:
+            # log event, passing for now
+            pass
+        return tuple(platforms) if platforms else ()

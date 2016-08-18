@@ -19,7 +19,7 @@ import sqlalchemy as sa
 def upgrade():
     op.create_table(
         'packages',
-        sa.Column('package_id', sa.Integer, primary_key=True),
+        sa.Column('package_id', sa.Integer, primary_key=True, autoincrement=True),
         sa.Column('package_name', sa.String(200), unique=True, nullable=False),
         sa.Column('upstream_url', sa.String(200), unique=True, nullable=False),
         sa.Column('transplatform_slug', sa.String(10)),

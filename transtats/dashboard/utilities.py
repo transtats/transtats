@@ -13,21 +13,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
 
-Base = declarative_base()
-
-
-class TransPlatform(Base):
-    """
-    Translation Platforms Model
-    """
-    __tablename__ = 'transplatform'
-
-    platform_id = Column(Integer, primary_key=True, autoincrement=True)
-    engine_name = Column(String(50))
-    subject = Column(String(50))
-    api_url = Column(String(200))
-    platform_slug = Column(String(10), unique=True)
-    server_status = Column(String(50))
+def get_manager(manager_name, view_instance):
+    return manager_name(view_instance.request)

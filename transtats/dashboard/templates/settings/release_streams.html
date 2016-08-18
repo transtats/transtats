@@ -55,12 +55,12 @@
                 <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
             </p>
             <p>
-                <a href="#" class="btn btn-default btn-small" role="button">Edit</a>
+                <a href="#" class="btn btn-default btn-small disabled" role="button">Edit</a>
                 {% if relstream.relstream_status == 'active' %}
-                    <a href="#" class="btn btn-default btn-small" role="button">Deactivate</a>
+                    <a href="#" class="btn btn-default btn-small disabled" role="button">Deactivate</a>
                 {% else %}
-                    <a href="#" class="btn btn-default btn-small" role="button">Activate</a>
-                    <a class="btn btn-danger btn-small">
+                    <a href="#" class="btn btn-default btn-small disabled" role="button">Activate</a>
+                    <a class="btn btn-danger btn-small disabled">
                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                     </a>
                 {% endif %}

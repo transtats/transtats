@@ -38,4 +38,6 @@ urlpatterns = [
         name="settings-scheduler"),
     url(r'^settings/stats-views$', TemplateView.as_view(template_name="settings/stats_views.html"),
         name="settings-stats-views"),
+    url(r'^settings/logs$', TemplateView.as_view(template_name="settings/logs.html"),
+        name="settings-logs"),
 ]

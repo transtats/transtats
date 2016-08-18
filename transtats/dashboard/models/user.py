@@ -32,7 +32,8 @@ def random_characters(string_length=10):
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, unique=True)
     salt = Column(String(10))
     password = Column(String(128))

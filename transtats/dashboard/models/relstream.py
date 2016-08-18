@@ -25,7 +25,7 @@ class ReleaseStream(Base):
     """
     __tablename__ = 'relstream'
 
-    relstream_id = Column(Integer, primary_key=True)
+    relstream_id = Column(Integer, primary_key=True, autoincrement=True)
     relstream_name = Column(String(50))
     relstream_slug = Column(String(10), unique=True)
     relstream_server = Column(String(200), unique=True)
