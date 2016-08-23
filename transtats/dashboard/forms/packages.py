@@ -17,7 +17,9 @@ from django import forms
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, HTML
-from crispy_forms.bootstrap import FormActions, InlineRadios, Div
+from crispy_forms.bootstrap import (
+    FormActions, InlineRadios, Div, InlineCheckboxes
+)
 
 
 class NewPackageForm(forms.Form):
@@ -29,7 +31,7 @@ class NewPackageForm(forms.Form):
     langset_choices = (('default', 'Default'), ('custom', 'Custom'))
 
     package_name = forms.CharField(
-        label='Package Name', help_text='Package name as-in upstream.', required=True
+        label='Package Name', help_text='Package name as-in upstream.', required=True,
     )
     upstream_url = forms.URLField(
         label='Upstream URL', help_text='Source repository location (GitHub, Bitbucket etc).', required=True
@@ -38,9 +40,9 @@ class NewPackageForm(forms.Form):
         label='Translation Platform',
         choices=transplatform_choices, help_text='Translation statistics will be fetched from this server.'
     )
-    release_stream_slug = forms.ChoiceField(
+    release_streams = forms.ChoiceField(
         label='Release Stream', widget=forms.CheckboxSelectMultiple, choices=relstream_choices,
-        help_text="Translation progress for these streams will be tracked."
+        help_text="Translation progress for selected streams will be tracked."
     )
     lang_set = forms.ChoiceField(
         label="Language Set", widget=forms.RadioSelect, choices=langset_choices, required=False
@@ -51,23 +53,30 @@ class NewPackageForm(forms.Form):
         self.relstream_choices = kwargs.pop('relstream_choices')
         super(NewPackageForm, self).__init__(*args, **kwargs)
         self.fields['transplatform_slug'].choices = self.transplatform_choices
-        self.fields['release_stream_slug'].choices = self.relstream_choices
+        self.fields['release_streams'].choices = self.relstream_choices
+        super(NewPackageForm, self).full_clean()
 
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.form_action = '/settings/packages'
+    helper.form_class = 'dynamic-form'
+    helper.error_text_inline = True
+    helper.form_show_errors = True
 
     helper.layout = Layout(
         Div(
             Field('package_name', css_class='form-control'),
             Field('upstream_url', css_class='form-control'),
-            Field('transplatform_slug', css_class='dropdown'),
-            Field('release_stream_slug', css_class='dropdown'),
+            Field('transplatform_slug', css_class='selectpicker'),
+            InlineCheckboxes('release_streams'),
             InlineRadios('lang_set'),
             HTML("<hr/>"),
-            HTML("<h5 class='text-warning'>Servers configured here may be contacted at intervals.</h5>"),
+            HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),
             FormActions(
                 Submit('addPackage', 'Add Package', css_class='btn btn-default'),
             )
         )
     )
+
+    def is_valid(self):
+        return False if len(self.errors) > 1 else True

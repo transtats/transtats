@@ -16,7 +16,6 @@
 from ..models.locales import Languages
 from ..models.relstream import ReleaseStream
 from ..models.transplatform import TransPlatform
-from ..models.package import Packages
 from .base import BaseManager
 
 
@@ -33,6 +32,7 @@ class AppSettingsManager(BaseManager):
         try:
             platforms = self.db_session.query(TransPlatform).all()
         except:
+            self.db_session.rollback()
             # log event, passing for now
             pass
         return platforms
@@ -45,7 +45,7 @@ class AppSettingsManager(BaseManager):
         platforms = self.get_translation_platforms()
         if not platforms:
             return
-        active_platforms = list(filter(lambda platform: platform.server_status == 'active', platforms))
+        active_platforms = [platform for platform in platforms if platform.server_status]
         inactive_platforms = list(set(platforms) - set(active_platforms))
         return active_platforms, inactive_platforms
 
@@ -57,6 +57,7 @@ class AppSettingsManager(BaseManager):
         try:
             locales = self.db_session.query(Languages).order_by('lang_name').all()
         except:
+            self.db_session.rollback()
             # log event, passing for now
             pass
         return locales
@@ -69,7 +70,7 @@ class AppSettingsManager(BaseManager):
         locales = self.get_locales()
         if not locales:
             return
-        active_locales = list(filter(lambda locale: locale.lang_status == 'active', locales))
+        active_locales = [locale for locale in locales if locale.lang_status]
         inactive_locales = list(set(locales) - set(active_locales))
         aliases = list(filter(lambda locale: locale.locale_alias is not None, locales))
         return active_locales, inactive_locales, aliases
@@ -82,6 +83,7 @@ class AppSettingsManager(BaseManager):
         try:
             relstreams = self.db_session.query(ReleaseStream).all()
         except:
+            self.db_session.rollback()
             # log event, passing for now
             pass
         return relstreams

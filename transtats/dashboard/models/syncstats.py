@@ -13,20 +13,24 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from sqlalchemy.dialects.postgresql.json import JSONB
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, String, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 
 Base = declarative_base()
 
 
-class Languages(Base):
+class SyncStats(Base):
     """
-    Languages Model
+    SyncStats Model
     """
-    __tablename__ = 'locales'
+    __tablename__ = 'syncstats'
 
-    locale_id = Column(String(50), primary_key=True)
-    lang_name = Column(String(200), unique=True)
-    locale_alias = Column(String(50))
-    lang_status = Column(Boolean)
-    lang_set = Column(String(50))
+    sync_id = Column(Integer, primary_key=True, autoincrement=True)
+    package_name = Column(String(200), ForeignKey("packages.package_id"))
+    job_uuid = Column(UUID(as_uuid=True), ForeignKey("jobs.job_uuid"))
+    project_version = Column(String(200))
+    stats_raw_json = Column(JSONB)
+    sync_iter_count = Column(Integer)
+    sync_visibility = Column(Boolean)

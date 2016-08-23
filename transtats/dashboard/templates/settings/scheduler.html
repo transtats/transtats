@@ -2,8 +2,52 @@
 
 {% block extrascript %}
 <script type="text/javascript">
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    var csrftoken = getCookie('csrftoken');
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+
     $(document).ready(function() {
         $('#tab-scheduler').addClass('active');
+        $("#syncform").submit(function(event){
+            $.ajax({
+                 type:"POST",
+                 url:"/ajax/schedule-job",
+                 data: {
+                        'job': $('#identifier').val() // from form
+                        },
+                 success: function(response){
+                     $('#message').html(response)
+                 }
+            });
+            return false; //<---- move it here
+       });
     })
 </script>
 {% endblock %}
@@ -18,7 +62,7 @@
 <div class="row">
     <div class="col-xs-12">
         <span>
-            <span class="badge">1</span> task scheduled.
+            <span class="badge">1</span> task configured.
         </span>
         <span class="pull-right">
             <button type="button" class="btn btn-default disabled">Add Cron</button>
@@ -28,22 +72,32 @@
 <hr/>
 <div class="panel panel-default">
   <div class="panel-heading">
-    <h3 class="panel-title">Statistics</h3>
+    <h3 class="panel-title">Sync Translation Platform</h3>
   </div>
   <div class="panel-body">
-    <p>Pull stats from Translation Platform of registered Packages every</p>
-    <div class="dropdown">
-      <button class="btn btn-default dropdown-toggle" type="button" id="menu1" data-toggle="dropdown">One
-      <span class="caret"></span></button>
-      <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
-        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Three</a></li>
-        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Nine</a></li>
-        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Eighteen</a></li>
-        <li role="presentation" class="divider"></li>
-        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Never</a></li>
-      </ul>
-        Hour(s). Or <button type="button" class="btn btn-default">Run Now</button>
-    </div>
+    Update projects and their details
+    <select class="selectpicker" data-width="150px">
+      <option>Daily</option>
+      <option>Twice a week</option>
+      <option>Weekly</option>
+      <option class="select-dash" disabled="disabled">-----------------</option>
+      <option>Never</option>
+    </select>
+    And pull stats of registered packages every
+    <select class="selectpicker" data-width="150px">
+      <option>Three</option>
+      <option>Nine</option>
+      <option>Eighteen</option>
+      <option class="select-dash" disabled="disabled">-----------------</option>
+      <option>Never</option>
+    </select>
+    hour(s).<hr/>
+    <form method="post" id ="syncform" class="form-horizontal">{% csrf_token %}
+        <input type="hidden" value="synctransplatform" id="identifier"/>
+        <button type="submit" class="btn btn-default">Run Now</button>
+        <span id="message">&nbsp;&nbsp;This would initiate a sync job to update:
+            <span class="text-info"> project details and stats of registered packages.</span></span>
+    </form>
   </div>
 </div>
 {% endblock %}

@@ -13,8 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 
 Base = declarative_base()
 
@@ -30,4 +31,6 @@ class TransPlatform(Base):
     subject = Column(String(50))
     api_url = Column(String(200))
     platform_slug = Column(String(10), unique=True)
-    server_status = Column(String(50))
+    server_status = Column(Boolean)
+    projects_json = Column(JSONB)
+    projects_lastupdated = Column(DateTime)

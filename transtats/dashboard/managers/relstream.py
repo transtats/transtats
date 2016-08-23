@@ -26,11 +26,12 @@ class ReleaseStreamManager(BaseManager):
         Fetch slug and name for all active release streams
         :return: tuple
         """
-        streams = None
+        relstreams = None
         try:
-            streams = self.db_session.query(ReleaseStream.relstream_slug, ReleaseStream.relstream_name) \
-                .filter_by(relstream_status='active').all()
+            relstreams = self.db_session.query(ReleaseStream.relstream_slug, ReleaseStream.relstream_name) \
+                .filter_by(relstream_status=True).all()
         except:
+            self.db_session.rollback()
             # log event, passing for now
             pass
-        return tuple(streams) if streams else ()
+        return tuple(relstreams) if relstreams else ()

@@ -14,6 +14,8 @@ depends_on = None
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql.json import JSONB
 
 
 def upgrade():
@@ -24,9 +26,11 @@ def upgrade():
         sa.Column('upstream_url', sa.String(200), unique=True, nullable=False),
         sa.Column('transplatform_slug', sa.String(10)),
         sa.Column('transplatform_url', sa.String(200)),
-        sa.Column('release_stream_slug', sa.String(10)),
+        sa.Column('release_streams', ARRAY(sa.String(100)), default=[]),
         sa.Column('lang_set', sa.String(50)),
-        sa.Column('transtats_lastupdated', sa.DateTime),
+        sa.Column('transtats_lastupdated', sa.DateTime, nullable=True),
+        sa.Column('package_details_json', JSONB, nullable=True),
+        sa.Column('details_json_lastupdated', sa.DateTime, nullable=True)
     )
 
 

@@ -31,7 +31,7 @@ def upgrade():
         sa.Column('auth_type', sa.String(50)),
         sa.Column('amqp_server', sa.String(200)),
         sa.Column('msgbus_exchange', sa.String(20)),
-        sa.Column('relstream_status', sa.String(10)),
+        sa.Column('relstream_status', sa.Boolean),
     )
 
 

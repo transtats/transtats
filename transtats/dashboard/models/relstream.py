@@ -14,7 +14,7 @@
 # under the License.
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean
 
 Base = declarative_base()
 
@@ -37,4 +37,4 @@ class ReleaseStream(Base):
     auth_type = Column(String(50))
     amqp_server = Column(String(200))
     msgbus_exchange = Column(String(20))
-    relstream_status = Column(String(10))
+    relstream_status = Column(Boolean)

@@ -17,9 +17,8 @@ from django.conf.urls import url
 from django.views.generic.base import TemplateView
 from .views.home import HomeTemplateView
 from .views.settings import (
-    AppSettingsView, TransPlatformSettingsView,
-    LanguagesSettingsView, ReleaseStreamSettingsView,
-    PackageSettingsView
+    AppSettingsView, TransPlatformSettingsView, LanguagesSettingsView,
+    ReleaseStreamSettingsView, PackageSettingsView, schedule_job
 )
 
 urlpatterns = [
@@ -40,4 +39,5 @@ urlpatterns = [
         name="settings-stats-views"),
     url(r'^settings/logs$', TemplateView.as_view(template_name="settings/logs.html"),
         name="settings-logs"),
+    url(r'^ajax/schedule-job$', schedule_job, name="ajax-schedule-job")
 ]

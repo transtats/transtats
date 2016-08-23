@@ -33,6 +33,7 @@ class PackagesManager(BaseManager):
         try:
             packages = self.db_session.query(Packages).order_by('transtats_lastupdated').all()
         except:
+            self.db_session.rollback()
             # log event, passing for now
             pass
         return packages
@@ -43,7 +44,7 @@ class PackagesManager(BaseManager):
         :param kwargs: dict
         :return: boolean
         """
-        required_params = ('package_name', 'upstream_url', 'transplatform_slug', 'release_stream_slug')
+        required_params = ('package_name', 'upstream_url', 'transplatform_slug', 'release_streams')
         if not set(required_params) < set(kwargs.keys()):
             return
 
@@ -51,13 +52,14 @@ class PackagesManager(BaseManager):
             return
 
         try:
+            # todo
+            # fetch project details from transplatform and save in db
+
             # derive transplatform project URL
             platform_url = self.db_session.query(TransPlatform.api_url). \
                 filter_by(platform_slug=kwargs['transplatform_slug']).one()[0]
             kwargs['transplatform_url'] = platform_url + "/project/view/" + kwargs['package_name']
-            # override lang_set and transtats_lastupdated values
             kwargs['lang_set'] = 'default'
-            kwargs['transtats_lastupdated'] = datetime.now()
             # save in db
             new_package = Packages(**kwargs)
             self.db_session.add(new_package)

@@ -14,6 +14,7 @@ depends_on = None
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql.json import JSONB
 
 
 def upgrade():
@@ -24,7 +25,9 @@ def upgrade():
         sa.Column('subject', sa.String(50)),
         sa.Column('api_url', sa.String(200)),
         sa.Column('platform_slug', sa.String(10), unique=True),
-        sa.Column('server_status', sa.String(20)),
+        sa.Column('server_status', sa.Boolean),
+        sa.Column('projects_json', JSONB),
+        sa.Column('projects_lastupdated', sa.DateTime),
     )
 
 

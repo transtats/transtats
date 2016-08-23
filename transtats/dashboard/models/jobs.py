@@ -13,20 +13,25 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from sqlalchemy.dialects.postgresql.json import JSONB
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, String, Boolean
+from sqlalchemy import Column, Integer, String, DateTime
 
 Base = declarative_base()
 
 
-class Languages(Base):
+class Jobs(Base):
     """
-    Languages Model
+    Jobs Model
     """
-    __tablename__ = 'locales'
+    __tablename__ = 'jobs'
 
-    locale_id = Column(String(50), primary_key=True)
-    lang_name = Column(String(200), unique=True)
-    locale_alias = Column(String(50))
-    lang_status = Column(Boolean)
-    lang_set = Column(String(50))
+    job_id = Column(Integer, primary_key=True, autoincrement=True)
+    job_uuid = Column(UUID(as_uuid=True), unique=True)
+    job_type = Column(String(50), nullable=False)
+    job_start_time = Column(DateTime)
+    job_end_time = Column(DateTime)
+    job_log_json = Column(JSONB)
+    job_result = Column(String(50))
+    job_remarks = Column(String(200))

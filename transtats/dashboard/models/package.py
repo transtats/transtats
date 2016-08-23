@@ -13,6 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime
 
@@ -30,6 +32,8 @@ class Packages(Base):
     upstream_url = Column(String(200), unique=True)
     transplatform_slug = Column(String(10))
     transplatform_url = Column(String(200))
-    release_stream_slug = Column(String(10))
+    release_streams = Column(ARRAY(String(100)), default=[])
     lang_set = Column(String(50))
-    transtats_lastupdated = Column(DateTime)
+    transtats_lastupdated = Column(DateTime, nullable=True)
+    package_details_json = Column(JSONB, nullable=True)
+    details_json_lastupdated = Column(DateTime, nullable=True)

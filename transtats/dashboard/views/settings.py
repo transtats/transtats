@@ -14,13 +14,13 @@
 # under the License.
 
 from django.contrib import messages
-from django.http import HttpResponseRedirect
-from django.views.generic import (
-    ListView, TemplateView
-)
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render
+from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormMixin
 
 from ..forms.packages import NewPackageForm
+from ..managers.jobs import TransplatformSyncManager
 from ..managers.settings import AppSettingsManager
 from ..managers.packages import PackagesManager
 from ..managers.relstream import ReleaseStreamManager
@@ -111,11 +111,11 @@ class PackageSettingsView(FormMixin, ListView):
     def get_initial(self):
         initials = {}
         initials.update(dict(transplatform_slug='ZNTAFED'))
-        initials.update(dict(release_stream_slug='RHEL'))
+        initials.update(dict(release_streams='RHEL'))
         initials.update(dict(lang_set='default'))
         return initials
 
-    def get_form(self, form_class=None):
+    def get_form(self, form_class=None, data=None):
         kwargs = {}
         transplatform_manager = get_manager(TransPlatformManager, self)
         active_platforms = transplatform_manager.get_active_transplatforms()
@@ -124,15 +124,44 @@ class PackageSettingsView(FormMixin, ListView):
         kwargs.update({'transplatform_choices': active_platforms})
         kwargs.update({'relstream_choices': active_streams})
         kwargs.update({'initial': self.get_initial()})
+        if data:
+            kwargs.update({'data': data})
         return NewPackageForm(**kwargs)
 
     def post(self, request, *args, **kwargs):
         packages_manager = get_manager(PackagesManager, self)
-        post_params = request.POST.dict().copy()
+        post_params = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_params)
+        # process form_data to get them saved in db
         filter_params = ('csrfmiddlewaretoken', 'addPackage')
         [post_params.pop(key) for key in filter_params]
-        if not packages_manager.add_package(**post_params):
-            messages.add_message(request, messages.ERROR, (
-                'Alas! Something unexpected happened. Please try adding your package again!'
-            ))
-        return HttpResponseRedirect(self.success_url)
+        if not isinstance(post_params.get('release_streams'), (list, tuple, set)):
+            post_params['release_streams'] = [post_params['release_streams']]
+        # end processing
+        if form.is_valid():
+            if not packages_manager.add_package(**post_params):
+                messages.add_message(request, messages.ERROR, (
+                    'Alas! Something unexpected happened. Please try adding your package again!'
+                ))
+            return HttpResponseRedirect(self.success_url)
+        return render(request, self.template_name,
+                      {'form': form, 'packages': self.get_queryset(), 'POST': 'invalid'})
+
+
+def schedule_job(request):
+    """
+    Handles job schedule AJAX POST request
+    """
+    message = "&nbsp;&nbsp;<span class='text-warning'>Request could not be processed.</span>"
+    if request.is_ajax():
+        job_type = request.POST.dict().get('job')
+        if job_type == 'synctransplatform':
+            transplatform_sync_manager = TransplatformSyncManager(request, job_type)
+            job_uuid = transplatform_sync_manager.syncstats_initiate_job()
+            if job_uuid:
+                message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                          "&nbsp;Job Initiated! UUID: <a href='/settings/logs'>" + str(job_uuid) + "</a>"
+                transplatform_sync_manager.sync_trans_stats()
+            else:
+                message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+    return HttpResponse(message)

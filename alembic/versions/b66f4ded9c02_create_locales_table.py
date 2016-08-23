@@ -22,7 +22,7 @@ def upgrade():
         sa.Column('locale_id', sa.String(50), primary_key=True),
         sa.Column('lang_name', sa.String(200), unique=True),
         sa.Column('locale_alias', sa.String(50)),
-        sa.Column('lang_status', sa.String(10)),
+        sa.Column('lang_status', sa.Boolean),
         sa.Column('lang_set', sa.String(50)),
     )
 

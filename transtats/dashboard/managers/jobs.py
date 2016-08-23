@@ -13,20 +13,34 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, String, Boolean
-
-Base = declarative_base()
+from .base import JobManager
 
 
-class Languages(Base):
+class TransplatformSyncManager(JobManager):
     """
-    Languages Model
+    Translation Platform Sync Manager
     """
-    __tablename__ = 'locales'
 
-    locale_id = Column(String(50), primary_key=True)
-    lang_name = Column(String(200), unique=True)
-    locale_alias = Column(String(50))
-    lang_status = Column(Boolean)
-    lang_set = Column(String(50))
+    def syncstats_initiate_job(self):
+        """
+        Creates a Sync Job
+        """
+        if self.create_job():
+            return self.uuid
+        return None
+
+    def sync_trans_stats(self):
+        """
+        Run Sync process in sequential steps
+        """
+        stages = (
+            self.fetch_trans_projects,
+        )
+
+        [method() for method in stages]
+
+    def fetch_trans_projects(self):
+        """
+        Update projects json for transplatform
+        """
+        pass

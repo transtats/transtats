@@ -13,6 +13,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from datetime import datetime
+import uuid
+
+from ..models.jobs import Jobs
+
 
 class BaseManager(object):
     """
@@ -24,3 +29,48 @@ class BaseManager(object):
     def __init__(self, *args, **kwargs):
         # the first argument needs to be view request
         self.db_session = args[0].db_session
+
+
+class JobManager(BaseManager):
+    """
+    Job Base Manager: transplatform sync, relstream validation etc.
+    """
+    job_type = None
+    uuid = None
+    start_time = None
+    log_json = {}
+    job_result = None
+    job_remarks = None
+
+    def _new_job_id(self):
+        """
+        a UUID based on the host ID and current time
+        """
+        return uuid.uuid4()
+
+    def __init__(self, http_request, job_type):
+        """
+        Entry point for initiating new job
+        :param http_request: object
+        :param job_type: string
+        """
+        super(JobManager, self).__init__(http_request)
+        self.job_type = job_type
+        self.uuid = self._new_job_id()
+        self.start_time = datetime.now()
+
+    def create_job(self):
+        kwargs = {}
+        kwargs.update(dict(job_uuid=self.uuid))
+        kwargs.update(dict(job_type=self.job_type))
+        kwargs.update(dict(job_start_time=self.start_time))
+        try:
+            new_job = Jobs(**kwargs)
+            self.db_session.add(new_job)
+            self.db_session.commit()
+        except:
+            self.db_session.rollback()
+            # log event, pass for now
+            return False
+        else:
+            return True

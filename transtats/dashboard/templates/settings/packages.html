@@ -13,7 +13,6 @@
             $(this).fadeOut('slow');
         });
     })
-
 </script>
 {% endblock %}
 
@@ -48,7 +47,7 @@
                 <th>Package</th>
                 <th>Upstream</th>
                 <th>Translation Platform</th>
-                <th>Release Stream</th>
+                <th>Release Streams</th>
                 <th>Language Set</th>
                 <th>Stats Last Updated</th>
                 <th>&nbsp;</th>
@@ -60,7 +59,7 @@
                 <th>Package</th>
                 <th>Upstream</th>
                 <th>Translation Platform</th>
-                <th>Release Stream</th>
+                <th>Release Streams</th>
                 <th>Language Set</th>
                 <th>Stats Last Updated</th>
                 <th>&nbsp;</th>
@@ -79,9 +78,15 @@
                     <a href="{{ package.transplatform_url }}" target="_blank">{{ package.transplatform_url }}</a>
                     <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
                 </td>
-                <td>{{ package.release_stream_slug }}</td>
+                <td>{{ package.release_streams|join:", " }}</td>
                 <td>{{ package.lang_set }}</td>
-                <td>{{ package.transtats_lastupdated }}</td>
+                <td>
+                    {% if package.transtats_lastupdated %}
+                        {{ package.transtats_lastupdated }}
+                    {% else %}
+                        <a class="btn" href="{% url 'settings-scheduler' %}">Update Now</a>
+                    {% endif %}
+                </td>
                 <td align="center">
                   <a class="btn btn-default btn-small disabled"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
                 </td>
@@ -95,19 +100,27 @@
 </div>
 
 <!-- Modal -->
-<div id="newPackage" class="modal fade" role="dialog">
+<div id="newPackage" class="modal {% if POST == 'invalid' %} show {% else %} fade {% endif %}" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        {% if POST == 'invalid' %}
+          <a href="{% url 'settings-packages' %}" class="btn close">&times;</a>
+        {% else %}
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        {% endif %}
         <h4 class="modal-title">New Package</h4>
       </div>
       <div class="modal-body">
         <p>{% crispy form %}</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        {% if POST == 'invalid' %}
+          <a href="{% url 'settings-packages' %}" class="btn btn-default">Cancel</a>
+        {% else %}
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        {% endif %}
       </div>
     </div>
   </div>
