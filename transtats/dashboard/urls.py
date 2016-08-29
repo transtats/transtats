@@ -18,7 +18,8 @@ from django.views.generic.base import TemplateView
 from .views.home import HomeTemplateView
 from .views.settings import (
     AppSettingsView, TransPlatformSettingsView, LanguagesSettingsView,
-    ReleaseStreamSettingsView, PackageSettingsView, schedule_job
+    ReleaseStreamSettingsView, PackageSettingsView, LogsSettingsView,
+    schedule_job
 )
 
 urlpatterns = [
@@ -37,7 +38,6 @@ urlpatterns = [
         name="settings-scheduler"),
     url(r'^settings/stats-views$', TemplateView.as_view(template_name="settings/stats_views.html"),
         name="settings-stats-views"),
-    url(r'^settings/logs$', TemplateView.as_view(template_name="settings/logs.html"),
-        name="settings-logs"),
+    url(r'^settings/logs$', LogsSettingsView.as_view(), name="settings-logs"),
     url(r'^ajax/schedule-job$', schedule_job, name="ajax-schedule-job")
 ]

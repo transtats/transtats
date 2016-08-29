@@ -67,7 +67,7 @@ class TransplatformSyncManager(JobManager):
                 {str(datetime.now()): str(len(transplatforms)) + ' translation platforms fetched from db.'}
             )
             for platform in transplatforms:
-                rest_handle = self.rest_client(platform[0], platform[1])
+                rest_handle = self.rest_client(platform.engine_name, platform.api_url)
                 response_dict = rest_handle.process_request('list_projects')
                 if response_dict and response_dict.get('json_content'):
                     # save projects json in db
@@ -198,7 +198,7 @@ class TransplatformSyncManager(JobManager):
                         except Exception as e:
                             self.db_session.rollback()
                             self.log_json['Translation-Stats'].update(
-                                {str(datetime.now()): 'Transtats JSON for project: ' + project + 'of version: ' +
+                                {str(datetime.now()): 'Transtats JSON for project: ' + project + ' of version: ' +
                                                       version + ' failed to get saved in db. Details: ' + str(e)}
                             )
                             self.job_result = False

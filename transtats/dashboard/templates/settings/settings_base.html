@@ -26,9 +26,9 @@
       <li id="tab-release-streams" role="presentation"><a href="{% url 'settings-release-streams' %}">Release Streams</a></li>
       <li id="tab-packages" role="presentation"><a href="{% url 'settings-packages' %}">Packages</a></li>
       <li id="tab-scheduler" role="presentation"><a href="{% url 'settings-scheduler' %}">Scheduler</a></li>
-      <li id="tab-notification" role="presentation"><a href="{% url 'settings-notification' %}">Notification</a></li>
-      <li id="tab-stats-view" role="presentation"><a href="{% url 'settings-stats-views' %}">Statistics Views</a></li>
       <li id="tab-logs" role="presentation"><a href="{% url 'settings-logs' %}">Logs</a></li>
+      <li id="tab-stats-view" role="presentation"><a href="{% url 'settings-stats-views' %}">Stats Views</a></li>
+      <li id="tab-notification" role="presentation"><a href="{% url 'settings-notification' %}">Notification</a></li>
     </ul>
     <div style="padding:20px">
         {% block tabcontent %}{% endblock %}

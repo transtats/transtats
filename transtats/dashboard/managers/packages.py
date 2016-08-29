@@ -13,8 +13,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from datetime import datetime
-
 from ..models.package import Packages
 from ..models.transplatform import TransPlatform
 from .base import BaseManager
@@ -44,11 +42,12 @@ class PackagesManager(BaseManager):
         :param kwargs: dict
         :return: boolean
         """
-        required_params = ('package_name', 'upstream_url', 'transplatform_slug', 'release_streams')
+        required_params = ('package_name', 'upstream_url', 'transplatform_slug',
+                           'release_streams', 'trans_pkg_name')
         if not set(required_params) < set(kwargs.keys()):
             return
 
-        if not (kwargs.get('package_name') and kwargs.get('upstream_url')):
+        if not (kwargs['package_name'] and kwargs['upstream_url'] and kwargs['trans_pkg_name']):
             return
 
         try:
@@ -58,7 +57,7 @@ class PackagesManager(BaseManager):
             # derive transplatform project URL
             platform_url = self.db_session.query(TransPlatform.api_url). \
                 filter_by(platform_slug=kwargs['transplatform_slug']).one()[0]
-            kwargs['transplatform_url'] = platform_url + "/project/view/" + kwargs['package_name']
+            kwargs['transplatform_url'] = platform_url + "/project/view/" + kwargs.pop('trans_pkg_name')
             kwargs['lang_set'] = 'default'
             # save in db
             new_package = Packages(**kwargs)
@@ -71,12 +70,40 @@ class PackagesManager(BaseManager):
         else:
             return True
 
+    def _get_project_ids_names(self, projects):
+        ids = []
+        names = []
+        for project in projects:
+            ids.append(project['id'])
+            names.append(project['name'])
+        return ids, names
+
     def validate_package(self, **kwargs):
         """
         Validates existence of a package at a transplatform
         :param kwargs: dict
-        :return: Boolean
+        :return: str, Boolean
         """
-        # todo
-        # implement validation logic
-        return True
+        if not (kwargs.get('package_name')):
+            return
+        package_name = kwargs['package_name']
+        # get transplatform projects from db
+        platform = self.db_session.query(
+            TransPlatform.engine_name, TransPlatform.api_url,
+            TransPlatform.projects_json). \
+            filter_by(platform_slug=kwargs['transplatform_slug']).one()
+        projects_json = platform.projects_json
+        # if not found in db, fetch transplatform projects from API
+        if not projects_json:
+            rest_handle = self.rest_client(platform.engine_name, platform.api_url)
+            response_dict = rest_handle.process_request('list_projects')
+            if response_dict and response_dict.get('json_content'):
+                projects_json = response_dict['json_content']
+
+        ids, names = self._get_project_ids_names(projects_json)
+        if package_name in ids:
+            return package_name
+        elif package_name in names:
+            return ids[names.index(package_name)]
+        else:
+            return False

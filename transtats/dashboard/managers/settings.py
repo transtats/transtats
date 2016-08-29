@@ -15,6 +15,7 @@
 
 from ..models.locales import Languages
 from ..models.relstream import ReleaseStream
+from ..models.jobs import Jobs
 from ..models.transplatform import TransPlatform
 from .base import BaseManager
 
@@ -88,3 +89,17 @@ class AppSettingsManager(BaseManager):
             # log event, passing for now
             pass
         return relstreams
+
+    def get_job_logs(self):
+        """
+        Fetch all job logs from the db
+        """
+        job_logs = None
+        try:
+            job_logs = self.db_session.query(Jobs) \
+                .order_by(Jobs.job_start_time.desc()).all()
+        except:
+            self.db_session.rollback()
+            # log event, passing for now
+            pass
+        return job_logs

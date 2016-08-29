@@ -14,6 +14,7 @@
 # under the License.
 
 from django.contrib import messages
+from django.forms.utils import ErrorList
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import ListView, TemplateView
@@ -95,6 +96,19 @@ class ReleaseStreamSettingsView(ListView):
         return relstreams
 
 
+class LogsSettingsView(ListView):
+    """
+    Logs Settings View
+    """
+    template_name = "settings/logs.html"
+    context_object_name = 'logs'
+
+    def get_queryset(self):
+        app_settings_manager = get_manager(AppSettingsManager, self)
+        job_logs = app_settings_manager.get_job_logs()
+        return job_logs
+
+
 class PackageSettingsView(FormMixin, ListView):
     """
     Packages Settings View
@@ -138,9 +152,13 @@ class PackageSettingsView(FormMixin, ListView):
         if not isinstance(post_params.get('release_streams'), (list, tuple, set)):
             post_params['release_streams'] = [post_params['release_streams']]
         # end processing
-        if form.is_valid():
-            validate_package = packages_manager.validate_package(**post_params)
-            if not (validate_package and packages_manager.add_package(**post_params)):
+        validate_package = packages_manager.validate_package(**post_params)
+        if not validate_package:
+            errors = form._errors.setdefault("package_name", ErrorList())
+            errors.append("Not found at selected translation platform")
+        if validate_package and form.is_valid():
+            post_params['trans_pkg_name'] = validate_package
+            if not packages_manager.add_package(**post_params):
                 messages.add_message(request, messages.ERROR, (
                     'Alas! Something unexpected happened. Please try adding your package again!'
                 ))

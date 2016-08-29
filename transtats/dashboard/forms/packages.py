@@ -33,7 +33,7 @@ class NewPackageForm(forms.Form):
     langset_choices = (('default', 'Default'), ('custom', 'Custom'))
 
     package_name = forms.CharField(
-        label='Package Name', help_text='Package name as-in upstream.', required=True,
+        label='Package Name', help_text='Package name as-in translation platform.', required=True,
     )
     upstream_url = forms.URLField(
         label='Upstream URL', help_text='Source repository location (GitHub, Bitbucket etc).', required=True
