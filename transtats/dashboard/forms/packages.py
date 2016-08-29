@@ -16,7 +16,9 @@
 from django import forms
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Layout, Field, HTML
+from crispy_forms.layout import (
+    Submit, Layout, Field, HTML, Reset
+)
 from crispy_forms.bootstrap import (
     FormActions, InlineRadios, Div, InlineCheckboxes
 )
@@ -73,10 +75,10 @@ class NewPackageForm(forms.Form):
             HTML("<hr/>"),
             HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),
             FormActions(
-                Submit('addPackage', 'Add Package', css_class='btn btn-default'),
+                Submit('addPackage', 'Add Package'), Reset('reset', 'Reset')
             )
         )
     )
 
     def is_valid(self):
-        return False if len(self.errors) > 1 else True
+        return False if len(self.errors) >= 1 else True

@@ -70,3 +70,13 @@ class PackagesManager(BaseManager):
             return False
         else:
             return True
+
+    def validate_package(self, **kwargs):
+        """
+        Validates existence of a package at a transplatform
+        :param kwargs: dict
+        :return: Boolean
+        """
+        # todo
+        # implement validation logic
+        return True

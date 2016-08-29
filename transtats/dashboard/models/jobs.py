@@ -16,7 +16,7 @@
 from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 
 Base = declarative_base()
 
@@ -33,5 +33,5 @@ class Jobs(Base):
     job_start_time = Column(DateTime)
     job_end_time = Column(DateTime)
     job_log_json = Column(JSONB)
-    job_result = Column(String(50))
+    job_result = Column(Boolean)
     job_remarks = Column(String(200))

@@ -44,9 +44,16 @@
                     <span class="glyphicon glyphicon-ok-circle" style="color:green"></span>
                 {% else %}
                     <span class="glyphicon glyphicon-ban-circle" style="color:orange"></span>
-                {% endif %}</h3>
+                {% endif %}
+            </h3>
             <p><a href="{{ platform.api_url }}" target="_blank">{{ platform.api_url }}</a>
-                <span class="glyphicon glyphicon-link" aria-hidden="true"></span></p>
+                <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
+            </p>
+            {% if platform.projects_lastupdated %}
+            <p><span style="color:grey">Last updated</span> {{ platform.projects_lastupdated|timesince }} ago.
+                <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+            </p>
+            {% endif %}
             <p>
                 <a href="#" class="btn btn-default btn-small disabled" role="button">Edit URL</a>
                 {% if platform.server_status %}

@@ -1,4 +1,4 @@
-##### Thu Aug 25 2016 Sundeep Anand <suanand@redhat.com>
+##### Mon Aug 29 2016 Sundeep Anand <suanand@redhat.com>
 * enable transplatform projects and stats sync (zanata)
 * add django-crispy-forms and enable add packages
 * add breadcrumb and streamline ui

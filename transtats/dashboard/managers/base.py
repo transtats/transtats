@@ -17,6 +17,7 @@ from datetime import datetime
 import uuid
 
 from ..models.jobs import Jobs
+from ..services.consume.restclient import RestClient
 
 
 class BaseManager(object):
@@ -30,6 +31,17 @@ class BaseManager(object):
         # the first argument needs to be view request
         self.db_session = args[0].db_session
 
+    def rest_client(self, engine_name, base_url):
+        """
+        Instantiate RestClient
+        :param engine_name: str
+        :param base_url: str
+        :return: RestClient
+        """
+        if engine_name and base_url:
+            return RestClient(engine_name, base_url)
+        return
+
 
 class JobManager(BaseManager):
     """
@@ -39,7 +51,7 @@ class JobManager(BaseManager):
     uuid = None
     start_time = None
     log_json = {}
-    job_result = None
+    job_result = False
     job_remarks = None
 
     def _new_job_id(self):

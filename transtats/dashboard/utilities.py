@@ -13,6 +13,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from threading import Thread
+
 
 def get_manager(manager_name, view_instance):
     return manager_name(view_instance.request)
+
+
+# decorators
+def fork(function):
+    def decorator(*args, **kwargs):
+        t = Thread(target=function, args=args, kwargs=kwargs)
+        t.daemon = True
+        t.start()
+    return decorator

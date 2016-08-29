@@ -139,7 +139,8 @@ class PackageSettingsView(FormMixin, ListView):
             post_params['release_streams'] = [post_params['release_streams']]
         # end processing
         if form.is_valid():
-            if not packages_manager.add_package(**post_params):
+            validate_package = packages_manager.validate_package(**post_params)
+            if not (validate_package and packages_manager.add_package(**post_params)):
                 messages.add_message(request, messages.ERROR, (
                     'Alas! Something unexpected happened. Please try adding your package again!'
                 ))
@@ -160,7 +161,7 @@ def schedule_job(request):
             job_uuid = transplatform_sync_manager.syncstats_initiate_job()
             if job_uuid:
                 message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
-                          "&nbsp;Job Initiated! UUID: <a href='/settings/logs'>" + str(job_uuid) + "</a>"
+                          "&nbsp;Job created and logged! UUID: <a href='/settings/logs'>" + str(job_uuid) + "</a>"
                 transplatform_sync_manager.sync_trans_stats()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"

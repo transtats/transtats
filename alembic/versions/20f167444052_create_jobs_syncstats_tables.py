@@ -27,15 +27,15 @@ def upgrade():
         sa.Column('job_start_time', sa.DateTime),
         sa.Column('job_end_time', sa.DateTime),
         sa.Column('job_log_json', JSONB),
-        sa.Column('job_result', sa.String(50)),
+        sa.Column('job_result', sa.Boolean),
         sa.Column('job_remarks', sa.String(200)),
     )
 
     op.create_table(
         'syncstats',
         sa.Column('sync_id', sa.Integer, primary_key=True, autoincrement=True),
-        sa.Column('package_name', sa.String(200), sa.ForeignKey('packages.package_name')),
-        sa.Column('job_uuid', UUID(as_uuid=True), sa.ForeignKey('jobs.job_uuid')),
+        sa.Column('package_name', sa.String(200)),
+        sa.Column('job_uuid', UUID(as_uuid=True)),
         sa.Column('project_version', sa.String(200)),
         sa.Column('stats_raw_json', JSONB),
         sa.Column('sync_iter_count', sa.Integer),

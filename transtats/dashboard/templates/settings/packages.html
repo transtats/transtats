@@ -49,7 +49,7 @@
                 <th>Translation Platform</th>
                 <th>Release Streams</th>
                 <th>Language Set</th>
-                <th>Stats Last Updated</th>
+                <th>Stats Updated</th>
                 <th>&nbsp;</th>
                 <th>&nbsp;</th>
             </tr>
@@ -61,7 +61,7 @@
                 <th>Translation Platform</th>
                 <th>Release Streams</th>
                 <th>Language Set</th>
-                <th>Stats Last Updated</th>
+                <th>Last Sync</th>
                 <th>&nbsp;</th>
                 <th>&nbsp;</th>
             </tr>
@@ -82,7 +82,7 @@
                 <td>{{ package.lang_set }}</td>
                 <td>
                     {% if package.transtats_lastupdated %}
-                        {{ package.transtats_lastupdated }}
+                        {{ package.transtats_lastupdated|date }}
                     {% else %}
                         <a class="btn" href="{% url 'settings-scheduler' %}">Update Now</a>
                     {% endif %}

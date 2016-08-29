@@ -16,7 +16,7 @@
 from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Boolean
 
 Base = declarative_base()
 
@@ -28,8 +28,8 @@ class SyncStats(Base):
     __tablename__ = 'syncstats'
 
     sync_id = Column(Integer, primary_key=True, autoincrement=True)
-    package_name = Column(String(200), ForeignKey("packages.package_id"))
-    job_uuid = Column(UUID(as_uuid=True), ForeignKey("jobs.job_uuid"))
+    package_name = Column(String(200))
+    job_uuid = Column(UUID(as_uuid=True))
     project_version = Column(String(200))
     stats_raw_json = Column(JSONB)
     sync_iter_count = Column(Integer)

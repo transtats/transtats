@@ -15,7 +15,6 @@
 
 from collections import (namedtuple, OrderedDict)
 
-middle_url = '/seam/resource/restv1'
 http_methods = ('GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS')
 media_types = ('application/json', 'application/vnd.zanata.projects+json', 'application/vnd.zanata.Version+json',
                'application/vnd.zanata.project.iteration+json', 'application/vnd.zanata.glossary+json',
@@ -104,6 +103,7 @@ resource_config_dict = {
             http_methods[0]: {
                 'path_params': None,
                 'query_params': None,
+                'request_media_type': media_types[0],
                 'response_media_type': media_types[1],
             },
         }),
@@ -146,6 +146,7 @@ resource_config_dict = {
             http_methods[0]: {
                 'path_params': ('projectSlug', 'iterationSlug'),
                 'query_params': None,
+                'request_media_type': media_types[0],
                 'response_media_type': media_types[0],
             },
         }),
@@ -188,7 +189,7 @@ resource = namedtuple('service', 'rest_resource mount_point http_method')
 # service-to-resource mappings
 server_version = resource('VersionResource', list(resource_config_dict['VersionResource'].keys())[0], http_methods[0])
 list_projects = resource('ProjectsResource', list(resource_config_dict['ProjectsResource'].keys())[0], http_methods[0])
-list_project = resource('ProjectResource', list(resource_config_dict['ProjectResource'].keys())[0], http_methods[0])
+project_details = resource('ProjectResource', list(resource_config_dict['ProjectResource'].keys())[0], http_methods[0])
 get_iteration = resource('ProjectIterationResource', list(resource_config_dict['ProjectIterationResource'].keys())[0],
                          http_methods[0])
 list_files = resource('SourceDocResource', list(resource_config_dict['SourceDocResource'].keys())[0], http_methods[0])
@@ -203,11 +204,11 @@ proj_trans_stats = resource('StatisticsResource', list(resource_config_dict['Sta
 doc_trans_stats = resource('StatisticsResource', list(resource_config_dict['StatisticsResource'].keys())[1], http_methods[0])
 project_config = resource('ProjectIterationResource', list(resource_config_dict['ProjectIterationResource'].keys())[1],
                           http_methods[0])
-# Transanalytics Zanata support operates on services listed here
-zpc_services = {
+# Transtats Zanata support operates on services listed here
+services = {
     'server_version': server_version,
     'list_projects': list_projects,
-    'list_project': list_project,
+    'project_details': project_details,
     'get_iteration': get_iteration,
     'list_files': list_files,
     'retrieve_template': retrieve_template,
@@ -218,36 +219,3 @@ zpc_services = {
     'doc_trans_stats': doc_trans_stats,
     'project_config': project_config,
 }
-
-
-class ServiceConfig(object):
-    def __init__(self, service):
-        if service not in zpc_services:
-            raise Exception('Invalid Service')
-        else:
-            self._config_dict = resource_config_dict
-            self._middle_url = middle_url
-            self._service = zpc_services[service]
-            for attrib, value in (self._config_dict[self._service.rest_resource]
-                                  [self._service.mount_point][self._service.http_method].items()):
-                setattr(self, str(attrib), value)
-
-    @property
-    def resource_group(self):
-        return self._service.rest_resource
-
-    @property
-    def mount_points(self):
-        return list(self._config_dict[self._service.rest_resource].keys())
-
-    @property
-    def resource(self):
-        return self._middle_url + self._service.mount_point
-
-    @property
-    def mount_point(self):
-        return self._service.mount_point
-
-    @property
-    def http_method(self):
-        return self._service.http_method
