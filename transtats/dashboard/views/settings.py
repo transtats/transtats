@@ -15,7 +15,9 @@
 
 from django.contrib import messages
 from django.forms.utils import ErrorList
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import (
+    HttpResponse, HttpResponseRedirect, JsonResponse
+)
 from django.shortcuts import render
 from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormMixin
@@ -154,10 +156,10 @@ class PackageSettingsView(FormMixin, ListView):
         # end processing
         validate_package = packages_manager.validate_package(**post_params)
         if not validate_package:
-            errors = form._errors.setdefault("package_name", ErrorList())
+            errors = form._errors.setdefault('package_name', ErrorList())
             errors.append("Not found at selected translation platform")
         if validate_package and form.is_valid():
-            post_params['trans_pkg_name'] = validate_package
+            post_params['package_name'] = validate_package
             if not packages_manager.add_package(**post_params):
                 messages.add_message(request, messages.ERROR, (
                     'Alas! Something unexpected happened. Please try adding your package again!'
@@ -184,3 +186,15 @@ def schedule_job(request):
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
     return HttpResponse(message)
+
+
+def graph_data(request):
+    """
+    Prepares and dispatch graph data
+    """
+    graph_dataset = {}
+    if request.is_ajax():
+        package = request.POST.dict().get('package')
+        packages_manager = PackagesManager(request)
+        graph_dataset = packages_manager.get_trans_stats(package)
+    return JsonResponse(graph_dataset)

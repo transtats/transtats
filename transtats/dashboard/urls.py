@@ -19,7 +19,7 @@ from .views.home import HomeTemplateView
 from .views.settings import (
     AppSettingsView, TransPlatformSettingsView, LanguagesSettingsView,
     ReleaseStreamSettingsView, PackageSettingsView, LogsSettingsView,
-    schedule_job
+    schedule_job, graph_data
 )
 
 urlpatterns = [
@@ -39,5 +39,6 @@ urlpatterns = [
     url(r'^settings/stats-views$', TemplateView.as_view(template_name="settings/stats_views.html"),
         name="settings-stats-views"),
     url(r'^settings/logs$', LogsSettingsView.as_view(), name="settings-logs"),
-    url(r'^ajax/schedule-job$', schedule_job, name="ajax-schedule-job")
+    url(r'^ajax/schedule-job$', schedule_job, name="ajax-schedule-job"),
+    url(r'^ajax/graph-data$', graph_data, name="ajax-graph-data")
 ]

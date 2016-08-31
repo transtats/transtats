@@ -14,6 +14,8 @@
 # under the License.
 
 from django.views.generic import TemplateView
+from ..managers.packages import PackagesManager
+from ..utilities import get_manager
 
 
 class HomeTemplateView(TemplateView):
@@ -31,4 +33,9 @@ class HomeTemplateView(TemplateView):
         context_data = super(TemplateView, self).get_context_data(**kwargs)
         context_data['description'] = \
             "translation position of the package for downstream"
+
+        packages_manager = get_manager(PackagesManager, self)
+        packages = packages_manager.get_packages()
+        if packages:
+            context_data['packages'] = packages
         return context_data
