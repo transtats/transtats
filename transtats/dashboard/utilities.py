@@ -20,6 +20,14 @@ def get_manager(manager_name, view_instance):
     return manager_name(view_instance.request)
 
 
+def parse_project_details_json(json_dict):
+    """
+    Parse project details json
+    """
+    return json_dict.get('id'), \
+        [version.get('id') for version in json_dict.get('iterations', [])]
+
+
 # decorators
 def fork(function):
     def decorator(*args, **kwargs):

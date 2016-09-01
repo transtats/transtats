@@ -29,9 +29,9 @@ class Packages(Base):
 
     package_id = Column(Integer, primary_key=True, autoincrement=True)
     package_name = Column(String(200), unique=True)
-    upstream_url = Column(String(200), unique=True)
+    upstream_url = Column(String(500), nullable=False)
     transplatform_slug = Column(String(10))
-    transplatform_url = Column(String(200))
+    transplatform_url = Column(String(500))
     release_streams = Column(ARRAY(String(100)), default=[])
     lang_set = Column(String(50))
     transtats_lastupdated = Column(DateTime, nullable=True)

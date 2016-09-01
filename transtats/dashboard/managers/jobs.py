@@ -20,6 +20,7 @@ from ..models.jobs import Jobs
 from ..models.package import Packages
 from ..models.syncstats import SyncStats
 from ..models.transplatform import TransPlatform
+from ..utilities import parse_project_details_json
 
 
 class TransplatformSyncManager(JobManager):
@@ -137,13 +138,6 @@ class TransplatformSyncManager(JobManager):
                             self.job_result = True
         return self.job_result
 
-    def _parse_project_details_json(self, json_dict):
-        """
-        Parse project details json
-        """
-        return json_dict.get('id'), \
-            [version.get('id') for version in json_dict.get('iterations', [])]
-
     def update_trans_stats(self):
         """
         Update translation stats for each project-version in db
@@ -165,7 +159,7 @@ class TransplatformSyncManager(JobManager):
             )
             for project_detail in project_details:
                 rest_handle = self.rest_client(project_detail.engine_name, project_detail.api_url)
-                project, versions = self._parse_project_details_json(project_detail.package_details_json)
+                project, versions = parse_project_details_json(project_detail.package_details_json)
                 for version in versions:
                     response_dict = rest_handle.process_request(
                         'proj_trans_stats', project, version, extension="?detail=true&word=false"

@@ -31,6 +31,7 @@ class NewPackageForm(forms.Form):
     transplatform_choices = ()
     relstream_choices = ()
     langset_choices = (('default', 'Default'), ('custom', 'Custom'))
+    update_stats_choices = (('stats', 'Translation Stats'), )
 
     package_name = forms.CharField(
         label='Package Name', help_text='Package name as-in translation platform.', required=True,
@@ -48,6 +49,10 @@ class NewPackageForm(forms.Form):
     )
     lang_set = forms.ChoiceField(
         label="Language Set", widget=forms.RadioSelect, choices=langset_choices, required=False
+    )
+    update_stats = forms.ChoiceField(
+        label='Update details', widget=forms.CheckboxSelectMultiple, choices=update_stats_choices,
+        help_text="Stats fetch would be attempted. This may take some time!", required=False
     )
 
     def __init__(self, *args, **kwargs):
@@ -72,6 +77,7 @@ class NewPackageForm(forms.Form):
             Field('transplatform_slug', css_class='selectpicker'),
             InlineCheckboxes('release_streams'),
             InlineRadios('lang_set'),
+            InlineCheckboxes('update_stats'),
             HTML("<hr/>"),
             HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),
             FormActions(

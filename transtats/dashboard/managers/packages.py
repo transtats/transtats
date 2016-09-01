@@ -14,10 +14,15 @@
 # under the License.
 
 import operator
+import uuid
+
 from collections import OrderedDict
+from datetime import datetime
 
 from ..models.package import Packages
 from ..models.transplatform import TransPlatform
+from ..models.syncstats import SyncStats
+from ..utilities import parse_project_details_json
 from .base import BaseManager
 from .settings import AppSettingsManager
 from .syncstats import SyncStatsManager
@@ -58,17 +63,55 @@ class PackagesManager(BaseManager):
             return
 
         try:
-            # todo
-            # fetch project details from transplatform and save in db
-
             # derive transplatform project URL
-            platform_url = self.db_session.query(TransPlatform.api_url). \
-                filter_by(platform_slug=kwargs['transplatform_slug']).one()[0]
+            engine_name, platform_url = self.db_session.query(
+                TransPlatform.engine_name, TransPlatform.api_url
+            ).filter_by(platform_slug=kwargs['transplatform_slug']).one()
             kwargs['transplatform_url'] = platform_url + "/project/view/" + kwargs['package_name']
+
+            if 'update_stats' in kwargs and kwargs.get('update_stats'):
+                kwargs.pop('update_stats')
+                rest_handle = self.rest_client(engine_name, platform_url)
+                # fetch project details from transplatform and save in db
+                resp_dict = rest_handle.process_request('project_details', kwargs['package_name'])
+                if resp_dict and resp_dict.get('json_content'):
+                    sync_uuid = uuid.uuid4()
+                    kwargs['package_details_json'] = resp_dict['json_content']
+                    kwargs['details_json_lastupdated'] = datetime.now()
+                    # fetch project_version stats from transplatform and save in db
+                    project, versions = parse_project_details_json(resp_dict['json_content'])
+                    for version in versions:
+                        response_dict = rest_handle.process_request(
+                            'proj_trans_stats', project, version, extension="?detail=true&word=false"
+                        )
+                        if response_dict and response_dict.get('json_content'):
+                            existing_sync_stat = self.db_session.query(SyncStats). \
+                                filter_by(package_name=project, project_version=version).first()
+                            if not existing_sync_stat:
+                                params = {}
+                                params.update(dict(package_name=project))
+                                params.update(dict(job_uuid=sync_uuid))
+                                params.update(dict(project_version=version))
+                                params.update(dict(stats_raw_json=response_dict['json_content']))
+                                params.update(dict(sync_iter_count=1))
+                                params.update(dict(sync_visibility=True))
+                                new_sync_stats = SyncStats(**params)
+                                self.db_session.add(new_sync_stats)
+                            else:
+                                self.db_session.query(SyncStats).filter_by(
+                                    package_name=project, project_version=version
+                                ).update(
+                                    {'job_uuid': sync_uuid, 'stats_raw_json': response_dict['json_content'],
+                                     'sync_iter_count': existing_sync_stat.sync_iter_count + 1}
+                                )
+                            kwargs['transtats_lastupdated'] = datetime.now()
+
             kwargs['lang_set'] = 'default'
             # save in db
             new_package = Packages(**kwargs)
             self.db_session.add(new_package)
+
+            # now, commit every thing to db
             self.db_session.commit()
         except:
             self.db_session.rollback()
@@ -124,12 +167,13 @@ class PackagesManager(BaseManager):
             locale_translated.append([stats_dict.get('locale'), translation_percent])
         return locale_translated
 
-    def _format_stats_for_graphs(self, locale_sequence, stats_dict):
-        stats_for_graphs_dict = {}
+    def _format_stats_for_graphs(self, locale_sequence, stats_dict, desc):
+        stats_for_graphs_dict = OrderedDict()
+        stats_for_graphs_dict['pkg_desc'] = desc
         stats_for_graphs_dict['ticks'] = \
             [[i, lang] for i, lang in enumerate(locale_sequence.values(), 0)]
 
-        stats_for_graphs_dict['graph_data'] = {}
+        stats_for_graphs_dict['graph_data'] = OrderedDict()
         for version, stats_lists in stats_dict.items():
             new_stats_list = []
             for stats_tuple in stats_lists:
@@ -148,6 +192,7 @@ class PackagesManager(BaseManager):
         :return: dict {project_version: stats_dict}
         """
         trans_stats_dict = OrderedDict()
+        package_desc = ''
         # 1st, get active locales for which stats are to be shown
         active_locales = AppSettingsManager(self).get_locales_set()[0]
         lang_id_name = {(lang.locale_id, lang.locale_alias): lang.lang_name
@@ -158,6 +203,8 @@ class PackagesManager(BaseManager):
         package_details = self.get_packages([package_name])[0]  # this must be a list
         if not package_details.transtats_lastupdated:
             return trans_stats_dict
+        if package_details.package_details_json.get('description'):
+            package_desc = package_details.package_details_json['description']
         syncstats_manager = SyncStatsManager(self)
         pkg_stats_versions = syncstats_manager.get_sync_stats([package_name])
         for pkg_stats_version in pkg_stats_versions:
@@ -168,4 +215,4 @@ class PackagesManager(BaseManager):
             trans_stats_dict[pkg_stats_version.project_version] = \
                 self._extract_locale_translated(trans_stats_list)
         # 3rd, format trans_stats_list for graphs
-        return self._format_stats_for_graphs(lang_id_name, trans_stats_dict)
+        return self._format_stats_for_graphs(lang_id_name, trans_stats_dict, package_desc)

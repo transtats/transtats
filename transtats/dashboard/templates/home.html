@@ -28,6 +28,7 @@ $(document).ready(function () {
              dataType: "json",
              success: function(json_response){
 
+                var pkg_desc = json_response['pkg_desc'];
                 var graph_data = json_response['graph_data'];
                 var ticks = json_response['ticks'];
 
@@ -88,6 +89,9 @@ $(document).ready(function () {
                 };
 
                 $.plot($("#grapharea"), dataset, options);
+                var disclaimer = "<span class='pull-right text-warning'><em>Graph is based on sync\'d data.</em></span>";
+                $("#packagedesc").html(pkg_desc);
+                $("#graphdisclaimer").html(disclaimer);
              },
         });
         return false; //<---- move it here
@@ -127,8 +131,10 @@ $(document).ready(function () {
                 {% else %}
                     <br/><p>No package configured. Add <a href="{% url 'settings-packages' %}">one</a> now.</p>
                 {% endif %}
+                <span class="text-info pull-right" id="packagedesc"></span>
             </div>
         </div>
         <div id="grapharea" class="panel panel-info graph-area"></div>
+        <p id="graphdisclaimer"></p>
     </div>
 {% endblock %}

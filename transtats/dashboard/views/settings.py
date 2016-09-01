@@ -129,6 +129,7 @@ class PackageSettingsView(FormMixin, ListView):
         initials.update(dict(transplatform_slug='ZNTAFED'))
         initials.update(dict(release_streams='RHEL'))
         initials.update(dict(lang_set='default'))
+        initials.update(dict(update_stats='stats'))
         return initials
 
     def get_form(self, form_class=None, data=None):

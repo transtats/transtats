@@ -1,4 +1,5 @@
-##### Wed Aug 31 2016 Sundeep Anand <suanand@redhat.com>
+##### Thu Sept 01 2016 Sundeep Anand <suanand@redhat.com>
+* add feature: fetch translation stats with add package
 * enable displaying some charts based on sync'd data
 * add logs settings page, add package transplatform validation
 * enable transplatform projects and stats sync (zanata)
