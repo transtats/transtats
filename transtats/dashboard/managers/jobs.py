@@ -20,6 +20,7 @@ from ..models.jobs import Jobs
 from ..models.package import Packages
 from ..models.syncstats import SyncStats
 from ..models.transplatform import TransPlatform
+from ..services.constants import TRANSPLATFORM_ENGINES
 from ..utilities import parse_project_details_json
 
 
@@ -90,6 +91,10 @@ class TransplatformSyncManager(JobManager):
                             {str(datetime.now()): 'Projects JSON for ' + platform[1] + ' saved in db.'}
                         )
                         self.job_result = True
+                else:
+                    self.log_json['Projects'].update(
+                        {str(datetime.now()): 'Projects JSON for ' + platform[1] + ' could not be fetched.'}
+                    )
         return self.job_result
 
     def update_project_details(self):
@@ -113,10 +118,14 @@ class TransplatformSyncManager(JobManager):
             )
             if project_urls and len(project_urls) > 0:
                 for url in project_urls:
+                    # Package name can be diff from its id/slug, hence extracting from url
                     transplatform_project_name = url.transplatform_url.split('/')[-1]
                     rest_handle = self.rest_client(url.engine_name, url.api_url)
-                    response_dict = rest_handle.process_request('project_details',
-                                                                transplatform_project_name)
+                    # extension for Transifex should be true, otherwise false
+                    ext = True if url.engine_name == TRANSPLATFORM_ENGINES[0] else False
+                    response_dict = rest_handle.process_request(
+                        'project_details', transplatform_project_name, ext=ext
+                    )
                     if response_dict and response_dict.get('json_content'):
                         try:
                             self.db_session.query(Packages).filter_by(transplatform_url=url.transplatform_url) \
@@ -145,7 +154,8 @@ class TransplatformSyncManager(JobManager):
         self.log_json['Translation-Stats'] = {}
         try:
             project_details = self.db_session.query(
-                TransPlatform.engine_name, TransPlatform.api_url, Packages.package_details_json
+                TransPlatform.engine_name, TransPlatform.api_url,
+                Packages.transplatform_url, Packages.package_details_json
             ).filter(Packages.transplatform_slug == TransPlatform.platform_slug).all()
         except Exception as e:
             self.db_session.rollback()
@@ -159,10 +169,14 @@ class TransplatformSyncManager(JobManager):
             )
             for project_detail in project_details:
                 rest_handle = self.rest_client(project_detail.engine_name, project_detail.api_url)
-                project, versions = parse_project_details_json(project_detail.package_details_json)
+                project, versions = parse_project_details_json(
+                    project_detail.engine_name, project_detail.package_details_json
+                )
                 for version in versions:
+                    # extension for Zanata should be true, otherwise false
+                    extension = True if project_detail.engine_name == TRANSPLATFORM_ENGINES[1] else False
                     response_dict = rest_handle.process_request(
-                        'proj_trans_stats', project, version, extension="?detail=true&word=false"
+                        'proj_trans_stats', project, version, extension
                     )
                     if response_dict and response_dict.get('json_content'):
                         try:
@@ -186,7 +200,7 @@ class TransplatformSyncManager(JobManager):
                                      'sync_iter_count': existing_sync_stat.sync_iter_count + 1}
                                 )
                             self.db_session.query(Packages).filter_by(
-                                transplatform_url=project_detail.api_url + "/project/view/" + project
+                                transplatform_url=project_detail.transplatform_url
                             ).update({'transtats_lastupdated': datetime.now()})
                             self.db_session.commit()
                         except Exception as e:

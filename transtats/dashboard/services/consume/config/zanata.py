@@ -21,7 +21,7 @@ media_types = ('application/json', 'application/vnd.zanata.projects+json', 'appl
                'application/vnd.zanata.project.locales+json', 'application/xml')
 
 # based on https://zanata.ci.cloudbees.com/job/zanata-api-site/site/zanata-common-api/rest-api-docs/index.html
-# please add, modify resource details here, and make entry in service-to-resource mappings and in zpc_services
+# please add, modify resource details here, and make entry in service-to-resource mappings and in services
 resource_config_dict = {
     'AccountResource': OrderedDict(),
     'AsynchronousProcessResource': OrderedDict(),
@@ -145,7 +145,7 @@ resource_config_dict = {
         ('/stats/proj/{projectSlug}/iter/{iterationSlug}', {
             http_methods[0]: {
                 'path_params': ('projectSlug', 'iterationSlug'),
-                'query_params': None,
+                'query_params': ('detail=true', 'word=false'),
                 'request_media_type': media_types[0],
                 'response_media_type': media_types[0],
             },

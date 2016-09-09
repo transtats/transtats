@@ -15,17 +15,26 @@
 
 from threading import Thread
 
+from .services.constants import TRANSPLATFORM_ENGINES
+
 
 def get_manager(manager_name, view_instance):
     return manager_name(view_instance.request)
 
 
-def parse_project_details_json(json_dict):
+def parse_project_details_json(engine, json_dict):
     """
     Parse project details json
     """
-    return json_dict.get('id'), \
-        [version.get('id') for version in json_dict.get('iterations', [])]
+    project = ''
+    versions = []
+    if engine == TRANSPLATFORM_ENGINES[0]:
+        project = json_dict.get('slug')
+        versions = [version.get('slug') for version in json_dict.get('resources', [])]
+    elif engine == TRANSPLATFORM_ENGINES[1]:
+        project = json_dict.get('id')
+        versions = [version.get('id') for version in json_dict.get('iterations', [])]
+    return project, versions
 
 
 # decorators

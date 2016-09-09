@@ -13,12 +13,21 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
 import requests
+from django.conf import settings
+from requests.auth import HTTPBasicAuth
+
+
+# Transifex specific imports
+from .config.transifex import services as transifex_services
+from .config.transifex import resource_config_dict as transifex_resources
 
 # Zanata specific imports
 from .config.zanata import services as zanata_services
 from .config.zanata import resource_config_dict as zanata_resources
+
+from ..constants import TRANSPLATFORM_ENGINES
+
 
 NO_CERT_VALIDATION = True
 
@@ -31,13 +40,19 @@ class ServiceConfig(object):
         """
         entry point
         """
-        if engine == 'zanata':
+        if engine == TRANSPLATFORM_ENGINES[0]:
+            self._config_dict = transifex_resources
+            self._middle_url = '/api/2'
+            self._service = transifex_services[service]
+            self.http_auth = HTTPBasicAuth(*settings.TRANSIFEX_AUTH)
+        if engine == TRANSPLATFORM_ENGINES[1]:
             self._config_dict = zanata_resources
             self._middle_url = '/rest'
             self._service = zanata_services[service]
-            for attrib, value in (self._config_dict[self._service.rest_resource]
-                                  [self._service.mount_point][self._service.http_method].items()):
-                setattr(self, str(attrib), value)
+            self.http_auth = None
+        for attrib, value in (self._config_dict[self._service.rest_resource]
+                              [self._service.mount_point][self._service.http_method].items()):
+            setattr(self, str(attrib), value)
 
     @property
     def resource_group(self):
@@ -59,6 +74,10 @@ class ServiceConfig(object):
     def http_method(self):
         return self._service.http_method
 
+    @property
+    def auth(self):
+        return self.http_auth
+
 
 class RestHandle(object):
     """
@@ -78,10 +97,6 @@ class RestHandle(object):
         for attrib, value in kwargs.items():
             if value:
                 setattr(self, str(attrib), value)
-
-        disable_ssl_certificate_validation = getattr(self, 'disable_ssl_certificate_validation', None)
-        if disable_ssl_certificate_validation is None:
-            disable_ssl_certificate_validation = NO_CERT_VALIDATION
 
     def _get_url(self):
         if self.base_url[-1:] == '/':
@@ -123,7 +138,7 @@ class RestHandle(object):
             return False
 
     def get_response_dict(self):
-        request_args = ('body', 'headers', 'connection_type')
+        request_args = ('body', 'headers', 'connection_type', 'auth')
         args_dict = dict(zip(
             request_args, [getattr(self, arg, None) for arg in request_args]
         ))
@@ -144,11 +159,10 @@ class RestHandle(object):
 
 
 class RestClient(object):
-    def __init__(self, engine, base_url, disable_ssl_certificate_validation=True):
+    def __init__(self, engine, base_url):
         self.engine = engine
         self.base_url = base_url
-        self.disable_ssl_certificate_validation = \
-            disable_ssl_certificate_validation
+        self.disable_ssl_certificate_validation = NO_CERT_VALIDATION
 
     def disable_ssl_cert_validation(self):
         self.disable_ssl_certificate_validation = True
@@ -163,7 +177,7 @@ class RestClient(object):
         """
         headers = kwargs['headers'] if 'headers' in kwargs else {}
         body = kwargs['body'] if 'body' in kwargs else None
-        extension = kwargs['extension'] if 'extension' in kwargs else None
+        extension = kwargs.get('ext')
         service_details = ServiceConfig(self.engine, service_name)
         # set headers
         if hasattr(service_details, 'response_media_type') and service_details.response_media_type:
@@ -175,10 +189,13 @@ class RestClient(object):
             service_details.resource.format(**dict(zip(service_details.path_params, args)))
             if args else service_details.resource
         )
+        if extension:   # extension should always be boolean
+            ext = "&".join(service_details.query_params)
+            resource = resource + "?" + ext
         # initiate service call
         rest_handle = RestHandle(
-            self.base_url, resource, service_details.http_method,
-            body=body, headers=headers, ext=extension, connection_type=None, cache=None,
+            self.base_url, resource, service_details.http_method, auth=service_details.auth,
+            body=body, headers=headers, connection_type=None, cache=None,
             disable_ssl_certificate_validation=self.disable_ssl_certificate_validation
         )
         return rest_handle.get_response_dict()

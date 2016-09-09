@@ -7,7 +7,7 @@ Transtats is a Django app, for developers, package maintainers and translators, 
 
 #### Setup development environment: virtualenv
 
-Setup Virtualenvwrapper and PostgreSQL. Create virtualenv. Clone repo.
+Setup Virtualenvwrapper and PostgreSQL 9.5. Create virtualenv. Clone repo.
 
 ```shell
 workon transtats

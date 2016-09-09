@@ -32,6 +32,7 @@ class AppSettingsManager(BaseManager):
         platforms = None
         try:
             platforms = self.db_session.query(TransPlatform). \
+                order_by(TransPlatform.engine_name.asc()). \
                 order_by(TransPlatform.server_status.desc()).all()
         except:
             self.db_session.rollback()

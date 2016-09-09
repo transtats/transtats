@@ -200,3 +200,6 @@ Session = sqlalchemy.orm.sessionmaker(bind=engine)
 
 # django-crispy-forms template pack
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
+# Transifex Credentials
+TRANSIFEX_AUTH = (get_secret("TRANSIFEX_USER"), get_secret("TRANSIFEX_PASSWD"))

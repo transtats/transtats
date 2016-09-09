@@ -1,4 +1,5 @@
-##### Thu Sept 01 2016 Sundeep Anand <suanand@redhat.com>
+##### Fri Sept 09 2016 Sundeep Anand <suanand@redhat.com>
+* add Transifex support - transplatform API configs
 * add feature: fetch translation stats with add package
 * enable displaying some charts based on sync'd data
 * add logs settings page, add package transplatform validation

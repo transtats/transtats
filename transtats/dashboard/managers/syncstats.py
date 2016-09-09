@@ -13,8 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from ..models.syncstats import SyncStats
 from .base import BaseManager
+from ..models.syncstats import SyncStats
+from ..services.constants import TRANSIFEX_SLUGS, ZANATA_SLUGS
 
 
 class SyncStatsManager(BaseManager):
@@ -41,23 +42,58 @@ class SyncStatsManager(BaseManager):
             pass
         return sync_stats
 
-    def filter_stats_for_required_locales(self, stats_json, locales):
+    def filter_stats_for_required_locales(self, transplatform_slug, stats_json, locales):
         """
         Filter stats json for required locales
+        :param transplatform_slug: str
         :param stats_json: dict
         :param locales: list
-        :return: stats list, missing locales
+        :return: stats list, missing locales tuple
         """
-        if not stats_json.get('stats'):
-            return {}
         trans_stats = []
         locales_found = []
-        for stats_param in stats_json['stats']:
-            stats_param_locale = stats_param.get('locale', '')
+
+        if transplatform_slug in ZANATA_SLUGS:
+            if not stats_json.get('stats'):
+                return trans_stats, ()
+            for stats_param in stats_json['stats']:
+                stats_param_locale = stats_param.get('locale', '')
+                for locale_tuple in locales:
+                    if (stats_param_locale in locale_tuple) or \
+                            (stats_param_locale.replace('-', '_') in locale_tuple):
+                        trans_stats.append(stats_param)
+                    else:
+                        locales_found.append(locale_tuple)
+
+        elif transplatform_slug in TRANSIFEX_SLUGS:
             for locale_tuple in locales:
-                if (stats_param_locale in locale_tuple) or \
-                        (stats_param_locale.replace('-', '_') in locale_tuple):
-                    trans_stats.append(stats_param)
-                else:
+                if stats_json.get(locale_tuple[0]):
+                    trans_stats.append({locale_tuple[0]: stats_json[locale_tuple[0]]})
                     locales_found.append(locale_tuple)
+                elif stats_json.get(locale_tuple[1]):
+                    trans_stats.append({locale_tuple[1]: stats_json[locale_tuple[1]]})
+                    locales_found.append(locale_tuple)
+
         return trans_stats, tuple(set(locales) - set(locales_found))
+
+    def extract_locale_translated(self, transplatform_slug, stats_dict_list):
+        """
+        Compute %age of translation for each locale
+        :param transplatform_slug:str
+        :param stats_dict_list:list
+        :return:locale translated list
+        """
+        locale_translated = []
+
+        if transplatform_slug in ZANATA_SLUGS:
+            for stats_dict in stats_dict_list:
+                translation_percent = \
+                    round((stats_dict.get('translated') * 100) / stats_dict.get('total'), 2) \
+                    if stats_dict.get('total') > 0 else 0
+                locale_translated.append([stats_dict.get('locale'), translation_percent])
+        elif transplatform_slug in TRANSIFEX_SLUGS:
+            for stats_dict in stats_dict_list:
+                for locale, stat_params in stats_dict.items():
+                    locale_translated.append([locale, int(stat_params.get('completed')[:-1])])
+
+        return locale_translated

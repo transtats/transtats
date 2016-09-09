@@ -22,6 +22,7 @@ from datetime import datetime
 from ..models.package import Packages
 from ..models.transplatform import TransPlatform
 from ..models.syncstats import SyncStats
+from ..services.constants import TRANSPLATFORM_ENGINES
 from ..utilities import parse_project_details_json
 from .base import BaseManager
 from .settings import AppSettingsManager
@@ -67,22 +68,34 @@ class PackagesManager(BaseManager):
             engine_name, platform_url = self.db_session.query(
                 TransPlatform.engine_name, TransPlatform.api_url
             ).filter_by(platform_slug=kwargs['transplatform_slug']).one()
-            kwargs['transplatform_url'] = platform_url + "/project/view/" + kwargs['package_name']
+            # get rest handle
+            rest_handle = self.rest_client(engine_name, platform_url)
+            resp_dict = None
+            if engine_name == TRANSPLATFORM_ENGINES[0]:
+                resp_dict = rest_handle.process_request(
+                    'project_details', kwargs['package_name'], ext=True
+                )
+                if resp_dict and resp_dict.get('json_content'):
+                    tx_org_slug = resp_dict['json_content']['organization']['slug']
+                    kwargs['transplatform_url'] = platform_url + "/" + tx_org_slug + "/" + kwargs['package_name']
+            elif engine_name == TRANSPLATFORM_ENGINES[1]:
+                kwargs['transplatform_url'] = platform_url + "/project/view/" + kwargs['package_name']
+                resp_dict = rest_handle.process_request('project_details', kwargs['package_name'])
 
             if 'update_stats' in kwargs and kwargs.get('update_stats'):
                 kwargs.pop('update_stats')
-                rest_handle = self.rest_client(engine_name, platform_url)
                 # fetch project details from transplatform and save in db
-                resp_dict = rest_handle.process_request('project_details', kwargs['package_name'])
                 if resp_dict and resp_dict.get('json_content'):
                     sync_uuid = uuid.uuid4()
                     kwargs['package_details_json'] = resp_dict['json_content']
                     kwargs['details_json_lastupdated'] = datetime.now()
                     # fetch project_version stats from transplatform and save in db
-                    project, versions = parse_project_details_json(resp_dict['json_content'])
+                    project, versions = parse_project_details_json(engine_name, resp_dict['json_content'])
                     for version in versions:
+                        # extension for Zanata should be true, otherwise false
+                        extension = True if engine_name == TRANSPLATFORM_ENGINES[1] else False
                         response_dict = rest_handle.process_request(
-                            'proj_trans_stats', project, version, extension="?detail=true&word=false"
+                            'proj_trans_stats', project, version, extension
                         )
                         if response_dict and response_dict.get('json_content'):
                             existing_sync_stat = self.db_session.query(SyncStats). \
@@ -120,12 +133,16 @@ class PackagesManager(BaseManager):
         else:
             return True
 
-    def _get_project_ids_names(self, projects):
+    def _get_project_ids_names(self, engine, projects):
         ids = []
         names = []
-        for project in projects:
-            ids.append(project['id'])
-            names.append(project['name'])
+        if isinstance(projects, list) and engine == TRANSPLATFORM_ENGINES[1]:
+            for project in projects:
+                ids.append(project['id'])
+                names.append(project['name'])
+        elif isinstance(projects, dict) and engine == TRANSPLATFORM_ENGINES[0]:
+            ids.append(projects.get('slug'))
+            names.append(projects.get('name'))
         return ids, names
 
     def validate_package(self, **kwargs):
@@ -146,26 +163,22 @@ class PackagesManager(BaseManager):
         # if not found in db, fetch transplatform projects from API
         if not projects_json:
             rest_handle = self.rest_client(platform.engine_name, platform.api_url)
-            response_dict = rest_handle.process_request('list_projects')
+            response_dict = None
+            if platform.engine_name == TRANSPLATFORM_ENGINES[0]:
+                response_dict = rest_handle.process_request('project_details',
+                                                            package_name.lower())
+            if platform.engine_name == TRANSPLATFORM_ENGINES[1]:
+                response_dict = rest_handle.process_request('list_projects')
             if response_dict and response_dict.get('json_content'):
                 projects_json = response_dict['json_content']
 
-        ids, names = self._get_project_ids_names(projects_json)
+        ids, names = self._get_project_ids_names(platform.engine_name, projects_json)
         if package_name in ids:
             return package_name
         elif package_name in names:
             return ids[names.index(package_name)]
         else:
             return False
-
-    def _extract_locale_translated(self, stats_dict_list):
-        locale_translated = []
-        for stats_dict in stats_dict_list:
-            translation_percent = \
-                round((stats_dict.get('translated') * 100) / stats_dict.get('total'), 2) \
-                if stats_dict.get('total') > 0 else 0
-            locale_translated.append([stats_dict.get('locale'), translation_percent])
-        return locale_translated
 
     def _format_stats_for_graphs(self, locale_sequence, stats_dict, desc):
         stats_for_graphs_dict = OrderedDict()
@@ -210,9 +223,11 @@ class PackagesManager(BaseManager):
         for pkg_stats_version in pkg_stats_versions:
             trans_stats_list, missing_locales = \
                 syncstats_manager.filter_stats_for_required_locales(
+                    package_details.transplatform_slug,
                     pkg_stats_version.stats_raw_json, list(lang_id_name)
                 )
             trans_stats_dict[pkg_stats_version.project_version] = \
-                self._extract_locale_translated(trans_stats_list)
+                syncstats_manager.extract_locale_translated(package_details.transplatform_slug,
+                                                            trans_stats_list)
         # 3rd, format trans_stats_list for graphs
         return self._format_stats_for_graphs(lang_id_name, trans_stats_dict, package_desc)

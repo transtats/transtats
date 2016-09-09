@@ -9,7 +9,7 @@ devel:
 	pip install -r requirements/dev.txt
 
 fire:
-	python transtats/manage.py runserver --settings=config.settings.test --insecure
+	python transtats/manage.py runserver 0:8000 --settings=config.settings.test --insecure
 
 lint:
 	flake8 --ignore=E501,F401,F403 transtats
