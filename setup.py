@@ -12,14 +12,14 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='transtats',
-    version='0.0.1',
+    version='prototype',
     packages=find_packages(),
     include_package_data=True,
     install_requires=REQUIRE,
     license='Apache License 2.0',
     description='Tracking translation progress for downstream.',
     long_description=README,
-    url='https://transtats-suanand.rhcloud.com',
+    url='http://transtats.devlab.redhat.com',
     author='Sundeep Anand',
     author_email='suanand@redhat.com',
     classifiers=[
@@ -32,6 +32,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
