@@ -12,7 +12,7 @@ fire:
 	python manage.py runserver 0:8000 --settings=transtats.settings.test --insecure
 
 lint:
-	flake8 --ignore=E501,F401,F403,F999 transtats dashboard
+	flake8 --ignore=E501,F401,F403,F405 transtats dashboard
 
 migrations:
 	python manage.py makemigrations

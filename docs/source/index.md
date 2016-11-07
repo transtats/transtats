@@ -5,7 +5,27 @@
 
 A Django app, for developers, package maintainers and translators, with an idea of some solution around tracking translation progress of the package for downstream releases with respect to current development.
 
-#### Setup development environment: virtualenv
+#### Purpose
+
+Catalyst in localisation of your application which tracks translation progress for release streams.
+
+
+#### Concept
+
+1. **Register Project** Developers writing some app got plans to release it with non-english support. And hence sign-ups with TS. Technotes:  `Python Social Auth`.
+
+2. **Enable i18n** Once TS has projects with their source code, it can determine: the project has been i18n enabled or not. If not TS can determine i18n framework and provide info/details or patch enabling the same. And once i18n capabilities are determined, strings should be marked for translation, manually or with the help of i18n lint tools. Technotes: This should be `TS modules` based, `Notification`
+
+3. **Push Template** If project has enough strings marked and linked with a translation platform plus have some plans for which languages, TS can extract language template and push for initial discussion/translation as well as instantiate their revision management. Technotes: `TS Jobs`, `Diff Mgmt` may be JSON based, `Notification`
+
+4. **Release Mapping** Project translation plans are need to be mapped with release stream schedule to meet deadlines. TS would track translation progress for mapped release streams and for their branches respectively. Further TS would provide various views to generate statistics in. Technotes: `Calendar`, `Background Tasks`, `Notifications`, `Graphs Rules`
+
+5. **Pull Translation** Translation completion events or calendar/cron could trigger jobs to pull translations for set languages. i18n checks like PO filter, fonts etc. should be applied on pulled stuff and if passed TS may request a merge in project source tree. Technotes: `TS Jobs`, tests can be `TS modules` based, `Notification`
+
+6. **Package Validation** To ensure packaging with planned language resources, TS keeps an eye on builds at release streams. Plus TS looks for storage of language artifacts in packaging format. Technotes:    `TS Jobs`, storage may be `TS Modules` based, `Notification`
+
+
+#### Development
 
 Setup Virtualenvwrapper and PostgreSQL 9.5. Create virtualenv. Clone repo.
 
@@ -15,11 +35,12 @@ cd /path/to/transtats/repo
 make devel
 ```
 
-Copy `keys.json.example` to `keys.json` and `alembic.ini.example` to `alembic.ini` as well as put your values.
+Copy `keys.json.example` to `keys.json` and put your values.
 
 ```shell
-alembic upgrade head
-python manage.py runserver
+make migrations
+make migrate
+make run
 ```
 
 #### Contribution
