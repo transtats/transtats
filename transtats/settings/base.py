@@ -18,13 +18,13 @@ import json
 from django.core.exceptions import ImproperlyConfigured
 
 # Third-party app imports
-import sqlalchemy
-import sqlalchemy.orm
+#import sqlalchemy
+#import sqlalchemy.orm
 
 # Imports from your apps
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_FILE = os.path.dirname(os.path.abspath(__file__)) + "/keys.json"
 
 # JSON-based secrets module
@@ -75,10 +75,9 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'config.middleware.sqlalchemy.SQLAlchemySessionMiddleware'
 ]
 
-ROOT_URLCONF = 'config.urls'
+ROOT_URLCONF = 'transtats.urls'
 
 TEMPLATES = [
     {
@@ -99,7 +98,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = 'transtats.wsgi.application'
 
 
 # Database
@@ -107,8 +106,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'transtats',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
@@ -188,15 +191,15 @@ LOGGING = {
 }
 
 # Authentication Backend
-AUTHENTICATION_BACKENDS = ('config.backends.SQLAlchemyAuth.SQLAlchemyUserBackend',)
+# AUTHENTICATION_BACKENDS = ('config.backends.SQLAlchemyAuth.SQLAlchemyUserBackend',)
 
 # Email Backend
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # creating SQLAlchemy Session
-DATABASE_URL = get_secret("DATABASE_URL")
-engine = sqlalchemy.create_engine(DATABASE_URL, isolation_level="SERIALIZABLE")
-Session = sqlalchemy.orm.sessionmaker(bind=engine)
+#DATABASE_URL = get_secret("DATABASE_URL")
+#engine = sqlalchemy.create_engine(DATABASE_URL, isolation_level="SERIALIZABLE")
+#Session = sqlalchemy.orm.sessionmaker(bind=engine)
 
 # django-crispy-forms template pack
 CRISPY_TEMPLATE_PACK = 'bootstrap3'

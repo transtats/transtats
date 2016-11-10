@@ -20,4 +20,4 @@ DEBUG = True
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Django Debug Toolbar
-INSTALLED_APPS += ("debug_toolbar", )
+#INSTALLED_APPS += ("debug_toolbar", )

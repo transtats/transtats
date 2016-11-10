@@ -9,10 +9,13 @@ devel:
 	pip install -r requirements/dev.txt
 
 fire:
-	python transtats/manage.py runserver 0:8000 --settings=config.settings.test --insecure
+	python manage.py runserver 0:8000 --settings=transtats.settings.test --insecure
 
 lint:
-	flake8 --ignore=E501,F401,F403 transtats
+	flake8 --ignore=E501,F401,F403 transtats dashboard
 
 migrate:
-	alembic -h
+	python manage.py migrate
+
+run:
+	python manage.py runserver

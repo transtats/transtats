@@ -1,0 +1,19 @@
+{% extends "settings/settings_base.html" %}
+
+{% block extrascript %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#tab-stats-view').addClass('active');
+    })
+</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-stats-views' %}" class="btn btn-default">Stats Views</a>
+{% endblock %}
+
+{% block tabcontent %}
+<h5>This section would include statistics views stuffs!!</h5>
+{% endblock %}

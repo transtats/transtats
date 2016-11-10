@@ -13,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from ..settings import base
+from transtats.settings import base
 
 
 class SQLAlchemySessionMiddleware(object):

@@ -1,0 +1,19 @@
+{% extends "settings/settings_base.html" %}
+
+{% block extrascript %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#tab-summary').addClass('active');
+    })
+</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <div class="btn btn-default disabled">Summary</div>
+{% endblock %}
+
+{% block tabcontent %}
+<h5>This section would summarise settings current state!!</h5>
+{% endblock %}

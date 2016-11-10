@@ -1,0 +1,91 @@
+{% extends "settings/settings_base.html" %}
+
+{% block extrascript %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#tab-release-streams').addClass('active');
+    })
+</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Release Streams</a>
+{% endblock %}
+
+{% block tabcontent %}
+<div class="row">
+    <div class="col-xs-12">
+        <span>
+            <span class="badge">{{ relstreams|length }}</span> release stream.
+        </span>
+        <span class="pull-right">
+            <button type="button" class="btn btn-default disabled">Add Release Stream</button>
+        </span>
+    </div>
+</div>
+<hr/>
+{% if relstreams %}
+    <div class="row">
+    {% for relstream in relstreams %}
+      <div class="col-sm-6 col-md-4">
+        <div class="thumbnail">
+          <div class="caption">
+            <h3>{{ relstream.relstream_name }} <small>{{ relstream.relstream_built }}</small>
+                {% if relstream.relstream_status %}
+                    <span class="glyphicon glyphicon-ok-circle" style="color:green"></span>
+                {% else %}
+                    <span class="glyphicon glyphicon-ban-circle" style="color:orange"></span>
+                {% endif %}</h3>
+            <p>
+                <a href="{{ relstream.web_url }}" target="_blank">{{ relstream.web_url }}</a>
+                <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
+            </p>
+            <p>
+                <span style="color:grey">Authentication type:</span> {{ relstream.auth_type|capfirst }}
+                <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+            </p>
+            <p>
+                <span style="color:grey">Source package format:</span> {{ relstream.srcpkg_format|upper }}
+                <span class="glyphicon glyphicon-briefcase" aria-hidden="true"></span>
+            </p>
+            <p>
+                <span style="color:grey">Message bus:</span> {{ relstream.amqp_server }}
+                <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+            </p>
+            <p>
+                <a href="#" class="btn btn-default btn-small disabled" role="button">Edit</a>
+                {% if relstream.relstream_status %}
+                    <a href="#" class="btn btn-default btn-small disabled" role="button">Deactivate</a>
+                {% else %}
+                    <a href="#" class="btn btn-default btn-small disabled" role="button">Activate</a>
+                    <a class="btn btn-danger btn-small disabled">
+                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                    </a>
+                {% endif %}
+            </p>
+            <hr/>
+            <div class="list-group">
+              <a href="#" class="list-group-item">
+                <h4 class="list-group-item-heading">Release Stream Branches</h4>
+                <p class="list-group-item-text"><span class="text-success">RHEL 7.2</span>, <span class="text-info">RHEL 7.3</span> [...]</p>
+              </a>
+            </div>
+            <div class="list-group">
+              <a href="#" class="list-group-item">
+                <h4 class="list-group-item-heading">Release Schedule</h4>
+                <p class="list-group-item-text">Devel: String Freeze, QE [...]</p>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+{% else %}
+    <p>
+        Add release stream/branch to list it here.
+    </p>
+{% endif %}
+{% endblock %}

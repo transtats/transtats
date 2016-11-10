@@ -1,0 +1,96 @@
+{% extends "settings/settings_base.html" %}
+
+{% block extrascript %}
+<link href="/static/css/bootstrap-toggle.min.css" rel="stylesheet">
+<script src="/static/js/bootstrap-toggle.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#tab-languages').addClass('active');
+    })
+</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-languages' %}" class="btn btn-default">Languages</a>
+{% endblock %}
+
+{% block tabcontent %}
+<div class="row">
+    <div class="col-xs-12">
+        <span>
+            <span class="badge">{{ locales|length }}</span> languages
+            {% if active_locales_len %}
+                <span class="badge">{{ active_locales_len }}</span> enabled
+            {% endif %}
+            {% if inactive_locales_len %}
+                <span class="badge">{{ inactive_locales_len }}</span> disabled
+            {% endif %}
+            {% if aliases_len %}
+                <span class="badge">{{ aliases_len }}</span> aliases
+            {% endif %}
+        </span>
+        <span class="pull-right">
+            <button type="button" class="btn btn-default disabled">Add Language</button>
+        </span>
+    </div>
+</div>
+<hr/>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Language Sets</h3>
+  </div>
+  <div class="panel-body">
+      <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
+      default
+      &nbsp;
+      <span class="glyphicon glyphicon-tag" aria-hidden="true" style="color:brown"></span>
+      custom
+  </div>
+</div>
+
+<hr/>
+{% if locales %}
+    <table class="table table-hover">
+        <thead><tr>
+            <th>Language</th>
+            <th>Locale</th>
+            <th>Alias</th>
+            <th>Set</th>
+            <th>Status</th>
+        </tr></thead>
+        <tbody>
+        {% for lang in locales %}
+        <tr>
+            <td>{{ lang.lang_name }}</td>
+            <td>{{ lang.locale_id }}</td>
+            <td>
+                {% if lang.locale_alias %}
+                    {{ lang.locale_alias }}
+                {% else %}
+                    <button class="btn btn-small btn-link" type="button">Add</button>
+                {% endif %}
+            </td>
+            <td>
+                {% if lang.lang_set == 'default' %}
+                    <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
+                {% endif %}
+            </td>
+            <td>{% if lang.lang_status %}
+                    <input type="checkbox" checked data-toggle="toggle">
+                {% else %}
+                    <input type="checkbox" data-toggle="toggle">
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>
+        Add language to list it here.
+    </p>
+{% endif %}
+
+{% endblock %}

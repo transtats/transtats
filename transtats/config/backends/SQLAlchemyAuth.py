@@ -14,8 +14,9 @@
 # under the License.
 
 from sqlalchemy.orm.exc import NoResultFound
-from transtats.config.settings.base import Session
+
 from transtats.dashboard.models.user import User
+from transtats.settings.base import Session
 
 
 class SQLAlchemyUserBackend(object):
