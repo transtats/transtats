@@ -3,7 +3,7 @@
 
 ## Transtats
 
-A Django app, for developers, package maintainers and translators, with an idea of some solution around tracking translation progress of the package for downstream releases with respect to current development.
+Tracking translation progress of the package for downstream releases with respect to current development.
 
 #### Setup development environment: virtualenv
 
@@ -15,11 +15,12 @@ cd /path/to/transtats/repo
 make devel
 ```
 
-Copy `keys.json.example` to `keys.json` and `alembic.ini.example` to `alembic.ini` as well as put your values.
+Copy `keys.json.example` to `keys.json` and put your values.
 
 ```shell
-alembic upgrade head
-python manage.py runserver
+make migrations
+make migrate
+make run
 ```
 
 #### Contribution

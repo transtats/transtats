@@ -37,10 +37,10 @@ app_setting_urls = [
     url(r'^languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
-    url(r'^scheduler$', TemplateView.as_view(template_name="settings/scheduler.html"),
-        name="settings-scheduler"),
-    url(r'^stats-views$', TemplateView.as_view(template_name="settings/stats_views.html"),
-        name="settings-stats-views"),
+    url(r'^jobs$', TemplateView.as_view(template_name="settings/jobs.html"),
+        name="settings-jobs"),
+    url(r'^graph-rules$', TemplateView.as_view(template_name="settings/graph_rules.html"),
+        name="settings-graph-rules"),
     url(r'^logs$', LogsSettingsView.as_view(), name="settings-logs"),
 ]
 

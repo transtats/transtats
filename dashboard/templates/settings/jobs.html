@@ -4,7 +4,7 @@
 <script src="/static/js/transtats.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        $('#tab-scheduler').addClass('active');
+        $('#tab-jobs').addClass('active');
         $("#syncform").submit(function(event){
 
             // save button to use it later
@@ -35,7 +35,7 @@
 {% block navigation %}
     <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
     <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
-    <a href="{% url 'settings-scheduler' %}" class="btn btn-default">Scheduler</a>
+    <a href="{% url 'settings-jobs' %}" class="btn btn-default">Jobs</a>
 {% endblock %}
 
 {% block tabcontent %}
@@ -45,7 +45,7 @@
             <span class="badge">1</span> task configured.
         </span>
         <span class="pull-right">
-            <button type="button" class="btn btn-default disabled">Add Cron</button>
+            <button type="button" class="btn btn-default disabled">Add Job</button>
         </span>
     </div>
 </div>
@@ -56,7 +56,7 @@
   </div>
   <div class="panel-body">
     Update project details
-    <select class="selectpicker" data-width="150px">
+    <select class="selectpicker" data-width="150px" disabled>
       <option>Daily</option>
       <option>Twice a week</option>
       <option>Weekly</option>
@@ -64,7 +64,7 @@
       <option>Never</option>
     </select>
     And pull stats of registered packages every
-    <select class="selectpicker" data-width="150px">
+    <select class="selectpicker" data-width="150px" disabled>
       <option>Three</option>
       <option>Nine</option>
       <option>Eighteen</option>

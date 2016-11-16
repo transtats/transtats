@@ -19,11 +19,13 @@
 #       Release Streams,
 #       Packages
 
-#python
+# python
 import operator
 from collections import OrderedDict
-from datetime import datetime
 from uuid import uuid4
+
+# django
+from django.utils import timezone
 
 # dashboard
 from .base import BaseManager
@@ -137,6 +139,8 @@ class PackagesManager(InventoryManager):
     Packages Manager
     """
 
+    syncstats_manager = SyncStatsManager()
+
     def get_packages(self, pkgs=None):
         """
         fetch packages from db
@@ -188,7 +192,7 @@ class PackagesManager(InventoryManager):
                 if resp_dict and resp_dict.get('json_content'):
                     sync_uuid = uuid4()
                     kwargs['package_details_json'] = resp_dict['json_content']
-                    kwargs['details_json_lastupdated'] = datetime.now()
+                    kwargs['details_json_lastupdated'] = timezone.now()
                     # fetch project_version stats from transplatform and save in db
                     project, versions = parse_project_details_json(platform.engine_name, resp_dict['json_content'])
                     for version in versions:
@@ -207,9 +211,10 @@ class PackagesManager(InventoryManager):
                             params.update(dict(sync_visibility=True))
                             sync_stats_obj, created = SyncStats.objects.update_or_create(**params)
                             if created:
-                                kwargs['transtats_lastupdated'] = datetime.now()
+                                kwargs['transtats_lastupdated'] = timezone.now()
 
             kwargs['lang_set'] = 'default'
+            kwargs['transplatform_slug'] = platform
             # save in db
             new_package = Packages(**kwargs)
             new_package.save()
@@ -295,23 +300,21 @@ class PackagesManager(InventoryManager):
         lang_id_name = {(lang.locale_id, lang.locale_alias): lang.lang_name
                         for lang in active_locales}
         lang_id_name = OrderedDict(sorted(lang_id_name.items(), key=operator.itemgetter(1)))
-
         # 2nd, filter stats json for required locales
         package_details = self.get_packages([package_name])[0]  # this must be a list
         if not package_details.transtats_lastupdated:
             return trans_stats_dict
         if package_details.package_details_json.get('description'):
             package_desc = package_details.package_details_json['description']
-        syncstats_manager = SyncStatsManager()
-        pkg_stats_versions = syncstats_manager.get_sync_stats([package_name])
+        pkg_stats_versions = self.syncstats_manager.get_sync_stats([package_name])
         for pkg_stats_version in pkg_stats_versions:
             trans_stats_list, missing_locales = \
-                syncstats_manager.filter_stats_for_required_locales(
-                    package_details.transplatform_slug,
+                self.syncstats_manager.filter_stats_for_required_locales(
+                    package_details.transplatform_slug_id,
                     pkg_stats_version.stats_raw_json, list(lang_id_name)
                 )
             trans_stats_dict[pkg_stats_version.project_version] = \
-                syncstats_manager.extract_locale_translated(package_details.transplatform_slug,
-                                                            trans_stats_list)
+                self.syncstats_manager.extract_locale_translated(package_details.transplatform_slug_id,
+                                                                 trans_stats_list)
         # 3rd, format trans_stats_list for graphs
         return self._format_stats_for_graphs(lang_id_name, trans_stats_dict, package_desc)

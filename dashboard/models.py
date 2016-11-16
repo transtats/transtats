@@ -84,7 +84,11 @@ class Packages(models.Model):
     package_id = models.AutoField(primary_key=True)
     package_name = models.CharField(max_length=500, unique=True)
     upstream_url = models.URLField(max_length=2000, unique=True)
-    transplatform_slug = models.CharField(max_length=400)
+    transplatform_slug = models.ForeignKey(
+        TransPlatform, on_delete=models.CASCADE,
+        to_field='platform_slug'
+    )
+    # translation platform project http url
     transplatform_url = models.URLField(max_length=500)
     release_streams = ArrayField(
         models.CharField(max_length=400, blank=True),
@@ -111,6 +115,11 @@ class Jobs(models.Model):
     job_log_json = JSONField(null=True)
     job_result = models.NullBooleanField()
     job_remarks = models.CharField(max_length=200, null=True)
+
+    @property
+    def duration(self):
+        timediff = self.job_end_time - self.job_start_time
+        return timediff.total_seconds()
 
     class Meta:
         db_table = TABLE_PREFIX + 'jobs'

@@ -3,7 +3,7 @@
 {% block extrascript %}
 <script type="text/javascript">
     $(document).ready(function() {
-        $('#tab-stats-view').addClass('active');
+        $('#tab-graph-rules').addClass('active');
     })
 </script>
 {% endblock %}
@@ -11,9 +11,9 @@
 {% block navigation %}
     <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
     <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
-    <a href="{% url 'settings-stats-views' %}" class="btn btn-default">Stats Views</a>
+    <a href="{% url 'settings-graph-rules' %}" class="btn btn-default">Graph Rules</a>
 {% endblock %}
 
 {% block tabcontent %}
-<h5>This section would include statistics views stuffs!!</h5>
+<h5>This section would include rules for custom graphs!!</h5>
 {% endblock %}

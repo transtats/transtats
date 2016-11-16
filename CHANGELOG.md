@@ -1,4 +1,4 @@
-##### Tue Nov 15 2016 Sundeep Anand <suanand@redhat.com>
+##### Wed Nov 16 2016 Sundeep Anand <suanand@redhat.com>
 * move to Django ORM
 
 ##### Thu Sept 15 2016 Sundeep Anand <suanand@redhat.com> - Prototype

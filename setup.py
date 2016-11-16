@@ -25,7 +25,7 @@ setup(
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
-        'Framework :: Django :: 1.9.5',
+        'Framework :: Django :: 1.10.0',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache License 2.0',
         'Operating System :: OS Independent',

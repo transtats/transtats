@@ -19,6 +19,9 @@
 from datetime import datetime
 from uuid import uuid4
 
+# django
+from django.utils import timezone
+
 # dashboard
 from .base import BaseManager
 from ..models import (
@@ -56,7 +59,7 @@ class JobManager(BaseManager):
         super(JobManager, self).__init__()
         self.job_type = job_type
         self.uuid = self._new_job_id()
-        self.start_time = datetime.now()
+        self.start_time = timezone.now()
 
     def create_job(self):
         kwargs = {}
@@ -140,26 +143,23 @@ class TransplatformSyncManager(JobManager):
                 if response_dict and response_dict.get('json_content'):
                     # save projects json in db
                     try:
-                        self.db_session.query(TransPlatform) \
-                            .filter_by(api_url=platform[1]) \
-                            .update({'projects_json': response_dict['json_content'],
-                                     'projects_lastupdated': datetime.now()})
-                        self.db_session.commit()
+                        TransPlatform.objects.filter(api_url=platform.api_url).update(
+                            projects_json=response_dict['json_content'], projects_lastupdated=timezone.now()
+                        )
                     except Exception as e:
-                        self.db_session.rollback()
                         self.log_json['Projects'].update(
-                            {str(datetime.now()): 'Projects JSON for ' + platform[1] +
+                            {str(datetime.now()): 'Projects JSON for ' + platform.api_url +
                                                   ' failed to get saved in db. Details: ' + str(e)}
                         )
                         self.job_result = False
                     else:
                         self.log_json['Projects'].update(
-                            {str(datetime.now()): 'Projects JSON for ' + platform[1] + ' saved in db.'}
+                            {str(datetime.now()): 'Projects JSON for ' + platform.api_url + ' saved in db.'}
                         )
                         self.job_result = True
                 else:
                     self.log_json['Projects'].update(
-                        {str(datetime.now()): 'Projects JSON for ' + platform[1] + ' could not be fetched.'}
+                        {str(datetime.now()): 'Projects JSON for ' + platform.api_url + ' could not be fetched.'}
                     )
         return self.job_result
 
@@ -169,11 +169,8 @@ class TransplatformSyncManager(JobManager):
         """
         self.log_json['Project-Details'] = {}
         try:
-            project_urls = self.db_session.query(
-                TransPlatform.engine_name, TransPlatform.api_url, Packages.transplatform_url
-            ).filter(Packages.transplatform_slug == TransPlatform.platform_slug).all()
+            project_urls = Packages.objects.select_related()
         except Exception as e:
-            self.db_session.rollback()
             self.log_json['Project-Details'].update(
                 {str(datetime.now()): 'Fetch Project URLs from db failed. Details: ' + str(e)}
             )
@@ -186,20 +183,20 @@ class TransplatformSyncManager(JobManager):
                 for url in project_urls:
                     # Package name can be diff from its id/slug, hence extracting from url
                     transplatform_project_name = url.transplatform_url.split('/')[-1]
-                    rest_handle = self.rest_client(url.engine_name, url.api_url)
+                    rest_handle = self.rest_client(url.transplatform_slug.engine_name,
+                                                   url.transplatform_slug.api_url)
                     # extension for Transifex should be true, otherwise false
-                    ext = True if url.engine_name == TRANSPLATFORM_ENGINES[0] else False
+                    ext = True if url.transplatform_slug.engine_name == TRANSPLATFORM_ENGINES[0] else False
                     response_dict = rest_handle.process_request(
                         'project_details', transplatform_project_name, ext=ext
                     )
                     if response_dict and response_dict.get('json_content'):
                         try:
-                            self.db_session.query(Packages).filter_by(transplatform_url=url.transplatform_url) \
-                                .update({'package_details_json': response_dict['json_content'],
-                                         'details_json_lastupdated': datetime.now()})
-                            self.db_session.commit()
+                            Packages.objects.filter(transplatform_url=url.transplatform_url).update(
+                                package_details_json=response_dict['json_content'],
+                                details_json_lastupdated=timezone.now()
+                            )
                         except Exception as e:
-                            self.db_session.rollback()
                             self.log_json['Project-Details'].update(
                                 {str(datetime.now()): 'Project Details JSON for ' + transplatform_project_name +
                                                       ' failed to get saved in db. Details: ' + str(e)}
@@ -219,35 +216,32 @@ class TransplatformSyncManager(JobManager):
         """
         self.log_json['Translation-Stats'] = {}
         try:
-            project_details = self.db_session.query(
-                TransPlatform.engine_name, TransPlatform.api_url,
-                Packages.transplatform_url, Packages.package_details_json
-            ).filter(Packages.transplatform_slug == TransPlatform.platform_slug).all()
+            packages = Packages.objects.select_related()
         except Exception as e:
-            self.db_session.rollback()
             self.log_json['Translation-Stats'].update(
                 {str(datetime.now()): 'Fetch Project Details from db failed. Details: ' + str(e)}
             )
             self.job_result = False
         else:
             self.log_json['Translation-Stats'].update(
-                {str(datetime.now()): str(len(project_details)) + ' packages fetched from db.'}
+                {str(datetime.now()): str(len(packages)) + ' packages fetched from db.'}
             )
-            for project_detail in project_details:
-                rest_handle = self.rest_client(project_detail.engine_name, project_detail.api_url)
+            for package in packages:
+                transplatform_engine = package.transplatform_slug.engine_name
+                rest_handle = self.rest_client(transplatform_engine, package.transplatform_slug.api_url)
                 project, versions = parse_project_details_json(
-                    project_detail.engine_name, project_detail.package_details_json
+                    transplatform_engine, package.package_details_json
                 )
                 for version in versions:
                     # extension for Zanata should be true, otherwise false
-                    extension = True if project_detail.engine_name == TRANSPLATFORM_ENGINES[1] else False
+                    extension = True if transplatform_engine == TRANSPLATFORM_ENGINES[1] else False
                     response_dict = rest_handle.process_request(
                         'proj_trans_stats', project, version, extension
                     )
                     if response_dict and response_dict.get('json_content'):
                         try:
-                            existing_sync_stat = self.db_session.query(SyncStats). \
-                                filter_by(package_name=project, project_version=version).first()
+                            existing_sync_stat = SyncStats.objects.filter(package_name=project,
+                                                                          project_version=version).first()
                             if not existing_sync_stat:
                                 params = {}
                                 params.update(dict(package_name=project))
@@ -257,20 +251,15 @@ class TransplatformSyncManager(JobManager):
                                 params.update(dict(sync_iter_count=1))
                                 params.update(dict(sync_visibility=True))
                                 new_sync_stats = SyncStats(**params)
-                                self.db_session.add(new_sync_stats)
+                                new_sync_stats.save()
                             else:
-                                self.db_session.query(SyncStats).filter_by(
-                                    package_name=project, project_version=version
-                                ).update(
-                                    {'job_uuid': self.uuid, 'stats_raw_json': response_dict['json_content'],
-                                     'sync_iter_count': existing_sync_stat.sync_iter_count + 1}
+                                SyncStats.objects.filter(package_name=project, project_version=version).update(
+                                    job_uuid=self.uuid, stats_raw_json=response_dict['json_content'],
+                                    sync_iter_count=existing_sync_stat.sync_iter_count + 1
                                 )
-                            self.db_session.query(Packages).filter_by(
-                                transplatform_url=project_detail.transplatform_url
-                            ).update({'transtats_lastupdated': datetime.now()})
-                            self.db_session.commit()
+                            Packages.objects.filter(transplatform_url=package.transplatform_url).update(
+                                transtats_lastupdated=timezone.now())
                         except Exception as e:
-                            self.db_session.rollback()
                             self.log_json['Translation-Stats'].update(
                                 {str(datetime.now()): 'Transtats JSON for project: ' + project + ' of version: ' +
                                                       version + ' failed to get saved in db. Details: ' + str(e)}
@@ -289,13 +278,12 @@ class TransplatformSyncManager(JobManager):
         Update job with finish details
         """
         try:
-            self.db_session.query(Jobs).filter_by(job_uuid=self.uuid).update(
-                {'job_end_time': datetime.now(), 'job_log_json': self.log_json,
-                 'job_result': self.job_result}
+            Jobs.objects.filter(job_uuid=self.uuid).update(
+                job_end_time=timezone.now(),
+                job_log_json=self.log_json,
+                job_result=self.job_result
             )
-            self.db_session.commit()
         except:
-            self.db_session.rollback()
             return False
         else:
             return True
@@ -312,15 +300,12 @@ class SyncStatsManager(BaseManager):
         :return: resultset
         """
         sync_stats = None
-        required_params = (SyncStats.package_name, SyncStats.project_version,
-                           SyncStats.stats_raw_json)
+        required_params = ('package_name', 'project_version', 'stats_raw_json')
         try:
-            sync_stats = self.db_session.query(*required_params) \
-                .filter(SyncStats.package_name.in_(pkgs)) \
-                .filter_by(sync_visibility=True).all() if pkgs else \
-                self.db_session.query(*required_params).all()
+            sync_stats = SyncStats.objects.only(*required_params) \
+                .filter(package_name__in=pkgs, sync_visibility=True).all() \
+                if pkgs else SyncStats.objects.only(*required_params).all()
         except:
-            self.db_session.rollback()
             # log event, passing for now
             pass
         return sync_stats

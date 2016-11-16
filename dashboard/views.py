@@ -216,6 +216,6 @@ def graph_data(request):
     graph_dataset = {}
     if request.is_ajax():
         package = request.POST.dict().get('package')
-        packages_manager = PackagesManager(request)
+        packages_manager = PackagesManager()
         graph_dataset = packages_manager.get_trans_stats(package)
     return JsonResponse(graph_dataset)

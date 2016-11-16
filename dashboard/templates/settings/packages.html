@@ -82,9 +82,9 @@
                 <td>{{ package.lang_set }}</td>
                 <td>
                     {% if package.transtats_lastupdated %}
-                        {{ package.transtats_lastupdated|date:"M d, Y P" }}
+                        {{ package.transtats_lastupdated|timesince }} ago
                     {% else %}
-                        <a class="btn" href="{% url 'settings-scheduler' %}">Update Now</a>
+                        <a class="btn" href="{% url 'settings-jobs' %}">Update Now</a>
                     {% endif %}
                 </td>
                 <td align="center">

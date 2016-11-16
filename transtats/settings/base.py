@@ -17,10 +17,6 @@ import json
 # Core Django imports
 from django.core.exceptions import ImproperlyConfigured
 
-# Third-party app imports
-#import sqlalchemy
-#import sqlalchemy.orm
-
 # Imports from your apps
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -107,10 +103,10 @@ WSGI_APPLICATION = 'transtats.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'transtats',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'localhost',
+        'NAME': get_secret("DATABASE_NAME"),
+        'USER': get_secret("DATABASE_USER"),
+        'PASSWORD': get_secret("DATABASE_PASSWD"),
+        'HOST': get_secret("DATABASE_HOST"),
         'PORT': '',
     }
 }
@@ -190,16 +186,8 @@ LOGGING = {
     }
 }
 
-# Authentication Backend
-# AUTHENTICATION_BACKENDS = ('config.backends.SQLAlchemyAuth.SQLAlchemyUserBackend',)
-
 # Email Backend
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# creating SQLAlchemy Session
-#DATABASE_URL = get_secret("DATABASE_URL")
-#engine = sqlalchemy.create_engine(DATABASE_URL, isolation_level="SERIALIZABLE")
-#Session = sqlalchemy.orm.sessionmaker(bind=engine)
 
 # django-crispy-forms template pack
 CRISPY_TEMPLATE_PACK = 'bootstrap3'

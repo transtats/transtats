@@ -47,7 +47,8 @@
                 <div class="panel-body">
                     <p><span class="glyphicon glyphicon-time" aria-hidden="true"></span><span class="text-info">
                         {% if log.job_start_time %}Started at <strong>{{ log.job_start_time|time:"H:i:s" }}</strong>{% endif %}
-                        {% if log.job_end_time %} and completed at <strong>{{ log.job_end_time|time:"H:i:s" }}{% endif %}</strong>
+                        {% if log.job_end_time %} and completed at <strong>{{ log.job_end_time|time:"H:i:s" }}</strong>
+                        &nbsp;&nbsp;<em>({{ log.duration|floatformat:"0" }} seconds)</em>{% endif %}
                     </span></p>
                     <hr/>
                     <p>
