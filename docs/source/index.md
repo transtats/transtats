@@ -34,11 +34,12 @@ cd /path/to/transtats/repo
 make devel
 ```
 
-Copy `keys.json.example` to `keys.json` and `alembic.ini.example` to `alembic.ini` as well as put your values.
+Copy `keys.json.example` to `keys.json` and put your values.
 
 ```shell
-alembic upgrade head
-python manage.py runserver
+make migrations
+make migrate
+make run
 ```
 
 #### Contribution

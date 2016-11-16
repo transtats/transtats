@@ -1,3 +1,6 @@
+##### Wed Nov 16 2016 Sundeep Anand <suanand@redhat.com>
+* move to Django ORM
+
 ##### Thu Sept 15 2016 Sundeep Anand <suanand@redhat.com> - Prototype
 * add Transifex support - transplatform API configs
 * add feature: fetch translation stats with add package

@@ -64,13 +64,11 @@ target/
 .ipynb_checkpoints
 
 # db related
-*/*.sqlite3
-*/*/migrations/
-*/database.json
+*.sqlite3
 alembic.ini
-alembic/test-data.sql
+initial-data.sql
 
 # IDE
 .idea/
-*/*/*/keys.json
+keys.json
 requirements/freeze.txt

@@ -1,7 +1,0 @@
-{
-  "FILENAME": "keys.json",
-  "SECRET_KEY": "secret-key",
-  "DATABASE_URL": "postgresql+psycopg2://dbuser:password@dbhost/dbname",
-  "TRANSIFEX_USER": "transifex username",
-  "TRANSIFEX_PASSWD": "transifex password"
-}

@@ -1,0 +1,10 @@
+{
+  "FILENAME": "keys.json",
+  "SECRET_KEY": "secret-key",
+  "DATABASE_NAME": "transtats",
+  "DATABASE_USER": "postgres",
+  "DATABASE_PASSWD": "postgres" ,
+  "DATABASE_HOST": "localhost",
+  "TRANSIFEX_USER": "transifex username",
+  "TRANSIFEX_PASSWD": "transifex password"
+}

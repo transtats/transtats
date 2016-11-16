@@ -1,0 +1,84 @@
+{% extends "settings/settings_base.html" %}
+
+{% block extrascript %}
+<script src="/static/js/transtats.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#tab-jobs').addClass('active');
+        $("#syncform").submit(function(event){
+
+            // save button to use it later
+            var submit_button = $(this).find("button");
+
+            // give button loading state
+            submit_button.button('loading');
+
+            $.ajax({
+                 type:"POST",
+                 url:"/ajax/schedule-job",
+                 data: {
+                    // job identification
+                    'job': $('#identifier').val()
+                 },
+                 success: function(response){
+                    $('#message').html(response);
+                    //reset state
+                    submit_button.button('reset');
+                 },
+            });
+            return false; //<---- move it here
+       });
+    })
+</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-jobs' %}" class="btn btn-default">Jobs</a>
+{% endblock %}
+
+{% block tabcontent %}
+<div class="row">
+    <div class="col-xs-12">
+        <span>
+            <span class="badge">1</span> task configured.
+        </span>
+        <span class="pull-right">
+            <button type="button" class="btn btn-default disabled">Add Job</button>
+        </span>
+    </div>
+</div>
+<hr/>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Sync Translation Platform</h3>
+  </div>
+  <div class="panel-body">
+    Update project details
+    <select class="selectpicker" data-width="150px" disabled>
+      <option>Daily</option>
+      <option>Twice a week</option>
+      <option>Weekly</option>
+      <option class="select-dash" disabled="disabled">-----------------</option>
+      <option>Never</option>
+    </select>
+    And pull stats of registered packages every
+    <select class="selectpicker" data-width="150px" disabled>
+      <option>Three</option>
+      <option>Nine</option>
+      <option>Eighteen</option>
+      <option class="select-dash" disabled="disabled">-----------------</option>
+      <option>Never</option>
+    </select>
+    hour(s).<hr/>
+    <form method="post" id ="syncform" class="form-horizontal">{% csrf_token %}
+        <input type="hidden" value="synctransplatform" id="identifier"/>
+        <button type="submit" data-loading-text="Syncing..." class="btn btn-default"
+                autocomplete="off">Run Now</button>
+        <span id="message">&nbsp;&nbsp;This would initiate a sync job to update:
+            <span class="text-info"> project details and stats of registered packages.</span></span>
+    </form>
+  </div>
+</div>
+{% endblock %}
