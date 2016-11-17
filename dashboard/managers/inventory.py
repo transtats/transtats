@@ -31,8 +31,8 @@ from django.utils import timezone
 from .base import BaseManager
 from .jobs import SyncStatsManager
 from ..models import (
-    TransPlatform, Languages, ReleaseStream,
-    Packages, SyncStats
+    TransPlatform, Languages,
+    ReleaseStream, Packages, SyncStats
 )
 from ..services.constants import TRANSPLATFORM_ENGINES
 from .utilities import parse_project_details_json
@@ -81,7 +81,7 @@ class InventoryManager(BaseManager):
         platforms = None
         try:
             platforms = TransPlatform.objects.filter(**filter_kwargs) \
-                .order_by('-server_status').order_by('-projects_lastupdated')
+                .order_by('-projects_lastupdated').order_by('-server_status')
         except:
             # log event, passing for now
             pass
@@ -215,11 +215,14 @@ class PackagesManager(InventoryManager):
 
             kwargs['lang_set'] = 'default'
             kwargs['transplatform_slug'] = platform
+            kwargs['transplatform_name'] = kwargs['package_name']
+            kwargs['upstream_name'] = kwargs['upstream_url'].split('/')[-1]
             # save in db
             new_package = Packages(**kwargs)
             new_package.save()
         except:
             # log event, pass for now
+            # todo implement error msg handling
             return False
         else:
             return True

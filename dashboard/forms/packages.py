@@ -34,7 +34,7 @@ class NewPackageForm(forms.Form):
     update_stats_choices = (('stats', 'Translation Stats'), )
 
     package_name = forms.CharField(
-        label='Package Name', help_text='Package name as-in translation platform.', required=True,
+        label='Package Name', help_text='Package id as-in translation platform.', required=True,
     )
     upstream_url = forms.URLField(
         label='Upstream URL', help_text='Source repository location (GitHub, Bitbucket etc).', required=True
@@ -52,7 +52,8 @@ class NewPackageForm(forms.Form):
     )
     update_stats = forms.ChoiceField(
         label='Update details', widget=forms.CheckboxSelectMultiple, choices=update_stats_choices,
-        help_text="Stats fetch would be attempted. This may take some time!", required=False
+        help_text="Stats fetch would be attempted. <span class='text-warning'>This may take some time!</span>",
+        required=False
     )
 
     def __init__(self, *args, **kwargs):
@@ -65,16 +66,16 @@ class NewPackageForm(forms.Form):
 
     helper = FormHelper()
     helper.form_method = 'POST'
-    helper.form_action = '/settings/packages'
+    helper.form_action = '/settings/packages/new'
     helper.form_class = 'dynamic-form'
     helper.error_text_inline = True
     helper.form_show_errors = True
 
     helper.layout = Layout(
         Div(
-            Field('package_name', css_class='form-control'),
-            Field('upstream_url', css_class='form-control'),
-            Field('transplatform_slug', css_class='selectpicker'),
+            Field('package_name', css_class='form-control', onkeyup="showPackageSlug()"),
+            Field('upstream_url', css_class='form-control', onkeyup="showUpstreamName()"),
+            Field('transplatform_slug', css_class='selectpicker', onchange="showTransplatformId()"),
             InlineCheckboxes('release_streams'),
             InlineRadios('lang_set'),
             InlineCheckboxes('update_stats'),

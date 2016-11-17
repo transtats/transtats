@@ -9,9 +9,6 @@
     $(document).ready(function() {
         $('#tab-packages').addClass('active');
         $('#packages-table').DataTable();
-        $(".alert-dismissable").click(function (e) {
-            $(this).fadeOut('slow');
-        });
     })
 </script>
 {% endblock %}
@@ -29,17 +26,11 @@
             <span class="badge">{{ packages|length }}</span> packages registered.
         </span>
         <div class="pull-right">
-            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#newPackage">Add Package</button>
+            <a class="btn btn-default" role="button" href="{% url 'settings-packages-new' %}">Add Package</a>
         </div>
     </div>
 </div>
 <hr/>
-{% for message in messages %}
-    <div class="alert alert-danger alert-dismissable">
-      <button type="button" class="close" aria-hidden="true">&times;</button>
-      <p>{{ message }}</p>
-    </div>
-{% endfor %}
 <div id="settings-package-content">
     <table id="packages-table" class="table table-hover table-bordered" cellspacing="0" width="100%">
         <thead>
@@ -82,7 +73,8 @@
                 <td>{{ package.lang_set }}</td>
                 <td>
                     {% if package.transtats_lastupdated %}
-                        {{ package.transtats_lastupdated|timesince }} ago
+                        {{ package.transtats_lastupdated|timesince }} <span style="color:grey">ago</span>.
+                        <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
                     {% else %}
                         <a class="btn" href="{% url 'settings-jobs' %}">Update Now</a>
                     {% endif %}
@@ -98,32 +90,4 @@
         </tbody>
     </table>
 </div>
-
-<!-- Modal -->
-<div id="newPackage" class="modal {% if POST == 'invalid' %} show {% else %} fade {% endif %}" role="dialog">
-  <div class="modal-dialog">
-    <!-- Modal content-->
-    <div class="modal-content">
-      <div class="modal-header">
-        {% if POST == 'invalid' %}
-          <a href="{% url 'settings-packages' %}" class="btn close">&times;</a>
-        {% else %}
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-        {% endif %}
-        <h4 class="modal-title">New Package</h4>
-      </div>
-      <div class="modal-body">
-        <p>{% crispy form %}</p>
-      </div>
-      <div class="modal-footer">
-        {% if POST == 'invalid' %}
-          <a href="{% url 'settings-packages' %}" class="btn btn-default">Cancel</a>
-        {% else %}
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-
 {% endblock %}
