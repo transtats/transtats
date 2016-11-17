@@ -82,18 +82,21 @@ class Packages(models.Model):
     Packages Model
     """
     package_id = models.AutoField(primary_key=True)
-    package_name = models.CharField(max_length=500, unique=True)
+    package_name = models.CharField(max_length=1000, unique=True)
+    upstream_name = models.CharField(max_length=1000, null=True)
     upstream_url = models.URLField(max_length=2000, unique=True)
     transplatform_slug = models.ForeignKey(
         TransPlatform, on_delete=models.CASCADE,
         to_field='platform_slug'
     )
+    transplatform_name = models.CharField(max_length=1000, null=True)
     # translation platform project http url
     transplatform_url = models.URLField(max_length=500)
     release_streams = ArrayField(
         models.CharField(max_length=400, blank=True),
         default=list, null=True
     )
+    relstream_names = JSONField(null=True)
     lang_set = models.CharField(max_length=200)
     transtats_lastupdated = models.DateTimeField(null=True)
     package_details_json = JSONField(null=True)

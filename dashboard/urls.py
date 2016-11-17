@@ -21,7 +21,7 @@ from django.views.generic.base import TemplateView
 from .views import (
     HomeTemplateView, AppSettingsView, TransPlatformSettingsView,
     LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
-    LogsSettingsView, schedule_job, graph_data
+    LogsSettingsView, schedule_job, graph_data, NewPackageView
 )
 
 ajax_urls = [
@@ -34,6 +34,7 @@ app_setting_urls = [
     url(r'^translation-platforms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
     url(r'^release-streams$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
     url(r'^packages$', PackageSettingsView.as_view(), name="settings-packages"),
+    url(r'^packages/new$', NewPackageView.as_view(), name="settings-packages-new"),
     url(r'^languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),

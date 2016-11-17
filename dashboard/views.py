@@ -21,7 +21,7 @@ from django.http import (
 )
 from django.shortcuts import render
 from django.views.generic import (
-    TemplateView, ListView
+    TemplateView, ListView, FormView
 )
 from django.views.generic.edit import FormMixin
 
@@ -135,13 +135,24 @@ class LogsSettingsView(ManagersMixin, ListView):
         return job_logs
 
 
-class PackageSettingsView(ManagersMixin, FormMixin, ListView):
+class PackageSettingsView(ManagersMixin, ListView):
     """
     Packages Settings View
     """
     template_name = "settings/packages.html"
     context_object_name = 'packages'
-    success_url = '/settings/packages'
+
+    def get_queryset(self):
+        return self.packages_manager.get_packages()
+
+
+class NewPackageView(ManagersMixin, FormView):
+    """
+    New Package Form View
+    """
+    template_name = "settings/package_new.html"
+    context_object_name = 'packages'
+    success_url = '/settings/packages/new'
 
     def get_queryset(self):
         return self.packages_manager.get_packages()
@@ -184,6 +195,10 @@ class PackageSettingsView(ManagersMixin, FormMixin, ListView):
             if not self.packages_manager.add_package(**post_params):
                 messages.add_message(request, messages.ERROR, (
                     'Alas! Something unexpected happened. Please try adding your package again!'
+                ))
+            else:
+                messages.add_message(request, messages.SUCCESS, (
+                    'Great! Package added successfully.'
                 ))
             return HttpResponseRedirect(self.success_url)
         return render(request, self.template_name,
