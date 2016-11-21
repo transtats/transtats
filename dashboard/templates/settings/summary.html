@@ -15,5 +15,26 @@
 {% endblock %}
 
 {% block tabcontent %}
-<h5>This section would summarise settings current state!!</h5>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Inventory</h3>
+  </div>
+  <div class="panel-body">
+    <h2><span class="text-info">{{ locales }}</span> <small>Languages</small>&nbsp;&nbsp;&nbsp;
+        <span class="text-info">{{ platforms }}</span> <small>Translation Platforms</small>&nbsp;&nbsp;&nbsp;
+        <span class="text-info">{{ streams }}</span> <small>Release Streams</small>&nbsp;&nbsp;&nbsp;
+        <span class="text-info">{{ packages }}</span> <small>Packages</small></h2>
+  </div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Jobs</h3>
+  </div>
+  <div class="panel-body">
+    <h2><span class="text-info">{{ jobs_count }}</span>
+        <small>jobs ran. Last on <span class="text-info">{{ job_last_ran_on }}</span>
+            <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+            of type <span class="text-info">{{ job_last_ran_type }}</span>.</small></h2>
+  </div>
+</div>
 {% endblock %}

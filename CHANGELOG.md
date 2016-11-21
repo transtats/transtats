@@ -1,6 +1,7 @@
-##### Wed Nov 16 2016 Sundeep Anand <suanand@redhat.com>
+##### Mon Nov 21 2016 Sundeep Anand <suanand@redhat.com>
+* settings summary and add stats templates dir
 * package-names mapping provision
-* move to Django ORM
+* move to Django ORM - migrations
 
 ##### Thu Sept 15 2016 Sundeep Anand <suanand@redhat.com> - Prototype
 * add Transifex support - transplatform API configs

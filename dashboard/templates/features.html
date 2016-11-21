@@ -6,11 +6,6 @@
     </div>
 {% endblock %}
 
-{% block navigation %}
-    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
-    <a href="{% url 'features' %}" class="btn btn-default">Features</a>
-{% endblock %}
-
 {% block extrascript %}
 <style type="text/css">
     img {
@@ -32,7 +27,7 @@
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
                     <h3 class="section-heading">Track translation progress</h3>
-                    <p style="font-size: medium;" class="text-justify">In development of localised software, translation progress needs to be monitored on the basis of languages and release streams. {{ app_name }} collects templates, figure-out their translations, analyse statistics and generate reports.</p>
+                    <p style="font-size: medium;" class="text-justify">In development of localised software, translation progress needs to be monitored. {{ app_name }} collects templates, figure-out their translations, analyse statistics and generate graphs.</p>
                 </div>
                 <div class="col-lg-4 col-lg-offset-1 col-sm-5">
                     <hr class="section-heading-spacer">
@@ -50,12 +45,12 @@
                 <div class="col-lg-4 col-lg-offset-1 col-sm-push-4  col-sm-5">
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
-                    <h3 class="section-heading">Frequent sync with repositories</h3>
-                    <p style="font-size: medium;" class="text-justify">{{ app_name }} pulls data from code and translation repositories at regular intervals to ensure correct and latest data representations. Snapshots are also kept to manage diffs and growth analysis.</p>
+                    <h3 class="section-heading">Graph rules for custom needs</h3>
+                    <p style="font-size: medium;" class="text-justify">How about consolidate stats for the list of packages for a language set? Graph based on rules facilitate representation of stats for more specific requirements for better results.</p>
                 </div>
                 <div class="col-lg-5 col-sm-pull-4  col-sm-5">
                     <hr class="section-heading-spacer">
-                    <img class="img-responsive" src="/static/img/sync.png" alt="">
+                    <img class="img-responsive" src="/static/img/custom.png" alt="">
                 </div>
             </div>
         </div>
@@ -68,7 +63,7 @@
                 <div class="col-lg-4 col-sm-5">
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
-                    <h3 class="section-heading">Verify with release streams</h3>
+                    <h3 class="section-heading">Compare with release streams</h3>
                     <p style="font-size: medium;" class="text-justify">Sometimes translation platform shows good progress yet it is found that package released does not contain the latest. {{ app_name }} never let you miss string freeze and ensure to bundle the latest.</p>
                 </div>
                 <div class="col-lg-4 col-lg-offset-1 col-sm-5">
@@ -86,12 +81,12 @@
                 <div class="col-lg-4 col-lg-offset-1 col-sm-push-4  col-sm-5">
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
-                    <h3 class="section-heading">Package list & language sets</h3>
-                    <p style="font-size: medium;" class="text-justify">How about consolidate stats for the list of packages for a language set? Language set and list of packages can be created and maintained by registered users. Custom view experience.</p>
+                    <h3 class="section-heading">Frequent sync with repositories</h3>
+                    <p style="font-size: medium;" class="text-justify">{{ app_name }} pulls data from code and translation repositories at regular intervals to ensure correct and latest data representations. Snapshots are also kept to manage diffs and growth analysis.</p>
                 </div>
                 <div class="col-lg-5 col-sm-pull-4  col-sm-5">
                     <hr class="section-heading-spacer">
-                    <img class="img-responsive" src="/static/img/custom.png" alt="">
+                    <img class="img-responsive" src="/static/img/sync.png" alt="">
                 </div>
             </div>
         </div>

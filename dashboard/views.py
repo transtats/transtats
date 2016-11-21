@@ -48,7 +48,7 @@ class HomeTemplateView(ManagersMixin, TemplateView):
     """
     Home Page Template View
     """
-    template_name = "home.html"
+    template_name = "stats/index.html"
 
     def get_context_data(self, **kwargs):
         """
@@ -64,11 +64,32 @@ class HomeTemplateView(ManagersMixin, TemplateView):
         return context_data
 
 
-class AppSettingsView(TemplateView):
+class AppSettingsView(ManagersMixin, TemplateView):
     """
     Application Settings List View
     """
     template_name = "settings/summary.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        """
+        context = super(TemplateView, self).get_context_data(**kwargs)
+        locales_set = self.inventory_manager.get_locales_set()
+        if isinstance(locales_set, tuple):
+            active_locales, inactive_locales, aliases = locales_set
+            context['locales'] = len(active_locales)
+        platforms = self.inventory_manager.get_transplatform_slug_url()
+        context['platforms'] = len(platforms) if platforms else 0
+        relstreams = self.inventory_manager.get_relstream_slug_name()
+        context['streams'] = len(relstreams) if relstreams else 0
+        context['packages'] = self.packages_manager.count_packages()
+        jobs_count, last_ran_on, last_ran_type = \
+            self.jobs_log_manager.get_joblog_stats()
+        context['jobs_count'] = jobs_count
+        context['job_last_ran_on'] = last_ran_on
+        context['job_last_ran_type'] = last_ran_type
+        return context
 
 
 class LanguagesSettingsView(ManagersMixin, ListView):

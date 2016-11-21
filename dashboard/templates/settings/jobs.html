@@ -1,8 +1,14 @@
 {% extends "settings/settings_base.html" %}
 
 {% block extrascript %}
-<script src="/static/js/transtats.js"></script>
+<script src="/static/js/csrf.js"></script>
 <script type="text/javascript">
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
     $(document).ready(function() {
         $('#tab-jobs').addClass('active');
         $("#syncform").submit(function(event){
@@ -14,6 +20,15 @@
             submit_button.button('loading');
 
             $.ajax({
+                 beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        if (csrftoken) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        } else {
+                            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                        }
+                    }
+                 },
                  type:"POST",
                  url:"/ajax/schedule-job",
                  data: {

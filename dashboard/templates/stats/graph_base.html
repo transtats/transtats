@@ -1,0 +1,19 @@
+{% extends "home.html" %}
+
+{% block tabcontent %}
+    <br/><br/>
+    <nav class="navbar navbar-default bg-faded">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Views</a>
+            </div>
+            <div class="collapse navbar-collapse navbar-right">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Package wise for enabled languages</a></li>
+                    <li><a href="#">Based on Graph Rules</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% block tabsubcontent %}{% endblock %}
+{% endblock %}

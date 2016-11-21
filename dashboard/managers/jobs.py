@@ -93,6 +93,16 @@ class JobsLogManager(BaseManager):
             pass
         return job_logs
 
+    def get_joblog_stats(self):
+        """
+        Stats about jobs log
+        """
+        jobs_logs = self.get_job_logs()
+        jobs_count = jobs_logs.count()
+        last_ran_on = jobs_logs[0].job_end_time
+        last_ran_type = jobs_logs[0].job_type
+        return jobs_count, last_ran_on, last_ran_type
+
 
 class TransplatformSyncManager(JobManager):
     """

@@ -155,6 +155,13 @@ class PackagesManager(InventoryManager):
             pass
         return packages
 
+    def count_packages(self):
+        """
+        :return: packages count
+        """
+        packages = self.get_packages()
+        return packages.count() if packages else 0
+
     def add_package(self, **kwargs):
         """
         add package to db
