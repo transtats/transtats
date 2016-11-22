@@ -74,7 +74,6 @@
                 <td>
                     {% if package.transtats_lastupdated %}
                         {{ package.transtats_lastupdated|timesince }} <span style="color:grey">ago</span>.
-                        <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
                     {% else %}
                         <a class="btn" href="{% url 'settings-jobs' %}">Update Now</a>
                     {% endif %}

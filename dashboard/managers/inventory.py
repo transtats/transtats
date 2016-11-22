@@ -31,8 +31,8 @@ from django.utils import timezone
 from .base import BaseManager
 from .jobs import SyncStatsManager
 from ..models import (
-    TransPlatform, Languages,
-    ReleaseStream, Packages, SyncStats
+    TransPlatform, Languages, ReleaseStream,
+    StreamBranches, Packages, SyncStats
 )
 from ..services.constants import TRANSPLATFORM_ENGINES
 from .utilities import parse_project_details_json
@@ -108,13 +108,15 @@ class InventoryManager(BaseManager):
         return tuple([(platform.platform_slug, platform.api_url)
                       for platform in active_platforms]) or ()
 
-    def get_release_streams(self, only_active=None):
+    def get_release_streams(self, stream_slug=None, only_active=None):
         """
         Fetch all release streams from the db
         """
         filter_kwargs = {}
         if only_active:
             filter_kwargs.update(dict(relstream_status=True))
+        if stream_slug:
+            filter_kwargs.update(dict(relstream_slug=stream_slug))
 
         relstreams = None
         try:
@@ -132,6 +134,24 @@ class InventoryManager(BaseManager):
         active_streams = self.get_release_streams(only_active=True)
         return tuple([(stream.relstream_slug, stream.relstream_name)
                       for stream in active_streams]) or ()
+
+    def get_release_branches(self, relstream=None):
+        """
+        Get release stream branches from db
+        :param relstream: release stream slug
+        :return:
+        """
+        filter_kwargs = {}
+        if relstream:
+            filter_kwargs.update(dict(relstream_slug=relstream))
+
+        relbranches = None
+        try:
+            relbranches = StreamBranches.objects.filter(**filter_kwargs)
+        except:
+            # log event, passing for now
+            pass
+        return relbranches
 
 
 class PackagesManager(InventoryManager):

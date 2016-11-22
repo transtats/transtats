@@ -6,11 +6,6 @@
     </div>
 {% endblock %}
 
-{% block navigation %}
-    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
-    <a href="{% url 'register' %}" class="btn btn-default">Sign Up</a>
-{% endblock %}
-
 {% block pagecontent %}
     <center>
     <div style="width:800px" align="left" class="container well well-lg">
@@ -34,14 +29,14 @@
                 <div class="form-group">
                     <label>Source Code Repository URL</label>
                     <div class="input-group">
-                      <span class="input-group-addon" id="repo-prefix">https://github.com/</span>
-                      <input type="text" class="form-control" id="package-repo-url" aria-describedby="package-repo-url" placeholder="user-or-organisation/project-name">
+                      <span class="input-group-addon" id="repo-prefix">https://pagure.io/</span>
+                      <input type="text" class="form-control" id="package-repo-url" aria-describedby="package-repo-url" placeholder="project-name">
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="control-label">Translation Platform Project URL</label>
                     <div class="input-group">
-                      <span class="input-group-addon" id="l10n-server-prefix">https://translate.zanata.org/project/view/</span>
+                      <span class="input-group-addon" id="l10n-server-prefix">https://fedora.zanata.org/project/view/</span>
                       <input type="text" class="form-control" id="l10n-project-url" aria-describedby="package-repo-url" placeholder="project-id">
                     </div>
                 </div>

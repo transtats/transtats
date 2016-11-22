@@ -1,4 +1,5 @@
 ##### Mon Nov 21 2016 Sundeep Anand <suanand@redhat.com>
+* add release stream branches html
 * settings summary and add stats templates dir
 * package-names mapping provision
 * move to Django ORM - migrations
