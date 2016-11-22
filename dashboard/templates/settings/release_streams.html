@@ -51,7 +51,7 @@
                 <span class="glyphicon glyphicon-briefcase" aria-hidden="true"></span>
             </p>
             <p>
-                <span style="color:grey">Message bus:</span> {{ relstream.amqp_server }}
+                <span style="color:grey">Message bus:</span> {{ relstream.msgbus_exchange }}
                 <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
             </p>
             <p>
@@ -67,15 +67,9 @@
             </p>
             <hr/>
             <div class="list-group">
-              <a href="#" class="list-group-item">
-                <h4 class="list-group-item-heading">Release Stream Branches</h4>
-                <p class="list-group-item-text"><span class="text-success">RHEL 7.2</span>, <span class="text-info">RHEL 7.3</span> [...]</p>
-              </a>
-            </div>
-            <div class="list-group">
-              <a href="#" class="list-group-item">
-                <h4 class="list-group-item-heading">Release Schedule</h4>
-                <p class="list-group-item-text">Devel: String Freeze, QE [...]</p>
+              <a href="{% url 'settings-stream-branches' relstream.relstream_slug %}" class="list-group-item">
+                <h4 class="list-group-item-heading">{{ relstream.relstream_name }}
+                    <small class="text-primary">Releases/Branches</small></h4>
               </a>
             </div>
           </div>
@@ -85,7 +79,7 @@
     </div>
 {% else %}
     <p>
-        Add release stream/branch to list it here.
+        Add release stream to list it here.
     </p>
 {% endif %}
 {% endblock %}

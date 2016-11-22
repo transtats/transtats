@@ -52,7 +52,7 @@ class TransPlatform(models.Model):
     projects_lastupdated = models.DateTimeField(null=True)
 
     class Meta:
-        db_table = TABLE_PREFIX + 'transplatform'
+        db_table = TABLE_PREFIX + 'transplatforms'
 
 
 class ReleaseStream(models.Model):
@@ -71,10 +71,34 @@ class ReleaseStream(models.Model):
     auth_type = models.CharField(max_length=200, null=True)
     amqp_server = models.CharField(max_length=500, null=True)
     msgbus_exchange = models.CharField(max_length=200, null=True)
+    major_milestones = ArrayField(
+        models.CharField(max_length=1000, blank=True),
+        default=list, null=True
+    )
     relstream_status = models.BooleanField()
 
     class Meta:
-        db_table = TABLE_PREFIX + 'relstream'
+        db_table = TABLE_PREFIX + 'relstreams'
+
+
+class StreamBranches(models.Model):
+    """
+    Stream Branches Model
+    """
+    relbranch_id = models.AutoField(primary_key=True)
+    relbranch_name = models.CharField(max_length=500)
+    relbranch_slug = models.CharField(max_length=500, unique=True)
+    relstream_slug = models.CharField(max_length=400)
+    scm_branch = models.CharField(max_length=100, null=True)
+    created_on = models.DateTimeField()
+    status = models.CharField(max_length=200, null=True)
+    schedule = JSONField(null=True)
+    sync_calender = models.BooleanField(default=True)
+    notifications_flag = models.BooleanField(default=True)
+    track_trans_flag = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'relbranches'
 
 
 class Packages(models.Model):
@@ -100,6 +124,7 @@ class Packages(models.Model):
     lang_set = models.CharField(max_length=200)
     transtats_lastupdated = models.DateTimeField(null=True)
     package_details_json = JSONField(null=True)
+    release_branch_mapping = JSONField(null=True)
     details_json_lastupdated = models.DateTimeField(null=True)
 
     class Meta:

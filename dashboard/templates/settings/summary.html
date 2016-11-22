@@ -32,9 +32,8 @@
   </div>
   <div class="panel-body">
     <h2><span class="text-info">{{ jobs_count }}</span>
-        <small>jobs ran. Last on <span class="text-info">{{ job_last_ran_on }}</span>
-            <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
-            of type <span class="text-info">{{ job_last_ran_type }}</span>.</small></h2>
+        <small>jobs ran. {% if jobs_count > 0 %}Last on <span class="text-info">{{ job_last_ran_on }}</span>
+            of type <span class="text-info">{{ job_last_ran_type }}</span>.{% endif %}</small></h2>
   </div>
 </div>
 {% endblock %}

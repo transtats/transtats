@@ -97,10 +97,13 @@ class JobsLogManager(BaseManager):
         """
         Stats about jobs log
         """
+        last_ran_on = None
+        last_ran_type = None
         jobs_logs = self.get_job_logs()
         jobs_count = jobs_logs.count()
-        last_ran_on = jobs_logs[0].job_end_time
-        last_ran_type = jobs_logs[0].job_type
+        if jobs_count > 0:
+            last_ran_on = jobs_logs[0].job_end_time
+            last_ran_type = jobs_logs[0].job_type
         return jobs_count, last_ran_on, last_ran_type
 
 

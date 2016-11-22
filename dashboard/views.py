@@ -76,9 +76,8 @@ class AppSettingsView(ManagersMixin, TemplateView):
         """
         context = super(TemplateView, self).get_context_data(**kwargs)
         locales_set = self.inventory_manager.get_locales_set()
-        if isinstance(locales_set, tuple):
-            active_locales, inactive_locales, aliases = locales_set
-            context['locales'] = len(active_locales)
+        context['locales'] = len(locales_set[0]) \
+            if isinstance(locales_set, tuple) else 0
         platforms = self.inventory_manager.get_transplatform_slug_url()
         context['platforms'] = len(platforms) if platforms else 0
         relstreams = self.inventory_manager.get_relstream_slug_name()
@@ -142,6 +141,23 @@ class ReleaseStreamSettingsView(ManagersMixin, ListView):
 
     def get_queryset(self):
         return self.inventory_manager.get_release_streams()
+
+
+class StreamBranchesSettingsView(ManagersMixin, TemplateView):
+    """
+    Stream Branches Settings View
+    """
+    template_name = "settings/stream_branches.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(StreamBranchesSettingsView, self).get_context_data(**kwargs)
+        relstream_slug = kwargs.get('stream_slug')
+        if relstream_slug:
+            context['relstream'] = \
+                self.inventory_manager.get_release_streams(stream_slug=relstream_slug).get()
+            context['relbranches'] = \
+                self.inventory_manager.get_release_branches(relstream=relstream_slug)
+        return context
 
 
 class LogsSettingsView(ManagersMixin, ListView):
