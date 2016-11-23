@@ -1,5 +1,5 @@
-##### Mon Nov 21 2016 Sundeep Anand <suanand@redhat.com>
-* add release stream branches html
+##### Wed Nov 23 2016 Sundeep Anand <suanand@redhat.com>
+* add release_stream_branches model, view, html, form
 * settings summary and add stats templates dir
 * package-names mapping provision
 * move to Django ORM - migrations
