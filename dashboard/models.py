@@ -75,6 +75,10 @@ class ReleaseStream(models.Model):
         models.CharField(max_length=1000, blank=True),
         default=list, null=True
     )
+    relstream_phases = ArrayField(
+        models.CharField(max_length=200, blank=True),
+        default=list, null=True
+    )
     relstream_status = models.BooleanField()
 
     class Meta:
@@ -91,8 +95,9 @@ class StreamBranches(models.Model):
     relstream_slug = models.CharField(max_length=400)
     scm_branch = models.CharField(max_length=100, null=True)
     created_on = models.DateTimeField()
-    status = models.CharField(max_length=200, null=True)
-    schedule = JSONField(null=True)
+    current_phase = models.CharField(max_length=200, null=True)
+    calender_url = models.URLField(max_length=500, unique=True, null=True)
+    schedule_json = JSONField(null=True)
     sync_calender = models.BooleanField(default=True)
     notifications_flag = models.BooleanField(default=True)
     track_trans_flag = models.BooleanField(default=True)

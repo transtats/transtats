@@ -22,7 +22,7 @@ from .views import (
     HomeTemplateView, AppSettingsView, TransPlatformSettingsView,
     LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
     LogsSettingsView, NewPackageView, StreamBranchesSettingsView,
-    schedule_job, graph_data
+    NewReleaseBranchView, schedule_job, graph_data
 )
 
 ajax_urls = [
@@ -35,7 +35,8 @@ app_setting_urls = [
     url(r'^translation-platforms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
     url(r'^release-streams$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
     url(r'^release-stream/(?P<stream_slug>\w+)/', include([
-        url(r'^branches$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches")
+        url(r'^branches$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches"),
+        url(r'^branches/new$', NewReleaseBranchView.as_view(), name="settings-stream-branches-new")
     ])),
     url(r'^packages$', PackageSettingsView.as_view(), name="settings-packages"),
     url(r'^packages/new$', NewPackageView.as_view(), name="settings-packages-new"),

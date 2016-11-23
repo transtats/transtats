@@ -22,7 +22,7 @@
             <span class="badge">{{ relbranches|length }}</span> {{ relstream.relstream_name }} branches.
         </span>
         <span class="pull-right">
-            <button type="button" class="btn btn-default disabled">Add Branch</button>
+            <a href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}" class="btn btn-default">Add Branch</a>
             <button type="button" class="btn btn-default disabled">Unsupported Branches</button>
             <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Back to Release Streams</a>
         </span>
@@ -37,7 +37,7 @@
           <div class="caption">
             <h3>{{ relbranch.relbranch_name }} <small>{{ relbranch.scm_branch }}</small></h3>
             <p>
-                <span style="color:grey">Current Status:</span> {{ relbranch.status|capfirst }}
+                <span style="color:grey">Current Status:</span> {{ relbranch.current_phase|capfirst }}
             </p>
             <p>
                 <span style="color:grey">Sync Calender:</span>
@@ -63,11 +63,11 @@
                     <span class="glyphicon glyphicon-ban-circle" style="color:orange"></span>
                 {% endif %}
             </p>
-            {% if relbranch.schedule %}
+            {% if relbranch.schedule_json %}
                 <div class="list-group">
                   <a href="#" class="list-group-item">
                     <h4 class="list-group-item-heading">Release Schedule</h4>
-                    {% for milestone, date in relbranch.schedule.items|dictsort:1 %}
+                    {% for milestone, date in relbranch.schedule_json.items|dictsort:1 %}
                         <p class="list-group-item-text">
                             <span class="text-info">{{ milestone }}</span>
                             <span class="pull-right">{{ date }}</span>
@@ -87,7 +87,7 @@
     </div>
 {% else %}
     <p>
-        Add release branch to list it here.
+        No release branch configured. Add <a href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}">one</a> now.
     </p>
 {% endif %}
 {% endblock %}

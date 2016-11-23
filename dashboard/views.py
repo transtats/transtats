@@ -23,10 +23,11 @@ from django.shortcuts import render
 from django.views.generic import (
     TemplateView, ListView, FormView
 )
-from django.views.generic.edit import FormMixin
+from django.views.generic.base import ContextMixin
 
 # dashboard
 from .forms.packages import NewPackageForm
+from .forms.relbranches import NewReleaseBranchForm
 from .managers.inventory import (
     InventoryManager, PackagesManager
 )
@@ -160,6 +161,49 @@ class StreamBranchesSettingsView(ManagersMixin, TemplateView):
         return context
 
 
+class NewReleaseBranchView(ManagersMixin, FormView):
+    """
+    New Release Branch View
+    """
+    template_name = "settings/relbranch_new.html"
+
+    def _get_relstream(self):
+        return self.inventory_manager.get_release_streams(
+            stream_slug=self.kwargs.get('stream_slug'), only_active=True
+        ).get()
+
+    def get_context_data(self, **kwargs):
+        context = super(NewReleaseBranchView, self).get_context_data(**kwargs)
+        context['relstream'] = self._get_relstream()
+        return context
+
+    def get_initial(self):
+        initials = {}
+        initials.update(dict(enable_flags='track_trans_flag'))
+        return initials
+
+    def get_form(self, form_class=None, data=None):
+        kwargs = {}
+        release_stream = self._get_relstream()
+        kwargs.update({'action_url': 'release-stream/' + self.kwargs.get('stream_slug') + '/branches/new'})
+        kwargs.update({'phases_choices': tuple([(phase, phase)
+                                                for phase in release_stream.relstream_phases])})
+        kwargs.update({'initial': self.get_initial()})
+        if data:
+            kwargs.update({'data': data})
+        return NewReleaseBranchForm(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        post_params = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_params)
+
+        # todo add release stream branch
+
+        return render(request, self.template_name, {
+            'form': form, 'relstream': self._get_relstream(), 'POST': 'invalid'
+        })
+
+
 class LogsSettingsView(ManagersMixin, ListView):
     """
     Logs Settings View
@@ -188,11 +232,7 @@ class NewPackageView(ManagersMixin, FormView):
     New Package Form View
     """
     template_name = "settings/package_new.html"
-    context_object_name = 'packages'
     success_url = '/settings/packages/new'
-
-    def get_queryset(self):
-        return self.packages_manager.get_packages()
 
     def get_initial(self):
         initials = {}
@@ -238,8 +278,7 @@ class NewPackageView(ManagersMixin, FormView):
                     'Great! Package added successfully.'
                 ))
             return HttpResponseRedirect(self.success_url)
-        return render(request, self.template_name,
-                      {'form': form, 'packages': self.get_queryset(), 'POST': 'invalid'})
+        return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
 
 def schedule_job(request):

@@ -1,0 +1,39 @@
+{% extends "settings/settings_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block extrascript %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#tab-release-streams').addClass('active');
+    })
+</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Release Streams</a>
+    <a href="{% url 'settings-stream-branches' relstream.relstream_slug %}" class="btn btn-default">Branches</a>
+    <a href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}" class="btn btn-default">Add</a>
+{% endblock %}
+
+{% block tabcontent %}
+<div class="row">
+    <span class="col-xs-12">
+        <span>
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            &nbsp;&nbsp;<span class="text-muted"><b>Register a new {{ relstream.relstream_name|capfirst }} branch/version</b></span>
+        </span>
+        <span class="pull-right">
+            <a href="{% url 'settings-stream-branches' relstream.relstream_slug %}" class="btn btn-default">Back to {{ relstream.relstream_name|capfirst }} Branches</a>
+            <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Back to Release Streams</a>
+        </span>
+    </span>
+</div>
+<hr/>
+<div id="settings-release-branch-new">
+    <span class="col-xs-8 well">
+        {% crispy form %}
+    </span>
+</div>
+{% endblock %}
