@@ -23,17 +23,17 @@ from django.shortcuts import render
 from django.views.generic import (
     TemplateView, ListView, FormView
 )
-from django.views.generic.base import ContextMixin
 
 # dashboard
 from .forms.packages import NewPackageForm
 from .forms.relbranches import NewReleaseBranchForm
 from .managers.inventory import (
-    InventoryManager, PackagesManager
+    InventoryManager, PackagesManager, ReleaseBranchManager
 )
 from .managers.jobs import (
     JobsLogManager, TransplatformSyncManager
 )
+from .managers.graphs import GraphManager
 
 
 class ManagersMixin(object):
@@ -43,6 +43,8 @@ class ManagersMixin(object):
     inventory_manager = InventoryManager()
     packages_manager = PackagesManager()
     jobs_log_manager = JobsLogManager()
+    release_branch_manager = ReleaseBranchManager()
+    graph_manager = GraphManager()
 
 
 class HomeTemplateView(ManagersMixin, TemplateView):
@@ -65,6 +67,26 @@ class HomeTemplateView(ManagersMixin, TemplateView):
         return context_data
 
 
+class CustomGraphView(ManagersMixin, TemplateView):
+    """
+    Home Page Template View
+    """
+    template_name = "stats/custom_graph.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        """
+        context_data = super(TemplateView, self).get_context_data(**kwargs)
+        context_data['description'] = \
+            "translation position of the package for downstream"
+
+        graph_rules = self.graph_manager.get_graph_rules(only_active=True)
+        if graph_rules:
+            context_data['rules'] = graph_rules
+        return context_data
+
+
 class AppSettingsView(ManagersMixin, TemplateView):
     """
     Application Settings List View
@@ -83,12 +105,16 @@ class AppSettingsView(ManagersMixin, TemplateView):
         context['platforms'] = len(platforms) if platforms else 0
         relstreams = self.inventory_manager.get_relstream_slug_name()
         context['streams'] = len(relstreams) if relstreams else 0
+        relbranches = self.inventory_manager.get_release_branches()
+        context['branches'] = relbranches.count() if relbranches else 0
         context['packages'] = self.packages_manager.count_packages()
         jobs_count, last_ran_on, last_ran_type = \
             self.jobs_log_manager.get_joblog_stats()
         context['jobs_count'] = jobs_count
         context['job_last_ran_on'] = last_ran_on
         context['job_last_ran_type'] = last_ran_type
+        graph_rules = self.graph_manager.get_graph_rules(only_active=True)
+        context['graph_rules'] = graph_rules.count() if graph_rules else 0
         return context
 
 
@@ -196,8 +222,11 @@ class NewReleaseBranchView(ManagersMixin, FormView):
     def post(self, request, *args, **kwargs):
         post_params = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
         form = self.get_form(data=post_params)
+        filter_params = ('csrfmiddlewaretoken', 'addrelbranch')
+        [post_params.pop(key) for key in filter_params]
 
-        # todo add release stream branch
+        # todo
+        # self.release_branch_manager.validate_branch(**post_params)
 
         return render(request, self.template_name, {
             'form': form, 'relstream': self._get_relstream(), 'POST': 'invalid'
@@ -281,6 +310,17 @@ class NewPackageView(ManagersMixin, FormView):
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
 
+class GraphRulesSettingsView(ManagersMixin, ListView):
+    """
+    Graph Rules Settings View
+    """
+    template_name = "settings/graph_rules.html"
+    context_object_name = 'rules'
+
+    def get_queryset(self):
+        return self.graph_manager.get_graph_rules()
+
+
 def schedule_job(request):
     """
     Handles job schedule AJAX POST request
@@ -306,7 +346,11 @@ def graph_data(request):
     """
     graph_dataset = {}
     if request.is_ajax():
-        package = request.POST.dict().get('package')
-        packages_manager = PackagesManager()
-        graph_dataset = packages_manager.get_trans_stats(package)
+        graph_manager = GraphManager()
+        if 'package' in request.POST.dict():
+            package = request.POST.dict().get('package')
+            graph_dataset = graph_manager.get_trans_stats_by_package(package)
+        if 'graph_rule' in request.POST.dict():
+            graph_rule = request.POST.dict().get('graph_rule')
+            graph_dataset = graph_manager.get_trans_stats_by_rule(graph_rule)
     return JsonResponse(graph_dataset)

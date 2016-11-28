@@ -41,7 +41,7 @@ class NewReleaseBranchForm(forms.Form):
         label='Current Phase', choices=phases_choices,
         help_text='Phase in which this version/branch is running.'
     )
-    calender_url = forms.URLField(
+    calendar_url = forms.URLField(
         label='iCal URL', help_text='Release schedule calendar URL.', required=True
     )
     enable_flags = forms.ChoiceField(
@@ -68,7 +68,7 @@ class NewReleaseBranchForm(forms.Form):
         Div(
             Field('relbranch_name', css_class='form-control'),
             Field('current_phase', css_class='selectpicker'),
-            Field('calender_url', css_class='form-control'),
+            Field('calendar_url', css_class='form-control'),
             InlineCheckboxes('enable_flags'),
             HTML("<hr/>"),
             FormActions(

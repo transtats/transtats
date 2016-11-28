@@ -29,7 +29,7 @@ class Languages(models.Model):
     Languages Model
     """
     locale_id = models.CharField(max_length=50, primary_key=True)
-    lang_name = models.CharField(max_length=200, unique=True)
+    lang_name = models.CharField(max_length=400, unique=True)
     locale_alias = models.CharField(max_length=50, null=True)
     lang_status = models.BooleanField()
     lang_set = models.CharField(max_length=200)
@@ -160,7 +160,7 @@ class Jobs(models.Model):
 
 class SyncStats(models.Model):
     """
-    SyncStats Model
+    Sync Stats Model
     """
     sync_id = models.AutoField(primary_key=True)
     package_name = models.CharField(max_length=500)
@@ -172,3 +172,25 @@ class SyncStats(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'syncstats'
+
+
+class GraphRules(models.Model):
+    """
+    Graph Rules Model
+    """
+    graph_rule_id = models.AutoField(primary_key=True)
+    rule_name = models.CharField(max_length=1000, unique=True)
+    rule_packages = ArrayField(
+        models.CharField(max_length=1000, blank=True),
+        default=list, null=True
+    )
+    rule_langs = ArrayField(
+        models.CharField(max_length=400, blank=True),
+        default=list, null=True
+    )
+    rule_relbranch = models.CharField(max_length=500, null=True)
+    created_on = models.DateTimeField(null=True)
+    rule_status = models.BooleanField()
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'graphrules'

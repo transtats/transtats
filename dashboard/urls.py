@@ -22,7 +22,8 @@ from .views import (
     HomeTemplateView, AppSettingsView, TransPlatformSettingsView,
     LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
     LogsSettingsView, NewPackageView, StreamBranchesSettingsView,
-    NewReleaseBranchView, schedule_job, graph_data
+    NewReleaseBranchView, CustomGraphView, GraphRulesSettingsView,
+    schedule_job, graph_data
 )
 
 ajax_urls = [
@@ -45,13 +46,13 @@ app_setting_urls = [
         name="settings-notification"),
     url(r'^jobs$', TemplateView.as_view(template_name="settings/jobs.html"),
         name="settings-jobs"),
-    url(r'^graph-rules$', TemplateView.as_view(template_name="settings/graph_rules.html"),
-        name="settings-graph-rules"),
+    url(r'^graph-rules$', GraphRulesSettingsView.as_view(), name="settings-graph-rules"),
     url(r'^logs$', LogsSettingsView.as_view(), name="settings-logs"),
 ]
 
 urlpatterns = [
     url(r'^$', HomeTemplateView.as_view(), name="home"),
+    url(r'^custom-graph$', CustomGraphView.as_view(), name="custom-graph"),
     url(r'^admin', TemplateView.as_view(template_name="login.html"), name="admin-login"),
     url(r'^register$', TemplateView.as_view(template_name="register.html"), name="register"),
     url(r'^features$', TemplateView.as_view(template_name="features.html"), name="features"),
