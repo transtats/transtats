@@ -18,6 +18,12 @@
 # python
 from collections import OrderedDict
 
+# third-party
+from slugify import slugify
+
+# django
+from django.utils import timezone
+
 # dashboard
 from .base import BaseManager
 from .inventory import PackagesManager
@@ -49,6 +55,37 @@ class GraphManager(BaseManager):
             # log event, passing for now
             pass
         return rules
+
+    def slugify_graph_rule_name(self, suggested_name):
+        try:
+            return slugify(suggested_name)
+        except:
+            # log even, passing for now
+            return False
+
+    def add_graph_rule(self, **kwargs):
+        """
+        Save graph rule in db
+        :param kwargs: dict
+        :return: boolean
+        """
+        required_params = ('rule_name', 'rule_packages', 'rule_langs', 'rule_relbranch')
+        if not set(required_params) <= set(kwargs.keys()):
+            return
+
+        if not (kwargs['rule_name']):
+            return
+        try:
+            kwargs['created_on'] = timezone.now()
+            kwargs['rule_status'] = True
+            new_rule = GraphRules(**kwargs)
+            new_rule.save()
+        except:
+            # log event, pass for now
+            # todo implement error msg handling
+            return False
+        else:
+            return True
 
     def _format_stats_for_default_graphs(self, locale_sequence, stats_dict, desc):
         """

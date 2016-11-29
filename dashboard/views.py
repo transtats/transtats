@@ -25,8 +25,9 @@ from django.views.generic import (
 )
 
 # dashboard
-from .forms.packages import NewPackageForm
-from .forms.relbranches import NewReleaseBranchForm
+from .forms import (
+    NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
+)
 from .managers.inventory import (
     InventoryManager, PackagesManager, ReleaseBranchManager
 )
@@ -289,6 +290,9 @@ class NewPackageView(ManagersMixin, FormView):
         # process form_data to get them saved in db
         filter_params = ('csrfmiddlewaretoken', 'addPackage')
         [post_params.pop(key) for key in filter_params]
+        required_params = ('package_name', 'upstream_url', 'transplatform_slug', 'release_streams')
+        if not set(required_params) <= set(post_params.keys()):
+            return render(request, self.template_name, {'form': form})
         if not isinstance(post_params.get('release_streams'), (list, tuple, set)):
             post_params['release_streams'] = [post_params['release_streams']]
         # end processing
@@ -319,6 +323,63 @@ class GraphRulesSettingsView(ManagersMixin, ListView):
 
     def get_queryset(self):
         return self.graph_manager.get_graph_rules()
+
+
+class NewGraphRuleView(ManagersMixin, FormView):
+    """
+    New Graph Rule View
+    """
+    template_name = "settings/graphrule_new.html"
+    success_url = '/settings/graph-rules/new'
+
+    def get_initial(self):
+        initials = {}
+        initials.update(dict(rule_relbranch='master'))
+        return initials
+
+    def get_form(self, form_class=None, data=None):
+        kwargs = {}
+        pkgs = self.packages_manager.get_package_name_tuple()
+        langs = self.inventory_manager.get_locale_lang_tuple()
+        kwargs.update({'packages': pkgs})
+        kwargs.update({'languages': langs})
+        kwargs.update({'initial': self.get_initial()})
+        if data:
+            kwargs.update({'data': data})
+        return NewGraphRuleForm(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        post_params = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_params)
+        # process form_data to get them saved in db
+        filter_params = ('csrfmiddlewaretoken', 'addRule')
+        [post_params.pop(key) for key in filter_params]
+        # check for required params
+        required_params = ('rule_name', 'rule_packages', 'rule_langs', 'rule_relbranch')
+        if not set(required_params) <= set(post_params.keys()):
+            return render(request, self.template_name, {'form': form})
+        # packages and languages should be array
+        if not isinstance(post_params.get('rule_packages'), (list, tuple, set)):
+            post_params['rule_packages'] = [post_params['rule_packages']]
+        if not isinstance(post_params.get('rule_langs'), (list, tuple, set)):
+            post_params['rule_langs'] = [post_params['rule_langs']]
+        # end processing
+        rule_slug = self.graph_manager.slugify_graph_rule_name(post_params['rule_name'])
+        if not rule_slug:
+            errors = form._errors.setdefault('rule_name', ErrorList())
+            errors.append("This name cannot be slugify. Please try again.")
+        if rule_slug:
+            post_params['rule_name'] = rule_slug
+            if not self.graph_manager.add_graph_rule(**post_params):
+                messages.add_message(request, messages.ERROR, (
+                    'Alas! Something unexpected happened. Please try adding your rule again!'
+                ))
+            else:
+                messages.add_message(request, messages.SUCCESS, (
+                    'Great! Graph rule added successfully.'
+                ))
+            return HttpResponseRedirect(self.success_url)
+        return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
 
 def schedule_job(request):

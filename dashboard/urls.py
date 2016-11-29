@@ -23,7 +23,7 @@ from .views import (
     LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
     LogsSettingsView, NewPackageView, StreamBranchesSettingsView,
     NewReleaseBranchView, CustomGraphView, GraphRulesSettingsView,
-    schedule_job, graph_data
+    NewGraphRuleView, schedule_job, graph_data
 )
 
 ajax_urls = [
@@ -47,6 +47,7 @@ app_setting_urls = [
     url(r'^jobs$', TemplateView.as_view(template_name="settings/jobs.html"),
         name="settings-jobs"),
     url(r'^graph-rules$', GraphRulesSettingsView.as_view(), name="settings-graph-rules"),
+    url(r'^graph-rules/new$', NewGraphRuleView.as_view(), name="settings-graph-rules-new"),
     url(r'^logs$', LogsSettingsView.as_view(), name="settings-logs"),
 ]
 

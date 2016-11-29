@@ -25,7 +25,7 @@
             <span class="badge">{{ rules|length }}</span> graph rules created.
         </span>
         <div class="pull-right">
-            <a class="btn btn-default" role="button" href="#">Add Graph Rule</a>
+            <a class="btn btn-default" role="button" href="{% url 'settings-graph-rules-new' %}">Add Graph Rule</a>
         </div>
     </div>
 </div>
@@ -57,7 +57,7 @@
         <tbody>
             {% for rule in rules %}
             <tr>
-                <td><span class="text-info">{{ rule.rule_name }}</span></td>
+                <td><a href="{% url 'custom-graph' %}" class="text-info">{{ rule.rule_name }}</a></td>
                 <td>{{ rule.rule_packages|join:", " }}</td>
                 <td>{{ rule.rule_langs|join:", " }}</td>
                 <td>{{ rule.rule_relbranch }}</td>

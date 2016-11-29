@@ -1,4 +1,5 @@
-##### Wed Nov 23 2016 Sundeep Anand <suanand@redhat.com>
+##### Wed Nov 30 2016 Sundeep Anand <suanand@redhat.com>
+* add and list graph rules, display graphs based on rules
 * add release_stream_branches model, view, html, form
 * settings summary and add stats templates dir
 * package-names mapping provision

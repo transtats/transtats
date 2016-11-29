@@ -4,22 +4,22 @@
 {% block extrascript %}
 <script src="/static/js/jquery-1.12.3.js"></script>
 <script type="text/javascript">
+    function slugify(text)
+    {
+      return text.toString().toLowerCase()
+        .replace(/\s+/g, '-')           // Replace spaces with -
+        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+        .replace(/^-+/, '')             // Trim - from start of text
+        .replace(/-+$/, '');            // Trim - from end of text
+    }
+
     $(document).ready(function() {
-        $('#tab-packages').addClass('active');
+        $('#tab-graph-rules').addClass('active');
     })
-    function showPackageSlug() {
-        document.getElementById('show_package_name').innerHTML =
-                    "Package Slug ({{ app_name }}): <b>" + document.getElementById("id_package_name").value + "</b>";
-    }
-    function showUpstreamName() {
-        var upstream_url_parts = document.getElementById("id_upstream_url").value.split("/");
-        document.getElementById('show_upstream_name').innerHTML =
-                    "Package Name (Upstream): <b>" + upstream_url_parts[upstream_url_parts.length-1] + "</b>";
-    }
-    function showTransplatformId() {
-        var url = $('#id_transplatform_slug option:selected').text();
-        document.getElementById('show_transplatform_id').innerHTML =
-                    "<b>" + document.getElementById("id_package_name").value + "</b> at " + url;
+    function showRuleSlug() {
+        document.getElementById('show_rule_slug').innerHTML =
+                    "Graph Rule: <b>" + slugify(document.getElementById("id_rule_name").value) + "</b>";
     }
 </script>
 {% endblock %}
@@ -27,8 +27,8 @@
 {% block navigation %}
     <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
     <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
-    <a href="{% url 'settings-packages' %}" class="btn btn-default">Packages</a>
-    <a href="{% url 'settings-packages-new' %}" class="btn btn-default">Add</a>
+    <a href="{% url 'settings-graph-rules' %}" class="btn btn-default">Graph Rules</a>
+    <a href="{% url 'settings-graph-rules-new' %}" class="btn btn-default">Add</a>
 {% endblock %}
 
 {% block tabcontent %}
@@ -36,10 +36,10 @@
     <div class="col-xs-12">
         <span>
             <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-            &nbsp;&nbsp;<span class="text-muted"><b>Register a new package</b></span>
+            &nbsp;&nbsp;<span class="text-muted"><b>Create a new graph rule</b></span>
         </span>
         <div class="pull-right">
-            <a type="button" class="btn btn-default" href="{% url 'settings-packages' %}">Back to List Packages</a>
+            <a type="button" class="btn btn-default" href="{% url 'settings-graph-rules' %}">Back to List Graph Rules</a>
         </div>
     </div>
 </div>
@@ -63,9 +63,7 @@
         {% crispy form %}
     </span>
     <span class="col-xs-4" style="padding-top:40px">
-        <p class="text-info" id="show_package_name"></p>
-        <p class="text-info" id="show_upstream_name"></p>
-        <p class="text-info" id="show_transplatform_id"></p>
+        <p class="text-info" id="show_rule_slug"></p>
     </span>
 </div>
 {% endblock %}
