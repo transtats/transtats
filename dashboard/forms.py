@@ -99,14 +99,14 @@ class NewReleaseBranchForm(forms.Form):
     action_url = ''
     phases_choices = ()
     enable_flags_choices = (('track_trans_flag', 'Track Translation'),
-                            ('sync_calender', 'Sync Calendar'),
+                            ('sync_calendar', 'Sync Calendar'),
                             ('notifications_flag', 'Notification'))
 
     relbranch_name = forms.CharField(
         label='Release Branch Name', help_text='Version of the release stream.', required=True,
     )
     current_phase = forms.ChoiceField(
-        label='Current Phase', choices=phases_choices,
+        label='Current Phase', choices=phases_choices, required=True,
         help_text='Phase in which this version/branch is running.'
     )
     calendar_url = forms.URLField(
@@ -134,7 +134,7 @@ class NewReleaseBranchForm(forms.Form):
 
     helper.layout = Layout(
         Div(
-            Field('relbranch_name', css_class='form-control'),
+            Field('relbranch_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
             Field('current_phase', css_class='selectpicker'),
             Field('calendar_url', css_class='form-control'),
             InlineCheckboxes('enable_flags'),

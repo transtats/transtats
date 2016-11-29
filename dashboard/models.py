@@ -96,9 +96,9 @@ class StreamBranches(models.Model):
     scm_branch = models.CharField(max_length=100, null=True)
     created_on = models.DateTimeField()
     current_phase = models.CharField(max_length=200, null=True)
-    calender_url = models.URLField(max_length=500, unique=True, null=True)
+    calendar_url = models.URLField(max_length=500, unique=True, null=True)
     schedule_json = JSONField(null=True)
-    sync_calender = models.BooleanField(default=True)
+    sync_calendar = models.BooleanField(default=True)
     notifications_flag = models.BooleanField(default=True)
     track_trans_flag = models.BooleanField(default=True)
 

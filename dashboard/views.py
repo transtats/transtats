@@ -213,8 +213,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
         kwargs = {}
         release_stream = self._get_relstream()
         kwargs.update({'action_url': 'release-stream/' + self.kwargs.get('stream_slug') + '/branches/new'})
-        kwargs.update({'phases_choices': tuple([(phase, phase)
-                                                for phase in release_stream.relstream_phases])})
+        kwargs.update({'phases_choices': tuple([(phase, phase) for phase in release_stream.relstream_phases])})
         kwargs.update({'initial': self.get_initial()})
         if data:
             kwargs.update({'data': data})
@@ -223,12 +222,35 @@ class NewReleaseBranchView(ManagersMixin, FormView):
     def post(self, request, *args, **kwargs):
         post_params = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
         form = self.get_form(data=post_params)
+        relstream = kwargs.get('stream_slug')
+        # process form_data to get them saved in db
         filter_params = ('csrfmiddlewaretoken', 'addrelbranch')
         [post_params.pop(key) for key in filter_params]
-
-        # todo
-        # self.release_branch_manager.validate_branch(**post_params)
-
+        required_params = ('relbranch_name', 'current_phase', 'calendar_url')
+        if 'enable_flags' in post_params and \
+                not isinstance(post_params.get('enable_flags'), (list, tuple, set)):
+            post_params['enable_flags'] = [post_params['enable_flags']]
+        if not set(required_params) <= set(post_params.keys()):
+            return render(request, self.template_name, {'form': form})
+        # end processing
+        relbranch_slug, schedule_json = \
+            self.release_branch_manager.validate_branch(relstream, **post_params)
+        if not schedule_json:
+            errors = form._errors.setdefault('calendar_url', ErrorList())
+            errors.append("Please check calendar URL, could not parse required dates!")
+        if schedule_json:
+            success_url = '/settings/release-stream/' + relstream + '/branches/new'
+            post_params['schedule_json'] = schedule_json
+            post_params['relbranch_slug'] = relbranch_slug
+            if not self.release_branch_manager.add_relbranch(relstream, **post_params):
+                messages.add_message(request, messages.ERROR, (
+                    'Alas! Something unexpected happened. Please try adding release branch again!'
+                ))
+            else:
+                messages.add_message(request, messages.SUCCESS, (
+                    'Great! Release branch added successfully.'
+                ))
+            return HttpResponseRedirect(success_url)
         return render(request, self.template_name, {
             'form': form, 'relstream': self._get_relstream(), 'POST': 'invalid'
         })

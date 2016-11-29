@@ -3,9 +3,23 @@
 
 {% block extrascript %}
 <script type="text/javascript">
+    function slugify(text)
+    {
+      return text.toString().toLowerCase()
+        .replace(/\s+/g, '-')           // Replace spaces with -
+        .replace(/\./g, '-')            // Replace dot with -
+        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+        .replace(/^-+/, '')             // Trim - from start of text
+        .replace(/-+$/, '');            // Trim - from end of text
+    }
     $(document).ready(function() {
         $('#tab-release-streams').addClass('active');
     })
+    function showBranchNameSlug() {
+        document.getElementById('show_branch_name_slug').innerHTML =
+                    "Branch Slug: <b>" + slugify(document.getElementById("id_relbranch_name").value) + "</b>";
+    }
 </script>
 {% endblock %}
 
@@ -31,9 +45,26 @@
     </span>
 </div>
 <hr/>
+{% for message in messages %}
+    {% if 'success' in message.tags %}
+        <div class="alert alert-success alert-dismissable">
+          <button type="button" class="close" aria-hidden="true">&times;</button>
+          <p>{{ message }}</p>
+        </div>
+    {% endif %}
+    {% if 'error' in message.tags %}
+        <div class="alert alert-danger alert-dismissable">
+          <button type="button" class="close" aria-hidden="true">&times;</button>
+          <p>{{ message }}</p>
+        </div>
+    {% endif %}
+{% endfor %}
 <div id="settings-release-branch-new">
     <span class="col-xs-8 well">
         {% crispy form %}
+    </span>
+    <span class="col-xs-4" style="padding-top:40px">
+        <p class="text-info" id="show_branch_name_slug"></p>
     </span>
 </div>
 {% endblock %}
