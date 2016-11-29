@@ -16,13 +16,18 @@
 # Application inventories:
 #       Languages,
 #       Translation Platforms,
-#       Release Streams,
+#       Release Streams, and Branches
 #       Packages
 
 # python
+import io
 import operator
 from collections import OrderedDict
 from uuid import uuid4
+
+# third party
+import requests
+from slugify import slugify
 
 # django
 from django.utils import timezone
@@ -35,7 +40,9 @@ from ..models import (
     StreamBranches, Packages, SyncStats
 )
 from ..services.constants import TRANSPLATFORM_ENGINES
-from .utilities import parse_project_details_json
+from .utilities import (
+    parse_project_details_json, parse_ical_file
+)
 
 
 class InventoryManager(BaseManager):
@@ -43,17 +50,30 @@ class InventoryManager(BaseManager):
     Manage application inventories
     """
 
-    def get_locales(self):
+    def get_locales(self, only_active=None):
         """
         fetch all languages from db
         """
+        filter_kwargs = {}
+        if only_active:
+            filter_kwargs.update(dict(lang_status=True))
+
         locales = None
         try:
-            locales = Languages.objects.all().order_by('lang_name')
+            locales = Languages.objects.filter(**filter_kwargs) \
+                .order_by('lang_name')
         except:
             # log event, passing for now
             pass
         return locales
+
+    def get_locale_lang_tuple(self):
+        """
+        Creates locale
+        """
+        locales = self.get_locales(only_active=True)
+        return tuple([(locale.locale_id, locale.lang_name)
+                      for locale in locales])
 
     def get_locales_set(self):
         """
@@ -177,10 +197,18 @@ class PackagesManager(InventoryManager):
 
     def count_packages(self):
         """
-        :return: packages count
+        packages count
         """
         packages = self.get_packages()
         return packages.count() if packages else 0
+
+    def get_package_name_tuple(self):
+        """
+        returns (package_name, upstream_name) tuple
+        """
+        packages = self.get_packages()
+        return tuple([(package.package_name, package.upstream_name)
+                      for package in packages])
 
     def add_package(self, **kwargs):
         """
@@ -189,7 +217,7 @@ class PackagesManager(InventoryManager):
         :return: boolean
         """
         required_params = ('package_name', 'upstream_url', 'transplatform_slug', 'release_streams')
-        if not set(required_params) < set(kwargs.keys()):
+        if not set(required_params) <= set(kwargs.keys()):
             return
 
         if not (kwargs['package_name'] and kwargs['upstream_url']):
@@ -270,7 +298,7 @@ class PackagesManager(InventoryManager):
         """
         Validates existence of a package at a transplatform
         :param kwargs: dict
-        :return: str, Boolean
+        :return: package_name: str, Boolean
         """
         if not (kwargs.get('package_name')):
             return
@@ -298,24 +326,6 @@ class PackagesManager(InventoryManager):
             return ids[names.index(package_name)]
         else:
             return False
-
-    def _format_stats_for_graphs(self, locale_sequence, stats_dict, desc):
-        stats_for_graphs_dict = OrderedDict()
-        stats_for_graphs_dict['pkg_desc'] = desc
-        stats_for_graphs_dict['ticks'] = \
-            [[i, lang] for i, lang in enumerate(locale_sequence.values(), 0)]
-
-        stats_for_graphs_dict['graph_data'] = OrderedDict()
-        for version, stats_lists in stats_dict.items():
-            new_stats_list = []
-            for stats_tuple in stats_lists:
-                locale = stats_tuple[0].replace('-', '_') if ('-' in stats_tuple[0]) else stats_tuple[0]
-                index = [i for i, locale_tuple in enumerate(list(locale_sequence), 0) if locale in locale_tuple]
-                index.append(stats_tuple[1])
-                new_stats_list.append(index)
-            stats_for_graphs_dict['graph_data'][version] = new_stats_list
-
-        return stats_for_graphs_dict
 
     def get_trans_stats(self, package_name):
         """
@@ -346,5 +356,93 @@ class PackagesManager(InventoryManager):
             trans_stats_dict[pkg_stats_version.project_version] = \
                 self.syncstats_manager.extract_locale_translated(package_details.transplatform_slug_id,
                                                                  trans_stats_list)
-        # 3rd, format trans_stats_list for graphs
-        return self._format_stats_for_graphs(lang_id_name, trans_stats_dict, package_desc)
+
+        return lang_id_name, trans_stats_dict, package_desc
+
+
+class ReleaseBranchManager(InventoryManager):
+    """
+    Release Stream Branch Manager
+    """
+
+    def get_calender_events_dict(self, ical_url):
+        """
+        Fetches iCal contents over http and converts into dict
+        :param ical_url: caldendar url
+        :return: events dict_list
+        """
+        try:
+            rest_response = requests.get(ical_url, verify=False)
+        except:
+            # log event
+            return {}
+        else:
+            ical_contents_array = [line.strip() for line in io.StringIO(rest_response.text)]
+            return parse_ical_file(ical_contents_array)
+
+    def parse_events_for_required_milestones(self, relbranch_slug, ical_events, required_events):
+        """
+        Parse ical events for required milestones
+        :param: relbranch_slug: str
+        :param ical_events: ical events dict
+        :param required_events: list
+        :return: schedule dict of a release branch, False if fails
+        """
+        branch_schedule_dict = OrderedDict()
+        try:
+            for event in required_events:
+                for event_dict in ical_events:
+                    if (event.lower() in event_dict.get('SUMMARY').lower() and
+                            relbranch_slug in event_dict.get('SUMMARY').lower()):
+                        branch_schedule_dict[event] = event_dict.get('DTEND')
+        except:
+            # log event, pass for now
+            return False
+        else:
+            return branch_schedule_dict
+
+    def validate_branch(self, relstream, **kwargs):
+        """
+        Validate iCal URL for a branch
+        :return: boolean
+        """
+        if 'calendar_url' not in kwargs:
+            return False
+        ical_url = kwargs.get('calendar_url')
+        relbranch_slug = slugify(kwargs.get('relbranch_name', ''))
+        ical_events = self.get_calender_events_dict(ical_url)
+        release_stream = self.get_release_streams(stream_slug=relstream).get()
+        required_events = release_stream.major_milestones
+        return relbranch_slug, \
+            self.parse_events_for_required_milestones(relbranch_slug, ical_events, required_events)
+
+    def add_relbranch(self, relstream_slug, **kwargs):
+        """
+        Save release branch in db
+        :param relstream_slug: str
+        :param post_params: dict
+        :return: boolean
+        """
+        if not relstream_slug:
+            return False
+        required_params = ('relbranch_name', 'current_phase', 'calendar_url',
+                           'schedule_json', 'relbranch_slug')
+        if not set(required_params) <= set(kwargs.keys()):
+            return False
+        if not (kwargs['relbranch_name'] and kwargs['calendar_url']):
+            return False
+        flags = kwargs.pop('enable_flags') if 'enable_flags' in kwargs else []
+        try:
+            kwargs['relstream_slug'] = relstream_slug
+            kwargs['scm_branch'] = None
+            kwargs['created_on'] = timezone.now()
+            kwargs['sync_calendar'] = True if 'sync_calendar' in flags else False
+            kwargs['notifications_flag'] = True if 'notifications_flag' in flags else False
+            kwargs['track_trans_flag'] = True if 'track_trans_flag' in flags else False
+            new_relstream_branch = StreamBranches(**kwargs)
+            new_relstream_branch.save()
+        except:
+            # log event, pass for now
+            return False
+        else:
+            return True

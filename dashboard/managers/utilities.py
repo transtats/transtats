@@ -15,6 +15,9 @@
 
 # Common functions/utilities
 
+# python
+from collections import OrderedDict
+
 # dashboard
 from ..services.constants import TRANSPLATFORM_ENGINES
 
@@ -32,3 +35,35 @@ def parse_project_details_json(engine, json_dict):
         project = json_dict.get('id')
         versions = [version.get('id') for version in json_dict.get('iterations', [])]
     return project, versions
+
+
+def parse_ical_file(ical_content):
+    """
+    Parse iCal Content
+    :param ical_content: Calendar Content
+    :return: dict_list
+    """
+    ical_calendar = []
+    if not isinstance(ical_content, (list, tuple, set)):
+        return ical_calendar
+
+    EVENT_BEGIN_SYMBOL = "BEGIN:VEVENT"
+    EVENT_END_SYMBOL = "END:VEVENT"
+    DELIMITER = ":"
+
+    append_flag = False
+    ical_events = OrderedDict()
+    for elem in ical_content:
+        if elem == EVENT_END_SYMBOL:
+            append_flag = False
+            ical_calendar.append(ical_events)
+            ical_events = OrderedDict()
+        if append_flag:
+            if ":" in elem:
+                key_value = elem.split(DELIMITER)
+                ical_events.update({key_value[0]: DELIMITER.join(key_value[1:])}) \
+                    if key_value[0] == 'SUMMARY' \
+                    else ical_events.update({key_value[0]: key_value[1]})
+        if elem == EVENT_BEGIN_SYMBOL:
+            append_flag = True
+    return ical_calendar

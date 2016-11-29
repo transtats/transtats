@@ -81,7 +81,7 @@ class ServiceConfig(object):
 
 class RestHandle(object):
     """
-    httplib2 wrapper, a handle for REST communication
+    handle for REST communication
     """
     def __init__(self, *args, **kwargs):
         """
@@ -105,7 +105,7 @@ class RestHandle(object):
             if hasattr(self, 'ext') else '%s%s' % (self.base_url, self.uri)
 
     def _call_request(self, uri, http_method, **kwargs):
-        # Transtats consume read APIs only
+        # TS consumes read APIs only
 
         if http_method != 'GET':
             return

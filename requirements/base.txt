@@ -1,6 +1,8 @@
 Django==1.10
 django-crispy-forms==1.6.1
 psycopg2==2.6.2
+python-slugify==1.2.1
 pytz==2016.7
 requests==2.11.1
 sqlparse==0.2.2
+Unidecode==0.4.19

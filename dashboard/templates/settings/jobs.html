@@ -57,7 +57,7 @@
 <div class="row">
     <div class="col-xs-12">
         <span>
-            <span class="badge">1</span> task configured.
+            <span class="badge">2</span> task configured.
         </span>
         <span class="pull-right">
             <button type="button" class="btn btn-default disabled">Add Job</button>
@@ -67,11 +67,11 @@
 <hr/>
 <div class="panel panel-default">
   <div class="panel-heading">
-    <h3 class="panel-title">Sync Translation Platform</h3>
+    <h3 class="panel-title">Sync Translation Platforms</h3>
   </div>
   <div class="panel-body">
     Update project details
-    <select class="selectpicker" data-width="150px" disabled>
+    <select class="selectpicker" data-width="150px">
       <option>Daily</option>
       <option>Twice a week</option>
       <option>Weekly</option>
@@ -79,7 +79,7 @@
       <option>Never</option>
     </select>
     And pull stats of registered packages every
-    <select class="selectpicker" data-width="150px" disabled>
+    <select class="selectpicker" data-width="150px">
       <option>Three</option>
       <option>Nine</option>
       <option>Eighteen</option>
@@ -93,6 +93,21 @@
         <span id="message">&nbsp;&nbsp;This would initiate a sync job to update:
             <span class="text-info"> project details and stats of registered packages.</span></span>
     </form>
+  </div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Sync Release Schedule</h3>
+  </div>
+  <div class="panel-body">
+    Update release branch calendars
+    <select class="selectpicker" data-width="150px">
+      <option>Weekly</option>
+      <option>Bi-Weekly</option>
+      <option>Monthly</option>
+      <option class="select-dash" disabled="disabled">-----------------</option>
+      <option>Never</option>
+    </select>
   </div>
 </div>
 {% endblock %}

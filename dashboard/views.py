@@ -23,16 +23,18 @@ from django.shortcuts import render
 from django.views.generic import (
     TemplateView, ListView, FormView
 )
-from django.views.generic.edit import FormMixin
 
 # dashboard
-from .forms.packages import NewPackageForm
+from .forms import (
+    NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
+)
 from .managers.inventory import (
-    InventoryManager, PackagesManager
+    InventoryManager, PackagesManager, ReleaseBranchManager
 )
 from .managers.jobs import (
     JobsLogManager, TransplatformSyncManager
 )
+from .managers.graphs import GraphManager
 
 
 class ManagersMixin(object):
@@ -42,6 +44,8 @@ class ManagersMixin(object):
     inventory_manager = InventoryManager()
     packages_manager = PackagesManager()
     jobs_log_manager = JobsLogManager()
+    release_branch_manager = ReleaseBranchManager()
+    graph_manager = GraphManager()
 
 
 class HomeTemplateView(ManagersMixin, TemplateView):
@@ -64,6 +68,26 @@ class HomeTemplateView(ManagersMixin, TemplateView):
         return context_data
 
 
+class CustomGraphView(ManagersMixin, TemplateView):
+    """
+    Home Page Template View
+    """
+    template_name = "stats/custom_graph.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        """
+        context_data = super(TemplateView, self).get_context_data(**kwargs)
+        context_data['description'] = \
+            "translation position of the package for downstream"
+
+        graph_rules = self.graph_manager.get_graph_rules(only_active=True)
+        if graph_rules:
+            context_data['rules'] = graph_rules
+        return context_data
+
+
 class AppSettingsView(ManagersMixin, TemplateView):
     """
     Application Settings List View
@@ -82,12 +106,16 @@ class AppSettingsView(ManagersMixin, TemplateView):
         context['platforms'] = len(platforms) if platforms else 0
         relstreams = self.inventory_manager.get_relstream_slug_name()
         context['streams'] = len(relstreams) if relstreams else 0
+        relbranches = self.inventory_manager.get_release_branches()
+        context['branches'] = relbranches.count() if relbranches else 0
         context['packages'] = self.packages_manager.count_packages()
         jobs_count, last_ran_on, last_ran_type = \
             self.jobs_log_manager.get_joblog_stats()
         context['jobs_count'] = jobs_count
         context['job_last_ran_on'] = last_ran_on
         context['job_last_ran_type'] = last_ran_type
+        graph_rules = self.graph_manager.get_graph_rules(only_active=True)
+        context['graph_rules'] = graph_rules.count() if graph_rules else 0
         return context
 
 
@@ -160,6 +188,74 @@ class StreamBranchesSettingsView(ManagersMixin, TemplateView):
         return context
 
 
+class NewReleaseBranchView(ManagersMixin, FormView):
+    """
+    New Release Branch View
+    """
+    template_name = "settings/relbranch_new.html"
+
+    def _get_relstream(self):
+        return self.inventory_manager.get_release_streams(
+            stream_slug=self.kwargs.get('stream_slug'), only_active=True
+        ).get()
+
+    def get_context_data(self, **kwargs):
+        context = super(NewReleaseBranchView, self).get_context_data(**kwargs)
+        context['relstream'] = self._get_relstream()
+        return context
+
+    def get_initial(self):
+        initials = {}
+        initials.update(dict(enable_flags='track_trans_flag'))
+        return initials
+
+    def get_form(self, form_class=None, data=None):
+        kwargs = {}
+        release_stream = self._get_relstream()
+        kwargs.update({'action_url': 'release-stream/' + self.kwargs.get('stream_slug') + '/branches/new'})
+        kwargs.update({'phases_choices': tuple([(phase, phase) for phase in release_stream.relstream_phases])})
+        kwargs.update({'initial': self.get_initial()})
+        if data:
+            kwargs.update({'data': data})
+        return NewReleaseBranchForm(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        post_params = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_params)
+        relstream = kwargs.get('stream_slug')
+        # process form_data to get them saved in db
+        filter_params = ('csrfmiddlewaretoken', 'addrelbranch')
+        [post_params.pop(key) for key in filter_params]
+        required_params = ('relbranch_name', 'current_phase', 'calendar_url')
+        if 'enable_flags' in post_params and \
+                not isinstance(post_params.get('enable_flags'), (list, tuple, set)):
+            post_params['enable_flags'] = [post_params['enable_flags']]
+        if not set(required_params) <= set(post_params.keys()):
+            return render(request, self.template_name, {'form': form})
+        # end processing
+        relbranch_slug, schedule_json = \
+            self.release_branch_manager.validate_branch(relstream, **post_params)
+        if not schedule_json:
+            errors = form._errors.setdefault('calendar_url', ErrorList())
+            errors.append("Please check calendar URL, could not parse required dates!")
+        if schedule_json:
+            success_url = '/settings/release-stream/' + relstream + '/branches/new'
+            post_params['schedule_json'] = schedule_json
+            post_params['relbranch_slug'] = relbranch_slug
+            if not self.release_branch_manager.add_relbranch(relstream, **post_params):
+                messages.add_message(request, messages.ERROR, (
+                    'Alas! Something unexpected happened. Please try adding release branch again!'
+                ))
+            else:
+                messages.add_message(request, messages.SUCCESS, (
+                    'Great! Release branch added successfully.'
+                ))
+            return HttpResponseRedirect(success_url)
+        return render(request, self.template_name, {
+            'form': form, 'relstream': self._get_relstream(), 'POST': 'invalid'
+        })
+
+
 class LogsSettingsView(ManagersMixin, ListView):
     """
     Logs Settings View
@@ -188,11 +284,7 @@ class NewPackageView(ManagersMixin, FormView):
     New Package Form View
     """
     template_name = "settings/package_new.html"
-    context_object_name = 'packages'
     success_url = '/settings/packages/new'
-
-    def get_queryset(self):
-        return self.packages_manager.get_packages()
 
     def get_initial(self):
         initials = {}
@@ -220,6 +312,9 @@ class NewPackageView(ManagersMixin, FormView):
         # process form_data to get them saved in db
         filter_params = ('csrfmiddlewaretoken', 'addPackage')
         [post_params.pop(key) for key in filter_params]
+        required_params = ('package_name', 'upstream_url', 'transplatform_slug', 'release_streams')
+        if not set(required_params) <= set(post_params.keys()):
+            return render(request, self.template_name, {'form': form})
         if not isinstance(post_params.get('release_streams'), (list, tuple, set)):
             post_params['release_streams'] = [post_params['release_streams']]
         # end processing
@@ -238,8 +333,75 @@ class NewPackageView(ManagersMixin, FormView):
                     'Great! Package added successfully.'
                 ))
             return HttpResponseRedirect(self.success_url)
-        return render(request, self.template_name,
-                      {'form': form, 'packages': self.get_queryset(), 'POST': 'invalid'})
+        return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
+
+
+class GraphRulesSettingsView(ManagersMixin, ListView):
+    """
+    Graph Rules Settings View
+    """
+    template_name = "settings/graph_rules.html"
+    context_object_name = 'rules'
+
+    def get_queryset(self):
+        return self.graph_manager.get_graph_rules()
+
+
+class NewGraphRuleView(ManagersMixin, FormView):
+    """
+    New Graph Rule View
+    """
+    template_name = "settings/graphrule_new.html"
+    success_url = '/settings/graph-rules/new'
+
+    def get_initial(self):
+        initials = {}
+        initials.update(dict(rule_relbranch='master'))
+        return initials
+
+    def get_form(self, form_class=None, data=None):
+        kwargs = {}
+        pkgs = self.packages_manager.get_package_name_tuple()
+        langs = self.inventory_manager.get_locale_lang_tuple()
+        kwargs.update({'packages': pkgs})
+        kwargs.update({'languages': langs})
+        kwargs.update({'initial': self.get_initial()})
+        if data:
+            kwargs.update({'data': data})
+        return NewGraphRuleForm(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        post_params = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_params)
+        # process form_data to get them saved in db
+        filter_params = ('csrfmiddlewaretoken', 'addRule')
+        [post_params.pop(key) for key in filter_params]
+        # check for required params
+        required_params = ('rule_name', 'rule_packages', 'rule_langs', 'rule_relbranch')
+        if not set(required_params) <= set(post_params.keys()):
+            return render(request, self.template_name, {'form': form})
+        # packages and languages should be array
+        if not isinstance(post_params.get('rule_packages'), (list, tuple, set)):
+            post_params['rule_packages'] = [post_params['rule_packages']]
+        if not isinstance(post_params.get('rule_langs'), (list, tuple, set)):
+            post_params['rule_langs'] = [post_params['rule_langs']]
+        # end processing
+        rule_slug = self.graph_manager.slugify_graph_rule_name(post_params['rule_name'])
+        if not rule_slug:
+            errors = form._errors.setdefault('rule_name', ErrorList())
+            errors.append("This name cannot be slugify. Please try again.")
+        if rule_slug:
+            post_params['rule_name'] = rule_slug
+            if not self.graph_manager.add_graph_rule(**post_params):
+                messages.add_message(request, messages.ERROR, (
+                    'Alas! Something unexpected happened. Please try adding your rule again!'
+                ))
+            else:
+                messages.add_message(request, messages.SUCCESS, (
+                    'Great! Graph rule added successfully.'
+                ))
+            return HttpResponseRedirect(self.success_url)
+        return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
 
 def schedule_job(request):
@@ -267,7 +429,11 @@ def graph_data(request):
     """
     graph_dataset = {}
     if request.is_ajax():
-        package = request.POST.dict().get('package')
-        packages_manager = PackagesManager()
-        graph_dataset = packages_manager.get_trans_stats(package)
+        graph_manager = GraphManager()
+        if 'package' in request.POST.dict():
+            package = request.POST.dict().get('package')
+            graph_dataset = graph_manager.get_trans_stats_by_package(package)
+        if 'graph_rule' in request.POST.dict():
+            graph_rule = request.POST.dict().get('graph_rule')
+            graph_dataset = graph_manager.get_trans_stats_by_rule(graph_rule)
     return JsonResponse(graph_dataset)
