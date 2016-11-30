@@ -1,4 +1,5 @@
-##### Tue Nov 29 2016 Sundeep Anand <suanand@redhat.com>
+##### Wed Nov 30 2016 Sundeep Anand <suanand@redhat.com>
+* enable ical sync for RHEL and Fedora - syncCalendar Jobs
 * add and list graph rules, display graphs based on rules
 * add release_stream_branches model, view, html, form
 * settings summary and add stats templates dir
@@ -16,9 +17,8 @@
 * moved to Apache Licence Version 2.0
 * add packages setting page and fix ui
 * add languages, transplatform, relstreams settings pages (read-only)
-* add alembic and settings page/models
 * rename project to transtats, fix ui and migrate to PostgreSQL
 * add features page, zanata api, view, manager and model
 * link travis and readmedocs
 * project restructure: settings, requires, docs
-* initial structure with django, add SQLAlchemy middleware
+* initial structure with django

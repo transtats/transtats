@@ -18,7 +18,7 @@ from django.conf.urls import url, include
 from django.views.generic.base import TemplateView
 
 # dashboard
-from .views import (
+from dashboard.views import (
     HomeTemplateView, AppSettingsView, TransPlatformSettingsView,
     LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
     LogsSettingsView, NewPackageView, StreamBranchesSettingsView,

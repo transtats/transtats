@@ -13,7 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from ..services.consume.restclient import RestClient
+# dashboard
+from dashboard.services.consume.restclient import RestClient
 
 
 class BaseManager(object):

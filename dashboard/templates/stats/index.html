@@ -30,7 +30,7 @@ var options={series:{lines:{show:true},points:{radius:3,fill:true,show:true},},x
                     {% endfor %}
                 </select>
                 {% else %}
-                    <br/><p>No package configured. Add <a href="{% url 'settings-packages' %}">one</a> now.</p>
+                    <br/><p>No package configured. Add <a href="{% url 'settings-packages-new' %}">one</a> now.</p>
                 {% endif %}
                 <span class="text-info pull-right" id="packagedesc"></span>
             </div>

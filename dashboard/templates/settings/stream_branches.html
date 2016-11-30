@@ -73,11 +73,17 @@
                     <h4 class="list-group-item-heading">Release Schedule</h4>
                     {% for milestone, date in relbranch.schedule_json.items|dictsort:1 %}
                         <p class="list-group-item-text">
-                            <span class="text-info">{{ milestone }}</span>
-                            <span class="pull-right">{{ date }}</span>
+                            <div style="background-color: #FEFE;">
+                                <span class="text-info">{{ milestone }}</span>
+                                <span class="pull-right">{{ date }}</span>
+                            </div>
                         </p>
                     {% endfor %}
                   </a>
+                  <div class="pull-right">
+                    <a href="{{ relbranch.calendar_url }}" target="_blank">iCal</a>
+                    <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
+                  </div>
                 </div>
             {% endif %}
             <p>

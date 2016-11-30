@@ -19,7 +19,7 @@
 from collections import OrderedDict
 
 # dashboard
-from ..services.constants import TRANSPLATFORM_ENGINES
+from dashboard.constants import (TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS)
 
 
 def parse_project_details_json(engine, json_dict):
@@ -37,19 +37,27 @@ def parse_project_details_json(engine, json_dict):
     return project, versions
 
 
-def parse_ical_file(ical_content):
+def parse_ical_file(ical_content, relstream_slug):
     """
     Parse iCal Content
     :param ical_content: Calendar Content
+    :param ical_content: Release Stream Slug
     :return: dict_list
     """
     ical_calendar = []
     if not isinstance(ical_content, (list, tuple, set)):
         return ical_calendar
 
-    EVENT_BEGIN_SYMBOL = "BEGIN:VEVENT"
-    EVENT_END_SYMBOL = "END:VEVENT"
     DELIMITER = ":"
+    EVENT_BEGIN_SYMBOL = ""
+    EVENT_END_SYMBOL = ""
+
+    if relstream_slug == RELSTREAM_SLUGS[0]:
+        EVENT_BEGIN_SYMBOL = "BEGIN:VEVENT"
+        EVENT_END_SYMBOL = "END:VEVENT"
+    elif relstream_slug == RELSTREAM_SLUGS[1]:
+        EVENT_BEGIN_SYMBOL = "BEGIN:VTODO"
+        EVENT_END_SYMBOL = "END:VTODO"
 
     append_flag = False
     ical_events = OrderedDict()

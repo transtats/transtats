@@ -25,16 +25,17 @@ from django.views.generic import (
 )
 
 # dashboard
-from .forms import (
+from dashboard.forms import (
     NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
 )
-from .managers.inventory import (
+from dashboard.managers.inventory import (
     InventoryManager, PackagesManager, ReleaseBranchManager
 )
-from .managers.jobs import (
-    JobsLogManager, TransplatformSyncManager
+from dashboard.managers.jobs import (
+    JobsLogManager, TransplatformSyncManager,
+    ReleaseScheduleSyncManager
 )
-from .managers.graphs import GraphManager
+from dashboard.managers.graphs import GraphManager
 
 
 class ManagersMixin(object):
@@ -106,7 +107,7 @@ class AppSettingsView(ManagersMixin, TemplateView):
         context['platforms'] = len(platforms) if platforms else 0
         relstreams = self.inventory_manager.get_relstream_slug_name()
         context['streams'] = len(relstreams) if relstreams else 0
-        relbranches = self.inventory_manager.get_release_branches()
+        relbranches = self.release_branch_manager.get_release_branches()
         context['branches'] = relbranches.count() if relbranches else 0
         context['packages'] = self.packages_manager.count_packages()
         jobs_count, last_ran_on, last_ran_type = \
@@ -184,7 +185,7 @@ class StreamBranchesSettingsView(ManagersMixin, TemplateView):
             context['relstream'] = \
                 self.inventory_manager.get_release_streams(stream_slug=relstream_slug).get()
             context['relbranches'] = \
-                self.inventory_manager.get_release_branches(relstream=relstream_slug)
+                self.release_branch_manager.get_release_branches(relstream=relstream_slug)
         return context
 
 
@@ -206,7 +207,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
-        initials.update(dict(enable_flags='track_trans_flag'))
+        initials.update(dict(enable_flags=['track_trans_flag', 'sync_calendar']))
         return initials
 
     def get_form(self, form_class=None, data=None):
@@ -404,6 +405,16 @@ def schedule_job(request):
                 transplatform_sync_manager.sync_trans_stats()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+        elif job_type == 'syncrelschedule':
+            relschedule_sync_manager = ReleaseScheduleSyncManager(job_type)
+            job_uuid = relschedule_sync_manager.syncschedule_initiate_job()
+            if job_uuid:
+                message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                          "&nbsp;Job created and logged! UUID: <a href='/settings/logs'>" + str(job_uuid) + "</a>"
+                relschedule_sync_manager.sync_release_schedule()
+            else:
+                message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+            pass
     return HttpResponse(message)
 
 

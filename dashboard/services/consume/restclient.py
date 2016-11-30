@@ -26,7 +26,7 @@ from .config.transifex import resource_config_dict as transifex_resources
 from .config.zanata import services as zanata_services
 from .config.zanata import resource_config_dict as zanata_resources
 
-from ..constants import TRANSPLATFORM_ENGINES
+from dashboard.constants import TRANSPLATFORM_ENGINES
 
 
 NO_CERT_VALIDATION = True

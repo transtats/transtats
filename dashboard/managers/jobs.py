@@ -16,6 +16,7 @@
 # Jobs: Repositories Sync, Stats Validation
 
 # python
+from collections import OrderedDict
 from datetime import datetime
 from uuid import uuid4
 
@@ -23,27 +24,19 @@ from uuid import uuid4
 from django.utils import timezone
 
 # dashboard
-from .base import BaseManager
-from ..models import (
-    TransPlatform, Packages, Jobs, SyncStats
+from dashboard.constants import TRANSPLATFORM_ENGINES
+from dashboard.managers.base import BaseManager
+from dashboard.managers.inventory import ReleaseBranchManager
+from dashboard.managers.utilities import parse_project_details_json
+from dashboard.models import (
+    TransPlatform, Packages, Jobs, SyncStats, StreamBranches
 )
-from ..services.constants import (
-    TRANSPLATFORM_ENGINES, ZANATA_SLUGS, TRANSIFEX_SLUGS
-)
-from .utilities import parse_project_details_json
 
 
-class JobManager(BaseManager):
+class JobManager(object):
     """
     Base Manager for Jobs
     """
-    job_type = None
-    uuid = None
-    start_time = None
-    log_json = {}
-    job_result = False
-    job_remarks = None
-
     def _new_job_id(self):
         """
         a UUID based on the host ID and current time
@@ -56,7 +49,10 @@ class JobManager(BaseManager):
         :param http_request: object
         :param job_type: string
         """
-        super(JobManager, self).__init__()
+        self.start_time = None
+        self.log_json = OrderedDict()
+        self.job_result = False
+        self.job_remarks = None
         self.job_type = job_type
         self.uuid = self._new_job_id()
         self.start_time = timezone.now()
@@ -71,6 +67,21 @@ class JobManager(BaseManager):
             new_job.save()
         except:
             # log event, pass for now
+            return False
+        else:
+            return True
+
+    def mark_job_finish(self):
+        """
+        Update job with finish details
+        """
+        try:
+            Jobs.objects.filter(job_uuid=self.uuid).update(
+                job_end_time=timezone.now(),
+                job_log_json=self.log_json,
+                job_result=self.job_result
+            )
+        except:
             return False
         else:
             return True
@@ -107,17 +118,24 @@ class JobsLogManager(BaseManager):
         return jobs_count, last_ran_on, last_ran_type
 
 
-class TransplatformSyncManager(JobManager):
+class TransplatformSyncManager(BaseManager):
     """
     Translation Platform Sync Manager
     """
+
+    def __init__(self, job_type):
+        """
+        entry point
+        """
+        super(TransplatformSyncManager, self).__init__()
+        self.job_manager = JobManager(job_type)
 
     def syncstats_initiate_job(self):
         """
         Creates a Sync Job
         """
-        if self.create_job():
-            return self.uuid
+        if self.job_manager.create_job():
+            return self.job_manager.uuid
         return None
 
     def sync_trans_stats(self):
@@ -128,7 +146,7 @@ class TransplatformSyncManager(JobManager):
             self.update_trans_projects,
             self.update_project_details,
             self.update_trans_stats,
-            self.mark_job_finish,
+            self.job_manager.mark_job_finish,
         )
 
         [method() for method in stages]
@@ -137,17 +155,17 @@ class TransplatformSyncManager(JobManager):
         """
         Update projects json for transplatform in db
         """
-        self.log_json['Projects'] = {}
+        self.job_manager.log_json['Projects'] = OrderedDict()
         try:
             transplatforms = TransPlatform.objects.only('engine_name', 'api_url') \
                 .filter(server_status=True).all()
         except Exception as e:
-            self.log_json['Projects'].update(
+            self.job_manager.log_json['Projects'].update(
                 {str(datetime.now()): 'Fetch transplatform from db failed. Details: ' + str(e)}
             )
-            self.job_result = False
+            self.job_manager.job_result = False
         else:
-            self.log_json['Projects'].update(
+            self.job_manager.log_json['Projects'].update(
                 {str(datetime.now()): str(len(transplatforms)) + ' translation platforms fetched from db.'}
             )
             for platform in transplatforms:
@@ -160,36 +178,36 @@ class TransplatformSyncManager(JobManager):
                             projects_json=response_dict['json_content'], projects_lastupdated=timezone.now()
                         )
                     except Exception as e:
-                        self.log_json['Projects'].update(
+                        self.job_manager.log_json['Projects'].update(
                             {str(datetime.now()): 'Projects JSON for ' + platform.api_url +
                                                   ' failed to get saved in db. Details: ' + str(e)}
                         )
-                        self.job_result = False
+                        self.job_manager.job_result = False
                     else:
-                        self.log_json['Projects'].update(
+                        self.job_manager.log_json['Projects'].update(
                             {str(datetime.now()): 'Projects JSON for ' + platform.api_url + ' saved in db.'}
                         )
-                        self.job_result = True
+                        self.job_manager.job_result = True
                 else:
-                    self.log_json['Projects'].update(
+                    self.job_manager.log_json['Projects'].update(
                         {str(datetime.now()): 'Projects JSON for ' + platform.api_url + ' could not be fetched.'}
                     )
-        return self.job_result
+        return self.job_manager.job_result
 
     def update_project_details(self):
         """
         Update project details json in db
         """
-        self.log_json['Project-Details'] = {}
+        self.job_manager.log_json['Project-Details'] = OrderedDict()
         try:
             project_urls = Packages.objects.select_related()
         except Exception as e:
-            self.log_json['Project-Details'].update(
+            self.job_manager.log_json['Project-Details'].update(
                 {str(datetime.now()): 'Fetch Project URLs from db failed. Details: ' + str(e)}
             )
-            self.job_result = False
+            self.job_manager.job_result = False
         else:
-            self.log_json['Project-Details'].update(
+            self.job_manager.log_json['Project-Details'].update(
                 {str(datetime.now()): str(len(project_urls)) + ' Project URLs fetched from db.'}
             )
             if project_urls and len(project_urls) > 0:
@@ -210,33 +228,33 @@ class TransplatformSyncManager(JobManager):
                                 details_json_lastupdated=timezone.now()
                             )
                         except Exception as e:
-                            self.log_json['Project-Details'].update(
+                            self.job_manager.log_json['Project-Details'].update(
                                 {str(datetime.now()): 'Project Details JSON for ' + transplatform_project_name +
                                                       ' failed to get saved in db. Details: ' + str(e)}
                             )
-                            self.job_result = False
+                            self.job_manager.job_result = False
                         else:
-                            self.log_json['Project-Details'].update(
+                            self.job_manager.log_json['Project-Details'].update(
                                 {str(datetime.now()): 'Project Details JSON for ' +
                                                       transplatform_project_name + ' saved in db.'}
                             )
-                            self.job_result = True
-        return self.job_result
+                            self.job_manager.job_result = True
+        return self.job_manager.job_result
 
     def update_trans_stats(self):
         """
         Update translation stats for each project-version in db
         """
-        self.log_json['Translation-Stats'] = {}
+        self.job_manager.log_json['Translation-Stats'] = OrderedDict()
         try:
             packages = Packages.objects.select_related()
         except Exception as e:
-            self.log_json['Translation-Stats'].update(
+            self.job_manager.log_json['Translation-Stats'].update(
                 {str(datetime.now()): 'Fetch Project Details from db failed. Details: ' + str(e)}
             )
-            self.job_result = False
+            self.job_manager.job_result = False
         else:
-            self.log_json['Translation-Stats'].update(
+            self.job_manager.log_json['Translation-Stats'].update(
                 {str(datetime.now()): str(len(packages)) + ' packages fetched from db.'}
             )
             for package in packages:
@@ -258,7 +276,7 @@ class TransplatformSyncManager(JobManager):
                             if not existing_sync_stat:
                                 params = {}
                                 params.update(dict(package_name=project))
-                                params.update(dict(job_uuid=self.uuid))
+                                params.update(dict(job_uuid=self.job_manager.uuid))
                                 params.update(dict(project_version=version))
                                 params.update(dict(stats_raw_json=response_dict['json_content']))
                                 params.update(dict(sync_iter_count=1))
@@ -267,114 +285,101 @@ class TransplatformSyncManager(JobManager):
                                 new_sync_stats.save()
                             else:
                                 SyncStats.objects.filter(package_name=project, project_version=version).update(
-                                    job_uuid=self.uuid, stats_raw_json=response_dict['json_content'],
+                                    job_uuid=self.job_manager.uuid, stats_raw_json=response_dict['json_content'],
                                     sync_iter_count=existing_sync_stat.sync_iter_count + 1
                                 )
                             Packages.objects.filter(transplatform_url=package.transplatform_url).update(
                                 transtats_lastupdated=timezone.now())
                         except Exception as e:
-                            self.log_json['Translation-Stats'].update(
+                            self.job_manager.log_json['Translation-Stats'].update(
                                 {str(datetime.now()): 'Transtats JSON for project: ' + project + ' of version: ' +
                                                       version + ' failed to get saved in db. Details: ' + str(e)}
                             )
-                            self.job_result = False
+                            self.job_manager.job_result = False
                         else:
-                            self.log_json['Translation-Stats'].update(
+                            self.job_manager.log_json['Translation-Stats'].update(
                                 {str(datetime.now()): 'Transtats JSON for project: ' + project + ' of version: ' +
                                                       version + ' saved in db.'}
                             )
-                            self.job_result = True
-        return self.job_result
+                            self.job_manager.job_result = True
+        return self.job_manager.job_result
 
-    def mark_job_finish(self):
+
+class ReleaseScheduleSyncManager(BaseManager):
+    """
+    Release Schedule Sync Manager
+    """
+
+    def __init__(self, job_type):
         """
-        Update job with finish details
+        entry point
         """
+        super(ReleaseScheduleSyncManager, self).__init__()
+        self.job_manager = JobManager(job_type)
+        self.release_branch_manager = ReleaseBranchManager()
+
+    def syncschedule_initiate_job(self):
+        """
+        Creates a Sync Job
+        """
+        if self.job_manager.create_job():
+            return self.job_manager.uuid
+        return None
+
+    def sync_release_schedule(self):
+        """
+        Run Sync process in sequential steps
+        """
+        stages = (
+            self.update_event_dates,
+            self.job_manager.mark_job_finish,
+        )
+
+        [method() for method in stages]
+
+    def update_event_dates(self):
+        """
+        Update schedule_json for all release branches
+        """
+        SUBJECT = 'Release Branches'
+        self.job_manager.log_json[SUBJECT] = OrderedDict()
+
         try:
-            Jobs.objects.filter(job_uuid=self.uuid).update(
-                job_end_time=timezone.now(),
-                job_log_json=self.log_json,
-                job_result=self.job_result
+            relbranches = StreamBranches.objects.only('relbranch_slug', 'relstream_slug', 'calendar_url') \
+                .filter(sync_calendar=True).all()
+        except Exception as e:
+            self.job_manager.log_json[SUBJECT].update(
+                {str(datetime.now()): 'Fetch relbranches from db failed. Details: ' + str(e)}
             )
-        except:
-            return False
+            self.job_result = False
         else:
-            return True
-
-
-class SyncStatsManager(BaseManager):
-    """
-    Sync Translation Stats Manager
-    """
-
-    def get_sync_stats(self, pkgs=None):
-        """
-        fetch sync translation stats from db
-        :return: resultset
-        """
-        sync_stats = None
-        required_params = ('package_name', 'project_version', 'stats_raw_json')
-        try:
-            sync_stats = SyncStats.objects.only(*required_params) \
-                .filter(package_name__in=pkgs, sync_visibility=True).all() \
-                if pkgs else SyncStats.objects.only(*required_params).all()
-        except:
-            # log event, passing for now
-            pass
-        return sync_stats
-
-    def filter_stats_for_required_locales(self, transplatform_slug, stats_json, locales):
-        """
-        Filter stats json for required locales
-        :param transplatform_slug: str
-        :param stats_json: dict
-        :param locales: list
-        :return: stats list, missing locales tuple
-        """
-        trans_stats = []
-        locales_found = []
-
-        if transplatform_slug in ZANATA_SLUGS:
-            if not stats_json.get('stats'):
-                return trans_stats, ()
-            for stats_param in stats_json['stats']:
-                stats_param_locale = stats_param.get('locale', '')
-                for locale_tuple in locales:
-                    if (stats_param_locale in locale_tuple) or \
-                            (stats_param_locale.replace('-', '_') in locale_tuple):
-                        trans_stats.append(stats_param)
-                    else:
-                        locales_found.append(locale_tuple)
-
-        elif transplatform_slug in TRANSIFEX_SLUGS:
-            for locale_tuple in locales:
-                if stats_json.get(locale_tuple[0]):
-                    trans_stats.append({locale_tuple[0]: stats_json[locale_tuple[0]]})
-                    locales_found.append(locale_tuple)
-                elif stats_json.get(locale_tuple[1]):
-                    trans_stats.append({locale_tuple[1]: stats_json[locale_tuple[1]]})
-                    locales_found.append(locale_tuple)
-
-        return trans_stats, tuple(set(locales) - set(locales_found))
-
-    def extract_locale_translated(self, transplatform_slug, stats_dict_list):
-        """
-        Compute %age of translation for each locale
-        :param transplatform_slug:str
-        :param stats_dict_list:list
-        :return:locale translated list
-        """
-        locale_translated = []
-
-        if transplatform_slug in ZANATA_SLUGS:
-            for stats_dict in stats_dict_list:
-                translation_percent = \
-                    round((stats_dict.get('translated') * 100) / stats_dict.get('total'), 2) \
-                    if stats_dict.get('total') > 0 else 0
-                locale_translated.append([stats_dict.get('locale'), translation_percent])
-        elif transplatform_slug in TRANSIFEX_SLUGS:
-            for stats_dict in stats_dict_list:
-                for locale, stat_params in stats_dict.items():
-                    locale_translated.append([locale, int(stat_params.get('completed')[:-1])])
-
-        return locale_translated
+            self.job_manager.log_json[SUBJECT].update(
+                {str(datetime.now()): str(len(relbranches)) + ' release branches fetched from db.'}
+            )
+            for relbranch in relbranches:
+                ical_events = self.release_branch_manager.get_calender_events_dict(
+                    relbranch.calendar_url, relbranch.relstream_slug)
+                release_stream = self.release_branch_manager.get_release_streams(
+                    stream_slug=relbranch.relstream_slug).get()
+                required_events = release_stream.major_milestones
+                schedule_dict = \
+                    self.release_branch_manager.parse_events_for_required_milestones(
+                        relbranch.relstream_slug, relbranch.relbranch_slug, ical_events, required_events
+                    )
+                if schedule_dict:
+                    relbranch_update_result = StreamBranches.objects.filter(
+                        relbranch_slug=relbranch.relbranch_slug
+                    ).update(schedule_json=schedule_dict)
+                    if relbranch_update_result:
+                        self.job_manager.log_json[SUBJECT].update(
+                            {str(datetime.now()): 'Release schedule for ' + relbranch.relbranch_slug +
+                                                  ' branch updated in db.'}
+                        )
+                        self.job_manager.job_result = True
+                else:
+                    self.job_manager.log_json[SUBJECT].update(
+                        {str(datetime.now()): 'Release schedule for ' + relbranch.relbranch_slug +
+                                              ' failed to get saved in db.'}
+                    )
+                    self.job_manager.job_result = False
+        return self.job_manager.job_result

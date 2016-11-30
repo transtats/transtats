@@ -33,14 +33,16 @@ from slugify import slugify
 from django.utils import timezone
 
 # dashboard
-from .base import BaseManager
-from .jobs import SyncStatsManager
-from ..models import (
+from dashboard.managers.base import BaseManager
+from dashboard.models import (
     TransPlatform, Languages, ReleaseStream,
     StreamBranches, Packages, SyncStats
 )
-from ..services.constants import TRANSPLATFORM_ENGINES
-from .utilities import (
+from dashboard.constants import (
+    TRANSPLATFORM_ENGINES, ZANATA_SLUGS,
+    TRANSIFEX_SLUGS, RELSTREAM_SLUGS
+)
+from dashboard.managers.utilities import (
     parse_project_details_json, parse_ical_file
 )
 
@@ -155,23 +157,83 @@ class InventoryManager(BaseManager):
         return tuple([(stream.relstream_slug, stream.relstream_name)
                       for stream in active_streams]) or ()
 
-    def get_release_branches(self, relstream=None):
-        """
-        Get release stream branches from db
-        :param relstream: release stream slug
-        :return:
-        """
-        filter_kwargs = {}
-        if relstream:
-            filter_kwargs.update(dict(relstream_slug=relstream))
 
-        relbranches = None
+class SyncStatsManager(BaseManager):
+    """
+    Sync Translation Stats Manager
+    """
+
+    def get_sync_stats(self, pkgs=None):
+        """
+        fetch sync translation stats from db
+        :return: resultset
+        """
+        sync_stats = None
+        required_params = ('package_name', 'project_version', 'stats_raw_json')
         try:
-            relbranches = StreamBranches.objects.filter(**filter_kwargs)
+            sync_stats = SyncStats.objects.only(*required_params) \
+                .filter(package_name__in=pkgs, sync_visibility=True).all() \
+                if pkgs else SyncStats.objects.only(*required_params).all()
         except:
             # log event, passing for now
             pass
-        return relbranches
+        return sync_stats
+
+    def filter_stats_for_required_locales(self, transplatform_slug, stats_json, locales):
+        """
+        Filter stats json for required locales
+        :param transplatform_slug: str
+        :param stats_json: dict
+        :param locales: list
+        :return: stats list, missing locales tuple
+        """
+        trans_stats = []
+        locales_found = []
+
+        if transplatform_slug in ZANATA_SLUGS:
+            if not stats_json.get('stats'):
+                return trans_stats, ()
+            for stats_param in stats_json['stats']:
+                stats_param_locale = stats_param.get('locale', '')
+                for locale_tuple in locales:
+                    if (stats_param_locale in locale_tuple) or \
+                            (stats_param_locale.replace('-', '_') in locale_tuple):
+                        trans_stats.append(stats_param)
+                    else:
+                        locales_found.append(locale_tuple)
+
+        elif transplatform_slug in TRANSIFEX_SLUGS:
+            for locale_tuple in locales:
+                if stats_json.get(locale_tuple[0]):
+                    trans_stats.append({locale_tuple[0]: stats_json[locale_tuple[0]]})
+                    locales_found.append(locale_tuple)
+                elif stats_json.get(locale_tuple[1]):
+                    trans_stats.append({locale_tuple[1]: stats_json[locale_tuple[1]]})
+                    locales_found.append(locale_tuple)
+
+        return trans_stats, tuple(set(locales) - set(locales_found))
+
+    def extract_locale_translated(self, transplatform_slug, stats_dict_list):
+        """
+        Compute %age of translation for each locale
+        :param transplatform_slug:str
+        :param stats_dict_list:list
+        :return:locale translated list
+        """
+        locale_translated = []
+
+        if transplatform_slug in ZANATA_SLUGS:
+            for stats_dict in stats_dict_list:
+                translation_percent = \
+                    round((stats_dict.get('translated') * 100) / stats_dict.get('total'), 2) \
+                    if stats_dict.get('total') > 0 else 0
+                locale_translated.append([stats_dict.get('locale'), translation_percent])
+        elif transplatform_slug in TRANSIFEX_SLUGS:
+            for stats_dict in stats_dict_list:
+                for locale, stat_params in stats_dict.items():
+                    locale_translated.append([locale, int(stat_params.get('completed')[:-1])])
+
+        return locale_translated
 
 
 class PackagesManager(InventoryManager):
@@ -368,7 +430,25 @@ class ReleaseBranchManager(InventoryManager):
     Release Stream Branch Manager
     """
 
-    def get_calender_events_dict(self, ical_url):
+    def get_release_branches(self, relstream=None):
+        """
+        Get release stream branches from db
+        :param relstream: release stream slug
+        :return:
+        """
+        filter_kwargs = {}
+        if relstream:
+            filter_kwargs.update(dict(relstream_slug=relstream))
+
+        relbranches = None
+        try:
+            relbranches = StreamBranches.objects.filter(**filter_kwargs)
+        except:
+            # log event, passing for now
+            pass
+        return relbranches
+
+    def get_calender_events_dict(self, ical_url, relstream_slug):
         """
         Fetches iCal contents over http and converts into dict
         :param ical_url: caldendar url
@@ -381,9 +461,10 @@ class ReleaseBranchManager(InventoryManager):
             return {}
         else:
             ical_contents_array = [line.strip() for line in io.StringIO(rest_response.text)]
-            return parse_ical_file(ical_contents_array)
+            return parse_ical_file(ical_contents_array, relstream_slug)
 
-    def parse_events_for_required_milestones(self, relbranch_slug, ical_events, required_events):
+    def parse_events_for_required_milestones(self, relstream_slug, relbranch_slug,
+                                             ical_events, required_events):
         """
         Parse ical events for required milestones
         :param: relbranch_slug: str
@@ -391,18 +472,32 @@ class ReleaseBranchManager(InventoryManager):
         :param required_events: list
         :return: schedule dict of a release branch, False if fails
         """
+        DELIMITER = ":"
         branch_schedule_dict = OrderedDict()
-        try:
-            for event in required_events:
-                for event_dict in ical_events:
-                    if (event.lower() in event_dict.get('SUMMARY').lower() and
-                            relbranch_slug in event_dict.get('SUMMARY').lower()):
-                        branch_schedule_dict[event] = event_dict.get('DTEND')
-        except:
-            # log event, pass for now
-            return False
-        else:
-            return branch_schedule_dict
+
+        if relstream_slug == RELSTREAM_SLUGS[0]:
+            try:
+                for event in required_events:
+                    for event_dict in ical_events:
+                        if (event.lower() in event_dict.get('SUMMARY').lower() and
+                                relbranch_slug in event_dict.get('SUMMARY').lower()):
+                            key = DELIMITER.join(event_dict.get('SUMMARY').split(DELIMITER)[1:])
+                            branch_schedule_dict[key] = event_dict.get('DTEND', '')
+
+            except:
+                # log event, pass for now
+                return False
+        elif relstream_slug == RELSTREAM_SLUGS[1]:
+            try:
+                for event in required_events:
+                    for event_dict in ical_events:
+                        if event.lower() in event_dict.get('SUMMARY').lower():
+                            branch_schedule_dict[event_dict.get('SUMMARY')] = \
+                                (event_dict.get('DUE', '') or event_dict.get('DTSTART', ''))[:8]
+            except:
+                # log event, pass for now
+                return False
+        return branch_schedule_dict
 
     def validate_branch(self, relstream, **kwargs):
         """
@@ -413,11 +508,12 @@ class ReleaseBranchManager(InventoryManager):
             return False
         ical_url = kwargs.get('calendar_url')
         relbranch_slug = slugify(kwargs.get('relbranch_name', ''))
-        ical_events = self.get_calender_events_dict(ical_url)
         release_stream = self.get_release_streams(stream_slug=relstream).get()
+        ical_events = self.get_calender_events_dict(ical_url, release_stream.relstream_slug)
         required_events = release_stream.major_milestones
         return relbranch_slug, \
-            self.parse_events_for_required_milestones(relbranch_slug, ical_events, required_events)
+            self.parse_events_for_required_milestones(
+                release_stream.relstream_slug, relbranch_slug, ical_events, required_events)
 
     def add_relbranch(self, relstream_slug, **kwargs):
         """
