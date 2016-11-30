@@ -25,9 +25,9 @@ from slugify import slugify
 from django.utils import timezone
 
 # dashboard
-from .base import BaseManager
-from .inventory import PackagesManager
-from ..models import GraphRules
+from dashboard.managers.base import BaseManager
+from dashboard.managers.inventory import PackagesManager
+from dashboard.models import GraphRules
 
 
 class GraphManager(BaseManager):

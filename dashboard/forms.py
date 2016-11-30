@@ -13,9 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# django
-from django import forms
-
+# third party
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (
     Submit, Layout, Field, HTML, Reset
@@ -23,6 +21,9 @@ from crispy_forms.layout import (
 from crispy_forms.bootstrap import (
     FormActions, InlineRadios, Div, InlineCheckboxes
 )
+
+# django
+from django import forms
 
 
 class TextArrayField(forms.MultipleChoiceField):
@@ -124,7 +125,7 @@ class NewReleaseBranchForm(forms.Form):
         help_text='Phase in which this version/branch is running.'
     )
     calendar_url = forms.URLField(
-        label='iCal URL', help_text='Release schedule calendar URL.', required=True
+        label='iCal URL', help_text='Release schedule calendar URL. (Prefer translation specific)', required=True
     )
     enable_flags = TextArrayField(
         label='Enable flags', widget=forms.CheckboxSelectMultiple, choices=enable_flags_choices,

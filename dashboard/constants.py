@@ -13,7 +13,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# Transtats supports translation platforms listed here
+# Supported translation platforms
 TRANSPLATFORM_ENGINES = ('transifex', 'zanata')
 TRANSIFEX_SLUGS = ('TNFXPUB')
 ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS')
+
+# Supported release streams
+RELSTREAM_SLUGS = ('RHEL', 'fedora')
