@@ -204,11 +204,11 @@ class PackagesManager(InventoryManager):
 
     def get_package_name_tuple(self):
         """
-        returns (package_name, upstream_name) tuple
+        returns (package_name, upstream_name) tuple (only sync'd ones)
         """
         packages = self.get_packages()
         return tuple([(package.package_name, package.upstream_name)
-                      for package in packages])
+                      for package in packages if package.transtats_lastupdated])
 
     def add_package(self, **kwargs):
         """
@@ -241,7 +241,7 @@ class PackagesManager(InventoryManager):
                 kwargs['transplatform_url'] = platform.api_url + "/project/view/" + kwargs['package_name']
                 resp_dict = rest_handle.process_request('project_details', kwargs['package_name'])
 
-            if 'update_stats' in kwargs and kwargs.get('update_stats'):
+            if kwargs.get('update_stats') == 'stats':
                 kwargs.pop('update_stats')
                 # fetch project details from transplatform and save in db
                 if resp_dict and resp_dict.get('json_content'):
@@ -267,6 +267,9 @@ class PackagesManager(InventoryManager):
                             sync_stats_obj, created = SyncStats.objects.update_or_create(**params)
                             if created:
                                 kwargs['transtats_lastupdated'] = timezone.now()
+
+            if 'update_stats' in kwargs:
+                del kwargs['update_stats']
 
             kwargs['lang_set'] = 'default'
             kwargs['transplatform_slug'] = platform

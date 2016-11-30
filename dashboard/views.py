@@ -212,7 +212,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
     def get_form(self, form_class=None, data=None):
         kwargs = {}
         release_stream = self._get_relstream()
-        kwargs.update({'action_url': 'release-stream/' + self.kwargs.get('stream_slug') + '/branches/new'})
+        kwargs.update({'action_url': 'release-stream/' + release_stream.relstream_slug + '/branches/new'})
         kwargs.update({'phases_choices': tuple([(phase, phase) for phase in release_stream.relstream_phases])})
         kwargs.update({'initial': self.get_initial()})
         if data:
@@ -220,19 +220,14 @@ class NewReleaseBranchView(ManagersMixin, FormView):
         return NewReleaseBranchForm(**kwargs)
 
     def post(self, request, *args, **kwargs):
-        post_params = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
-        form = self.get_form(data=post_params)
+        post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_data)
+        post_params = form.cleaned_data
         relstream = kwargs.get('stream_slug')
-        # process form_data to get them saved in db
-        filter_params = ('csrfmiddlewaretoken', 'addrelbranch')
-        [post_params.pop(key) for key in filter_params]
+        # Check for required params
         required_params = ('relbranch_name', 'current_phase', 'calendar_url')
-        if 'enable_flags' in post_params and \
-                not isinstance(post_params.get('enable_flags'), (list, tuple, set)):
-            post_params['enable_flags'] = [post_params['enable_flags']]
         if not set(required_params) <= set(post_params.keys()):
             return render(request, self.template_name, {'form': form})
-        # end processing
         relbranch_slug, schedule_json = \
             self.release_branch_manager.validate_branch(relstream, **post_params)
         if not schedule_json:
@@ -307,17 +302,14 @@ class NewPackageView(ManagersMixin, FormView):
         return NewPackageForm(**kwargs)
 
     def post(self, request, *args, **kwargs):
-        post_params = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
-        form = self.get_form(data=post_params)
-        # process form_data to get them saved in db
-        filter_params = ('csrfmiddlewaretoken', 'addPackage')
-        [post_params.pop(key) for key in filter_params]
+        post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_data)
+        post_params = form.cleaned_data
+        # Check for required fields
         required_params = ('package_name', 'upstream_url', 'transplatform_slug', 'release_streams')
         if not set(required_params) <= set(post_params.keys()):
             return render(request, self.template_name, {'form': form})
-        if not isinstance(post_params.get('release_streams'), (list, tuple, set)):
-            post_params['release_streams'] = [post_params['release_streams']]
-        # end processing
+        # Validate package with translation platform
         validate_package = self.packages_manager.validate_package(**post_params)
         if not validate_package:
             errors = form._errors.setdefault('package_name', ErrorList())
@@ -371,21 +363,13 @@ class NewGraphRuleView(ManagersMixin, FormView):
         return NewGraphRuleForm(**kwargs)
 
     def post(self, request, *args, **kwargs):
-        post_params = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
-        form = self.get_form(data=post_params)
-        # process form_data to get them saved in db
-        filter_params = ('csrfmiddlewaretoken', 'addRule')
-        [post_params.pop(key) for key in filter_params]
+        post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_data)
+        post_params = form.cleaned_data
         # check for required params
         required_params = ('rule_name', 'rule_packages', 'rule_langs', 'rule_relbranch')
         if not set(required_params) <= set(post_params.keys()):
             return render(request, self.template_name, {'form': form})
-        # packages and languages should be array
-        if not isinstance(post_params.get('rule_packages'), (list, tuple, set)):
-            post_params['rule_packages'] = [post_params['rule_packages']]
-        if not isinstance(post_params.get('rule_langs'), (list, tuple, set)):
-            post_params['rule_langs'] = [post_params['rule_langs']]
-        # end processing
         rule_slug = self.graph_manager.slugify_graph_rule_name(post_params['rule_name'])
         if not rule_slug:
             errors = form._errors.setdefault('rule_name', ErrorList())

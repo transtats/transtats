@@ -25,6 +25,20 @@ from crispy_forms.bootstrap import (
 )
 
 
+class TextArrayField(forms.MultipleChoiceField):
+    """
+    Multiple Check Box Field
+    """
+    def to_python(self, value):
+        """Normalize data to a list of strings."""
+        # Return an empty list if no input was given.
+        if not value:
+            return []
+        if not isinstance(value, (list, tuple, set)):
+            return [value]
+        return value
+
+
 class NewPackageForm(forms.Form):
     """
     Add new package to package list
@@ -44,7 +58,7 @@ class NewPackageForm(forms.Form):
         label='Translation Platform',
         choices=transplatform_choices, help_text='Translation statistics will be fetched from this server.'
     )
-    release_streams = forms.MultipleChoiceField(
+    release_streams = TextArrayField(
         label='Release Stream', widget=forms.CheckboxSelectMultiple, choices=relstream_choices,
         help_text="Translation progress for selected streams will be tracked."
     )
@@ -112,7 +126,7 @@ class NewReleaseBranchForm(forms.Form):
     calendar_url = forms.URLField(
         label='iCal URL', help_text='Release schedule calendar URL.', required=True
     )
-    enable_flags = forms.MultipleChoiceField(
+    enable_flags = TextArrayField(
         label='Enable flags', widget=forms.CheckboxSelectMultiple, choices=enable_flags_choices,
         help_text="Selected tasks will be enabled for this release version/branch.",
         required=False
@@ -155,16 +169,16 @@ class NewGraphRuleForm(forms.Form):
     """
     rule_packages_choices = ()
     rule_langs_choices = ()
-    rule_relbranch_choices = (('master', 'master'),)
+    rule_relbranch_choices = (('master', 'master'), )
 
     rule_name = forms.CharField(
         label='Graph Rule Name', help_text='Rule will be saved in slug form.', required=True,
     )
-    rule_packages = forms.MultipleChoiceField(
+    rule_packages = TextArrayField(
         label='Packages', widget=forms.CheckboxSelectMultiple, choices=rule_packages_choices,
         help_text="Selected packages will be included in this rule.", required=True
     )
-    rule_langs = forms.MultipleChoiceField(
+    rule_langs = TextArrayField(
         label='Languages', widget=forms.CheckboxSelectMultiple, choices=rule_langs_choices,
         help_text="Selected languages will be included in this rule.", required=True
     )
