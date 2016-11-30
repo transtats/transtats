@@ -47,6 +47,10 @@ from dashboard.managers.utilities import (
 )
 
 
+__all__ = ['InventoryManager', 'SyncStatsManager',
+           'PackagesManager', 'ReleaseBranchManager']
+
+
 class InventoryManager(BaseManager):
     """
     Manage application inventories

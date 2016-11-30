@@ -5,6 +5,8 @@
 
 Tracking translation progress of the package for downstream releases with respect to current development.
 
+### Get Involved
+
 #### Setup development environment: virtualenv
 
 Setup Virtualenvwrapper and PostgreSQL 9.5. Create virtualenv. Clone repo.
@@ -25,9 +27,13 @@ make run
 
 #### Contribution
 
-Feel free to submit feature requests and/or bug fixes. Transtats uses [travis](https://travis-ci.org/sundeep-co-in/transtats) and [waffle](https://waffle.io/sundeep-co-in/transtats).
+* The *devel* branch is the release actively under development.
+* The *master* branch corresponds to the latest stable release.
+* If you find any bug/issue or got an idea, open a [github issue](https://github.com/sundeep-co-in/transtats/issues/new).
+* Feel free to submit feature requests and/or bug fixes on *devel* branch.
+* Transtats uses [travis](https://travis-ci.org/sundeep-co-in/transtats) for tests and [waffle](https://waffle.io/sundeep-co-in/transtats).
 
 
-#### License
+### License
 
 [Apache License](http://www.apache.org/licenses/LICENSE-2.0), Version 2.0

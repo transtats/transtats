@@ -30,6 +30,9 @@ from dashboard.managers.inventory import PackagesManager
 from dashboard.models import GraphRules
 
 
+__all__ = ['GraphManager']
+
+
 class GraphManager(BaseManager):
     """
     Manage graph representations

@@ -63,7 +63,7 @@ class HomeTemplateView(ManagersMixin, TemplateView):
         context_data['description'] = \
             "translation position of the package for downstream"
 
-        packages = self.packages_manager.get_packages()
+        packages = self.packages_manager.get_package_name_tuple()
         if packages:
             context_data['packages'] = packages
         return context_data

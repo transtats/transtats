@@ -17,6 +17,9 @@
 from dashboard.services.consume.restclient import RestClient
 
 
+__all__ = ['BaseManager']
+
+
 class BaseManager(object):
     """
     Base Manager: create app context, process view request object

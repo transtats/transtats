@@ -22,6 +22,9 @@ from collections import OrderedDict
 from dashboard.constants import (TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS)
 
 
+__all__ = ['parse_project_details_json', 'parse_ical_file']
+
+
 def parse_project_details_json(engine, json_dict):
     """
     Parse project details json

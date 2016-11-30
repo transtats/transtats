@@ -33,6 +33,10 @@ from dashboard.models import (
 )
 
 
+__all__ = ['JobManager', 'JobsLogManager', 'TransplatformSyncManager',
+           'ReleaseScheduleSyncManager']
+
+
 class JobManager(object):
     """
     Base Manager for Jobs

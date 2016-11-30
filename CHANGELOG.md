@@ -1,4 +1,4 @@
-##### Wed Nov 30 2016 Sundeep Anand <suanand@redhat.com>
+##### Mon Dec 05 2016 Sundeep Anand <suanand@redhat.com> - Concept
 * enable ical sync for RHEL and Fedora - syncCalendar Jobs
 * add and list graph rules, display graphs based on rules
 * add release_stream_branches model, view, html, form

@@ -32,6 +32,9 @@ from dashboard.constants import TRANSPLATFORM_ENGINES
 NO_CERT_VALIDATION = True
 
 
+__all__ = ['ServiceConfig', 'RestHandle', 'RestClient']
+
+
 class ServiceConfig(object):
     """
     transplatform service configuration

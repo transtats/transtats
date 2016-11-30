@@ -12,14 +12,14 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='transtats',
-    version='prototype',
+    version='concept',
     packages=find_packages(),
     include_package_data=True,
     install_requires=REQUIRE,
     license='Apache License 2.0',
-    description='Tracking translation progress for downstream.',
+    description='Tracking translation progress for release streams.',
     long_description=README,
-    url='http://transtats.devlab.redhat.com',
+    url='https://github.com/sundeep-co-in/transtats',
     author='Sundeep Anand',
     author_email='suanand@redhat.com',
     classifiers=[
