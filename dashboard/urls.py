@@ -54,7 +54,6 @@ app_setting_urls = [
 urlpatterns = [
     url(r'^$', HomeTemplateView.as_view(), name="home"),
     url(r'^custom-graph$', CustomGraphView.as_view(), name="custom-graph"),
-    url(r'^admin', TemplateView.as_view(template_name="login.html"), name="admin-login"),
     url(r'^register$', TemplateView.as_view(template_name="register.html"), name="register"),
     url(r'^features$', TemplateView.as_view(template_name="features.html"), name="features"),
     url(r'^settings/', include(app_setting_urls)),

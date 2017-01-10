@@ -15,8 +15,8 @@
 
 # Supported translation platforms
 TRANSPLATFORM_ENGINES = ('transifex', 'zanata')
-TRANSIFEX_SLUGS = ('TNFXPUB')
-ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS')
+TRANSIFEX_SLUGS = ('TNFXPUB', )
+ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTADEV')
 
 # Supported release streams
 RELSTREAM_SLUGS = ('RHEL', 'fedora')

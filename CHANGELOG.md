@@ -1,3 +1,6 @@
+##### Wed Jan 11 2016 Sundeep Anand <suanand@redhat.com>
+* enable django admin to manage inventory
+
 ##### Mon Dec 05 2016 Sundeep Anand <suanand@redhat.com> - Concept
 * enable ical sync for RHEL and Fedora - syncCalendar Jobs
 * add and list graph rules, display graphs based on rules
