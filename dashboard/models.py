@@ -28,11 +28,23 @@ class Languages(models.Model):
     """
     Languages Model
     """
-    locale_id = models.CharField(max_length=50, primary_key=True)
-    lang_name = models.CharField(max_length=400, unique=True)
-    locale_alias = models.CharField(max_length=50, null=True)
-    lang_status = models.BooleanField()
-    lang_set = models.CharField(max_length=200)
+    locale_id = models.CharField(
+        max_length=50, primary_key=True, verbose_name="Locale ID"
+    )
+    lang_name = models.CharField(
+        max_length=400, unique=True, verbose_name="Language Name"
+    )
+    locale_alias = models.CharField(
+        max_length=50, null=True, verbose_name="Locale Alias"
+    )
+    lang_status = models.BooleanField(verbose_name="Language Status")
+    lang_set = models.CharField(
+        max_length=200, blank=True,
+        verbose_name="Language Set", default="default"
+    )
+
+    def __str__(self):
+        return self.lang_name
 
     class Meta:
         db_table = TABLE_PREFIX + 'locales'
@@ -43,13 +55,22 @@ class TransPlatform(models.Model):
     Translation Platforms Model
     """
     platform_id = models.AutoField(primary_key=True)
-    engine_name = models.CharField(max_length=200)
-    subject = models.CharField(max_length=200, null=True)
-    api_url = models.URLField(max_length=500, unique=True)
-    platform_slug = models.CharField(max_length=400, unique=True)
-    server_status = models.BooleanField()
+    engine_name = models.CharField(
+        max_length=200, verbose_name="Platform Engine"
+    )
+    subject = models.CharField(
+        max_length=200, null=True, verbose_name="Platform Subject"
+    )
+    api_url = models.URLField(max_length=500, unique=True, verbose_name="API URL")
+    platform_slug = models.CharField(
+        max_length=400, unique=True, verbose_name="Platform SLUG"
+    )
+    server_status = models.BooleanField(verbose_name="Server Status")
     projects_json = JSONField(null=True)
     projects_lastupdated = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return "{0} {1}".format(self.engine_name, self.subject)
 
     class Meta:
         db_table = TABLE_PREFIX + 'transplatforms'
@@ -60,26 +81,45 @@ class ReleaseStream(models.Model):
     Release Stream Model
     """
     relstream_id = models.AutoField(primary_key=True)
-    relstream_name = models.CharField(max_length=200)
-    relstream_slug = models.CharField(max_length=400, unique=True)
-    relstream_server = models.URLField(max_length=500, unique=True)
-    relstream_built = models.CharField(max_length=200, null=True)
-    srcpkg_format = models.CharField(max_length=50, null=True)
-    top_url = models.URLField(max_length=500, unique=True)
-    web_url = models.URLField(max_length=500, unique=True, null=True)
-    krb_service = models.CharField(max_length=200, null=True)
-    auth_type = models.CharField(max_length=200, null=True)
-    amqp_server = models.CharField(max_length=500, null=True)
-    msgbus_exchange = models.CharField(max_length=200, null=True)
+    relstream_name = models.CharField(
+        max_length=200, verbose_name="Release Stream Name"
+    )
+    relstream_slug = models.CharField(
+        max_length=400, unique=True, verbose_name="Release Stream SLUG"
+    )
+    relstream_server = models.URLField(
+        max_length=500, unique=True, verbose_name="Release Stream Server"
+    )
+    relstream_built = models.CharField(
+        max_length=200, null=True, verbose_name="Release Stream Name"
+    )
+    srcpkg_format = models.CharField(
+        max_length=50, null=True, verbose_name="Source Package Format"
+    )
+    top_url = models.URLField(max_length=500, unique=True, verbose_name="Top URL")
+    web_url = models.URLField(max_length=500, unique=True, null=True, verbose_name="Web URL")
+    krb_service = models.CharField(
+        max_length=200, null=True, blank=True, verbose_name="Kerberos Service"
+    )
+    auth_type = models.CharField(max_length=200, null=True, blank=True, verbose_name="Auth Type")
+    amqp_server = models.CharField(
+        max_length=500, null=True, blank=True, verbose_name="AMQP Server"
+    )
+    msgbus_exchange = models.CharField(
+        max_length=200, null=True, blank=True, verbose_name="Message Bus Exchange"
+    )
     major_milestones = ArrayField(
         models.CharField(max_length=1000, blank=True),
-        default=list, null=True
+        default=list, null=True, verbose_name="Major Milestones"
     )
     relstream_phases = ArrayField(
         models.CharField(max_length=200, blank=True),
-        default=list, null=True
+        default=list, null=True, verbose_name="Release Stream Phases"
     )
-    relstream_status = models.BooleanField()
+    relstream_status = models.BooleanField(verbose_name="Release Stream Status")
+
+    def __str__(self):
+        return self.relstream_name
 
     class Meta:
         db_table = TABLE_PREFIX + 'relstreams'

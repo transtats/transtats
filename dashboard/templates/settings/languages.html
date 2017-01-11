@@ -32,7 +32,12 @@
             {% endif %}
         </span>
         <span class="pull-right">
-            <button type="button" class="btn btn-default disabled">Add Language</button>
+            {% if user.is_authenticated and user.is_superuser %}
+                <a href="/admin/dashboard/languages/add" role="button" class="btn btn-default">Add Language</a>
+                <a href="/admin/dashboard/languages/" role="button" class="btn btn-default">Manage Languages</a>
+            {% else %}
+                <a href="/admin/" role="button" class="btn btn-default">Manage Languages</a>
+            {% endif %}
         </span>
     </div>
 </div>
@@ -78,9 +83,9 @@
                 {% endif %}
             </td>
             <td>{% if lang.lang_status %}
-                    <input type="checkbox" checked data-toggle="toggle">
+                    <input type="checkbox" checked data-toggle="toggle" disabled>
                 {% else %}
-                    <input type="checkbox" data-toggle="toggle">
+                    <input type="checkbox" data-toggle="toggle" disabled>
                 {% endif %}
             </td>
         </tr>

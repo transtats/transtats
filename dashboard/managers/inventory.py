@@ -67,7 +67,7 @@ class InventoryManager(BaseManager):
         locales = None
         try:
             locales = Languages.objects.filter(**filter_kwargs) \
-                .order_by('lang_name')
+                .order_by('lang_name').order_by('-lang_status')
         except:
             # log event, passing for now
             pass
