@@ -107,7 +107,7 @@ class InventoryManager(BaseManager):
         platforms = None
         try:
             platforms = TransPlatform.objects.filter(**filter_kwargs) \
-                .order_by('-projects_lastupdated').order_by('-server_status')
+                .order_by('platform_id')
         except:
             # log event, passing for now
             pass
@@ -146,7 +146,8 @@ class InventoryManager(BaseManager):
 
         relstreams = None
         try:
-            relstreams = ReleaseStream.objects.filter(**filter_kwargs)
+            relstreams = ReleaseStream.objects.filter(**filter_kwargs) \
+                .order_by('relstream_id')
         except:
             # log event, passing for now
             pass

@@ -64,15 +64,15 @@ make run
 
 As the project evolves, a roadmap will be published for each major release. Comments, suggestions, and requests to the current roadmap are welcome. Our goal in publishing a roadmap is transparency and community inclusion. A roadmap is the team's best guess based on experience, community requests, and feedback.
 
-#### Transtats Preview
+#### Transtats 0.1.0
 
-We are currently working on `preview` release.
+We are currently working on `0.1.0` release.
 
 Target delivery: Mid February 2017
 
-* Compare stats with release streams source package
-* Bring release branches into custom graphs
 * Enable admin to manage inventory
+* Bring release branches into custom graphs
+* Check stats with release streams source package
 * Implement django celery beat for TS Jobs
 * Unit tests and code cleanup & coverage
 * Project docs and other stuffs

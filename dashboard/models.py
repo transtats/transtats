@@ -91,7 +91,7 @@ class ReleaseStream(models.Model):
         max_length=500, unique=True, verbose_name="Release Stream Server"
     )
     relstream_built = models.CharField(
-        max_length=200, null=True, verbose_name="Release Stream Name"
+        max_length=200, null=True, verbose_name="Release Build System"
     )
     srcpkg_format = models.CharField(
         max_length=50, null=True, verbose_name="Source Package Format"
