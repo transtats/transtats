@@ -37,7 +37,7 @@ class Languages(models.Model):
     locale_alias = models.CharField(
         max_length=50, null=True, verbose_name="Locale Alias"
     )
-    lang_status = models.BooleanField(verbose_name="Language Status")
+    lang_status = models.BooleanField(verbose_name="Enable/Disable")
     lang_set = models.CharField(
         max_length=200, blank=True,
         verbose_name="Language Set", default="default"
@@ -61,11 +61,11 @@ class TransPlatform(models.Model):
     subject = models.CharField(
         max_length=200, null=True, verbose_name="Platform Subject"
     )
-    api_url = models.URLField(max_length=500, unique=True, verbose_name="API URL")
+    api_url = models.URLField(max_length=500, unique=True, verbose_name="Server URL")
     platform_slug = models.CharField(
         max_length=400, unique=True, verbose_name="Platform SLUG"
     )
-    server_status = models.BooleanField(verbose_name="Server Status")
+    server_status = models.BooleanField(verbose_name="Enable/Disable")
     projects_json = JSONField(null=True)
     projects_lastupdated = models.DateTimeField(null=True)
 
@@ -116,7 +116,7 @@ class ReleaseStream(models.Model):
         models.CharField(max_length=200, blank=True),
         default=list, null=True, verbose_name="Release Stream Phases"
     )
-    relstream_status = models.BooleanField(verbose_name="Release Stream Status")
+    relstream_status = models.BooleanField(verbose_name="Enable/Disable")
 
     def __str__(self):
         return self.relstream_name
