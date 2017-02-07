@@ -22,8 +22,8 @@ from dashboard.views import (
     HomeTemplateView, AppSettingsView, TransPlatformSettingsView,
     LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
     LogsSettingsView, NewPackageView, StreamBranchesSettingsView,
-    NewReleaseBranchView, CustomGraphView, GraphRulesSettingsView,
-    NewGraphRuleView, schedule_job, graph_data
+    NewReleaseBranchView, TransCoverageView, GraphRulesSettingsView,
+    NewGraphRuleView, CompareDownstreamView, schedule_job, graph_data
 )
 
 ajax_urls = [
@@ -53,9 +53,10 @@ app_setting_urls = [
 
 urlpatterns = [
     url(r'^$', HomeTemplateView.as_view(), name="home"),
-    url(r'^custom-graph$', CustomGraphView.as_view(), name="custom-graph"),
+    url(r'^trans-coverage$', TransCoverageView.as_view(), name="custom-graph"),
+    url(r'^compare-downstream$', CompareDownstreamView.as_view(), name="downstream"),
     url(r'^register$', TemplateView.as_view(template_name="register.html"), name="register"),
-    url(r'^features$', TemplateView.as_view(template_name="features.html"), name="features"),
+    url(r'^how-to$', TemplateView.as_view(template_name="howto.html"), name="howto"),
     url(r'^settings/', include(app_setting_urls)),
     url(r'^ajax/', include(ajax_urls))
 ]

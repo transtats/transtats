@@ -36,6 +36,7 @@ from dashboard.managers.jobs import (
     ReleaseScheduleSyncManager
 )
 from dashboard.managers.graphs import GraphManager
+from dashboard.constants import APP_DESC
 
 
 class ManagersMixin(object):
@@ -51,7 +52,7 @@ class ManagersMixin(object):
 
 class HomeTemplateView(ManagersMixin, TemplateView):
     """
-    Home Page Template View
+    Translation Position View
     """
     template_name = "stats/index.html"
 
@@ -60,18 +61,16 @@ class HomeTemplateView(ManagersMixin, TemplateView):
         Build the Context Data
         """
         context_data = super(TemplateView, self).get_context_data(**kwargs)
-        context_data['description'] = \
-            "translation position of the package for downstream"
-
+        context_data['description'] = APP_DESC
         packages = self.packages_manager.get_package_name_tuple()
         if packages:
             context_data['packages'] = packages
         return context_data
 
 
-class CustomGraphView(ManagersMixin, TemplateView):
+class TransCoverageView(ManagersMixin, TemplateView):
     """
-    Home Page Template View
+    Translation Coverage View
     """
     template_name = "stats/custom_graph.html"
 
@@ -80,12 +79,25 @@ class CustomGraphView(ManagersMixin, TemplateView):
         Build the Context Data
         """
         context_data = super(TemplateView, self).get_context_data(**kwargs)
-        context_data['description'] = \
-            "translation position of the package for downstream"
-
+        context_data['description'] = APP_DESC
         graph_rules = self.graph_manager.get_graph_rules(only_active=True)
         if graph_rules:
             context_data['rules'] = graph_rules
+        return context_data
+
+
+class CompareDownstreamView(TemplateView):
+    """
+    Compare with Downstream View
+    """
+    template_name = "stats/downstream.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        """
+        context_data = super(TemplateView, self).get_context_data(**kwargs)
+        context_data['description'] = APP_DESC
         return context_data
 
 
