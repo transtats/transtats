@@ -1,0 +1,25 @@
+{% extends "home.html" %}
+
+{% block extrascript %}
+<script type="text/javascript">
+    $(document).ready(function(){$('#tab-compare-downstream').addClass('active')});
+</script>
+{% endblock %}
+
+{% block tabcontent %}
+    <br/><br/>
+    <nav class="navbar navbar-default bg-faded">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand">Compare translation available in translation platform versus what has packaged and built.</a>
+            </div>
+        </div>
+    </nav>
+    <div style="padding:20px">
+        <div class="row" style="padding-bottom:20px">
+            <div class="col-xs-12">
+                # toDo
+            </div>
+        </div>
+    </div>
+{% endblock %}

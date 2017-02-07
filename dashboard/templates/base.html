@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 {% with "Transtats" as app_name %}
+{% with "0.1.0" as app_version %}
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -60,9 +61,6 @@
   </head>
 
   <body>
-    <!--<a href="https://github.com/sundeep-co-in/transtats" target="_blank">-->
-        <!--<img class="ribbon" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png">-->
-    <!--</a>-->
     {% block navbar %}
         <nav class="navbar navbar-default navbar-fixed-top">
           <div class="container">
@@ -77,9 +75,9 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-right">
-                <li><a href="{% url 'features' %}">How it works</a></li>
+                <li><a href="{% url 'howto' %}">How to use {{ app_name }}</a></li>
                 <li><a href="{% url 'settings' %}">Inventory and Configuration</a></li>
-                <li><a href="http://transtats.readthedocs.io/en/latest/" target="_blank">Docs</a></li>
+                <li><a href="http://docs.transtats.org/" target="_blank">Docs</a></li>
                 <!--<li><a href="{% url 'register' %}" role="button">Sign Up </a></li>-->
                 <!--<li class="dropdown active">-->
                    <!--<a class="dropdown-toggle" data-toggle="dropdown">Login <b class="caret"></b></a>-->
@@ -139,13 +137,18 @@
         <hr/>
         <footer>
             <div class="container">
-                <p>&copy; {% now 'Y' %} {{ app_name }} | <a href="{% url 'home' %}">Home</a> |
-                  <a href="{% url 'features' %}">Features</a> | <a href="{% url 'settings' %}">Settings</a> |
-                  <a href="#">Privacy Policy</a> | <a href="#">Terms and Conditions</a></p>
+                <p>
+                  <span><a href="{% url 'home' %}">Home</a> | <a href="{% url 'howto' %}">How To</a> |
+                    <a href="{% url 'settings' %}">Inventory and Configuration</a> |
+                    <a href="http://transtats.org/terms.html" target="_blank">Terms of Use</a> |
+                    <a href="https://github.com/transtats/transtats/issues/new" target="_blank">Report Issue</a></span>
+                  <span class="pull-right">{{ app_name }} {{ app_version }} | &copy; {% now 'Y' %}
+                    <a href="https://www.redhat.com/" target="_blank">Red Hat, Inc</a></span>
+                </p>
             </div>
         </footer>
     {% endblock %}
     {% block extrafooter %}{% endblock %}
   </body>
 </html>
-{% endwith %}
+{% endwith %}{% endwith %}

@@ -13,6 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# application description
+APP_DESC = "overview and trends for language translations across packages"
+
 # Supported translation platforms
 TRANSPLATFORM_ENGINES = ('transifex', 'zanata')
 TRANSIFEX_SLUGS = ('TNFXPUB', )
