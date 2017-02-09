@@ -18,6 +18,7 @@ from django.conf.urls import url, include
 from django.views.generic.base import TemplateView
 
 # dashboard
+from dashboard.services.expose.views import PingServer
 from dashboard.views import (
     HomeTemplateView, AppSettingsView, TransPlatformSettingsView,
     LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
@@ -25,6 +26,11 @@ from dashboard.views import (
     NewReleaseBranchView, TransCoverageView, GraphRulesSettingsView,
     NewGraphRuleView, CompareDownstreamView, schedule_job, graph_data
 )
+
+
+api_urls = [
+    url(r'^ping$', PingServer.as_view(), name='ping_server'),
+]
 
 ajax_urls = [
     url(r'^schedule-job$', schedule_job, name="ajax-schedule-job"),
@@ -53,10 +59,11 @@ app_setting_urls = [
 
 urlpatterns = [
     url(r'^$', HomeTemplateView.as_view(), name="home"),
+    url(r'^api/', include(api_urls)),
+    url(r'^ajax/', include(ajax_urls)),
+    url(r'^settings/', include(app_setting_urls)),
     url(r'^trans-coverage$', TransCoverageView.as_view(), name="custom-graph"),
     url(r'^compare-downstream$', CompareDownstreamView.as_view(), name="downstream"),
-    url(r'^register$', TemplateView.as_view(template_name="register.html"), name="register"),
     url(r'^how-to$', TemplateView.as_view(template_name="howto.html"), name="howto"),
-    url(r'^settings/', include(app_setting_urls)),
-    url(r'^ajax/', include(ajax_urls))
+    url(r'^register$', TemplateView.as_view(template_name="register.html"), name="register"),
 ]

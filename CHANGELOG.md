@@ -1,4 +1,5 @@
-##### Wed Jan 11 2016 Sundeep Anand <suanand@redhat.com>
+##### Thu Feb 09 2017 Sundeep Anand <suanand@redhat.com>
+* add django rest framework to ping server
 * enable django admin to manage inventory
 
 ##### Mon Dec 05 2016 Sundeep Anand <suanand@redhat.com> - Concept
