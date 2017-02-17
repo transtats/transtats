@@ -124,11 +124,12 @@ class GraphManager(BaseManager):
         # format trans_stats_list for graphs
         return self._format_stats_for_default_graphs(lang_id_name, stats_dict, pkg_desc)
 
-    def _format_stats_for_custom_graphs(self, languages, stats_dict):
+    def _format_stats_for_custom_graphs(self, rel_branch, languages, stats_dict):
         """
         Formats stats dict for graph-ready material
         """
         stats_for_graphs_dict = OrderedDict()
+        stats_for_graphs_dict['branch'] = rel_branch
         stats_for_graphs_dict['ticks'] = \
             [[i, package] for i, package in enumerate(stats_dict.keys(), 0)]
 
@@ -192,4 +193,4 @@ class GraphManager(BaseManager):
 
         # here trans_stats_dict_set would contain {'package': {'language': stat}}
         # now, lets format trans_stats_list for graphs
-        return self._format_stats_for_custom_graphs(languages_list, trans_stats_dict_set)
+        return self._format_stats_for_custom_graphs(release_branch, languages_list, trans_stats_dict_set)
