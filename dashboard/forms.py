@@ -49,7 +49,6 @@ class NewPackageForm(forms.Form):
     """
     transplatform_choices = ()
     relstream_choices = ()
-    langset_choices = (('default', 'Default'), ('custom', 'Custom'))
     update_stats_choices = (('stats', 'Translation Stats'), )
 
     package_name = forms.CharField(
@@ -65,9 +64,6 @@ class NewPackageForm(forms.Form):
     release_streams = TextArrayField(
         label='Release Stream', widget=forms.CheckboxSelectMultiple, choices=relstream_choices,
         help_text="Translation progress for selected streams will be tracked."
-    )
-    lang_set = forms.ChoiceField(
-        label="Language Set", widget=forms.RadioSelect, choices=langset_choices, required=False
     )
     update_stats = forms.ChoiceField(
         label='Update details', widget=forms.CheckboxSelectMultiple, choices=update_stats_choices,
@@ -116,6 +112,7 @@ class NewReleaseBranchForm(forms.Form):
     """
     action_url = ''
     phases_choices = ()
+    langset_choices = ()
     enable_flags_choices = (('track_trans_flag', 'Track Translation'),
                             ('sync_calendar', 'Sync Calendar'),
                             ('notifications_flag', 'Notification'))
@@ -126,6 +123,10 @@ class NewReleaseBranchForm(forms.Form):
     current_phase = forms.ChoiceField(
         label='Current Phase', choices=phases_choices, required=True,
         help_text='Phase in which this version/branch is running.'
+    )
+    lang_set = forms.ChoiceField(
+        label="Language Set", choices=langset_choices, required=True,
+        help_text='Language set which should be associated with this branch.'
     )
     calendar_url = forms.URLField(
         label='iCal URL', help_text='Release schedule calendar URL. (Prefer translation specific)', required=True
@@ -138,9 +139,11 @@ class NewReleaseBranchForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.phases_choices = kwargs.pop('phases_choices')
+        self.langset_choices = kwargs.pop('langset_choices')
         self.action_url = kwargs.pop('action_url')
         super(NewReleaseBranchForm, self).__init__(*args, **kwargs)
         self.fields['current_phase'].choices = self.phases_choices
+        self.fields['lang_set'].choices = self.langset_choices
         super(NewReleaseBranchForm, self).full_clean()
 
     helper = FormHelper()
@@ -154,6 +157,7 @@ class NewReleaseBranchForm(forms.Form):
         Div(
             Field('relbranch_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
             Field('current_phase', css_class='selectpicker'),
+            Field('lang_set', css_class='selectpicker'),
             Field('calendar_url', css_class='form-control'),
             InlineCheckboxes('enable_flags'),
             HTML("<hr/>"),

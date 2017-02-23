@@ -35,8 +35,8 @@ from django.utils import timezone
 # dashboard
 from dashboard.managers.base import BaseManager
 from dashboard.models import (
-    TransPlatform, Languages, ReleaseStream,
-    StreamBranches, Packages, SyncStats
+    TransPlatform, Languages, LanguageSet,
+    ReleaseStream, StreamBranches, Packages, SyncStats
 )
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, ZANATA_SLUGS,
@@ -93,6 +93,39 @@ class InventoryManager(BaseManager):
         inactive_locales = list(set(locales) - set(active_locales))
         aliases = list(filter(lambda locale: locale.locale_alias is not None, locales))
         return active_locales, inactive_locales, aliases
+
+    def get_langsets(self):
+        """
+        fetch all language sets from db
+        """
+        langsets = None
+        filter_kwargs = {}
+        try:
+            langsets = LanguageSet.objects.filter(**filter_kwargs).all()
+        except:
+            # log event, passing for now
+            pass
+        return langsets
+
+    def get_locale_groups(self, locale):
+        """
+        fetch list of langlist, a locale belongs to
+        """
+        groups_locale_belongs_to = []
+        lang_sets = self.get_langsets()
+        for langset in lang_sets:
+            if locale in langset.locale_ids:
+                groups_locale_belongs_to.append(langset.lang_set_slug)
+        return {locale: groups_locale_belongs_to}
+
+    def get_all_locales_groups(self):
+        """
+        get_locale_groups for all available locales
+        """
+        all_locales_groups = {}
+        for locale in self.get_locales():
+            all_locales_groups.update(self.get_locale_groups(locale.locale_id))
+        return all_locales_groups
 
     def get_translation_platforms(self, engine=None, only_active=None):
         """
@@ -338,7 +371,6 @@ class PackagesManager(InventoryManager):
             if 'update_stats' in kwargs:
                 del kwargs['update_stats']
 
-            kwargs['lang_set'] = 'default'
             kwargs['transplatform_slug'] = platform
             kwargs['transplatform_name'] = kwargs['package_name']
             kwargs['upstream_name'] = kwargs['upstream_url'].split('/')[-1]
@@ -529,8 +561,8 @@ class ReleaseBranchManager(InventoryManager):
         """
         if not relstream_slug:
             return False
-        required_params = ('relbranch_name', 'current_phase', 'calendar_url',
-                           'schedule_json', 'relbranch_slug')
+        required_params = ('relbranch_name', 'lang_set', 'current_phase',
+                           'calendar_url', 'schedule_json', 'relbranch_slug')
         if not set(required_params) <= set(kwargs.keys()):
             return False
         if not (kwargs['relbranch_name'] and kwargs['calendar_url']):

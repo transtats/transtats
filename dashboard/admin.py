@@ -18,13 +18,15 @@ from django import forms
 from django.contrib import admin
 
 # dashboard
+from dashboard.forms import TextArrayField
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
     TRANSIFEX_SLUGS, ZANATA_SLUGS,
 )
 from dashboard.models import (
-    Languages, TransPlatform, ReleaseStream
+    Languages, LanguageSet, TransPlatform, ReleaseStream
 )
+from dashboard.managers.inventory import InventoryManager
 
 ENGINE_CHOICES = tuple([(engine, engine.upper())
                         for engine in TRANSPLATFORM_ENGINES])
@@ -57,9 +59,32 @@ class ReleaseStreamAdminForm(forms.ModelForm):
     )
 
 
+class LanguageSetAdminForm(forms.ModelForm):
+
+    locale_choices = ()
+
+    def __init__(self, *args, **kwargs):
+        inventory_manager = InventoryManager()
+        self.locale_choices = tuple([(locale.locale_id, locale.lang_name)
+                                     for locale in inventory_manager.get_locales()])
+        super(LanguageSetAdminForm, self).__init__(*args, **kwargs)
+        self.fields['locale_ids'].choices = self.locale_choices
+
+    locale_ids = TextArrayField(
+        label='Select Locales', widget=forms.CheckboxSelectMultiple,
+        choices=locale_choices, help_text="Selected locales will be included."
+    )
+
+
 @admin.register(Languages)
 class LanguagesAdmin(admin.ModelAdmin):
     search_fields = ('lang_name', )
+
+
+@admin.register(LanguageSet)
+class LanguageSetAdmin(admin.ModelAdmin):
+    form = LanguageSetAdminForm
+    search_fields = ('lang_set_name', )
 
 
 @admin.register(TransPlatform)

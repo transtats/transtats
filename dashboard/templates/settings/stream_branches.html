@@ -44,6 +44,9 @@
                 <span style="color:grey">Current Status:</span> {{ relbranch.current_phase|capfirst }}
             </p>
             <p>
+                <span style="color:grey">Language Set:</span> {{ relbranch.lang_set|capfirst }}
+            </p>
+            <p>
                 <span style="color:grey">Sync Calendar:</span>
                 {% if relbranch.sync_calendar %}
                     <span class="glyphicon glyphicon-check" style="color:green"></span>

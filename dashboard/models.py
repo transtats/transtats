@@ -38,16 +38,38 @@ class Languages(models.Model):
         max_length=50, null=True, verbose_name="Locale Alias"
     )
     lang_status = models.BooleanField(verbose_name="Enable/Disable")
-    lang_set = models.CharField(
-        max_length=200, blank=True,
-        verbose_name="Language Set", default="default"
-    )
 
     def __str__(self):
         return self.lang_name
 
     class Meta:
         db_table = TABLE_PREFIX + 'locales'
+
+
+class LanguageSet(models.Model):
+    """
+    Language Set Model
+    """
+    lang_set_id = models.AutoField(primary_key=True)
+    lang_set_name = models.CharField(
+        max_length=1000, verbose_name="Language Set Name"
+    )
+    lang_set_slug = models.CharField(
+        max_length=400, unique=True, verbose_name="Language Set SLUG"
+    )
+    lang_set_color = models.CharField(
+        max_length=100, unique=True, verbose_name="Tag Colour"
+    )
+    locale_ids = ArrayField(
+        models.CharField(max_length=50, blank=True),
+        default=list, null=True, verbose_name="Locale IDs"
+    )
+
+    def __str__(self):
+        return self.lang_set_name
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'langset'
 
 
 class TransPlatform(models.Model):
@@ -133,6 +155,7 @@ class StreamBranches(models.Model):
     relbranch_name = models.CharField(max_length=500)
     relbranch_slug = models.CharField(max_length=500, unique=True)
     relstream_slug = models.CharField(max_length=400)
+    lang_set = models.CharField(max_length=200)
     scm_branch = models.CharField(max_length=100, null=True)
     created_on = models.DateTimeField()
     current_phase = models.CharField(max_length=200, null=True)
@@ -166,7 +189,6 @@ class Packages(models.Model):
         default=list, null=True
     )
     relstream_names = JSONField(null=True)
-    lang_set = models.CharField(max_length=200)
     transtats_lastupdated = models.DateTimeField(null=True)
     package_details_json = JSONField(null=True)
     release_branch_mapping = JSONField(null=True)

@@ -39,7 +39,7 @@
                 <th>Upstream</th>
                 <th>Translation Platform</th>
                 <th>Release Streams</th>
-                <th>Language Set</th>
+                <th>Branch Mapping</th>
                 <th>Last Sync</th>
                 <th>&nbsp;</th>
                 <th>&nbsp;</th>
@@ -51,7 +51,7 @@
                 <th>Upstream</th>
                 <th>Translation Platform</th>
                 <th>Release Streams</th>
-                <th>Language Set</th>
+                <th>Branch Mapping</th>
                 <th>Last Sync</th>
                 <th>&nbsp;</th>
                 <th>&nbsp;</th>
@@ -70,7 +70,7 @@
                     <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
                 </td>
                 <td>{{ package.release_streams|join:", " }}</td>
-                <td>{{ package.lang_set }}</td>
+                <td><a class="btn" href="#">Show Mapping</a></td>
                 <td>
                     {% if package.transtats_lastupdated %}
                         {{ package.transtats_lastupdated|timesince }} <span style="color:grey">ago</span>.
