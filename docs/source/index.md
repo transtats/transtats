@@ -10,22 +10,27 @@ In a software release cycle, localisation steps like extracting or updating lang
 
 #### Purpose
 
-To be catalyst in *localisation of applications* by tracking translation progress for release streams.
+To be catalyst in *localisation of applications* by churning data about **Overview and trends for language translations across packages!**
 
+#### App Description
 
-#### Big Picture
+##### Graphs
 
-1. **Register Project** Developers writing some app got plans to release it with non-english support. And hence sign-ups with TS. Technotes:  `Python Social Auth`.
+1. **Translation Position** Status of a package for most of the branches in all enabled languages.
 
-2. **Enable i18n** Once TS has projects with their source code, it can determine: the project has been i18n enabled or not. If not TS can determine i18n framework and provide info/details or patch enabling the same. And once i18n capabilities are determined, strings should be marked for translation, manually or with the help of i18n lint tools. Technotes: This should be `TS modules` based, `Notification`
+2. **Translation Coverage** Coverage of a package list for a specific release in selected languages.
 
-3. **Push Template** If project has enough strings marked and linked with a translation platform plus have some plans for which languages, TS can extract language template and push for initial discussion/translation as well as instantiate their revision management. Technotes: `TS Jobs`, `Diff Mgmt` may be JSON based, `Notification`
+##### Settings
 
-4. **Release Mapping** Project translation plans are need to be mapped with release stream schedule to meet deadlines. TS would track translation progress for mapped release streams and for their branches respectively. Further TS would provide various views to generate statistics in. Technotes: `Calendar`, `Background Tasks`, `Notifications`, `Graphs Rules`
+1. **Inventory** Languages & their sets, translation platforms and release streams with their branches are grouped as inventory. Plus upstream.
 
-5. **Pull Translation** Translation completion events or calendar/cron could trigger jobs to pull translations for set languages. i18n checks like PO filter, fonts etc. should be applied on pulled stuff and if passed TS may request a merge in project source tree. Technotes: `TS Jobs`, tests can be `TS modules` based, `Notification`
+2. **Release Branch** A particular release which has a schedule and information regarding *in how many languages it will be available*. 
 
-6. **Package Validation** To ensure packaging with planned language resources, TS keeps an eye on builds at release streams. Plus TS looks for storage of language artifacts in packaging format. Technotes:    `TS Jobs`, storage may be `TS Modules` based, `Notification`
+3. **Packages** Translation progress would be tracked for added packages. They should have upstream & translation platform URLs and can be linked with multiple release streams.
+
+4. **Jobs** Some functions which are planned to be automated like sync with translation repositories, update release schedule etc. Logs are kept.
+
+5. **Graph Rules** Rules to track translation volume *as in* coverage of a package list for a given release branch in a set of languages.
 
 
 
@@ -56,7 +61,6 @@ make run
 * If you find any bug/issue or got an idea, open a [github issue](https://github.com/transtats/transtats/issues/new).
 * Feel free to submit feature requests and/or bug fixes on *devel* branch.
 * Transtats uses [travis](https://travis-ci.org/transtats/transtats) for tests.
-* Join the #fedora-g11n channel on irc.freenode.net.
 
 
 
@@ -68,13 +72,12 @@ As the project evolves, a roadmap will be published for each major release. Comm
 
 We are currently working on `0.1.0` release.
 
-Target delivery: Mid February 2017
+Target delivery: Mid March 2017
 
 * Enable admin to manage inventory
 * Bring release branches into custom graphs
 * Check stats with release streams source package
-* Implement django celery beat for TS Jobs
-* Unit tests and code cleanup & coverage
+* Unit tests and code cleanup
 * Project docs and other stuffs
 
 

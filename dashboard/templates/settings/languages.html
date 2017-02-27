@@ -1,4 +1,5 @@
 {% extends "settings/settings_base.html" %}
+{% load custom_tags %}
 
 {% block extrascript %}
 <link href="/static/css/bootstrap-toggle.min.css" rel="stylesheet">
@@ -47,12 +48,18 @@
     <h3 class="panel-title">Language Sets</h3>
   </div>
   <div class="panel-body">
-      <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
-      default
-      &nbsp;
-      <span class="glyphicon glyphicon-tag" aria-hidden="true" style="color:brown"></span>
-      custom
+      {% for langset in language_sets %}
+          <span class="glyphicon glyphicon-tag" aria-hidden="true" style="color:{{ langset.lang_set_color }}"></span>
+          {{ langset.lang_set_name }}
+          &nbsp;
+      {% endfor %}
   </div>
+  {% if user.is_authenticated and user.is_superuser %}
+      <div class="panel-footer">
+          <a href="/admin/dashboard/languageset/add" role="button" class="btn btn-default">Add</a>
+          <a href="/admin/dashboard/languageset/" role="button" class="btn btn-default">Edit</a>
+      </div>
+  {% endif %}
 </div>
 
 <hr/>
@@ -62,7 +69,7 @@
             <th>Language</th>
             <th>Locale</th>
             <th>Alias</th>
-            <th>Set</th>
+            <th>Sets</th>
             <th>Status</th>
         </tr></thead>
         <tbody>
@@ -78,9 +85,10 @@
                 {% endif %}
             </td>
             <td>
-                {% if lang.lang_set == 'default' %}
-                    <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
-                {% endif %}
+                {% for lang_set in locale_groups|get_item:lang.locale_id %}
+                    <span class="glyphicon glyphicon-tag" aria-hidden="true" style="color:{{ langset_color_dict|get_item:lang_set }}"></span>
+                    &nbsp;
+                {% endfor %}
             </td>
             <td>{% if lang.lang_status %}
                     <input type="checkbox" checked data-toggle="toggle" disabled>

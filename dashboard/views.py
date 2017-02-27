@@ -145,11 +145,19 @@ class LanguagesSettingsView(ManagersMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(LanguagesSettingsView, self).get_context_data(**kwargs)
         locales_set = self.inventory_manager.get_locales_set()
+        language_sets = self.inventory_manager.get_langsets()
+        langset_color_dict = {}
+        for langset in language_sets:
+            langset_color_dict.update({langset.lang_set_slug: langset.lang_set_color})
+        locale_groups = self.inventory_manager.get_all_locales_groups()
         if isinstance(locales_set, tuple):
             active_locales, inactive_locales, aliases = locales_set
             context['active_locales_len'] = len(active_locales)
             context['inactive_locales_len'] = len(inactive_locales)
             context['aliases_len'] = len(aliases)
+            context['language_sets'] = language_sets
+            context['langset_color_dict'] = langset_color_dict
+            context['locale_groups'] = locale_groups
         return context
 
 
@@ -212,6 +220,9 @@ class NewReleaseBranchView(ManagersMixin, FormView):
             stream_slug=self.kwargs.get('stream_slug'), only_active=True
         ).get()
 
+    def _get_langsets(self):
+        return self.inventory_manager.get_langsets()
+
     def get_context_data(self, **kwargs):
         context = super(NewReleaseBranchView, self).get_context_data(**kwargs)
         context['relstream'] = self._get_relstream()
@@ -219,14 +230,17 @@ class NewReleaseBranchView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
+        initials.update(dict(lang_set='default'))
         initials.update(dict(enable_flags=['track_trans_flag', 'sync_calendar']))
         return initials
 
     def get_form(self, form_class=None, data=None):
         kwargs = {}
         release_stream = self._get_relstream()
+        lang_sets = self._get_langsets()
         kwargs.update({'action_url': 'release-stream/' + release_stream.relstream_slug + '/branches/new'})
         kwargs.update({'phases_choices': tuple([(phase, phase) for phase in release_stream.relstream_phases])})
+        kwargs.update({'langset_choices': tuple([(set.lang_set_slug, set.lang_set_name) for set in lang_sets])})
         kwargs.update({'initial': self.get_initial()})
         if data:
             kwargs.update({'data': data})
@@ -238,7 +252,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
         post_params = form.cleaned_data
         relstream = kwargs.get('stream_slug')
         # Check for required params
-        required_params = ('relbranch_name', 'current_phase', 'calendar_url')
+        required_params = ('relbranch_name', 'current_phase', 'lang_set', 'calendar_url')
         if not set(required_params) <= set(post_params.keys()):
             return render(request, self.template_name, {'form': form})
         relbranch_slug, schedule_json = \
@@ -298,7 +312,6 @@ class NewPackageView(ManagersMixin, FormView):
         initials = {}
         initials.update(dict(transplatform_slug='ZNTAFED'))
         initials.update(dict(release_streams='RHEL'))
-        initials.update(dict(lang_set='default'))
         initials.update(dict(update_stats='stats'))
         return initials
 
