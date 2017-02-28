@@ -25,10 +25,12 @@
       <li id="tab-trans-platforms" role="presentation"><a href="{% url 'settings-trans-platforms' %}">Translation Platforms</a></li>
       <li id="tab-release-streams" role="presentation"><a href="{% url 'settings-release-streams' %}">Release Streams</a></li>
       <li id="tab-packages" role="presentation"><a href="{% url 'settings-packages' %}">Packages</a></li>
-      <li id="tab-jobs" role="presentation"><a href="{% url 'settings-jobs' %}">Jobs</a></li>
       <li id="tab-graph-rules" role="presentation"><a href="{% url 'settings-graph-rules' %}">Graph Rules</a></li>
       <!--<li id="tab-notification" role="presentation"><a href="{% url 'settings-notification' %}">Notification</a></li>-->
-      <li id="tab-logs" role="presentation"><a href="{% url 'settings-logs' %}">Logs</a></li>
+      {% if user.is_authenticated and user.is_superuser %}
+        <li id="tab-jobs" role="presentation"><a href="{% url 'settings-jobs' %}">Jobs</a></li>
+        <li id="tab-logs" role="presentation"><a href="{% url 'settings-logs' %}">Logs</a></li>
+      {% endif %}
     </ul>
     <div style="padding:20px">
         {% block tabcontent %}{% endblock %}

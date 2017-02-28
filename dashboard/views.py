@@ -17,7 +17,7 @@
 from django.contrib import messages
 from django.forms.utils import ErrorList
 from django.http import (
-    HttpResponse, HttpResponseRedirect, JsonResponse
+    HttpResponse, HttpResponseRedirect, JsonResponse, Http404
 )
 from django.shortcuts import render
 from django.views.generic import (
@@ -202,10 +202,14 @@ class StreamBranchesSettingsView(ManagersMixin, TemplateView):
         context = super(StreamBranchesSettingsView, self).get_context_data(**kwargs)
         relstream_slug = kwargs.get('stream_slug')
         if relstream_slug:
-            context['relstream'] = \
-                self.inventory_manager.get_release_streams(stream_slug=relstream_slug).get()
-            context['relbranches'] = \
-                self.release_branch_manager.get_release_branches(relstream=relstream_slug)
+            try:
+                release_stream = self.inventory_manager.get_release_streams(stream_slug=relstream_slug).get()
+                release_branches = self.release_branch_manager.get_release_branches(relstream=relstream_slug)
+            except:
+                raise Http404("ReleaseStream matching query does not exist.")
+            else:
+                context['relstream'] = release_stream
+                context['relbranches'] = release_branches
         return context
 
 
@@ -216,9 +220,14 @@ class NewReleaseBranchView(ManagersMixin, FormView):
     template_name = "settings/relbranch_new.html"
 
     def _get_relstream(self):
-        return self.inventory_manager.get_release_streams(
-            stream_slug=self.kwargs.get('stream_slug'), only_active=True
-        ).get()
+        try:
+            release_stream = self.inventory_manager.get_release_streams(
+                stream_slug=self.kwargs.get('stream_slug'), only_active=True
+            ).get()
+        except:
+            raise Http404("ReleaseStream matching query does not exist.")
+        else:
+            return release_stream
 
     def _get_langsets(self):
         return self.inventory_manager.get_langsets()
@@ -412,6 +421,28 @@ class NewGraphRuleView(ManagersMixin, FormView):
                 ))
             return HttpResponseRedirect(self.success_url)
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
+
+
+class BranchMappingView(ManagersMixin, TemplateView):
+    """
+    Package Branch Mapping View
+    """
+    template_name = "settings/package_mapping.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(BranchMappingView, self).get_context_data(**kwargs)
+        queried_package_name = kwargs['package_name'] \
+            if 'package_name' in kwargs and kwargs.get('package_name') else ''
+        if queried_package_name:
+            context['package_name'] = queried_package_name
+            try:
+                package_details = self.packages_manager.get_packages([queried_package_name]).get()
+            except:
+                raise Http404("Package matching query does not exist.")
+            else:
+                context['name_mapping'] = package_details.relstream_names
+                context['branch_mapping'] = package_details.release_branch_mapping
+        return context
 
 
 def schedule_job(request):

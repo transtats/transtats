@@ -34,10 +34,10 @@
         </span>
         <span class="pull-right">
             {% if user.is_authenticated and user.is_superuser %}
-                <a href="/admin/dashboard/languages/add" role="button" class="btn btn-default">Add Language</a>
-                <a href="/admin/dashboard/languages/" role="button" class="btn btn-default">Edit Languages</a>
+                <a href="{% url 'admin:dashboard_languages_add' %}" role="button" class="btn btn-default">Add Language</a>
+                <a href="{% url 'admin:dashboard_languages_changelist' %}" role="button" class="btn btn-default">Edit Languages</a>
             {% else %}
-                <a href="/admin/" role="button" class="btn btn-default">Manage Languages</a>
+                <a href="{% url 'admin:index' %}" role="button" class="btn btn-default">Manage Languages</a>
             {% endif %}
         </span>
     </div>
@@ -56,8 +56,8 @@
   </div>
   {% if user.is_authenticated and user.is_superuser %}
       <div class="panel-footer">
-          <a href="/admin/dashboard/languageset/add" role="button" class="btn btn-default">Add</a>
-          <a href="/admin/dashboard/languageset/" role="button" class="btn btn-default">Edit</a>
+          <a href="{% url 'admin:dashboard_languageset_add' %}" role="button" class="btn btn-default">Add</a>
+          <a href="{% url 'admin:dashboard_languageset_changelist' %}" role="button" class="btn btn-default">Edit</a>
       </div>
   {% endif %}
 </div>

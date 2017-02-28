@@ -52,10 +52,10 @@ class NewPackageForm(forms.Form):
     update_stats_choices = (('stats', 'Translation Stats'), )
 
     package_name = forms.CharField(
-        label='Package Name', help_text='Package id as-in translation platform.', required=True,
+        label='Package Name', help_text='Package id as-in translation platform. Use hyphen (-) to separate words.', required=True,
     )
     upstream_url = forms.URLField(
-        label='Upstream URL', help_text='Source repository location (GitHub, Bitbucket etc).', required=True
+        label='Upstream URL', help_text='Source repository location (Bitbucket, GitHub, Pagure etc).', required=True
     )
     transplatform_slug = forms.ChoiceField(
         label='Translation Platform',

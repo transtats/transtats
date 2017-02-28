@@ -1,0 +1,38 @@
+{% extends "settings/settings_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block extrascript %}
+<script src="/static/js/jquery-1.12.3.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#tab-packages').addClass('active');
+    })
+</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-packages' %}" class="btn btn-default">Packages</a>
+    <a href="{% url 'settings-package-mapping' package_name %}" class="btn btn-default">Mapping</a>
+{% endblock %}
+
+{% block tabcontent %}
+<div class="row">
+    <div class="col-xs-12">
+        <span>
+            <span class="glyphicon glyphicon-random" aria-hidden="true"></span>
+            &nbsp;&nbsp;<span class="text-muted"><b>{{ package_name }} | Name and Branch Mapping</b></span>
+        </span>
+        <div class="pull-right">
+            <a type="button" class="btn btn-default" href="{% url 'settings-packages' %}">Back to List Packages</a>
+        </div>
+    </div>
+</div>
+<hr/>
+{% if name_mapping and branch_mapping %}
+    do something
+{% else %}
+    No mapping found. Please <a href="{% url 'settings-packages' %}">refresh</a> package.
+{% endif %}
+{% endblock %}

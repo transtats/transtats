@@ -4,23 +4,7 @@
 {% block extrascript %}
 <script src="/static/js/jquery-1.12.3.js"></script>
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('#tab-packages').addClass('active');
-    })
-    function showPackageSlug() {
-        document.getElementById('show_package_name').innerHTML =
-                    "Package Slug ({{ app_name }}): <b>" + document.getElementById("id_package_name").value + "</b>";
-    }
-    function showUpstreamName() {
-        var upstream_url_parts = document.getElementById("id_upstream_url").value.split("/");
-        document.getElementById('show_upstream_name').innerHTML =
-                    "Package Name (Upstream): <b>" + upstream_url_parts[upstream_url_parts.length-1] + "</b>";
-    }
-    function showTransplatformId() {
-        var url = $('#id_transplatform_slug option:selected').text();
-        document.getElementById('show_transplatform_id').innerHTML =
-                    "<b>" + document.getElementById("id_package_name").value + "</b> at " + url;
-    }
+    function slugify(e){return e.toString().toLowerCase().replace(/\s+/g,"-").replace(/\./g,"-").replace(/[^\w\-]+/g,"").replace(/\-\-+/g,"-").replace(/^-+/,"").replace(/-+$/,"")}function showPackageSlug(){document.getElementById("show_package_name").innerHTML="Package Slug ({{ app_name }}): <b>"+slugify(document.getElementById("id_package_name").value)+"</b>"}function showUpstreamName(){var e=document.getElementById("id_upstream_url").value.split("/");document.getElementById("show_upstream_name").innerHTML="Package Name (Upstream): <b>"+e[e.length-1]+"</b>"}function showTransplatformId(){var e=$("#id_transplatform_slug option:selected").text();document.getElementById("show_transplatform_id").innerHTML="<b>"+document.getElementById("id_package_name").value+"</b> at "+e}$(document).ready(function(){$("#tab-packages").addClass("active")});
 </script>
 {% endblock %}
 
