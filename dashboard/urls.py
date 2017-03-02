@@ -26,7 +26,7 @@ from dashboard.views import (
     LogsSettingsView, NewPackageView, StreamBranchesSettingsView,
     NewReleaseBranchView, TransCoverageView, GraphRulesSettingsView,
     NewGraphRuleView, CompareDownstreamView, BranchMappingView,
-    schedule_job, graph_data
+    schedule_job, graph_data, refresh_package
 )
 
 
@@ -36,7 +36,8 @@ api_urls = [
 
 ajax_urls = [
     url(r'^schedule-job$', schedule_job, name="ajax-schedule-job"),
-    url(r'^graph-data$', graph_data, name="ajax-graph-data")
+    url(r'^graph-data$', graph_data, name="ajax-graph-data"),
+    url(r'^refresh-package$', refresh_package, name="ajax-refresh-package"),
 ]
 
 app_setting_urls = [

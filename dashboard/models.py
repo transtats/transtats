@@ -159,7 +159,7 @@ class StreamBranches(models.Model):
     scm_branch = models.CharField(max_length=100, null=True)
     created_on = models.DateTimeField()
     current_phase = models.CharField(max_length=200, null=True)
-    calendar_url = models.URLField(max_length=500, unique=True, null=True)
+    calendar_url = models.URLField(max_length=500, null=True)
     schedule_json = JSONField(null=True)
     sync_calendar = models.BooleanField(default=True)
     notifications_flag = models.BooleanField(default=True)
@@ -188,11 +188,11 @@ class Packages(models.Model):
         models.CharField(max_length=400, blank=True),
         default=list, null=True
     )
-    relstream_names = JSONField(null=True)
-    transtats_lastupdated = models.DateTimeField(null=True)
     package_details_json = JSONField(null=True)
-    release_branch_mapping = JSONField(null=True)
     details_json_lastupdated = models.DateTimeField(null=True)
+    package_name_mapping = JSONField(null=True)
+    release_branch_mapping = JSONField(null=True)
+    transtats_lastupdated = models.DateTimeField(null=True)
 
     class Meta:
         db_table = TABLE_PREFIX + 'packages'

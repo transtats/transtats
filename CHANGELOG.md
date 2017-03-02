@@ -1,5 +1,5 @@
-##### Thu Feb 23 2017 Sundeep Anand <suanand@redhat.com>
-* implement language set feature
+##### Fri Mar 03 2017 Sundeep Anand <suanand@redhat.com>
+* implement language set and branch mapping features
 * add django rest framework to ping server
 * enable django admin to manage inventory
 

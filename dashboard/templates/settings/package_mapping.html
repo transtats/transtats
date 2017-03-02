@@ -2,11 +2,10 @@
 {% load crispy_forms_tags %}
 
 {% block extrascript %}
+<script src="/static/js/csrf.js"></script>
 <script src="/static/js/jquery-1.12.3.js"></script>
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('#tab-packages').addClass('active');
-    })
+    function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}$(document).ready(function(){$("#tab-packages").addClass("active"),$("#refreshPackageLink").click(function(e){return e.preventDefault(),$.ajax({beforeSend:function(e,a){csrfSafeMethod(a.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#refreshProgress").html("<img src='/static/img/spin.gif'></img>"),$("#refreshPackageLink").attr("disabled",!0)},type:"POST",url:"/ajax/refresh-package",data:{"package":"{{ package_name }}"},success:function(e){$("#refreshPackageLink").attr("disabled",!1),$("#refreshProgress").html("<span class='glyphicon glyphicon-ok' style='color:green'></span>"),setTimeout(function(){location.reload(!0)},1e3)},error:function(e,a,r){$("#refreshPackageLink").attr("disabled",!1),$("#refreshProgress").html("<span class='glyphicon glyphicon-warning-sign' style='color:orange'></span>")}}),!1})});
 </script>
 {% endblock %}
 
@@ -18,21 +17,44 @@
 {% endblock %}
 
 {% block tabcontent %}
-<div class="row">
-    <div class="col-xs-12">
-        <span>
-            <span class="glyphicon glyphicon-random" aria-hidden="true"></span>
-            &nbsp;&nbsp;<span class="text-muted"><b>{{ package_name }} | Name and Branch Mapping</b></span>
-        </span>
-        <div class="pull-right">
-            <a type="button" class="btn btn-default" href="{% url 'settings-packages' %}">Back to List Packages</a>
+    <div class="row">
+        <div class="col-xs-12">
+            <span>
+                <span class="glyphicon glyphicon-random" aria-hidden="true"></span>
+                &nbsp;&nbsp;<span class="text-muted" style="font-size:large"><b>{{ package_name }}</b> | Branch Mapping</span>
+            </span>
+            <span class="pull-right">
+                <a id="refreshPackageLink" type="button" class="btn btn-default btn-small">
+                    <span id="refreshProgress"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></span> Refresh Package
+                </a>
+                <a type="button" class="btn btn-default" href="{% url 'settings-packages' %}">Back to List Packages</a>
+            </span>
         </div>
     </div>
-</div>
-<hr/>
-{% if name_mapping and branch_mapping %}
-    do something
-{% else %}
-    No mapping found. Please <a href="{% url 'settings-packages' %}">refresh</a> package.
-{% endif %}
+    <hr/>
+    {% if package_details  %}
+        <span class="text-info"><b>Description:</b> {{ package_details }}</span><hr/>
+    {% endif %}
+    {% if branch_mapping %}
+    <div style="padding-left:100px;padding-right:100px">
+        <table class="table table-hover table-bordered" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Release Stream Branch</th>
+                    <th>Translation Platform Project Version</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for branch, version in branch_mapping.items %}
+                <tr>
+                    <td>{{ branch }}</td>
+                    <td>{{ version }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        No mapping found. <span class="text-muted">Please check release branch(es) and refresh the package.</span>
+    {% endif %}
 {% endblock %}

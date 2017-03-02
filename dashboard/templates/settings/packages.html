@@ -39,9 +39,9 @@
                 <th>Upstream</th>
                 <th>Translation Platform</th>
                 <th>Release Streams</th>
-                <th>Mapping</th>
+                <th>Branch Mapping</th>
                 <th>Last Sync</th>
-                <th><a href="#" data-toggle="tooltip" title="Sync and rebuild mapping">Refresh</a></th>
+                <th>&nbsp;</th>
             </tr>
         </thead>
         <tfoot>
@@ -50,9 +50,9 @@
                 <th>Upstream</th>
                 <th>Translation Platform</th>
                 <th>Release Streams</th>
-                <th>Mapping</th>
+                <th>Branch Mapping</th>
                 <th>Last Sync</th>
-                <th><a href="#" data-toggle="tooltip" title="Sync and rebuild mapping">Refresh</a></th>
+                <th>&nbsp;</th>
             </tr>
         </tfoot>
         <tbody>
@@ -69,11 +69,13 @@
                 </td>
                 <td>{{ package.release_streams|join:", " }}</td>
                 <td align="center">
-                    <a class="btn btn-default btn-small" href="{% url 'settings-package-mapping' package.package_name %}">
-                        <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                    </a>
+                    {% if package.release_branch_mapping %}
+                        <span class="glyphicon glyphicon-ok-sign" style="color:green; font-size:22px"></span>
+                    {% else %}
+                        <span class="glyphicon glyphicon-exclamation-sign" style="color:orange; font-size:22px"></span>
+                    {% endif %}
                 </td>
-                <td>
+                <td align="center">
                     {% if package.transtats_lastupdated %}
                         {{ package.transtats_lastupdated|timesince }} <span style="color:grey">ago</span>.
                     {% else %}
@@ -81,7 +83,9 @@
                     {% endif %}
                 </td>
                 <td align="center">
-                  <a class="btn btn-default btn-small"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
+                    <a class="btn btn-default btn-small" href="{% url 'settings-package-mapping' package.package_name %}">
+                        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                    </a>
                 </td>
             </tr>
             {% endfor %}

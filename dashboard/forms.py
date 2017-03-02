@@ -92,7 +92,6 @@ class NewPackageForm(forms.Form):
             Field('upstream_url', css_class='form-control', onkeyup="showUpstreamName()"),
             Field('transplatform_slug', css_class='selectpicker', onchange="showTransplatformId()"),
             InlineCheckboxes('release_streams'),
-            InlineRadios('lang_set'),
             InlineCheckboxes('update_stats'),
             HTML("<hr/>"),
             HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),

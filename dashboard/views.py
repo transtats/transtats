@@ -321,7 +321,6 @@ class NewPackageView(ManagersMixin, FormView):
         initials = {}
         initials.update(dict(transplatform_slug='ZNTAFED'))
         initials.update(dict(release_streams='RHEL'))
-        initials.update(dict(update_stats='stats'))
         return initials
 
     def get_form(self, form_class=None, data=None):
@@ -440,7 +439,10 @@ class BranchMappingView(ManagersMixin, TemplateView):
             except:
                 raise Http404("Package matching query does not exist.")
             else:
-                context['name_mapping'] = package_details.relstream_names
+                pkg_details = package_details.package_details_json
+                if pkg_details and pkg_details.get('description'):
+                    context['package_details'] = pkg_details['description']
+                context['name_mapping'] = package_details.package_name_mapping
                 context['branch_mapping'] = package_details.release_branch_mapping
         return context
 
@@ -488,3 +490,16 @@ def graph_data(request):
             graph_rule = request.POST.dict().get('graph_rule')
             graph_dataset = graph_manager.get_trans_stats_by_rule(graph_rule)
     return JsonResponse(graph_dataset)
+
+
+def refresh_package(request):
+    """
+    Package sync and re-buid mappings
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        if 'package' in post_params and post_params.get('package'):
+            package_manager = PackagesManager()
+            if package_manager.refresh_package(post_params['package']):
+                return HttpResponse(status=200)
+    return HttpResponse(status=500)
