@@ -243,15 +243,13 @@ class GraphRules(models.Model):
     graph_rule_id = models.AutoField(primary_key=True)
     rule_name = models.CharField(max_length=1000, unique=True)
     rule_packages = ArrayField(
-        models.CharField(max_length=1000, blank=True),
-        default=list, null=True
+        models.CharField(max_length=1000, blank=True), default=list
     )
     rule_langs = ArrayField(
-        models.CharField(max_length=400, blank=True),
-        default=list, null=True
+        models.CharField(max_length=400, blank=True), default=list
     )
-    rule_relbranch = models.CharField(max_length=500, null=True)
-    created_on = models.DateTimeField(null=True)
+    rule_relbranch = models.CharField(max_length=500)
+    created_on = models.DateTimeField()
     rule_status = models.BooleanField()
 
     class Meta:

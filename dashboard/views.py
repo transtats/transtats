@@ -315,7 +315,7 @@ class NewPackageView(ManagersMixin, FormView):
     New Package Form View
     """
     template_name = "settings/package_new.html"
-    success_url = '/settings/packages/new'
+    success_url = "/settings/packages/new"
 
     def get_initial(self):
         initials = {}
@@ -378,7 +378,7 @@ class NewGraphRuleView(ManagersMixin, FormView):
     New Graph Rule View
     """
     template_name = "settings/graphrule_new.html"
-    success_url = '/settings/graph-rules/new'
+    success_url = "/settings/graph-rules/new"
 
     def get_initial(self):
         initials = {}
@@ -389,8 +389,11 @@ class NewGraphRuleView(ManagersMixin, FormView):
         kwargs = {}
         pkgs = self.packages_manager.get_package_name_tuple()
         langs = self.inventory_manager.get_locale_lang_tuple()
+        release_branches_tuple = \
+            self.release_branch_manager.get_relbranch_name_slug_tuple()
         kwargs.update({'packages': pkgs})
         kwargs.update({'languages': langs})
+        kwargs.update({'branches': release_branches_tuple})
         kwargs.update({'initial': self.get_initial()})
         if data:
             kwargs.update({'data': data})
@@ -401,14 +404,26 @@ class NewGraphRuleView(ManagersMixin, FormView):
         form = self.get_form(data=post_data)
         post_params = form.cleaned_data
         # check for required params
-        required_params = ('rule_name', 'rule_packages', 'rule_langs', 'rule_relbranch')
+        required_params = ('rule_name', 'rule_relbranch', 'rule_packages', 'lang_selection')
         if not set(required_params) <= set(post_params.keys()):
+            return render(request, self.template_name, {'form': form})
+        elif post_params.get('lang_selection') == 'select' and not post_params.get('rule_langs'):
+            errors = form._errors.setdefault('rule_langs', ErrorList())
+            errors.append("Please select languages to be included in graph rule.")
             return render(request, self.template_name, {'form': form})
         rule_slug = self.graph_manager.slugify_graph_rule_name(post_params['rule_name'])
         if not rule_slug:
             errors = form._errors.setdefault('rule_name', ErrorList())
             errors.append("This name cannot be slugify. Please try again.")
-        if rule_slug:
+        pkgs_not_participate = self.graph_manager.validate_package_branch_participation(
+            post_params['rule_relbranch'], post_params['rule_packages']
+        )
+        if pkgs_not_participate and len(pkgs_not_participate) >= 1:
+            errors = form._errors.setdefault('rule_packages', ErrorList())
+            err_msg = ("Translation progress of " + pkgs_not_participate[0] +
+                       " is not being tracked for " + post_params['rule_relbranch'])
+            errors.append(err_msg)
+        if rule_slug and not pkgs_not_participate:
             post_params['rule_name'] = rule_slug
             if not self.graph_manager.add_graph_rule(**post_params):
                 messages.add_message(request, messages.ERROR, (

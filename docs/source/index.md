@@ -10,15 +10,15 @@ In a software release cycle, localisation steps like extracting or updating lang
 
 #### Purpose
 
-To be catalyst in *localisation of applications* by churning data about **Overview and trends for language translations across packages!**
+To be a catalyst in *localisation of applications* by creating mapping between upstream, translation platform and release streams.
 
 #### App Description
 
 ##### Graphs
 
-1. **Translation Position** Status of a package for most of the branches in all enabled languages.
+1. **Translation Position** Translation progress of a package for most of the branches in all enabled languages.
 
-2. **Translation Coverage** Coverage of a package list for a specific release in selected languages.
+2. **Translation Coverage** Coverage of a package list for a specific release in associated or selected languages.
 
 ##### Settings
 
@@ -26,11 +26,11 @@ To be catalyst in *localisation of applications* by churning data about **Overvi
 
 2. **Release Branch** A particular release which has a schedule and information regarding *in how many languages it will be available*. 
 
-3. **Packages** Translation progress would be tracked for added packages. They should have upstream & translation platform URLs and can be linked with multiple release streams.
+3. **Packages** Translation progress would be tracked for added packages. They should have upstream repository URL and translation platform project URL. A package can be linked with multiple release streams and should have a branch mapping.
 
 4. **Jobs** Some functions which are planned to be automated like sync with translation repositories, update release schedule etc. Logs are kept.
 
-5. **Graph Rules** Rules to track translation volume *as in* coverage of a package list for a given release branch in a set of languages.
+5. **Graph Rules** Rules to track translation *as in* coverage of a package list for a specific release branch in a set of languages.
 
 
 
@@ -76,10 +76,6 @@ Target delivery: Mid March 2017
 
 * Enable admin to manage inventory
 * Bring release branches into custom graphs
-* Check stats with release streams source package
-* Unit tests and code cleanup
-* Project docs and other stuffs
-
 
 
 ### License

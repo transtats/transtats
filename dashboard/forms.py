@@ -176,31 +176,40 @@ class NewGraphRuleForm(forms.Form):
     """
     rule_packages_choices = ()
     rule_langs_choices = ()
-    rule_relbranch_choices = (('master', 'master'), )
+    rule_relbranch_choices = ()
 
     rule_name = forms.CharField(
         label='Graph Rule Name', help_text='Rule will be saved in slug form.', required=True,
+    )
+    rule_relbranch = forms.ChoiceField(
+        label='Release Branch', choices=rule_relbranch_choices,
+        help_text='Graph will be generated for selected release branch following branch mapping.',
+        required=True
     )
     rule_packages = TextArrayField(
         label='Packages', widget=forms.CheckboxSelectMultiple, choices=rule_packages_choices,
         help_text="Selected packages will be included in this rule.", required=True
     )
+    lang_selection = forms.ChoiceField(
+        label='Languages Selection', choices=[
+            ('pick', 'Pick release branch specific languages'),
+            ('select', 'Select languages')],
+        initial='pick', widget=forms.RadioSelect, required=True,
+        help_text="Either pick language set associated with selected release branch or choose languages."
+    )
     rule_langs = TextArrayField(
         label='Languages', widget=forms.CheckboxSelectMultiple, choices=rule_langs_choices,
-        help_text="Selected languages will be included in this rule.", required=True
-    )
-    rule_relbranch = forms.ChoiceField(
-        label='Release Branch', choices=rule_relbranch_choices,
-        help_text='Graph will be generated for selected release branch.',
-        required=True
+        help_text="Selected languages will be included in this rule.", required=False
     )
 
     def __init__(self, *args, **kwargs):
         self.rule_packages_choices = kwargs.pop('packages')
         self.rule_langs_choices = kwargs.pop('languages')
+        self.rule_relbranch_choices = kwargs.pop('branches')
         super(NewGraphRuleForm, self).__init__(*args, **kwargs)
         self.fields['rule_packages'].choices = self.rule_packages_choices
         self.fields['rule_langs'].choices = self.rule_langs_choices
+        self.fields['rule_relbranch'].choices = self.rule_relbranch_choices
         super(NewGraphRuleForm, self).full_clean()
 
     helper = FormHelper()
@@ -212,10 +221,11 @@ class NewGraphRuleForm(forms.Form):
 
     helper.layout = Layout(
         Div(
-            Field('rule_name', css_class='form-control', onkeyup="showRuleSlug()"),
-            InlineCheckboxes('rule_packages'),
-            InlineCheckboxes('rule_langs'),
-            Field('rule_relbranch', css_class='selectpicker'),
+            Field('rule_name', css_class="form-control", onkeyup="showRuleSlug()"),
+            Field('rule_relbranch', css_class="selectpicker"),
+            InlineCheckboxes('rule_packages', css_class="checkbox"),
+            InlineRadios('lang_selection', id="lang_selection_id"),
+            InlineCheckboxes('rule_langs', css_class="checkbox"),
             HTML("<hr/>"),
             FormActions(
                 Submit('addRule', 'Add Graph Rule'), Reset('reset', 'Reset')

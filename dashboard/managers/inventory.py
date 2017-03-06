@@ -49,8 +49,8 @@ from dashboard.managers.utilities import (
 )
 
 
-__all__ = ['InventoryManager', 'SyncStatsManager',
-           'PackagesManager', 'ReleaseBranchManager']
+__all__ = ['InventoryManager', 'SyncStatsManager', 'PackagesManager',
+           'ReleaseBranchManager', 'PackageBranchMapping']
 
 
 class InventoryManager(BaseManager):
@@ -95,6 +95,21 @@ class InventoryManager(BaseManager):
         inactive_locales = list(set(locales) - set(active_locales))
         aliases = list(filter(lambda locale: locale.locale_alias is not None, locales))
         return active_locales, inactive_locales, aliases
+
+    def get_langset(self, langset_slug, fields=None):
+        """
+        fetch desired language set from db
+        """
+        langset = None
+        fetch_fields = []
+        if fields and isinstance(fields, (tuple, list)):
+            fetch_fields.extend(fields)
+        try:
+            langset = LanguageSet.objects.only(*fetch_fields).filter(lang_set_slug=langset_slug).first()
+        except:
+            # log event, passing for now
+            pass
+        return langset
 
     def get_langsets(self):
         """
@@ -459,10 +474,11 @@ class PackagesManager(InventoryManager):
         else:
             return False
 
-    def get_trans_stats(self, package_name):
+    def get_trans_stats(self, package_name, apply_branch_mapping=False):
         """
         fetch stats of a package for all enabled languages
         :param package_name: str
+        :param apply_branch_mapping: boolean
         :return: dict {project_version: stats_dict}
         """
         trans_stats_dict = OrderedDict()
@@ -488,7 +504,10 @@ class PackagesManager(InventoryManager):
             trans_stats_dict[pkg_stats_version.project_version] = \
                 self.syncstats_manager.extract_locale_translated(package_details.transplatform_slug_id,
                                                                  trans_stats_list)
-
+        if apply_branch_mapping and package_details.release_branch_mapping:
+            branch_mapping = package_details.release_branch_mapping
+            for relbranch, transplatform_version in branch_mapping.items():
+                trans_stats_dict[relbranch] = trans_stats_dict.get(transplatform_version)
         return lang_id_name, trans_stats_dict, package_desc
 
     def _get_rest_handle_and_pkg(self, package_name):
@@ -597,23 +616,41 @@ class ReleaseBranchManager(InventoryManager):
     Release Stream Branch Manager
     """
 
-    def get_release_branches(self, relstream=None):
+    def get_release_branches(self, relstream=None, relbranch=None, fields=None):
         """
         Get release stream branches from db
         :param relstream: release stream slug
-        :return:
+        :param fields: fields tuple/list which are to be fetched
+        :return:relbranch queryset
         """
+        required_fields = []
+        if fields and isinstance(fields, (list, tuple)):
+            required_fields.extend(fields)
+
         filter_kwargs = {}
         if relstream:
             filter_kwargs.update(dict(relstream_slug=relstream))
+        if relbranch:
+            filter_kwargs.update(dict(relbranch_slug=relbranch))
 
         relbranches = None
         try:
-            relbranches = StreamBranches.objects.filter(**filter_kwargs)
+            relbranches = StreamBranches.objects.only(*required_fields).filter(**filter_kwargs)
         except:
             # log event, passing for now
             pass
         return relbranches
+
+    def get_relbranch_name_slug_tuple(self):
+        """
+        Get release branch slug and name tuple
+        :return: (('master', 'master'), )
+        """
+        release_branches = self.get_release_branches(
+            fields=('relbranch_slug', 'relbranch_name', 'track_trans_flag')
+        )
+        return tuple([(branch.relbranch_slug, branch.relbranch_name)
+                      for branch in release_branches if branch.track_trans_flag])
 
     def get_branches_of_relstreams(self, release_streams):
         """
@@ -836,6 +873,8 @@ class PackageBranchMapping(object):
         4. todo: fetch release dates and try matching with that
         5. try finding default version: 'master' may be
         6. if nothing works, return blank
+
+        This seems working for Zanata, todo - need to check with others too.
         """
         match1 = difflib.get_close_matches(branch, self.transplatform_versions)
         if len(match1) >= 1:
