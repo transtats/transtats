@@ -17,7 +17,7 @@
 from django.contrib import messages
 from django.forms.utils import ErrorList
 from django.http import (
-    HttpResponse, HttpResponseRedirect, JsonResponse
+    HttpResponse, HttpResponseRedirect, JsonResponse, Http404
 )
 from django.shortcuts import render
 from django.views.generic import (
@@ -202,10 +202,14 @@ class StreamBranchesSettingsView(ManagersMixin, TemplateView):
         context = super(StreamBranchesSettingsView, self).get_context_data(**kwargs)
         relstream_slug = kwargs.get('stream_slug')
         if relstream_slug:
-            context['relstream'] = \
-                self.inventory_manager.get_release_streams(stream_slug=relstream_slug).get()
-            context['relbranches'] = \
-                self.release_branch_manager.get_release_branches(relstream=relstream_slug)
+            try:
+                release_stream = self.inventory_manager.get_release_streams(stream_slug=relstream_slug).get()
+                release_branches = self.release_branch_manager.get_release_branches(relstream=relstream_slug)
+            except:
+                raise Http404("ReleaseStream matching query does not exist.")
+            else:
+                context['relstream'] = release_stream
+                context['relbranches'] = release_branches
         return context
 
 
@@ -216,9 +220,14 @@ class NewReleaseBranchView(ManagersMixin, FormView):
     template_name = "settings/relbranch_new.html"
 
     def _get_relstream(self):
-        return self.inventory_manager.get_release_streams(
-            stream_slug=self.kwargs.get('stream_slug'), only_active=True
-        ).get()
+        try:
+            release_stream = self.inventory_manager.get_release_streams(
+                stream_slug=self.kwargs.get('stream_slug'), only_active=True
+            ).get()
+        except:
+            raise Http404("ReleaseStream matching query does not exist.")
+        else:
+            return release_stream
 
     def _get_langsets(self):
         return self.inventory_manager.get_langsets()
@@ -306,13 +315,12 @@ class NewPackageView(ManagersMixin, FormView):
     New Package Form View
     """
     template_name = "settings/package_new.html"
-    success_url = '/settings/packages/new'
+    success_url = "/settings/packages/new"
 
     def get_initial(self):
         initials = {}
         initials.update(dict(transplatform_slug='ZNTAFED'))
         initials.update(dict(release_streams='RHEL'))
-        initials.update(dict(update_stats='stats'))
         return initials
 
     def get_form(self, form_class=None, data=None):
@@ -370,7 +378,7 @@ class NewGraphRuleView(ManagersMixin, FormView):
     New Graph Rule View
     """
     template_name = "settings/graphrule_new.html"
-    success_url = '/settings/graph-rules/new'
+    success_url = "/settings/graph-rules/new"
 
     def get_initial(self):
         initials = {}
@@ -381,8 +389,11 @@ class NewGraphRuleView(ManagersMixin, FormView):
         kwargs = {}
         pkgs = self.packages_manager.get_package_name_tuple()
         langs = self.inventory_manager.get_locale_lang_tuple()
+        release_branches_tuple = \
+            self.release_branch_manager.get_relbranch_name_slug_tuple()
         kwargs.update({'packages': pkgs})
         kwargs.update({'languages': langs})
+        kwargs.update({'branches': release_branches_tuple})
         kwargs.update({'initial': self.get_initial()})
         if data:
             kwargs.update({'data': data})
@@ -393,14 +404,26 @@ class NewGraphRuleView(ManagersMixin, FormView):
         form = self.get_form(data=post_data)
         post_params = form.cleaned_data
         # check for required params
-        required_params = ('rule_name', 'rule_packages', 'rule_langs', 'rule_relbranch')
+        required_params = ('rule_name', 'rule_relbranch', 'rule_packages', 'lang_selection')
         if not set(required_params) <= set(post_params.keys()):
+            return render(request, self.template_name, {'form': form})
+        elif post_params.get('lang_selection') == 'select' and not post_params.get('rule_langs'):
+            errors = form._errors.setdefault('rule_langs', ErrorList())
+            errors.append("Please select languages to be included in graph rule.")
             return render(request, self.template_name, {'form': form})
         rule_slug = self.graph_manager.slugify_graph_rule_name(post_params['rule_name'])
         if not rule_slug:
             errors = form._errors.setdefault('rule_name', ErrorList())
             errors.append("This name cannot be slugify. Please try again.")
-        if rule_slug:
+        pkgs_not_participate = self.graph_manager.validate_package_branch_participation(
+            post_params['rule_relbranch'], post_params['rule_packages']
+        )
+        if pkgs_not_participate and len(pkgs_not_participate) >= 1:
+            errors = form._errors.setdefault('rule_packages', ErrorList())
+            err_msg = ("Translation progress of " + pkgs_not_participate[0] +
+                       " is not being tracked for " + post_params['rule_relbranch'])
+            errors.append(err_msg)
+        if rule_slug and not pkgs_not_participate:
             post_params['rule_name'] = rule_slug
             if not self.graph_manager.add_graph_rule(**post_params):
                 messages.add_message(request, messages.ERROR, (
@@ -412,6 +435,31 @@ class NewGraphRuleView(ManagersMixin, FormView):
                 ))
             return HttpResponseRedirect(self.success_url)
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
+
+
+class BranchMappingView(ManagersMixin, TemplateView):
+    """
+    Package Branch Mapping View
+    """
+    template_name = "settings/package_mapping.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(BranchMappingView, self).get_context_data(**kwargs)
+        queried_package_name = kwargs['package_name'] \
+            if 'package_name' in kwargs and kwargs.get('package_name') else ''
+        if queried_package_name:
+            context['package_name'] = queried_package_name
+            try:
+                package_details = self.packages_manager.get_packages([queried_package_name]).get()
+            except:
+                raise Http404("Package matching query does not exist.")
+            else:
+                pkg_details = package_details.package_details_json
+                if pkg_details and pkg_details.get('description'):
+                    context['package_details'] = pkg_details['description']
+                context['name_mapping'] = package_details.package_name_mapping
+                context['branch_mapping'] = package_details.release_branch_mapping
+        return context
 
 
 def schedule_job(request):
@@ -457,3 +505,16 @@ def graph_data(request):
             graph_rule = request.POST.dict().get('graph_rule')
             graph_dataset = graph_manager.get_trans_stats_by_rule(graph_rule)
     return JsonResponse(graph_dataset)
+
+
+def refresh_package(request):
+    """
+    Package sync and re-buid mappings
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        if 'package' in post_params and post_params.get('package'):
+            package_manager = PackagesManager()
+            if package_manager.refresh_package(post_params['package']):
+                return HttpResponse(status=200)
+    return HttpResponse(status=500)

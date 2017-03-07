@@ -22,9 +22,9 @@
         </span>
         <span class="pull-right">
             {% if user.is_authenticated and user.is_superuser %}
-                <a href="/admin/dashboard/releasestream/add/" role="button" class="btn btn-default">Add Release Stream</a>
+                <a href="{% url 'admin:dashboard_releasestream_add' %}" role="button" class="btn btn-default">Add Release Stream</a>
             {% else %}
-                <a href="/admin/" role="button" class="btn btn-default">Manage Release Streams</a>
+                <a href="{% url 'admin:index' %}" role="button" class="btn btn-default">Manage Release Streams</a>
             {% endif %}
         </span>
     </div>
@@ -60,12 +60,12 @@
             </p>
             {% if user.is_authenticated and user.is_superuser %}
             <p>
-                <a href="/admin/dashboard/releasestream/{{ forloop.counter }}/change/" class="btn btn-default btn-small" role="button">Edit</a>
+                <a href="{% url 'admin:dashboard_releasestream_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Edit</a>
                 {% if relstream.relstream_status %}
-                    <a href="/admin/dashboard/releasestream/{{ forloop.counter }}/change/" class="btn btn-default btn-small" role="button">Deactivate</a>
+                    <a href="{% url 'admin:dashboard_releasestream_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Deactivate</a>
                 {% else %}
-                    <a href="/admin/dashboard/releasestream/{{ forloop.counter }}/change/" class="btn btn-default btn-small" role="button">Activate</a>
-                    <a href="/admin/dashboard/releasestream/{{ forloop.counter }}/delete/" class="btn btn-danger btn-small">
+                    <a href="{% url 'admin:dashboard_releasestream_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Activate</a>
+                    <a href="{% url 'admin:dashboard_releasestream_delete' forloop.counter %}" class="btn btn-danger btn-small">
                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                     </a>
                 {% endif %}

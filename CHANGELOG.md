@@ -1,7 +1,9 @@
-##### Thu Feb 23 2017 Sundeep Anand <suanand@redhat.com>
-* implement language set feature
+##### Mon Mar 06 2017 Sundeep Anand <suanand@redhat.com>
+* enable branch mapping for translation coverage
+* provision section for package configurations
+* implement language set and branch mapping features
 * add django rest framework to ping server
-* enable django admin to manage inventory
+* enable django admin to manage inventory and jobs
 
 ##### Mon Dec 05 2016 Sundeep Anand <suanand@redhat.com> - Concept
 * enable ical sync for RHEL and Fedora - syncCalendar Jobs

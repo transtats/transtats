@@ -71,48 +71,17 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="{% url 'home' %}" style="font-size: x-large;">Translation Stats</a>
+              <a class="navbar-brand" href="{% url 'home' %}" style="font-size: x-large;">Translation Stats
+                <sup><span class="label label-info" style="font-size: x-small;">Alpha</span></sup></a>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-right">
                 <li><a href="{% url 'howto' %}">How to use {{ app_name }}</a></li>
                 <li><a href="{% url 'settings' %}">Inventory and Configuration</a></li>
                 <li><a href="http://docs.transtats.org/" target="_blank">Docs</a></li>
-                <!--<li><a href="{% url 'register' %}" role="button">Sign Up </a></li>-->
-                <!--<li class="dropdown active">-->
-                   <!--<a class="dropdown-toggle" data-toggle="dropdown">Login <b class="caret"></b></a>-->
-                   <!--<ul class="dropdown-menu" style="padding: 15px;min-width: 250px;">-->
-                      <!--<li>-->
-                         <!--<div class="row">-->
-                            <!--<div class="col-md-12">-->
-                               <!--<form class="form" role="form" method="post" action="login" accept-charset="UTF-8" id="login-nav">-->
-                                 <!--{% csrf_token %}-->
-                                  <!--<div class="form-group">-->
-                                     <!--<label class="sr-only" for="exampleInputEmail2">Email address</label>-->
-                                     <!--<input type="email" class="form-control" id="exampleInputEmail2" placeholder="Email address" required>-->
-                                  <!--</div>-->
-                                  <!--<div class="form-group">-->
-                                     <!--<label class="sr-only" for="exampleInputPassword2">Password</label>-->
-                                     <!--<input type="password" class="form-control" id="exampleInputPassword2" placeholder="Password" required>-->
-                                  <!--</div>-->
-                                  <!--<div class="checkbox">-->
-                                     <!--<label>-->
-                                     <!--<input type="checkbox"> Remember me-->
-                                     <!--</label>-->
-                                  <!--</div>-->
-                                  <!--<div class="form-group">-->
-                                     <!--<button type="submit" class="btn btn-success btn-block" disabled>Sign in</button>-->
-                                  <!--</div>-->
-                               <!--</form>-->
-                            <!--</div>-->
-                         <!--</div>-->
-                      <!--</li>-->
-                      <!--<li class="divider"></li>-->
-                      <!--<li>-->
-                         <!--<input class="btn btn-default btn-block" type="button" id="sign-in-fedora" value="Login with Fedora">-->
-                      <!--</li>-->
-                   <!--</ul>-->
-                <!--</li>-->
+                {% if user.is_authenticated and user.is_superuser %}
+                  <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                {% endif %}
                </ul>
             </div><!--/.navbar-collapse -->
           </div>
@@ -141,9 +110,11 @@
                   <span><a href="{% url 'home' %}">Home</a> | <a href="{% url 'howto' %}">How To</a> |
                     <a href="{% url 'settings' %}">Inventory and Configuration</a> |
                     <a href="http://transtats.org/terms.html" target="_blank">Terms of Use</a> |
-                    <a href="https://github.com/transtats/transtats/issues/new" target="_blank">Report Issue</a></span>
-                  <span class="pull-right">{{ app_name }} {{ app_version }} | &copy; {% now 'Y' %}
-                    <a href="https://www.redhat.com/" target="_blank">Red Hat, Inc</a></span>
+                    <a href="https://github.com/transtats/transtats/issues/new" target="_blank">Report Issue</a>
+                  </span>
+                  <span class="pull-right">{{ app_name }} {{ app_version }} | Copyright &copy; {% now 'Y' %}
+                    <a href="https://www.redhat.com/" target="_blank">Red Hat, Inc</a>
+                  </span>
                 </p>
             </div>
         </footer>

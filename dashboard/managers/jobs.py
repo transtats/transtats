@@ -216,6 +216,7 @@ class TransplatformSyncManager(BaseManager):
             )
             if project_urls and len(project_urls) > 0:
                 for url in project_urls:
+                    # todo - this can be delegated to PackagesManager's sync_update_package_details()
                     # Package name can be diff from its id/slug, hence extracting from url
                     transplatform_project_name = url.transplatform_url.split('/')[-1]
                     rest_handle = self.rest_client(url.transplatform_slug.engine_name,
@@ -262,6 +263,7 @@ class TransplatformSyncManager(BaseManager):
                 {str(datetime.now()): str(len(packages)) + ' packages fetched from db.'}
             )
             for package in packages:
+                # todo - this can be delegated to PackagesManager's sync_update_package_stats()
                 transplatform_engine = package.transplatform_slug.engine_name
                 rest_handle = self.rest_client(transplatform_engine, package.transplatform_slug.api_url)
                 project, versions = parse_project_details_json(

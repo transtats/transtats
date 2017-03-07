@@ -21,6 +21,8 @@
 
 # python
 import io
+import re
+import difflib
 import operator
 from collections import OrderedDict
 from uuid import uuid4
@@ -47,8 +49,8 @@ from dashboard.managers.utilities import (
 )
 
 
-__all__ = ['InventoryManager', 'SyncStatsManager',
-           'PackagesManager', 'ReleaseBranchManager']
+__all__ = ['InventoryManager', 'SyncStatsManager', 'PackagesManager',
+           'ReleaseBranchManager', 'PackageBranchMapping']
 
 
 class InventoryManager(BaseManager):
@@ -93,6 +95,21 @@ class InventoryManager(BaseManager):
         inactive_locales = list(set(locales) - set(active_locales))
         aliases = list(filter(lambda locale: locale.locale_alias is not None, locales))
         return active_locales, inactive_locales, aliases
+
+    def get_langset(self, langset_slug, fields=None):
+        """
+        fetch desired language set from db
+        """
+        langset = None
+        fetch_fields = []
+        if fields and isinstance(fields, (tuple, list)):
+            fetch_fields.extend(fields)
+        try:
+            langset = LanguageSet.objects.only(*fetch_fields).filter(lang_set_slug=langset_slug).first()
+        except:
+            # log event, passing for now
+            pass
+        return langset
 
     def get_langsets(self):
         """
@@ -201,13 +218,14 @@ class SyncStatsManager(BaseManager):
     Sync Translation Stats Manager
     """
 
-    def get_sync_stats(self, pkgs=None):
+    def get_sync_stats(self, pkgs=None, fields=None):
         """
         fetch sync translation stats from db
         :return: resultset
         """
         sync_stats = None
-        required_params = ('package_name', 'project_version', 'stats_raw_json')
+        required_params = fields if fields and isinstance(fields, (list, tuple)) \
+            else ('package_name', 'project_version', 'stats_raw_json')
         try:
             sync_stats = SyncStats.objects.only(*required_params) \
                 .filter(package_name__in=pkgs, sync_visibility=True).all() \
@@ -307,8 +325,8 @@ class PackagesManager(InventoryManager):
         returns (package_name, upstream_name) tuple (only sync'd ones)
         """
         packages = self.get_packages()
-        return tuple([(package.package_name, package.upstream_name)
-                      for package in packages if package.transtats_lastupdated])
+        return tuple(sorted([(package.package_name, package.upstream_name)
+                             for package in packages if package.transtats_lastupdated]))
 
     def add_package(self, **kwargs):
         """
@@ -345,7 +363,6 @@ class PackagesManager(InventoryManager):
                 kwargs.pop('update_stats')
                 # fetch project details from transplatform and save in db
                 if resp_dict and resp_dict.get('json_content'):
-                    sync_uuid = uuid4()
                     kwargs['package_details_json'] = resp_dict['json_content']
                     kwargs['details_json_lastupdated'] = timezone.now()
                     # fetch project_version stats from transplatform and save in db
@@ -357,15 +374,9 @@ class PackagesManager(InventoryManager):
                             'proj_trans_stats', project, version, extension
                         )
                         if response_dict and response_dict.get('json_content'):
-                            params = {}
-                            params.update(dict(package_name=project))
-                            params.update(dict(job_uuid=sync_uuid))
-                            params.update(dict(project_version=version))
-                            params.update(dict(stats_raw_json=response_dict['json_content']))
-                            params.update(dict(sync_iter_count=1))
-                            params.update(dict(sync_visibility=True))
-                            sync_stats_obj, created = SyncStats.objects.update_or_create(**params)
-                            if created:
+                            if self._save_version_stats(
+                                project, version, response_dict['json_content']
+                            ):
                                 kwargs['transtats_lastupdated'] = timezone.now()
 
             if 'update_stats' in kwargs:
@@ -379,10 +390,44 @@ class PackagesManager(InventoryManager):
             new_package.save()
         except:
             # log event, pass for now
-            # todo implement error msg handling
+            # todo - implement error msg handling
             return False
         else:
             return True
+
+    def _save_version_stats(self, project, version, stats_json):
+        """
+        Save version's translation stats in db
+        :param project: transplatform project
+        :param version: transplatform project's version
+        :param stats_json: translation stats dict
+        :return: boolean
+        """
+        try:
+            existing_sync_stat = SyncStats.objects.filter(package_name=project,
+                                                          project_version=version).first()
+            sync_uuid = uuid4()
+            if not existing_sync_stat:
+                params = {}
+                params.update(dict(package_name=project))
+                params.update(dict(job_uuid=sync_uuid))
+                params.update(dict(project_version=version))
+                params.update(dict(stats_raw_json=stats_json))
+                params.update(dict(sync_iter_count=1))
+                params.update(dict(sync_visibility=True))
+                new_sync_stats = SyncStats(**params)
+                new_sync_stats.save()
+            else:
+                SyncStats.objects.filter(package_name=project, project_version=version).update(
+                    job_uuid=sync_uuid, stats_raw_json=stats_json,
+                    sync_iter_count=existing_sync_stat.sync_iter_count + 1
+                )
+        except Exception as e:
+            # log event, passing for now
+            pass
+        else:
+            return True
+        return False
 
     def _get_project_ids_names(self, engine, projects):
         ids = []
@@ -429,10 +474,11 @@ class PackagesManager(InventoryManager):
         else:
             return False
 
-    def get_trans_stats(self, package_name):
+    def get_trans_stats(self, package_name, apply_branch_mapping=False):
         """
         fetch stats of a package for all enabled languages
         :param package_name: str
+        :param apply_branch_mapping: boolean
         :return: dict {project_version: stats_dict}
         """
         trans_stats_dict = OrderedDict()
@@ -458,8 +504,111 @@ class PackagesManager(InventoryManager):
             trans_stats_dict[pkg_stats_version.project_version] = \
                 self.syncstats_manager.extract_locale_translated(package_details.transplatform_slug_id,
                                                                  trans_stats_list)
-
+        if apply_branch_mapping and package_details.release_branch_mapping:
+            branch_mapping = package_details.release_branch_mapping
+            for relbranch, transplatform_version in branch_mapping.items():
+                trans_stats_dict[relbranch] = trans_stats_dict.get(transplatform_version)
         return lang_id_name, trans_stats_dict, package_desc
+
+    def _get_rest_handle_and_pkg(self, package_name):
+        """
+        Returns REST handle for a package
+        """
+        package = self.get_packages([package_name]).get()
+        rest_handle = self.rest_client(package.transplatform_slug.engine_name,
+                                       package.transplatform_slug.api_url)
+        # extension for Transifex should be true, otherwise false
+        extension = (True if package.transplatform_slug.engine_name == TRANSPLATFORM_ENGINES[0] else False)
+        return rest_handle, extension, package
+
+    def sync_update_package_details(self, package_name):
+        """
+        Sync with translation platform and update details in db for a package
+        :param package_name: str
+        :return: boolean
+        """
+        update_pkg_status = False
+        rest_handle, ext, package = self._get_rest_handle_and_pkg(package_name)
+        # Package name can be diff from its id/slug, hence extracting from url
+        transplatform_project_name = package.transplatform_url.split('/')[-1]
+        project_details_response_dict = rest_handle.process_request(
+            'project_details', transplatform_project_name, ext=ext
+        )
+        if project_details_response_dict and project_details_response_dict.get('json_content'):
+            try:
+                Packages.objects.filter(transplatform_url=package.transplatform_url).update(
+                    package_details_json=project_details_response_dict['json_content'],
+                    details_json_lastupdated=timezone.now()
+                )
+            except Exception as e:
+                # log event, passing for now
+                pass
+            else:
+                update_pkg_status = True
+        return update_pkg_status
+
+    def sync_update_package_stats(self, package_name):
+        """
+        Sync with translation platform and update trans stats in db for a package
+        :param package_name: str
+        :return: boolean
+        """
+        update_stats_status = False
+        rest_handle, ext, package = self._get_rest_handle_and_pkg(package_name)
+        project, versions = parse_project_details_json(
+            package.transplatform_slug.engine_name, package.package_details_json
+        )
+        for version in versions:
+            proj_trans_stats_response_dict = rest_handle.process_request(
+                'proj_trans_stats', project, version, ext
+            )
+            if proj_trans_stats_response_dict and proj_trans_stats_response_dict.get('json_content'):
+                if self._save_version_stats(
+                        project, version, proj_trans_stats_response_dict['json_content']
+                ):
+                    Packages.objects.filter(transplatform_url=package.transplatform_url).update(
+                        transtats_lastupdated=timezone.now())
+                    update_stats_status = True
+        return update_stats_status
+
+    def build_branch_mapping(self, package_name):
+        """
+        Creates Branch mapping for the Package
+        :param package_name: str
+        :return: boolean
+        """
+        kwargs = {}
+        branch_mapping_dict = PackageBranchMapping(package_name).branch_mapping
+        kwargs['package_name_mapping'] = {package_name: ''}
+        kwargs['release_branch_mapping'] = branch_mapping_dict
+        try:
+            Packages.objects.filter(package_name=package_name).update(**kwargs)
+        except Exception as e:
+            # log event, passing for now
+            pass
+        else:
+            return True
+        return False
+
+    def refresh_package(self, package_name):
+        """
+        Sync Stats and Rebuild Mapping
+        :param package_name: str
+        :return: boolean
+        """
+        if not package_name:
+            return False
+
+        status = []
+        steps = (
+            self.sync_update_package_details,
+            self.sync_update_package_stats,
+            self.build_branch_mapping,
+        )
+
+        for method in steps:
+            status.append(method(package_name))
+        return True if [i for i in status if i] else False
 
 
 class ReleaseBranchManager(InventoryManager):
@@ -467,23 +616,68 @@ class ReleaseBranchManager(InventoryManager):
     Release Stream Branch Manager
     """
 
-    def get_release_branches(self, relstream=None):
+    def get_release_branches(self, relstream=None, relbranch=None, fields=None):
         """
         Get release stream branches from db
         :param relstream: release stream slug
-        :return:
+        :param fields: fields tuple/list which are to be fetched
+        :return:relbranch queryset
         """
+        required_fields = []
+        if fields and isinstance(fields, (list, tuple)):
+            required_fields.extend(fields)
+
         filter_kwargs = {}
         if relstream:
             filter_kwargs.update(dict(relstream_slug=relstream))
+        if relbranch:
+            filter_kwargs.update(dict(relbranch_slug=relbranch))
 
         relbranches = None
         try:
-            relbranches = StreamBranches.objects.filter(**filter_kwargs)
+            relbranches = StreamBranches.objects.only(*required_fields).filter(**filter_kwargs)
         except:
             # log event, passing for now
             pass
         return relbranches
+
+    def get_relbranch_name_slug_tuple(self):
+        """
+        Get release branch slug and name tuple
+        :return: (('master', 'master'), )
+        """
+        release_branches = self.get_release_branches(
+            fields=('relbranch_slug', 'relbranch_name', 'track_trans_flag')
+        )
+        return tuple([(branch.relbranch_slug, branch.relbranch_name)
+                      for branch in release_branches if branch.track_trans_flag])
+
+    def get_branches_of_relstreams(self, release_streams):
+        """
+        Retrieve all branches of input release streams
+        :param release_streams: release stream slugs
+        :return: dict
+        """
+        if not release_streams:
+            return
+        branches_of_relstreams = {}
+        fields = ('relstream_slug', 'relbranch_slug')
+        try:
+            relbranches = StreamBranches.objects.only(*fields).filter(
+                relstream_slug__in=release_streams).all()
+        except:
+            # log event, passing for now
+            pass
+        else:
+            if relbranches:
+                stream_branches = [{i.relstream_slug: i.relbranch_slug} for i in relbranches]
+                for r_stream in release_streams:
+                    branches_of_relstreams[r_stream] = []
+                    for relbranch in stream_branches:
+                        branches_of_relstreams[r_stream].extend(
+                            [branch for stream, branch in relbranch.items() if stream == r_stream]
+                        )
+        return branches_of_relstreams
 
     def get_calender_events_dict(self, ical_url, relstream_slug):
         """
@@ -582,3 +776,150 @@ class ReleaseBranchManager(InventoryManager):
             return False
         else:
             return True
+
+
+class PackageBranchMapping(object):
+    """
+    Creates Branch Mapping
+    """
+    package = None
+    package_name = None
+    original_versions = None
+    transplatform_versions = None
+    release_branches_dict = None
+    release_branches_list = None
+    release_streams_list = None
+
+    syncstats_manager = SyncStatsManager()
+    relbranch_manager = ReleaseBranchManager()
+
+    def __init__(self, package_name):
+        self.package_name = package_name
+        try:
+            self.package = Packages.objects.filter(package_name=self.package_name).first()
+        except Exception as e:
+            # log event, passing for now
+            pass
+        else:
+            pkg_stats = self.syncstats_manager.get_sync_stats(pkgs=[package_name], fields=('project_version',))
+            self.original_versions = [pkg_stat.project_version for pkg_stat in pkg_stats]
+            self.transplatform_versions = [version.lower() for version in self.original_versions]
+            self.release_branches_dict = self.relbranch_manager.get_branches_of_relstreams(self.package.release_streams)
+            self.release_branches_list = []
+            self.release_streams_list = []
+            [self.release_branches_list.extend(branches) for _, branches in self.release_branches_dict.items()]
+            [self.release_streams_list.extend([stream]) for stream, _ in self.release_branches_dict.items()
+             if stream not in self.release_streams_list]
+
+    def _get_stream_branch_belongs_to(self, branch):
+        """
+        Get stream to which a branch belongs to
+        """
+        for stream, branches in self.release_branches_dict.items():
+            if branch in branches:
+                return stream
+        return ''
+
+    def _sort_and_match_version_nm(self, release_branch):
+        """
+        Sort versions matching stream and then try to match version number
+        """
+        belonging_stream = self._get_stream_branch_belongs_to(release_branch).lower()
+        relevant_versions = [version for version in self.transplatform_versions if belonging_stream in version]
+        version_numbers = re.findall(r'\d+', release_branch)
+        if len(version_numbers) >= 1:
+            expected_version = [relevant_version for relevant_version in relevant_versions
+                                if version_numbers[0] in relevant_version]
+            if len(expected_version) >= 1:
+                return True, expected_version[0]
+        return False, ''
+
+    def _check_release_version(self, branch, shortform=None, versions=None):
+        """
+        Match version numbers
+        """
+        short_form = shortform if shortform else ''
+        version_numbers = re.findall(r'\d+', branch)
+        if len(version_numbers) >= 1:
+            short_form += str(version_numbers[0])
+        match_versions = versions if versions and isinstance(versions, (list, tuple)) \
+            else self.transplatform_versions
+        return [version for version in match_versions if short_form in version]
+
+    def _compare_with_short_names(self, release_branch):
+        """
+        Try short forms combined with version number
+        """
+        belonging_stream = self._get_stream_branch_belongs_to(release_branch).lower()
+        short_form = belonging_stream
+        if belonging_stream == RELSTREAM_SLUGS[1]:
+            short_form = 'f'
+        expected_version = self._check_release_version(release_branch, shortform=short_form)
+        if len(expected_version) >= 1:
+            return True, expected_version[0]
+        return False, ''
+
+    def _return_origin_version(self, matched_version):
+        return self.original_versions[self.transplatform_versions.index(matched_version)]
+
+    def calculate_branch_mapping(self, branch):
+        """
+        Calculates branch mapping for a branch
+
+        Algorithm:
+        1. try with difflib, check version and return first found
+        2. sort versions matching stream and then try to match version number
+        3. try short forms combined with version number
+        4. todo: fetch release dates and try matching with that
+        5. try finding default version: 'master' may be
+        6. if nothing works, return blank
+
+        This seems working for Zanata, todo - need to check with others too.
+        """
+        match1 = difflib.get_close_matches(branch, self.transplatform_versions)
+        if len(match1) >= 1:
+            match_found = self._check_release_version(branch, versions=match1)
+            if len(match_found) >= 1:
+                return self._return_origin_version(match_found[0])
+
+        status1, match2 = self._sort_and_match_version_nm(branch)
+        if status1:
+            return self._return_origin_version(match2)
+
+        status2, match3 = self._compare_with_short_names(branch)
+        if status2:
+            return self._return_origin_version(match3)
+
+        if 'master' in self.transplatform_versions:
+            return self._return_origin_version('master')
+        elif 'default' in self.transplatform_versions:
+            return self._return_origin_version('default')
+        elif 'devel' in self.transplatform_versions:
+            return self._return_origin_version('devel')
+        else:
+            return ''
+
+    @property
+    def versions(self):
+        return self.transplatform_versions
+
+    @property
+    def release_branches(self):
+        return self.release_branches_list
+
+    @property
+    def branch_mapping(self):
+        """
+        Creates branch mapping based on rule
+        :return: dict
+        """
+        branch_mapping_dict = {}
+        required_params = (self.transplatform_versions, self.release_branches_dict,
+                           self.release_branches_list, self.release_streams_list)
+        valid_params = [param for param in required_params if param]
+
+        if len(required_params) == len(valid_params):
+            for branch in self.release_branches_list:
+                branch_mapping_dict[branch] = self.calculate_branch_mapping(branch)
+
+        return branch_mapping_dict

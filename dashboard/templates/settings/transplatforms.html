@@ -29,9 +29,9 @@
         </span>
         <span class="pull-right">
             {% if user.is_authenticated and user.is_superuser %}
-                <a href="/admin/dashboard/transplatform/add/" role="button" class="btn btn-default">Add Server Instance</a>
+                <a href="{% url 'admin:dashboard_transplatform_add' %}" role="button" class="btn btn-default">Add Server Instance</a>
             {% else %}
-                <a href="/admin/" role="button" class="btn btn-default">Manage Translation Platforms</a>
+                <a href="{% url 'admin:index' %}" role="button" class="btn btn-default">Manage Translation Platforms</a>
             {% endif %}
         </span>
     </div>
@@ -61,12 +61,12 @@
             {% endif %}
             {% if user.is_authenticated and user.is_superuser %}
             <p>
-                <a href="/admin/dashboard/transplatform/{{ forloop.counter }}/change/" class="btn btn-default btn-small" role="button">Edit</a>
+                <a href="{% url 'admin:dashboard_transplatform_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Edit</a>
                 {% if platform.server_status %}
-                    <a href="/admin/dashboard/transplatform/{{ forloop.counter }}/change/" class="btn btn-default btn-small" role="button">Deactivate</a>
+                    <a href="{% url 'admin:dashboard_transplatform_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Deactivate</a>
                 {% else %}
-                    <a href="/admin/dashboard/transplatform/{{ forloop.counter }}/change/" class="btn btn-default btn-small" role="button">Activate</a>
-                    <a href="/admin/dashboard/transplatform/{{ forloop.counter }}/delete/" class="btn btn-danger btn-small">
+                    <a href="{% url 'admin:dashboard_transplatform_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Activate</a>
+                    <a href="{% url 'admin:dashboard_transplatform_delete' forloop.counter %}" class="btn btn-danger btn-small">
                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                     </a>
                 {% endif %}
