@@ -387,7 +387,7 @@ class NewGraphRuleView(ManagersMixin, FormView):
 
     def get_form(self, form_class=None, data=None):
         kwargs = {}
-        pkgs = self.packages_manager.get_package_name_tuple()
+        pkgs = self.packages_manager.get_package_name_tuple(check_mapping=True)
         langs = self.inventory_manager.get_locale_lang_tuple()
         release_branches_tuple = \
             self.release_branch_manager.get_relbranch_name_slug_tuple()
@@ -441,7 +441,7 @@ class BranchMappingView(ManagersMixin, TemplateView):
     """
     Package Branch Mapping View
     """
-    template_name = "settings/package_mapping.html"
+    template_name = "settings/package_config.html"
 
     def get_context_data(self, **kwargs):
         context = super(BranchMappingView, self).get_context_data(**kwargs)
@@ -459,6 +459,7 @@ class BranchMappingView(ManagersMixin, TemplateView):
                     context['package_details'] = pkg_details['description']
                 context['name_mapping'] = package_details.package_name_mapping
                 context['branch_mapping'] = package_details.release_branch_mapping
+                context['mapping_lastupdated'] = package_details.mapping_lastupdated
         return context
 
 

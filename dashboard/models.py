@@ -192,6 +192,7 @@ class Packages(models.Model):
     details_json_lastupdated = models.DateTimeField(null=True)
     package_name_mapping = JSONField(null=True)
     release_branch_mapping = JSONField(null=True)
+    mapping_lastupdated = models.DateTimeField(null=True)
     transtats_lastupdated = models.DateTimeField(null=True)
 
     class Meta:
