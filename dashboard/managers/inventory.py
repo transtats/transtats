@@ -320,13 +320,17 @@ class PackagesManager(InventoryManager):
         packages = self.get_packages()
         return packages.count() if packages else 0
 
-    def get_package_name_tuple(self):
+    def get_package_name_tuple(self, check_mapping=False):
         """
         returns (package_name, upstream_name) tuple (only sync'd ones)
         """
         packages = self.get_packages()
-        return tuple(sorted([(package.package_name, package.upstream_name)
-                             for package in packages if package.transtats_lastupdated]))
+        name_list = [(package.package_name, package.upstream_name) for package in packages
+                     if package.transtats_lastupdated]
+        if check_mapping:
+            name_list = [(package.package_name, package.package_name) for package in packages
+                         if package.transtats_lastupdated and package.package_name_mapping]
+        return tuple(sorted(name_list))
 
     def add_package(self, **kwargs):
         """
@@ -581,6 +585,7 @@ class PackagesManager(InventoryManager):
         branch_mapping_dict = PackageBranchMapping(package_name).branch_mapping
         kwargs['package_name_mapping'] = {package_name: ''}
         kwargs['release_branch_mapping'] = branch_mapping_dict
+        kwargs['mapping_lastupdated'] = timezone.now()
         try:
             Packages.objects.filter(package_name=package_name).update(**kwargs)
         except Exception as e:

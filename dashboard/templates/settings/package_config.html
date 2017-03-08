@@ -59,8 +59,13 @@
                 </tr>
                 {% endfor %}
             </tbody>
-        </table>
+          </table>
       </div>
+      {% if mapping_lastupdated %}
+      <div class="panel-footer">
+          <span class="text-muted">Last Updated:</span> {{ mapping_lastupdated }}
+      </div>
+      {% endif %}
     </div>
     {% else %}
         No mapping found. <span class="text-muted">Please check release branch(es) and refresh the package.</span>
