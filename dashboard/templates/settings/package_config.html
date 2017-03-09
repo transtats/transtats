@@ -63,7 +63,7 @@
       </div>
       {% if mapping_lastupdated %}
       <div class="panel-footer">
-          <span class="text-muted">Last Updated:</span> {{ mapping_lastupdated }}
+          <span class="text-muted">Last Updated:</span> {{ mapping_lastupdated|timesince }} <span style="color:grey">ago</span>.
       </div>
       {% endif %}
     </div>
