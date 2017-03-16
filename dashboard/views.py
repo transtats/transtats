@@ -52,7 +52,7 @@ class ManagersMixin(object):
 
 class HomeTemplateView(ManagersMixin, TemplateView):
     """
-    Translation Position View
+    Translation Status View
     """
     template_name = "stats/index.html"
 

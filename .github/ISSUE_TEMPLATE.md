@@ -9,10 +9,11 @@
 ##### OS / ENVIRONMENT
 <!--- Describe OS and Environment -->
 
-<!--- May be paste output from `make env` between the quotes below -->
+<!--- May be paste output from `make env-info` between the quotes below -->
 ```
 
 ```
+
 ##### SUMMARY
 <!--- Explain the problem briefly -->
 

@@ -16,7 +16,7 @@ To be a catalyst in *localisation of applications* by creating mapping between u
 
 ##### Graphs
 
-1. **Translation Position** Translation progress of a package for most of the branches in all enabled languages.
+1. **Translation Status** Translation progress of a package for most of the branches in all enabled languages.
 
 2. **Translation Coverage** Coverage of a package list for a specific release in associated or selected languages.
 

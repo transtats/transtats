@@ -1,4 +1,4 @@
-##### Wed Mar 08 2017 Sundeep Anand <suanand@redhat.com>
+##### Fri Mar 17 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.0
 * enable branch mapping for translation coverage
 * provision section for package configurations
 * implement language set and branch mapping features
