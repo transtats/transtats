@@ -20,7 +20,7 @@ setup(
     license='Apache License 2.0',
     description='Tracking translation progress for release streams.',
     long_description=README,
-    url='https://github.com/sundeep-co-in/transtats',
+    url='http://transtats.org/',
     author='Sundeep Anand',
     author_email='suanand@redhat.com',
     classifiers=[

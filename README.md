@@ -3,7 +3,7 @@
 
 ## Transtats
 
-Tracking translation progress of the package for downstream releases with respect to current development.
+Track translation progress across packages for downstream releases with respect to current development.
 
 ### Get Involved
 
