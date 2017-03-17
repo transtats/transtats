@@ -44,6 +44,9 @@
                 <span style="color:grey">Current Status:</span> {{ relbranch.current_phase|capfirst }}
             </p>
             <p>
+                <span style="color:grey">Language Set:</span> {{ relbranch.lang_set|capfirst }}
+            </p>
+            <p>
                 <span style="color:grey">Sync Calendar:</span>
                 {% if relbranch.sync_calendar %}
                     <span class="glyphicon glyphicon-check" style="color:green"></span>
@@ -70,10 +73,10 @@
             {% if relbranch.schedule_json %}
                 <div class="list-group">
                   <a href="#" class="list-group-item">
-                    <h4 class="list-group-item-heading">Release Schedule</h4>
+                    <h4 class="list-group-item-heading">Release Schedule</h4><br/>
                     {% for milestone, date in relbranch.schedule_json.items|dictsort:1 %}
                         <p class="list-group-item-text">
-                            <div style="background-color: #FEFE;">
+                            <div style="background-color: Azure;">
                                 <span class="text-info">{{ milestone }}</span>
                                 <span class="pull-right">{{ date }}</span>
                             </div>
@@ -86,10 +89,10 @@
                   </div>
                 </div>
             {% endif %}
-            <p>
-                <a href="#" class="btn btn-default btn-small disabled" role="button">Edit</a>
-                <a href="#" class="btn btn-default btn-small disabled" role="button">Mark Unsupported</a>
-            </p>
+            <!--<p>-->
+                <!--<a href="#" class="btn btn-default btn-small disabled" role="button">Edit</a>-->
+                <!--<a href="#" class="btn btn-default btn-small disabled" role="button">Mark Unsupported</a>-->
+            <!--</p>-->
           </div>
         </div>
       </div>

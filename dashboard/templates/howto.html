@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block pagebanner %}
+    <div class="page-header">
+      <h1>How To <small>work with {{ app_name }}...</small></h1>
+    </div>
+{% endblock %}
+
+{% block extrascript %}
+<style type="text/css">
+    img {
+      display: block;
+      max-width:300px;
+      max-height:250px;
+      width: auto;
+      height: auto;
+    }
+</style>
+{% endblock %}
+
+{% block pagecontent %}
+<div style="padding-left:100px">
+    <div class="content-section-a">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Check Inventory</h3>
+                    <p style="font-size: medium;" class="text-justify">Graphs will be generated for enabled languages, aliases are used while syncing. One can create a language set, which can be associated with a release branch. Multiple instances of a translation platform can be added. RHEL and Fedora are release streams whereas RHEL 7.4 is a branch. A release branch should have a language set and a schedule. {{ app_name }} jobs sync at intervals for keeping stats and schedule latest.</p>
+                </div>
+                <div class="col-lg-4 col-lg-offset-1 col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <img class="img-responsive" src="/static/img/inventory.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+    <!-- /.content-section-a -->
+
+    <div class="content-section-b">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-5 col-lg-offset-1 col-sm-push-4  col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Add and Configure Packages</h3>
+                    <p style="font-size: medium;" class="text-justify">While adding a package, upstream URL is required. And package name is verified with selected translation platform. Translation of a package can be tracked for multiple release streams. Package can be sync'd while adding itself. Refreshing a package updates its details, translation stats and creates branch mapping. It maps {{ app_name }} release branches with most suitable project versions available at translation platform.</p>
+                </div>
+                <div class="col-lg-5 col-sm-pull-6  col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <img class="img-responsive" src="/static/img/package.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+
+    <div class="content-section-a">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Add Graph Rule</h3>
+                    <p style="font-size: medium;" class="text-justify">Slug form of rule name would be saved. This should be specific for a release branch. Packages having branch mapping created can only be included here. Either languages would be picked from associated language set with release branch or can be chosen. Somehow if a package is not tracked for a release stream and selected for inclusion {{ app_name }} would show an error.</p>
+                </div>
+                <div class="col-lg-5 col-lg-offset-1 col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <img class="img-responsive" src="/static/img/graphrule.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+    <!-- /.content-section-a -->
+    <div class="content-section-b">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-5 col-lg-offset-1 col-sm-push-4  col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Experience</h3>
+                    <p style="font-size: medium;" class="text-justify">{{ app_name }} has two graph views: specific to a package in all languages for all branches and another specific to a release branch in chosen languages for selected packages. Latter is a graph rule representation and its accuracy depends on branch mapping of packages. A sync'd package can appear in former view whereas branch mapping is necessary for latter.</p>
+                </div>
+                <div class="col-lg-5 col-sm-pull-6  col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <img class="img-responsive" src="/static/img/graph.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+    <hr/>
+    <div style="padding:10px">
+        <h3 class="text-primary">FAQs</h3><br/>
+        <h4>Is {{ app_name }} project opensource? Where we have docs written?</h4>
+        <span class="text-muted">Yes. Source is available at <a href="https://github.com/transtats" target="_blank">GitHub</a></span>. Projects website is <a href="http://transtats.org/" target="_blank">transtats.org</a> and point your browser to <a href="http://docs.transtats.org/" target="_blank">docs.transtats.org</a> for docs.
+        <h4>While working with {{ app_name }} I got an issue, where should I file it?</h4>
+        <span class="text-muted">You're welcome! Please follow <a href="https://github.com/transtats/transtats/issues/new" target="_blank">Report Issue</a> link below.</span>
+        <h4>Where to find what features will be available in coming {{ app_name }} release?</h4>
+        <span class="text-muted">Docs should contain this info.</span>
+        <h4>I like the idea and want to contribute, how should I start?</h4>
+        <span class="text-muted">Docs should contain this info.</span>
+        <h4>Some of the buttons/navigation are not working or are disabled. Is there a specific reason?</h4>
+        <span class="text-muted">Actually, these features are under development and will be available soon.</span>
+        <h4>Which translation platforms are currently supported? Are there some plans to support more?</h4>
+        <span class="text-muted">{{ app_name }} supports <a href="http://zanata.org" target="_blank">Zanata</a>. For GNOME packges, integration with Damned Lies is planned.</span>
+        <h4>Translation progress can be tracked for RHEL and Fedora, as of now. How about others?</h4>
+        <span class="text-muted">Plans are! May be in coming releases {{ app_name }} start tracking for others also like JBoss, Ansible Tower, etc.</span>
+    </div>
+</div>
+{% endblock %}

@@ -49,14 +49,13 @@ class NewPackageForm(forms.Form):
     """
     transplatform_choices = ()
     relstream_choices = ()
-    langset_choices = (('default', 'Default'), ('custom', 'Custom'))
     update_stats_choices = (('stats', 'Translation Stats'), )
 
     package_name = forms.CharField(
-        label='Package Name', help_text='Package id as-in translation platform.', required=True,
+        label='Package Name', help_text='Package id as-in translation platform. Use hyphen (-) to separate words.', required=True,
     )
     upstream_url = forms.URLField(
-        label='Upstream URL', help_text='Source repository location (GitHub, Bitbucket etc).', required=True
+        label='Upstream URL', help_text='Source repository location (Bitbucket, GitHub, Pagure etc).', required=True
     )
     transplatform_slug = forms.ChoiceField(
         label='Translation Platform',
@@ -65,9 +64,6 @@ class NewPackageForm(forms.Form):
     release_streams = TextArrayField(
         label='Release Stream', widget=forms.CheckboxSelectMultiple, choices=relstream_choices,
         help_text="Translation progress for selected streams will be tracked."
-    )
-    lang_set = forms.ChoiceField(
-        label="Language Set", widget=forms.RadioSelect, choices=langset_choices, required=False
     )
     update_stats = forms.ChoiceField(
         label='Update details', widget=forms.CheckboxSelectMultiple, choices=update_stats_choices,
@@ -96,7 +92,6 @@ class NewPackageForm(forms.Form):
             Field('upstream_url', css_class='form-control', onkeyup="showUpstreamName()"),
             Field('transplatform_slug', css_class='selectpicker', onchange="showTransplatformId()"),
             InlineCheckboxes('release_streams'),
-            InlineRadios('lang_set'),
             InlineCheckboxes('update_stats'),
             HTML("<hr/>"),
             HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),
@@ -116,6 +111,7 @@ class NewReleaseBranchForm(forms.Form):
     """
     action_url = ''
     phases_choices = ()
+    langset_choices = ()
     enable_flags_choices = (('track_trans_flag', 'Track Translation'),
                             ('sync_calendar', 'Sync Calendar'),
                             ('notifications_flag', 'Notification'))
@@ -126,6 +122,10 @@ class NewReleaseBranchForm(forms.Form):
     current_phase = forms.ChoiceField(
         label='Current Phase', choices=phases_choices, required=True,
         help_text='Phase in which this version/branch is running.'
+    )
+    lang_set = forms.ChoiceField(
+        label="Language Set", choices=langset_choices, required=True,
+        help_text='Language set which should be associated with this branch.'
     )
     calendar_url = forms.URLField(
         label='iCal URL', help_text='Release schedule calendar URL. (Prefer translation specific)', required=True
@@ -138,9 +138,11 @@ class NewReleaseBranchForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.phases_choices = kwargs.pop('phases_choices')
+        self.langset_choices = kwargs.pop('langset_choices')
         self.action_url = kwargs.pop('action_url')
         super(NewReleaseBranchForm, self).__init__(*args, **kwargs)
         self.fields['current_phase'].choices = self.phases_choices
+        self.fields['lang_set'].choices = self.langset_choices
         super(NewReleaseBranchForm, self).full_clean()
 
     helper = FormHelper()
@@ -154,6 +156,7 @@ class NewReleaseBranchForm(forms.Form):
         Div(
             Field('relbranch_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
             Field('current_phase', css_class='selectpicker'),
+            Field('lang_set', css_class='selectpicker'),
             Field('calendar_url', css_class='form-control'),
             InlineCheckboxes('enable_flags'),
             HTML("<hr/>"),
@@ -173,31 +176,40 @@ class NewGraphRuleForm(forms.Form):
     """
     rule_packages_choices = ()
     rule_langs_choices = ()
-    rule_relbranch_choices = (('master', 'master'), )
+    rule_relbranch_choices = ()
 
     rule_name = forms.CharField(
         label='Graph Rule Name', help_text='Rule will be saved in slug form.', required=True,
+    )
+    rule_relbranch = forms.ChoiceField(
+        label='Release Branch', choices=rule_relbranch_choices,
+        help_text='Graph will be generated for selected release branch following branch mapping.',
+        required=True
     )
     rule_packages = TextArrayField(
         label='Packages', widget=forms.CheckboxSelectMultiple, choices=rule_packages_choices,
         help_text="Selected packages will be included in this rule.", required=True
     )
+    lang_selection = forms.ChoiceField(
+        label='Languages Selection', choices=[
+            ('pick', 'Pick release branch specific languages'),
+            ('select', 'Select languages')],
+        initial='pick', widget=forms.RadioSelect, required=True,
+        help_text="Either pick language set associated with selected release branch or choose languages."
+    )
     rule_langs = TextArrayField(
         label='Languages', widget=forms.CheckboxSelectMultiple, choices=rule_langs_choices,
-        help_text="Selected languages will be included in this rule.", required=True
-    )
-    rule_relbranch = forms.ChoiceField(
-        label='Release Branch', choices=rule_relbranch_choices,
-        help_text='Graph will be generated for selected release branch.',
-        required=True
+        help_text="Selected languages will be included in this rule.", required=False
     )
 
     def __init__(self, *args, **kwargs):
         self.rule_packages_choices = kwargs.pop('packages')
         self.rule_langs_choices = kwargs.pop('languages')
+        self.rule_relbranch_choices = kwargs.pop('branches')
         super(NewGraphRuleForm, self).__init__(*args, **kwargs)
         self.fields['rule_packages'].choices = self.rule_packages_choices
         self.fields['rule_langs'].choices = self.rule_langs_choices
+        self.fields['rule_relbranch'].choices = self.rule_relbranch_choices
         super(NewGraphRuleForm, self).full_clean()
 
     helper = FormHelper()
@@ -209,10 +221,11 @@ class NewGraphRuleForm(forms.Form):
 
     helper.layout = Layout(
         Div(
-            Field('rule_name', css_class='form-control', onkeyup="showRuleSlug()"),
-            InlineCheckboxes('rule_packages'),
-            InlineCheckboxes('rule_langs'),
-            Field('rule_relbranch', css_class='selectpicker'),
+            Field('rule_name', css_class="form-control", onkeyup="showRuleSlug()"),
+            Field('rule_relbranch', css_class="selectpicker"),
+            InlineCheckboxes('rule_packages', css_class="checkbox"),
+            InlineRadios('lang_selection', id="lang_selection_id"),
+            InlineCheckboxes('rule_langs', css_class="checkbox"),
             HTML("<hr/>"),
             FormActions(
                 Submit('addRule', 'Add Graph Rule'), Reset('reset', 'Reset')

@@ -11,9 +11,9 @@ devel:
 
 .PHONY: demo
 demo:
-	python manage.py runserver 0:8000 --settings=transtats.settings.test --insecure
+	python manage.py runserver 0:8015 --settings=transtats.settings.test --insecure
 
-.PHONY: env
+.PHONY: env-info
 env-info:
 	uname -a
 	pip list

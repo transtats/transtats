@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/sundeep-co-in/transtats.svg?branch=master)](https://travis-ci.org/sundeep-co-in/transtats)
+[![Build Status](https://travis-ci.org/transtats/transtats.svg?branch=master)](https://travis-ci.org/transtats/transtats)
 [![Documentation Status](https://readthedocs.org/projects/transtats/badge/?version=latest)](http://transtats.readthedocs.io/en/latest/?badge=latest)
 
 ## Transtats
@@ -10,22 +10,27 @@ In a software release cycle, localisation steps like extracting or updating lang
 
 #### Purpose
 
-To be catalyst in *localisation of applications* by tracking translation progress for release streams.
+To be a catalyst in *localisation of applications* by creating mapping between upstream, translation platform and release streams.
 
+#### App Description
 
-#### Big Picture
+##### Graphs
 
-1. **Register Project** Developers writing some app got plans to release it with non-english support. And hence sign-ups with TS. Technotes:  `Python Social Auth`.
+1. **Translation Status** Translation progress of a package for most of the branches in all enabled languages.
 
-2. **Enable i18n** Once TS has projects with their source code, it can determine: the project has been i18n enabled or not. If not TS can determine i18n framework and provide info/details or patch enabling the same. And once i18n capabilities are determined, strings should be marked for translation, manually or with the help of i18n lint tools. Technotes: This should be `TS modules` based, `Notification`
+2. **Translation Coverage** Coverage of a package list for a specific release in associated or selected languages.
 
-3. **Push Template** If project has enough strings marked and linked with a translation platform plus have some plans for which languages, TS can extract language template and push for initial discussion/translation as well as instantiate their revision management. Technotes: `TS Jobs`, `Diff Mgmt` may be JSON based, `Notification`
+##### Settings
 
-4. **Release Mapping** Project translation plans are need to be mapped with release stream schedule to meet deadlines. TS would track translation progress for mapped release streams and for their branches respectively. Further TS would provide various views to generate statistics in. Technotes: `Calendar`, `Background Tasks`, `Notifications`, `Graphs Rules`
+1. **Inventory** Languages & their sets, translation platforms and release streams with their branches are grouped as inventory. Plus upstream.
 
-5. **Pull Translation** Translation completion events or calendar/cron could trigger jobs to pull translations for set languages. i18n checks like PO filter, fonts etc. should be applied on pulled stuff and if passed TS may request a merge in project source tree. Technotes: `TS Jobs`, tests can be `TS modules` based, `Notification`
+2. **Release Branch** A particular release which has a schedule and information regarding *in how many languages it will be available*. 
 
-6. **Package Validation** To ensure packaging with planned language resources, TS keeps an eye on builds at release streams. Plus TS looks for storage of language artifacts in packaging format. Technotes:    `TS Jobs`, storage may be `TS Modules` based, `Notification`
+3. **Packages** Translation progress would be tracked for added packages. They should have upstream repository URL and translation platform project URL. A package can be linked with multiple release streams and should have a branch mapping.
+
+4. **Jobs** Some functions which are planned to be automated like sync with translation repositories, update release schedule etc. Logs are kept.
+
+5. **Graph Rules** Rules to track translation *as in* coverage of a package list for a specific release branch in a set of languages.
 
 
 
@@ -53,10 +58,9 @@ make run
 
 * The *devel* branch is the release actively under development.
 * The *master* branch corresponds to the latest stable release.
-* If you find any bug/issue or got an idea, open a [github issue](https://github.com/sundeep-co-in/transtats/issues/new).
+* If you find any bug/issue or got an idea, open a [github issue](https://github.com/transtats/transtats/issues/new).
 * Feel free to submit feature requests and/or bug fixes on *devel* branch.
-* Transtats uses [travis](https://travis-ci.org/sundeep-co-in/transtats) for tests and [waffle](https://waffle.io/sundeep-co-in/transtats).
-* Join the #fedora-g11n channel on irc.freenode.net.
+* Transtats uses [travis](https://travis-ci.org/transtats/transtats) for tests.
 
 
 
@@ -64,19 +68,14 @@ make run
 
 As the project evolves, a roadmap will be published for each major release. Comments, suggestions, and requests to the current roadmap are welcome. Our goal in publishing a roadmap is transparency and community inclusion. A roadmap is the team's best guess based on experience, community requests, and feedback.
 
-#### Transtats Preview
+#### Transtats 0.1.0
 
-We are currently working on `preview` release.
+We are currently working on `0.1.0` release.
 
-Target delivery: Mid February 2017
+Target delivery: Mid March 2017
 
-* Compare stats with release streams source package
-* Bring release branches into custom graphs
 * Enable admin to manage inventory
-* Implement django celery beat for TS Jobs
-* Unit tests and code cleanup & coverage
-* Project docs and other stuffs
-
+* Bring release branches into custom graphs
 
 
 ### License

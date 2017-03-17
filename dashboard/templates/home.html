@@ -8,11 +8,14 @@
 
 {% block pagecontent %}
     <ul class="nav nav-tabs nav-justified">
-      <li id="tab-graph-default" role="presentation" class="active">
-          <a href="{% url 'home' %}">Graphs</a>
+      <li id="tab-translation-position" role="presentation">
+          <a href="{% url 'home' %}">Translation Status</a>
       </li>
-      <li id="tab-graph-custom" role="presentation">
-          <a href="#">Comparison</a>
+      <li id="tab-translation-coverage" role="presentation">
+          <a href="{% url 'custom-graph' %}">Translation Coverage</a>
+      </li>
+      <li id="tab-compare-downstream" role="presentation" style="pointer-events:none;opacity:0.6;">
+          <a href="{% url 'downstream' %}">Compare with Downstream</a>
       </li>
     </ul>
     {% block tabcontent %}{% endblock %}

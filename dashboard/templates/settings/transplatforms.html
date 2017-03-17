@@ -28,7 +28,11 @@
             {% endif %}
         </span>
         <span class="pull-right">
-            <button type="button" class="btn btn-default disabled">Add Server Instance</button>
+            {% if user.is_authenticated and user.is_superuser %}
+                <a href="{% url 'admin:dashboard_transplatform_add' %}" role="button" class="btn btn-default">Add Server Instance</a>
+            {% else %}
+                <a href="{% url 'admin:index' %}" role="button" class="btn btn-default">Manage Translation Platforms</a>
+            {% endif %}
         </span>
     </div>
 </div>
@@ -55,17 +59,19 @@
                 <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
             </p>
             {% endif %}
+            {% if user.is_authenticated and user.is_superuser %}
             <p>
-                <a href="#" class="btn btn-default btn-small disabled" role="button">Edit URL</a>
+                <a href="{% url 'admin:dashboard_transplatform_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Edit</a>
                 {% if platform.server_status %}
-                    <a href="#" class="btn btn-default btn-small disabled" role="button">Deactivate</a>
+                    <a href="{% url 'admin:dashboard_transplatform_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Deactivate</a>
                 {% else %}
-                    <a href="#" class="btn btn-default btn-small disabled" role="button">Activate</a>
-                    <a class="btn btn-danger btn-small disabled">
+                    <a href="{% url 'admin:dashboard_transplatform_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Activate</a>
+                    <a href="{% url 'admin:dashboard_transplatform_delete' forloop.counter %}" class="btn btn-danger btn-small">
                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                     </a>
                 {% endif %}
             </p>
+            {% endif %}
           </div>
         </div>
       </div>

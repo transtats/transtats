@@ -1,4 +1,4 @@
-# Copyright 2016 Red Hat, Inc.
+# Copyright 2017 Red Hat, Inc.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,4 +13,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# Translation diff management
+from django import template
+
+register = template.Library()
+
+
+@register.filter
+def get_item(dict_object, key):
+    return dict_object.get(key)

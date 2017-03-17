@@ -1,5 +1,6 @@
 import os
 from setuptools import find_packages, setup
+from transtats import __version__
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
@@ -12,14 +13,14 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='transtats',
-    version='concept',
+    version=__version__,
     packages=find_packages(),
     include_package_data=True,
     install_requires=REQUIRE,
     license='Apache License 2.0',
     description='Tracking translation progress for release streams.',
     long_description=README,
-    url='https://github.com/sundeep-co-in/transtats',
+    url='http://transtats.org/',
     author='Sundeep Anand',
     author_email='suanand@redhat.com',
     classifiers=[

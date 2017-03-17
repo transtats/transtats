@@ -2,7 +2,8 @@
 import os
 import sys
 
-__version__ = '0.0.1'
+# update dashboard/templates/base.html also
+__version__ = '0.1.0'
 
 __all__ = ['__version__']
 
