@@ -12,11 +12,11 @@
     }
 </style>
 <script type="text/javascript">
-function csrfSafeMethod(method){return(/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));}
-$(document).ready(function(){$('#tab-translation-position').addClass('active');$("#packageName").change(function(event){var packageName=$(this).val();$.ajax({beforeSend:function(xhr,settings){if(!csrfSafeMethod(settings.type)&&!this.crossDomain){if(csrftoken){xhr.setRequestHeader("X-CSRFToken",csrftoken);}else{xhr.setRequestHeader("X-CSRFToken","{{ csrf_token }}");}}},type:"POST",url:"/ajax/graph-data",data:{'package':packageName},dataType:"json",success:function(json_response){var pkg_desc=json_response['pkg_desc'];var graph_data=json_response['graph_data'];var ticks=json_response['ticks'];var dataset=[]
-for(version in graph_data){if(graph_data.hasOwnProperty(version)){dataset.push({label:version,data:graph_data[version]});}}
-var options={series:{lines:{show:true},points:{radius:3,fill:true,show:true},},xaxis:{axisLabel:"Languages",axisLabelUseCanvas:true,axisLabelFontSizePixels:12,axisLabelFontFamily:'Verdana, Arial',axisLabelPadding:10,ticks:ticks},yaxis:{axisLabel:"Translation",axisLabelUseCanvas:true,axisLabelFontSizePixels:12,axisLabelFontFamily:'Verdana, Arial',axisLabelPadding:3,tickFormatter:function(v,axis){return v+"%";},tickDecimals:2,},legend:{noColumns:0,labelBoxBorderColor:"#000000",position:"ne"},grid:{hoverable:true,borderWidth:2,backgroundColor:{colors:["#ffffff","#EDF5FF"]}},tooltip:{show:true,content:"%s | %y translated",},};$.plot($("#grapharea"),dataset,options);var disclaimer="<span class='pull-right text-muted'>Graph is based on sync\'d data. And %age is calculated on messages.</span>";$("#graphinfo").html("Translation status of "+packageName+" for "+dataset.length+" branch(es) in "+ticks.length+" language(s).");$("#packagedesc").html(pkg_desc);$("#graphdisclaimer").html(disclaimer);},});return false;});});
-</script>
+function csrfSafeMethod(method){return(/^(GET|HEAD|OPTIONS|TRACE)$/.test(method))}
+$(document).ready(function(){var disclaimer="<span class='pull-right text-muted'>Graph is based on sync\'d data. And %age is calculated on messages.</span>";$('#tab-translation-status').addClass('active');$("#langName").selectpicker('hide');$("#packageName").change(function(event){var packageName=$(this).val();$.ajax({beforeSend:function(xhr,settings){if(!csrfSafeMethod(settings.type)&&!this.crossDomain){if(csrftoken){xhr.setRequestHeader("X-CSRFToken",csrftoken)}else{xhr.setRequestHeader("X-CSRFToken","{{ csrf_token }}")}}
+$("#langName").selectpicker('hide');$("#langName").selectpicker('val','Select Language')},type:"POST",url:"/ajax/graph-data",data:{'package':packageName},dataType:"json",success:function(json_response){var pkg_desc=json_response.pkg_desc;var graph_data=json_response.graph_data;var ticks=json_response.ticks;var dataset=[]
+for(version in graph_data){if(graph_data.hasOwnProperty(version)){dataset.push({label:version,data:graph_data[version]})}}
+var options={series:{lines:{show:!0},points:{radius:3,fill:!0,show:!0},},xaxis:{axisLabel:"Languages",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:'Verdana, Arial',axisLabelPadding:10,ticks:ticks},yaxis:{axisLabel:"Translation",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:'Verdana, Arial',axisLabelPadding:3,tickFormatter:function(v,axis){return v+"%"},tickDecimals:2,},legend:{show:!0,noColumns:0,labelBoxBorderColor:"Grey",position:"ne",},grid:{hoverable:!0,borderWidth:2,backgroundColor:{colors:["#ffffff","#EDF5FF"]}},tooltip:{show:!0,content:"%s | %y translated",},};$.plot($("#grapharea"),dataset,options);$("#graphinfo").html("Translation status of "+packageName+" for "+dataset.length+" branch(es) in "+ticks.length+" language(s).");$("#packagedesc").html(pkg_desc);$("#graphdisclaimer").html(disclaimer);$("#langName").selectpicker('show')},});return!1});$("#langName").change(function(event){var langID=$(this).val();var packageName=$("#packageName").val();$.ajax({beforeSend:function(xhr,settings){if(!csrfSafeMethod(settings.type)&&!this.crossDomain){if(csrftoken){xhr.setRequestHeader("X-CSRFToken",csrftoken)}else{xhr.setRequestHeader("X-CSRFToken","{{ csrf_token }}")}}},type:"POST",url:"/ajax/graph-data",data:{'package':packageName,'locale':langID},dataType:"json",success:function(json_response){var pkg_desc=json_response.pkg_desc;var graph_data=json_response.graph_data;var ticks=json_response.ticks;var dataSet=[{label:"Translation Progress",data:graph_data}];var options={series:{bars:{show:!0},},bars:{align:"center",barWidth:0.5*ticks.length/10,horizontal:!0,},xaxis:{axisLabel:"Translation Percentage",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:'Verdana, Arial',axisLabelPadding:10,max:110,tickFormatter:function(v,axis){return v+"%"},},yaxis:{axisLabel:"Branches",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:'Verdana, Arial',axisLabelPadding:3,ticks:ticks,},legend:{noColumns:0,labelBoxBorderColor:"#000000",position:"ne"},grid:{hoverable:!0,borderWidth:2,backgroundColor:{colors:["#ffffff","#EDF5FF"]}},tooltip:{show:!0,content:"%y | %x translated",},};$.plot($("#grapharea"),dataSet,options);$("#graphinfo").html("Translation status of "+packageName+" for "+ticks.length+" branch(es) in "+langID+" locale.");$("#packagedesc").html(pkg_desc);$("#graphdisclaimer").html(disclaimer)},});return!1})})</script>
 {% endblock %}
 
 {% block tabcontent %}
@@ -40,6 +40,14 @@ var options={series:{lines:{show:true},points:{radius:3,fill:true,show:true},},x
                 </select>
                 {% else %}
                     <br/><p>No package configured. Add <a href="{% url 'settings-packages-new' %}">one</a> now.</p>
+                {% endif %}
+                {% if languages %}
+                <select id="langName" class="selectpicker" data-live-search="true">
+                    <option selected disabled>Select Language</option>
+                    {% for locale, lang in languages %}
+                        <option value="{{ locale }}">{{ lang }}</option>
+                    {% endfor %}
+                </select>
                 {% endif %}
                 <span class="text-info pull-right" id="packagedesc"></span>
             </div>

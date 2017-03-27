@@ -63,8 +63,11 @@ class HomeTemplateView(ManagersMixin, TemplateView):
         context_data = super(TemplateView, self).get_context_data(**kwargs)
         context_data['description'] = APP_DESC
         packages = self.packages_manager.get_package_name_tuple()
+        langs = self.inventory_manager.get_locale_lang_tuple()
         if packages:
             context_data['packages'] = packages
+        if langs:
+            context_data['languages'] = langs
         return context_data
 
 
@@ -499,10 +502,14 @@ def graph_data(request):
     graph_dataset = {}
     if request.is_ajax():
         graph_manager = GraphManager()
-        if 'package' in request.POST.dict():
+        if 'package' in request.POST.dict() and 'locale' in request.POST.dict():
+            package = request.POST.dict().get('package')
+            locale = request.POST.dict().get('locale')
+            graph_dataset = graph_manager.get_stats_by_pkg_per_lang(package, locale)
+        elif 'package' in request.POST.dict():
             package = request.POST.dict().get('package')
             graph_dataset = graph_manager.get_trans_stats_by_package(package)
-        if 'graph_rule' in request.POST.dict():
+        elif 'graph_rule' in request.POST.dict():
             graph_rule = request.POST.dict().get('graph_rule')
             graph_dataset = graph_manager.get_trans_stats_by_rule(graph_rule)
     return JsonResponse(graph_dataset)

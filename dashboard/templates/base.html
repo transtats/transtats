@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 {% with "Transtats" as app_name %}
-{% with "0.1.0" as app_version %}
+{% with "0.1.1" as app_version %}
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -76,6 +76,7 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-right">
+                <li><a href="{% url 'home' %}">Graphs</a></li>
                 <li><a href="{% url 'howto' %}">How to use {{ app_name }}</a></li>
                 <li><a href="{% url 'settings' %}">Inventory and Configuration</a></li>
                 <li><a href="http://docs.transtats.org/" target="_blank">Docs</a></li>
@@ -89,7 +90,7 @@
     {% endblock %}
 
     <div class="container content-area">
-        <div class="well well-lg">
+        <div class="well well-sm">
           {% block pagebanner %}{% endblock %}
         </div>
         <div class="col-xs-12">
