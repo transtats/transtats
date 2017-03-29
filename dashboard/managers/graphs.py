@@ -121,7 +121,7 @@ class GraphManager(BaseManager):
 
     def _format_stats_for_default_graphs(self, locale_sequence, stats_dict, desc):
         """
-        Formats stats dict for graph-ready material
+        Formats stats dict for line graph-ready material
         """
         stats_for_graphs_dict = OrderedDict()
 
@@ -137,7 +137,7 @@ class GraphManager(BaseManager):
                 index = [i for i, locale_tuple in enumerate(list(locale_sequence), 0) if locale in locale_tuple]
                 index.append(stats_tuple[1])
                 new_stats_list.append(index)
-            stats_for_graphs_dict['graph_data'][version] = new_stats_list
+            stats_for_graphs_dict['graph_data'][version] = sorted(new_stats_list)
 
         return stats_for_graphs_dict
 
@@ -152,6 +152,44 @@ class GraphManager(BaseManager):
         lang_id_name, stats_dict, pkg_desc = self.package_manager.get_trans_stats(package)
         # format trans_stats_list for graphs
         return self._format_stats_for_default_graphs(lang_id_name, stats_dict, pkg_desc)
+
+    def _format_stats_for_lang_wise_graphs(self, input_locale, locale_sequence, stats_dict, desc):
+        """
+        Formats stats dict for bar graph-ready material
+        """
+        stats_for_graphs_dict = OrderedDict()
+        stats_branches = list(stats_dict.keys())
+        stats_for_graphs_dict['pkg_desc'] = desc
+
+        stats_for_graphs_dict['ticks'] = \
+            [[i, version] for i, version in enumerate(stats_branches, 0)]
+
+        stats_for_graphs_dict['graph_data'] = []
+        for version, stats_lists in stats_dict.items():
+            index = stats_branches.index(version)
+            required_stat = 0.0
+            for locale_tuple in list(locale_sequence.keys()):
+                if input_locale in locale_tuple:
+                    locale, alias = locale_tuple
+                    expected_stat = [stat for lang, stat in stats_lists
+                                     if lang.replace('-', '_') == locale or lang.replace('-', '_') == alias]
+                    required_stat = expected_stat[0] if expected_stat and len(expected_stat) > 0 else 0.0
+            stats_for_graphs_dict['graph_data'].append([required_stat, index])
+
+        return stats_for_graphs_dict
+
+    def get_stats_by_pkg_per_lang(self, package, locale):
+        """
+        formats stats of a package for given locale
+        :param package: str
+        :param locale: str
+        :return: Graph data for "Language-wise" view: dict
+        """
+        if not package and not locale:
+            return {}
+        lang_id_name, stats_dict, pkg_desc = self.package_manager.get_trans_stats(package)
+        # format stats for lang-wise graph
+        return self._format_stats_for_lang_wise_graphs(locale, lang_id_name, stats_dict, pkg_desc)
 
     def _format_stats_for_custom_graphs(self, rel_branch, languages, stats_dict):
         """
