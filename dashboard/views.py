@@ -20,6 +20,7 @@ from django.http import (
     HttpResponse, HttpResponseRedirect, JsonResponse, Http404
 )
 from django.shortcuts import render
+from django.template import Context, Template
 from django.views.generic import (
     TemplateView, ListView, FormView
 )
@@ -440,14 +441,14 @@ class NewGraphRuleView(ManagersMixin, FormView):
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
 
-class BranchMappingView(ManagersMixin, TemplateView):
+class PackageConfigView(ManagersMixin, TemplateView):
     """
-    Package Branch Mapping View
+    Package Configuration View
     """
     template_name = "settings/package_config.html"
 
     def get_context_data(self, **kwargs):
-        context = super(BranchMappingView, self).get_context_data(**kwargs)
+        context = super(PackageConfigView, self).get_context_data(**kwargs)
         queried_package_name = kwargs['package_name'] \
             if 'package_name' in kwargs and kwargs.get('package_name') else ''
         if queried_package_name:
@@ -460,9 +461,8 @@ class BranchMappingView(ManagersMixin, TemplateView):
                 pkg_details = package_details.package_details_json
                 if pkg_details and pkg_details.get('description'):
                     context['package_details'] = pkg_details['description']
+                context['last_sync'] = package_details.transtats_lastupdated
                 context['name_mapping'] = package_details.package_name_mapping
-                context['branch_mapping'] = package_details.release_branch_mapping
-                context['mapping_lastupdated'] = package_details.mapping_lastupdated
         return context
 
 
@@ -517,12 +517,23 @@ def graph_data(request):
 
 def refresh_package(request):
     """
-    Package sync and re-buid mappings
+    Package sync and re-build mappings
     """
     if request.is_ajax():
         post_params = request.POST.dict()
-        if 'package' in post_params and post_params.get('package'):
-            package_manager = PackagesManager()
+        package_manager = PackagesManager()
+        if post_params.get('task') == "mapBranches" and post_params.get('package'):
+            if package_manager.build_branch_mapping(post_params['package']):
+                context = Context(
+                    {'META': request.META,
+                     'package_name': post_params['package']}
+                )
+                template_string = """
+                    {% load tag_branch_mapping from custom_tags %}
+                    {% tag_branch_mapping package_name %}
+                """
+                return HttpResponse(Template(template_string).render(context))
+        elif post_params.get('task') == "syncPkg" and post_params.get('package'):
             if package_manager.refresh_package(post_params['package']):
                 return HttpResponse(status=200)
     return HttpResponse(status=500)

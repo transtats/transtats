@@ -13,7 +13,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import os
 from django import template
+
+from dashboard.managers.inventory import PackagesManager
+
 
 register = template.Library()
 
@@ -21,3 +25,22 @@ register = template.Library()
 @register.filter
 def get_item(dict_object, key):
     return dict_object.get(key)
+
+
+@register.inclusion_tag(
+    os.path.join("settings", "_branch_mapping.html")
+)
+def tag_branch_mapping(package):
+    package_manager = PackagesManager()
+    return_value = dict()
+    try:
+        package_details = package_manager.get_packages([package]).get()
+    except:
+        # log event, passing for now
+        pass
+    else:
+        return_value.update(
+            {'branch_mapping': package_details.release_branch_mapping,
+             'mapping_lastupdated': package_details.mapping_lastupdated}
+        )
+    return return_value

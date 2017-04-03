@@ -5,7 +5,7 @@ from transtats import __version__
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
 
-with open(os.path.join(os.path.dirname(__file__), "requirements/base.txt"), 'rb') as require:
+with open(os.path.join(os.path.dirname(__file__), "requirements", "base.txt"), 'rb') as require:
     REQUIRE = require.read().decode('utf-8').splitlines() + ['setuptools']
 
 # allow setup.py to be run from any path

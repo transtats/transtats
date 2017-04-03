@@ -135,7 +135,7 @@ class GraphManager(BaseManager):
             for stats_tuple in stats_lists:
                 locale = stats_tuple[0].replace('-', '_') if ('-' in stats_tuple[0]) else stats_tuple[0]
                 index = [i for i, locale_tuple in enumerate(list(locale_sequence), 0) if locale in locale_tuple]
-                index.append(stats_tuple[1])
+                index.append(stats_tuple[1] or 0.0)
                 new_stats_list.append(index)
             stats_for_graphs_dict['graph_data'][version] = sorted(new_stats_list)
 
