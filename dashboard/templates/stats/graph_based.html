@@ -1,0 +1,54 @@
+{% extends "stats/trans_status.html" %}
+
+{% block extrascript %}
+<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="/static/js/excanvas.js"></script><![endif]-->
+<script src="/static/js/jquery.flot.js"></script>
+<script src="/static/js/jquery.flot.tooltip.js"></script>
+<script src="/static/js/csrf.js"></script>
+<style type="text/css">
+    .graph-area {
+        width:100%;
+        min-height:600px;
+    }
+</style>
+<script type="text/javascript">
+function csrfSafeMethod(a){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(a)}$(document).ready(function(){var a="<span class='pull-right text-muted'>Graph is based on sync'd data. And %age is calculated on messages.</span>",b="Translation status of a package for most of the branches in all enabled languages.";$("#tab-translation-status").addClass("active"),$('#tab-view-graph').addClass('active'),$("#graphinfo").html(b),$("#localegraph").hide(),$("#hideLocaleGraph").hide(),$("#langName").selectpicker("hide"),$("#packageName").change(function(b){var c=$(this).val();return $.ajax({beforeSend:function(a,b){csrfSafeMethod(b.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#localegraph").hide(),$("#hideLocaleGraph").hide(),$("#langName").selectpicker("hide"),$("#langName").selectpicker("val","Select Language")},type:"POST",url:"{% url 'ajax-graph-data' %}",data:{package:c},dataType:"json",success:function(b){var d=b.pkg_desc,e=b.graph_data,f=b.ticks,g=[];for(version in e)e.hasOwnProperty(version)&&g.push({label:version,data:e[version]});var h={series:{lines:{show:!0,lineWidth:.5},points:{radius:4,fill:!0,show:!0}},xaxis:{axisLabel:"Languages",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:"Verdana, Arial",axisLabelPadding:10,ticks:f},yaxis:{axisLabel:"Translation",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:"Verdana, Arial",axisLabelPadding:3,tickFormatter:function(a,b){return a+"%"},minTickSize:1,tickDecimals:2},legend:{show:!0,noColumns:0,labelBoxBorderColor:"Grey",position:"ne"},grid:{hoverable:!0,borderWidth:2,backgroundColor:{colors:["#ffffff","#EDF5FF"]}},tooltip:{show:!0,content:"%s | %y translated"}};$("#localegraph").hide(),$("#grapharea").show(),$.plot($("#grapharea"),g,h),$("#graphinfo").html("Translation status of "+c+" for "+g.length+" branch(es) in "+f.length+" language(s)."),$("#packagedesc").html(d),$("#graphdisclaimer").html(a),$("#langName").selectpicker("show")}}),!1}),$("#langName").change(function(b){var c=$(this).val(),d=$("#packageName").val();return $.ajax({beforeSend:function(a,b){csrfSafeMethod(b.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-graph-data' %}",data:{package:d,locale:c},dataType:"json",success:function(b){var e=b.pkg_desc,f=b.graph_data,g=b.ticks,h=[{label:"Translation Progress",data:f}],i={series:{bars:{show:!0}},bars:{align:"center",barWidth:.5*g.length/10,horizontal:!0},xaxis:{axisLabel:"Translation Percentage",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:"Verdana, Arial",axisLabelPadding:10,max:110,tickFormatter:function(a,b){return a+"%"}},yaxis:{axisLabel:"Branches",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:"Verdana, Arial",axisLabelPadding:3,ticks:g},legend:{noColumns:0,labelBoxBorderColor:"#000000",position:"ne"},grid:{hoverable:!0,borderWidth:2,backgroundColor:{colors:["#ffffff","#EDF5FF"]}},tooltip:{show:!0,content:"%y | %x translated"}};$("#grapharea").hide(),$("#localegraph").show(),$.plot($("#localegraph"),h,i),$("#graphinfo").html("Translation status of "+d+" for "+g.length+" branch(es) in "+c+" locale."),$("#packagedesc").html(e),$("#graphdisclaimer").html(a),$("#hideLocaleGraph").show()}}),!1}),$("#hideLocaleGraph").click(function(a){return a.preventDefault(),$("#localegraph").hide(),$("#langName").selectpicker("val","Select Language"),$("#graphinfo").html(b),$("#grapharea").show(),$(this).hide()})});
+</script>
+{% endblock %}
+
+{% block viewcontent %}
+    <hr/><span style="padding-left:20px;padding-right:10px;"
+               class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+        <span id="graphinfo" class="text-info"></span><hr/>
+    <div style="padding:20px">
+        <div class="row" style="padding-bottom:20px">
+            <div class="col-xs-12">
+                {% if packages %}
+                <select id="packageName" class="selectpicker" data-live-search="true">
+                    <option selected disabled>Select Package</option>
+                    {% for package_name, upstream_name in packages %}
+                        <option>{{ package_name }}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                    <br/><p>No package configured. Add <a href="{% url 'settings-packages-new' %}">one</a> now.</p>
+                {% endif %}
+                {% if languages %}
+                <select id="langName" class="selectpicker" data-live-search="true">
+                    <option selected disabled>Select Language</option>
+                    {% for locale, lang in languages %}
+                        <option value="{{ locale }}">{{ lang }}</option>
+                    {% endfor %}
+                </select>
+                <a id="hideLocaleGraph" type="button" class="btn btn-default btn-small">
+                    <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                </a>
+                {% endif %}
+                <span class="text-info pull-right" id="packagedesc"></span>
+            </div>
+        </div>
+        <div id="localegraph" class="panel panel-info graph-area"></div>
+        <div id="grapharea" class="panel panel-info graph-area"></div>
+        <p id="graphdisclaimer"></p>
+    </div>
+{% endblock %}

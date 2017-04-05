@@ -51,11 +51,29 @@ class ManagersMixin(object):
     graph_manager = GraphManager()
 
 
-class HomeTemplateView(ManagersMixin, TemplateView):
+class TranStatusTextView(ManagersMixin, TemplateView):
     """
-    Translation Status View
+    Translation Status Text View
     """
-    template_name = "stats/index.html"
+    template_name = "stats/text_based.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        """
+        context_data = super(TemplateView, self).get_context_data(**kwargs)
+        context_data['description'] = APP_DESC
+        packages = self.packages_manager.get_package_name_tuple()
+        if packages:
+            context_data['packages'] = packages
+        return context_data
+
+
+class TranStatusGraphView(ManagersMixin, TemplateView):
+    """
+    Translation Status Graph View
+    """
+    template_name = "stats/graph_based.html"
 
     def get_context_data(self, **kwargs):
         """
@@ -90,11 +108,11 @@ class TransCoverageView(ManagersMixin, TemplateView):
         return context_data
 
 
-class CompareDownstreamView(TemplateView):
+class WorkloadEstimationView(TemplateView):
     """
-    Compare with Downstream View
+    Workload Estimation View
     """
-    template_name = "stats/downstream.html"
+    template_name = "stats/workload.html"
 
     def get_context_data(self, **kwargs):
         """
@@ -493,6 +511,25 @@ def schedule_job(request):
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
             pass
     return HttpResponse(message)
+
+
+def tabular_data(request):
+    """
+    Prepares and dispatch tabular data
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        if 'package' in request.POST.dict():
+            context = Context(
+                {'META': request.META,
+                 'package_name': post_params['package']}
+            )
+            template_string = """
+                {% load tag_tabular_form from custom_tags %}
+                {% tag_tabular_form package_name %}
+            """
+            return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)
 
 
 def graph_data(request):

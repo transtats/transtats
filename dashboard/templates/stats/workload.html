@@ -1,0 +1,22 @@
+{% extends "home.html" %}
+
+{% block extrascript %}
+<script type="text/javascript">
+    $(document).ready(function(){$('#tab-workload-estimation').addClass('active')});
+</script>
+{% endblock %}
+
+{% block tabcontent %}
+    <br/>
+    <hr/><span style="padding-left:20px;padding-right:10px;"
+               class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+        <span id="coverageinfo" class="text-info">
+            Workload estimation for a release branch across packages.</span><hr/>
+    <div style="padding:20px">
+        <div class="row" style="padding-bottom:20px">
+            <div class="col-xs-12">
+                &nbsp;
+            </div>
+        </div>
+    </div>
+{% endblock %}

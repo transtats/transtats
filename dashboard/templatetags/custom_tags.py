@@ -14,8 +14,10 @@
 # under the License.
 
 import os
+from collections import OrderedDict
 from django import template
 
+from dashboard.managers.graphs import GraphManager
 from dashboard.managers.inventory import PackagesManager
 
 
@@ -32,7 +34,7 @@ def get_item(dict_object, key):
 )
 def tag_branch_mapping(package):
     package_manager = PackagesManager()
-    return_value = dict()
+    return_value = OrderedDict()
     try:
         package_details = package_manager.get_packages([package]).get()
     except:
@@ -43,4 +45,21 @@ def tag_branch_mapping(package):
             {'branch_mapping': package_details.release_branch_mapping,
              'mapping_lastupdated': package_details.mapping_lastupdated}
         )
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("stats", "_tabular_form.html")
+)
+def tag_tabular_form(package):
+    return_value = OrderedDict()
+    graph_manager = GraphManager()
+    stats_dict = graph_manager.get_trans_stats_by_package(package)
+    headers = stats_dict['ticks']
+    stats_data = stats_dict['graph_data']
+    return_value.update(
+        {'headers': [lang for index, lang in headers],
+         'stats_data': stats_data,
+         'pkg_desc': stats_dict['pkg_desc']}
+    )
     return return_value

@@ -76,14 +76,14 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-right">
+                <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>
                 {% if user.is_authenticated and user.is_superuser %}
-                  <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                  <li><a href="{% url 'admin:index' %}">Admin Console</a></li>
                 {% endif %}
-                <li><a href="{% url 'home' %}">Graphs</a></li>
                 <li><a href="{% url 'settings' %}">Inventory and Configuration</a></li>
                 <li><a href="{% url 'howto' %}">How to use {{ app_name }}</a></li>
                 <li><a href="http://docs.transtats.org/" target="_blank">Docs</a></li>
-               </ul>
+              </ul>
             </div><!--/.navbar-collapse -->
           </div>
         </nav>

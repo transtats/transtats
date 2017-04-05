@@ -21,12 +21,13 @@ from django.views.generic.base import TemplateView
 # dashboard
 from dashboard.services.expose.views import PingServer
 from dashboard.views import (
-    HomeTemplateView, AppSettingsView, TransPlatformSettingsView,
-    LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
+    TranStatusTextView, TranStatusGraphView, AppSettingsView,
+    TransPlatformSettingsView, LanguagesSettingsView,
+    ReleaseStreamSettingsView, PackageSettingsView,
     LogsSettingsView, NewPackageView, StreamBranchesSettingsView,
     NewReleaseBranchView, TransCoverageView, GraphRulesSettingsView,
-    NewGraphRuleView, CompareDownstreamView, PackageConfigView,
-    schedule_job, graph_data, refresh_package
+    NewGraphRuleView, WorkloadEstimationView, PackageConfigView,
+    schedule_job, graph_data, tabular_data, refresh_package
 )
 
 
@@ -37,6 +38,7 @@ api_urls = [
 ajax_urls = [
     url(r'^schedule-job$', schedule_job, name="ajax-schedule-job"),
     url(r'^graph-data$', graph_data, name="ajax-graph-data"),
+    url(r'^tabular-data$', tabular_data, name="ajax-tabular-data"),
     url(r'^refresh-package$', refresh_package, name="ajax-refresh-package"),
 ]
 
@@ -64,11 +66,12 @@ app_setting_urls = [
 ]
 
 urlpatterns = [
-    url(r'^$', HomeTemplateView.as_view(), name="home"),
     url(r'^api/', include(api_urls)),
     url(r'^ajax/', include(ajax_urls)),
     url(r'^settings/', include(app_setting_urls)),
+    url(r'^$', TranStatusTextView.as_view(), name="home"),
+    url(r'^trans-status$', TranStatusGraphView.as_view(), name="graph-view"),
     url(r'^trans-coverage$', TransCoverageView.as_view(), name="custom-graph"),
-    url(r'^compare-downstream$', CompareDownstreamView.as_view(), name="downstream"),
+    url(r'^estimate-workload$', WorkloadEstimationView.as_view(), name="workload"),
     url(r'^how-to$', TemplateView.as_view(template_name="howto.html"), name="howto"),
 ]
