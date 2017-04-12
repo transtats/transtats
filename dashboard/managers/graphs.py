@@ -129,16 +129,19 @@ class GraphManager(BaseManager):
         stats_for_graphs_dict['ticks'] = \
             [[i, lang] for i, lang in enumerate(locale_sequence.values(), 0)]
 
-        stats_for_graphs_dict['graph_data'] = OrderedDict()
+        graph_data_dict = {}
         for version, stats_lists in stats_dict.items():
             new_stats_list = []
             for stats_tuple in stats_lists:
-                locale = stats_tuple[0].replace('-', '_') if ('-' in stats_tuple[0]) else stats_tuple[0]
-                index = [i for i, locale_tuple in enumerate(list(locale_sequence), 0) if locale in locale_tuple]
-                index.append(stats_tuple[1] or 0.0)
-                new_stats_list.append(index)
-            stats_for_graphs_dict['graph_data'][version] = sorted(new_stats_list)
+                index = [i for i, locale_tuple in enumerate(list(locale_sequence), 0)
+                         if (stats_tuple[0] in locale_tuple) or
+                         (stats_tuple[0].replace('-', '_') in locale_tuple)]
+                if index:
+                    index.append(stats_tuple[1] or 0.0)
+                    new_stats_list.append(index)
+            graph_data_dict[version] = sorted(new_stats_list)
 
+        stats_for_graphs_dict['graph_data'] = OrderedDict(sorted(graph_data_dict.items()))
         return stats_for_graphs_dict
 
     def get_trans_stats_by_package(self, package):
