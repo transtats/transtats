@@ -1,0 +1,37 @@
+{% extends "stats/trans_status.html" %}
+
+{% block extrascript %}
+<script src="/static/js/csrf.js"></script>
+<style type="text/css">
+    .table-area {
+        width:100%;
+        min-height:250px;
+        height:100%;
+    }
+</style>
+<script type="text/javascript">
+    function csrfSafeMethod(a){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(a)}$(document).ready(function(){$("#tab-translation-status").addClass("active"),$("#tab-view-tabular").addClass("active"),$("#packageName").change(function(a){var b=$(this).val();return $.ajax({beforeSend:function(a,b){csrfSafeMethod(b.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#refreshProgress").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"{% url 'ajax-tabular-data' %}",data:{package:b},success:function(a){$("#refreshProgress").html(""),$("#tablearea").html(a)}}),!1})});
+</script>
+{% endblock %}
+
+{% block viewcontent %}
+    <div style="padding:20px">
+        <div class="row" style="padding-bottom:20px">
+            <div class="col-xs-12">
+                {% if packages %}
+                <select id="packageName" class="selectpicker" data-live-search="true">
+                    <option selected disabled>Select Package</option>
+                    {% for package_name, upstream_name in packages %}
+                        <option>{{ package_name }}</option>
+                    {% endfor %}
+                </select>&nbsp;<span id="refreshProgress"></span>
+                {% else %}
+                    <br/><p>No package configured. Add <a href="{% url 'settings-packages-new' %}">one</a> now.</p>
+                {% endif %}
+                <span class="text-info pull-right" id="packagedesc"></span>
+            </div>
+        </div>
+        <div id="tablearea" class="panel panel-info table-area"></div>
+        <p id="graphdisclaimer"></p>
+    </div>
+{% endblock %}

@@ -1,4 +1,6 @@
-##### Mon Mar 27 2017 Sundeep Anand <suanand@redhat.com>
+##### Thu Apr 13 2017 Sundeep Anand <suanand@redhat.com>
+* add tabular view to translation status
+* split package-refresh into sync and map branches
 * add language-wise status graph for a package
 
 ##### Fri Mar 17 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.0

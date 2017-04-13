@@ -1,0 +1,21 @@
+{% extends "home.html" %}
+
+{% block tabcontent %}
+    <br/><br/>
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Views</a>
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+          <li id="tab-view-tabular">
+              <a href="{% url 'home' %}"><span class="glyphicon glyphicon-th"></span>&nbsp;&nbsp;Tabular</a>
+          </li>
+          <li id="tab-view-graph">
+              <a href="{% url 'graph-view' %}"><span class="glyphicon glyphicon-stats"></span>&nbsp;&nbsp;Graph</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    {% block viewcontent %}{% endblock %}
+{% endblock %}

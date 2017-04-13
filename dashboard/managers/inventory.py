@@ -463,11 +463,16 @@ class PackagesManager(InventoryManager):
             rest_handle = self.rest_client(platform.engine_name, platform.api_url)
             response_dict = None
             if platform.engine_name == TRANSPLATFORM_ENGINES[0]:
-                response_dict = rest_handle.process_request('project_details',
-                                                            package_name.lower())
+                response_dict = rest_handle.process_request(
+                    'project_details', package_name.lower()
+                )
             if platform.engine_name == TRANSPLATFORM_ENGINES[1]:
                 response_dict = rest_handle.process_request('list_projects')
             if response_dict and response_dict.get('json_content'):
+                # save projects_json in db
+                TransPlatform.objects.filter(api_url=platform.api_url).update(
+                    projects_json=response_dict['json_content'], projects_lastupdated=timezone.now()
+                )
                 projects_json = response_dict['json_content']
 
         ids, names = self._get_project_ids_names(platform.engine_name, projects_json)
@@ -505,9 +510,10 @@ class PackagesManager(InventoryManager):
                     package_details.transplatform_slug_id,
                     pkg_stats_version.stats_raw_json, list(lang_id_name)
                 )
-            trans_stats_dict[pkg_stats_version.project_version] = \
-                self.syncstats_manager.extract_locale_translated(package_details.transplatform_slug_id,
-                                                                 trans_stats_list)
+            if 'test' not in pkg_stats_version.project_version:
+                trans_stats_dict[pkg_stats_version.project_version] = \
+                    self.syncstats_manager.extract_locale_translated(package_details.transplatform_slug_id,
+                                                                     trans_stats_list)
         if apply_branch_mapping and package_details.release_branch_mapping:
             branch_mapping = package_details.release_branch_mapping
             for relbranch, transplatform_version in branch_mapping.items():
@@ -607,8 +613,7 @@ class PackagesManager(InventoryManager):
         status = []
         steps = (
             self.sync_update_package_details,
-            self.sync_update_package_stats,
-            self.build_branch_mapping,
+            self.sync_update_package_stats
         )
 
         for method in steps:

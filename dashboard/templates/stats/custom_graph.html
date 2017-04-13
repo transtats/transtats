@@ -14,19 +14,15 @@
 </style>
 <script type="text/javascript">
 function csrfSafeMethod(method){return(/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));}
-$(document).ready(function(){$('#tab-translation-coverage').addClass('active');$("#ruleName").change(function(event){var rule=$(this).val();$.ajax({beforeSend:function(xhr,settings){if(!csrfSafeMethod(settings.type)&&!this.crossDomain){if(csrftoken){xhr.setRequestHeader("X-CSRFToken",csrftoken);}else{xhr.setRequestHeader("X-CSRFToken","{{ csrf_token }}");}}},type:"POST",url:"/ajax/graph-data",data:{'graph_rule':$(this).val()},dataType:"json",success:function(json_response){var release_branch=json_response['branch'];var dataset=json_response['graph_data'];var ticks=json_response['ticks'];var options={series:{stack:0,lines:{show:true,steps:false,fill:false},bars:{show:true,barWidth:0.4,align:'center',},points:{radius:3,fill:true,show:true},},xaxis:{axisLabel:"Packages",axisLabelUseCanvas:true,axisLabelFontSizePixels:12,axisLabelFontFamily:'Verdana, Arial',axisLabelPadding:10,ticks:ticks},yaxis:{axisLabel:"Translation",axisLabelUseCanvas:true,axisLabelFontSizePixels:12,axisLabelFontFamily:'Verdana, Arial',axisLabelPadding:3,tickFormatter:function(v,axis){return v+"%";},tickDecimals:2,},legend:{noColumns:0,labelBoxBorderColor:"#000000",position:"ne"},grid:{hoverable:true,borderWidth:2,backgroundColor:{colors:["#ffffff","#EDF5FF"]}},tooltip:{show:true,content:"%s | %y translated",},};$.plot($("#grapharea"),dataset,options);$("#coverageinfo").html("Translation coverage of "+ticks.length+" packages for "+release_branch+" release in "+dataset.length+" languages.");$("#relbranch").html("Release [ "+release_branch+" ]");var disclaimer="<span class='pull-right text-muted'>Graph is based on branch mapping. And %age is calculated on messages.</span>";$("#graphdisclaimer").html(disclaimer);},});return false;});});
+$(document).ready(function(){$('#tab-translation-coverage').addClass('active');$("#ruleName").change(function(event){var rule=$(this).val();$.ajax({beforeSend:function(xhr,settings){if(!csrfSafeMethod(settings.type)&&!this.crossDomain){if(csrftoken){xhr.setRequestHeader("X-CSRFToken",csrftoken);}else{xhr.setRequestHeader("X-CSRFToken","{{ csrf_token }}");}}},type:"POST",url:"/ajax/graph-data",data:{'graph_rule':$(this).val()},dataType:"json",success:function(json_response){var release_branch=json_response['branch'];var dataset=json_response['graph_data'];var ticks=json_response['ticks'];var options={series:{stack:0,bars:{show:true,barWidth:0.4,align:'center',}},xaxis:{axisLabel:"Packages",axisLabelUseCanvas:true,axisLabelFontSizePixels:12,axisLabelFontFamily:'Verdana, Arial',axisLabelPadding:10,ticks:ticks},yaxis:{axisLabel:"Translation",axisLabelUseCanvas:true,axisLabelFontSizePixels:12,axisLabelFontFamily:'Verdana, Arial',axisLabelPadding:3,tickFormatter:function(v,axis){return v+"%";},tickDecimals:2,},legend:{noColumns:0,labelBoxBorderColor:"#000000",position:"ne"},grid:{hoverable:true,borderWidth:2,backgroundColor:{colors:["#ffffff","#EDF5FF"]}},tooltip:{show:true,content:"%s | %y translated",},};$.plot($("#grapharea"),dataset,options);$("#coverageinfo").html("Translation coverage of "+ticks.length+" packages for "+release_branch+" release in "+dataset.length+" languages.");$("#relbranch").html("Release [ "+release_branch+" ]");var disclaimer="<span class='pull-right text-muted'>Graph is based on branch mapping. And %age is calculated on messages.</span>";$("#graphdisclaimer").html(disclaimer);},});return false;});});
 </script>
 {% endblock %}
 
 {% block tabcontent %}
-    <br/><br/>
-    <nav class="navbar navbar-default bg-faded">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <a class="navbar-brand" id="coverageinfo">Translation coverage of a package list for a specific release in selected languages.</a>
-            </div>
-        </div>
-    </nav>
+    <br/><hr/><span style="padding-left:20px;padding-right:10px;"
+                    class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+        <span id="coverageinfo" class="text-info">
+            Translation coverage of a package list for a specific release in selected languages.</span><hr/>
     <div style="padding:20px">
         <div class="row" style="padding-bottom:20px">
             <div class="col-xs-12">

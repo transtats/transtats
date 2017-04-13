@@ -145,6 +145,10 @@ class RestHandle(object):
         args_dict = dict(zip(
             request_args, [getattr(self, arg, None) for arg in request_args]
         ))
+
+        if self.disable_ssl_certificate_validation:
+            args_dict.update(dict(verify=False))
+
         response = self._call_request(self._get_url(), self.method, **args_dict)
         response_dict = {}
         if response and response.ok:

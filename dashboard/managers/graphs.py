@@ -119,26 +119,53 @@ class GraphManager(BaseManager):
         else:
             return True
 
+    def _normalize_stats(self, stats_nested_list, index_list):
+        """
+        Normalize stats for a locale index and picks higher value
+        """
+        temp_index_list = []
+        temp_stat_list = []
+        for index, stat in stats_nested_list:
+            if index not in temp_index_list:
+                temp_index_list.append(index)
+                temp_stat_list.append(stat)
+            else:
+                last_stat = temp_stat_list.pop(len(temp_stat_list) - 1)
+                temp_stat_list.append(last_stat) \
+                    if last_stat > stat else temp_stat_list.append(stat)
+        expected_stats_list = list(zip(temp_index_list, temp_stat_list))
+        if len(index_list) > len(expected_stats_list):
+            expected_stats_dict = dict((k[0], k[1:]) for k in expected_stats_list)
+            temp_patched_stats_list = []
+            for index in index_list:
+                temp_patched_stats_list.append([index, expected_stats_dict.get(index, [0.0])[0]])
+            expected_stats_list = temp_patched_stats_list
+        return expected_stats_list
+
     def _format_stats_for_default_graphs(self, locale_sequence, stats_dict, desc):
         """
-        Formats stats dict for line graph-ready material
+        Formats stats dict for graph-ready material
         """
         stats_for_graphs_dict = OrderedDict()
-
         stats_for_graphs_dict['pkg_desc'] = desc
         stats_for_graphs_dict['ticks'] = \
             [[i, lang] for i, lang in enumerate(locale_sequence.values(), 0)]
+        indexes = [index for index, lang in stats_for_graphs_dict['ticks']]
 
-        stats_for_graphs_dict['graph_data'] = OrderedDict()
+        graph_data_dict = {}
         for version, stats_lists in stats_dict.items():
             new_stats_list = []
             for stats_tuple in stats_lists:
-                locale = stats_tuple[0].replace('-', '_') if ('-' in stats_tuple[0]) else stats_tuple[0]
-                index = [i for i, locale_tuple in enumerate(list(locale_sequence), 0) if locale in locale_tuple]
-                index.append(stats_tuple[1])
-                new_stats_list.append(index)
-            stats_for_graphs_dict['graph_data'][version] = sorted(new_stats_list)
-
+                index = [i for i, locale_tuple in enumerate(list(locale_sequence), 0)
+                         if (stats_tuple[0] in locale_tuple) or
+                         (stats_tuple[0].replace('-', '_') in locale_tuple)]
+                if index:
+                    index.append(stats_tuple[1] or 0.0)
+                    new_stats_list.append(index)
+            graph_data_dict[version] = self._normalize_stats(
+                sorted(new_stats_list), indexes
+            )
+        stats_for_graphs_dict['graph_data'] = OrderedDict(sorted(graph_data_dict.items()))
         return stats_for_graphs_dict
 
     def get_trans_stats_by_package(self, package):

@@ -1,11 +1,11 @@
 {% extends "settings/settings_base.html" %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags custom_tags %}
 
 {% block extrascript %}
 <script src="/static/js/csrf.js"></script>
 <script src="/static/js/jquery-1.12.3.js"></script>
 <script type="text/javascript">
-    function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}$(document).ready(function(){$("#tab-packages").addClass("active"),$("#refreshPackageLink").click(function(e){return e.preventDefault(),$.ajax({beforeSend:function(e,a){csrfSafeMethod(a.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#refreshProgress").html("<img src='/static/img/spin.gif'></img>"),$("#refreshPackageLink").attr("disabled",!0)},type:"POST",url:"/ajax/refresh-package",data:{"package":"{{ package_name }}"},success:function(e){$("#refreshPackageLink").attr("disabled",!1),$("#refreshProgress").html("<span class='glyphicon glyphicon-ok' style='color:green'></span>"),setTimeout(function(){location.reload(!0)},1e3)},error:function(e,a,r){$("#refreshPackageLink").attr("disabled",!1),$("#refreshProgress").html("<span class='glyphicon glyphicon-warning-sign' style='color:orange'></span>")}}),!1})});
+    function csrfSafeMethod(a){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(a)}$(document).ready(function(){$("#tab-packages").addClass("active"),$("#refreshPackageLink").click(function(a){return a.preventDefault(),$.ajax({beforeSend:function(a,b){csrfSafeMethod(b.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#refreshProgress").html("<img src='/static/img/spin.gif'></img>"),$("#refreshPackageLink").attr("disabled",!0)},type:"POST",url:"{% url 'ajax-refresh-package' %}",data:{package:"{{ package_name }}",task:$("#syncPackageIdentifier").val()},success:function(a){$("#refreshPackageLink").attr("disabled",!1),$("#refreshProgress").html("<span class='glyphicon glyphicon-ok' style='color:green'></span>"),setTimeout(function(){$("#span-notify-sync").html("Package Sync Complete!")},1e3)},error:function(a,b,c){$("#refreshPackageLink").attr("disabled",!1),$("#refreshProgress").html("<span class='glyphicon glyphicon-warning-sign' style='color:orange'></span>")}}),!1}),$("#createBranchMapping").click(function(a){return a.preventDefault(),$.ajax({beforeSend:function(a,b){csrfSafeMethod(b.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#createBranchMapping").attr("disabled",!0)},type:"POST",url:"{% url 'ajax-refresh-package' %}",data:{package:"{{ package_name }}",task:$("#mapBranchesIdentifier").val()},success:function(a){$("#createBranchMapping").attr("disabled",!1),setTimeout(function(){$("#div-branch-mapping").html(a)},1e3)},error:function(a,b,c){$("#createBranchMapping").attr("disabled",!1)}}),!1})});
 </script>
 {% endblock %}
 
@@ -24,50 +24,27 @@
                 &nbsp;&nbsp;<span class="text-muted" style="font-size:large"><b>{{ package_name }}</b> | Configuration</span>
             </span>
             <span class="pull-right">
-                <a id="refreshPackageLink" type="button" class="btn btn-default btn-small">
-                    <span id="refreshProgress"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></span> Refresh Package
-                </a>
+                <span class="btn-group" role="group" aria-label="...">
+                  <a id="refreshPackageLink" type="button" class="btn btn-default btn-small">
+                    <input type="hidden" value="syncPkg" id="syncPackageIdentifier"/>
+                    <span id="refreshProgress"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></span> Sync Package
+                  </a>
+                  {% if last_sync %}
+                      <a id="createBranchMapping" type="button" class="btn btn-default btn-small">
+                        <input type="hidden" value="mapBranches" id="mapBranchesIdentifier"/> Map Branches
+                      </a>
+                  {% endif %}
+                </span>
                 <a type="button" class="btn btn-default" href="{% url 'settings-packages' %}">Back to List Packages</a>
             </span>
         </div>
     </div>
     <hr/>
     {% if package_details  %}
-        <span class="text-info"><b>Description:</b> {{ package_details }}</span><hr/>
+        <span class="text-info"><b>Description:</b> {{ package_details }}</span>
+        <span id="span-notify-sync" class="pull-right text-success"></span><hr/>
     {% endif %}
-    {% if branch_mapping %}
-    <div class="panel panel-default">
-      <div class="panel-heading" style="padding-bottom:20px">
-        <span style="font-size:large">Branch Mapping</span>
-        <span class="pull-right"><a class="btn btn-default btn-small disabled">
-            <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
-        </span>
-      </div>
-      <div class="panel-body">
-          <table class="table table-hover table-bordered" cellspacing="0">
-            <thead>
-                <tr>
-                    <th>Release Stream Branch</th>
-                    <th>Translation Platform Project Version</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for branch, version in branch_mapping.items %}
-                <tr>
-                    <td>{{ branch }}</td>
-                    <td>{{ version }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-          </table>
-      </div>
-      {% if mapping_lastupdated %}
-      <div class="panel-footer">
-          <span class="text-muted">Last Updated:</span> {{ mapping_lastupdated|timesince }} <span style="color:grey">ago</span>.
-      </div>
-      {% endif %}
+    <div id="div-branch-mapping">
+        {% tag_branch_mapping package_name %}
     </div>
-    {% else %}
-        No mapping found. <span class="text-muted">Please check release branch(es) and refresh the package.</span>
-    {% endif %}
 {% endblock %}
