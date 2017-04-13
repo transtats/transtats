@@ -14,7 +14,7 @@
     <tbody>
       {% for version, stats in stats_data.items %}
       <tr>
-        <td><span class="text-info">{{ version }}</span></td>
+        <td width="10%"><span class="text-info">{{ version }}</span></td>
         {% for index, stat in stats %}
             <td>
                 {% if stat and stat == 100 %}

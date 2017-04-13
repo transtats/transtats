@@ -119,15 +119,38 @@ class GraphManager(BaseManager):
         else:
             return True
 
+    def _normalize_stats(self, stats_nested_list, index_list):
+        """
+        Normalize stats for a locale index and picks higher value
+        """
+        temp_index_list = []
+        temp_stat_list = []
+        for index, stat in stats_nested_list:
+            if index not in temp_index_list:
+                temp_index_list.append(index)
+                temp_stat_list.append(stat)
+            else:
+                last_stat = temp_stat_list.pop(len(temp_stat_list) - 1)
+                temp_stat_list.append(last_stat) \
+                    if last_stat > stat else temp_stat_list.append(stat)
+        expected_stats_list = list(zip(temp_index_list, temp_stat_list))
+        if len(index_list) > len(expected_stats_list):
+            expected_stats_dict = dict((k[0], k[1:]) for k in expected_stats_list)
+            temp_patched_stats_list = []
+            for index in index_list:
+                temp_patched_stats_list.append([index, expected_stats_dict.get(index, [0.0])[0]])
+            expected_stats_list = temp_patched_stats_list
+        return expected_stats_list
+
     def _format_stats_for_default_graphs(self, locale_sequence, stats_dict, desc):
         """
-        Formats stats dict for line graph-ready material
+        Formats stats dict for graph-ready material
         """
         stats_for_graphs_dict = OrderedDict()
-
         stats_for_graphs_dict['pkg_desc'] = desc
         stats_for_graphs_dict['ticks'] = \
             [[i, lang] for i, lang in enumerate(locale_sequence.values(), 0)]
+        indexes = [index for index, lang in stats_for_graphs_dict['ticks']]
 
         graph_data_dict = {}
         for version, stats_lists in stats_dict.items():
@@ -139,8 +162,9 @@ class GraphManager(BaseManager):
                 if index:
                     index.append(stats_tuple[1] or 0.0)
                     new_stats_list.append(index)
-            graph_data_dict[version] = sorted(new_stats_list)
-
+            graph_data_dict[version] = self._normalize_stats(
+                sorted(new_stats_list), indexes
+            )
         stats_for_graphs_dict['graph_data'] = OrderedDict(sorted(graph_data_dict.items()))
         return stats_for_graphs_dict
 
