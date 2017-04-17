@@ -293,3 +293,50 @@ class GraphManager(BaseManager):
         # here trans_stats_dict_set would contain {'package': {'language': stat}}
         # now, lets format trans_stats_list for graphs
         return self._format_stats_for_custom_graphs(release_branch, languages_list, trans_stats_dict_set)
+
+    def _consolidate_branch_specific_stats(self, packages_stats_dict):
+        """
+        Sum up stats per language
+        """
+        temp_stats_dict = {}
+        pkgs_stats_list = list(packages_stats_dict.values())
+        pkgs_length = len(pkgs_stats_list)
+        for pkg_stats in pkgs_stats_list:
+            for pkg_stat in pkg_stats:
+                if pkg_stat[0] not in temp_stats_dict:
+                    temp_stats_dict[pkg_stat[0]] = pkg_stat[1]
+                else:
+                    temp_stats_dict[pkg_stat[0]] += pkg_stat[1]
+        # Reverse stats to depict how much is left
+        return sorted([(i, 100 - int(j / pkgs_length)) for i, j in temp_stats_dict.items()])
+
+    def _format_data_for_pie_chart(self, consolidated_stats):
+        """
+        Takes consolidated stats and formats for pie chart
+        """
+        formatted_data = []
+        for lang, stat in consolidated_stats:
+            formatted_data.append({'label': lang, 'data': stat})
+        return {'graph_data': formatted_data}
+
+    def get_workload_graph_data(self, release_branch):
+        """
+        Build or generates workload graph data
+        """
+        package_manager = PackagesManager()
+        specific_pkgs = [package.package_name for package in
+                         package_manager.get_relbranch_specific_pkgs(release_branch, ['package_name'])]
+        all_pkgs_stats_dict = OrderedDict()
+        for pkg in specific_pkgs:
+            pkg_lang_stats = []
+            locale_seq, trans_stats_dict, pkg_desc = \
+                package_manager.get_trans_stats(pkg, apply_branch_mapping=True, specify_branch=release_branch)
+            t_stats = self._format_stats_for_default_graphs(locale_seq, trans_stats_dict, pkg_desc)
+            branch_stats = t_stats.get('graph_data').get(release_branch)
+            langs = t_stats.get('ticks')
+            if branch_stats and langs:
+                pkg_lang_stats.extend(list(zip([lang[1] for lang in langs], [stat[1] for stat in branch_stats])))
+            all_pkgs_stats_dict[pkg] = pkg_lang_stats
+
+        consolidated_stats = self._consolidate_branch_specific_stats(all_pkgs_stats_dict)
+        return self._format_data_for_pie_chart(consolidated_stats)

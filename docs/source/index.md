@@ -72,10 +72,12 @@ As the project evolves, a roadmap will be published for each major release. Comm
 
 We are currently working on `0.1.1` release.
 
-Target delivery: Mid April 2017
+Target delivery: End of April 2017
 
 * Package translation status per language
 * Split Package Sync and Branch Mapping
+* Tabular View to Translation Status
+* Workload estimation for releases
 * Containerize Transtats Application
 
 

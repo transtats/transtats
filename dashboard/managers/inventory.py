@@ -58,15 +58,17 @@ class InventoryManager(BaseManager):
     Manage application inventories
     """
 
-    def get_locales(self, only_active=None):
+    def get_locales(self, only_active=None, pick_locales=None):
         """
         fetch all languages from db
         """
         filter_kwargs = {}
         if only_active:
             filter_kwargs.update(dict(lang_status=True))
+        if pick_locales:
+            filter_kwargs.update(dict(locale_id__in=pick_locales))
 
-        locales = None
+        locales = []
         try:
             locales = Languages.objects.filter(**filter_kwargs) \
                 .order_by('lang_name').order_by('-lang_status')
@@ -111,14 +113,15 @@ class InventoryManager(BaseManager):
             pass
         return langset
 
-    def get_langsets(self):
+    def get_langsets(self, fields=None):
         """
         fetch all language sets from db
         """
         langsets = None
+        filter_fields = fields if isinstance(fields, (tuple, list)) else ()
         filter_kwargs = {}
         try:
-            langsets = LanguageSet.objects.filter(**filter_kwargs).all()
+            langsets = LanguageSet.objects.only(*filter_fields).filter(**filter_kwargs).all()
         except:
             # log event, passing for now
             pass
@@ -143,6 +146,23 @@ class InventoryManager(BaseManager):
         for locale in self.get_locales():
             all_locales_groups.update(self.get_locale_groups(locale.locale_id))
         return all_locales_groups
+
+    def get_relbranch_locales(self, release_branch):
+        """
+        Fetch locales specific to release branch
+        """
+        required_locales = []
+        try:
+            release_branch_specific_lang_set = \
+                StreamBranches.objects.only('lang_set').filter(relbranch_slug=release_branch).first()
+            required_lang_set = self.get_langset(
+                release_branch_specific_lang_set.lang_set, fields=('locale_ids')
+            )
+            required_locales = required_lang_set.locale_ids if required_lang_set else []
+        except:
+            # log event, passing for now
+            pass
+        return required_locales
 
     def get_translation_platforms(self, engine=None, only_active=None):
         """
@@ -308,6 +328,21 @@ class PackagesManager(InventoryManager):
             packages = Packages.objects.filter(package_name__in=pkgs) \
                 .order_by('-transtats_lastupdated') if pkgs else \
                 Packages.objects.all().order_by('-transtats_lastupdated')
+        except:
+            # log event, passing for now
+            pass
+        return packages
+
+    def get_relbranch_specific_pkgs(self, release_branch, fields=None):
+        """
+        fetch release branch specific packages from db
+        """
+        packages = ()
+        fields_required = fields if fields else ()
+        try:
+            packages = Packages.objects.only(*fields_required) \
+                .filter(release_branch_mapping__has_key=release_branch) \
+                .order_by('-transtats_lastupdated')
         except:
             # log event, passing for now
             pass
@@ -483,7 +518,18 @@ class PackagesManager(InventoryManager):
         else:
             return False
 
-    def get_trans_stats(self, package_name, apply_branch_mapping=False):
+    def _get_lang_id_name_dict(self, release_branch=None):
+        """
+        Generates {(locale, alias): language_name} dict
+        """
+        active_locales = self.get_locales(
+            pick_locales=self.get_relbranch_locales(release_branch)
+        ) if release_branch else self.get_locales_set()[0]
+        lang_id_name = dict([((lang.locale_id, lang.locale_alias), lang.lang_name)
+                             for lang in active_locales])
+        return OrderedDict(sorted(lang_id_name.items(), key=operator.itemgetter(1)))
+
+    def get_trans_stats(self, package_name, apply_branch_mapping=False, specify_branch=None):
         """
         fetch stats of a package for all enabled languages
         :param package_name: str
@@ -493,10 +539,9 @@ class PackagesManager(InventoryManager):
         trans_stats_dict = OrderedDict()
         package_desc = ''
         # 1st, get active locales for which stats are to be shown
-        active_locales = self.get_locales_set()[0]
-        lang_id_name = {(lang.locale_id, lang.locale_alias): lang.lang_name
-                        for lang in active_locales}
-        lang_id_name = OrderedDict(sorted(lang_id_name.items(), key=operator.itemgetter(1)))
+        #      or, choose release branch specific locales
+        lang_id_name = self._get_lang_id_name_dict(specify_branch) \
+            if apply_branch_mapping and specify_branch else self._get_lang_id_name_dict()
         # 2nd, filter stats json for required locales
         package_details = self.get_packages([package_name])[0]  # this must be a list
         if not package_details.transtats_lastupdated:

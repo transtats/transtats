@@ -1,8 +1,86 @@
 {% extends "home.html" %}
 
 {% block extrascript %}
+<script src="/static/js/jquery.flot.js"></script>
+<script src="/static/js/excanvas.min.js"></script>
+<script src="/static/js/jquery.flot.pie.js"></script>
+<script src="/static/js/csrf.js"></script>
+<style type="text/css">
+    .graph-area {
+        width:100%;
+        min-height:600px;
+        padding-top:50px;
+    }
+    .graph-sub-area {
+        width:90%;
+        min-height:500px;
+    }
+</style>
 <script type="text/javascript">
-    $(document).ready(function(){$('#tab-workload-estimation').addClass('active')});
+    function csrfSafeMethod(a) {
+        return /^(GET|HEAD|OPTIONS|TRACE)$/.test(a)
+    }
+
+    function labelFormatter(label, series) {
+        return "<div style='font-size:11pt; text-align:center; padding:2px; color:grey'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+    }
+
+    $(document).ready(function() {
+        $('#tab-translation-workload').addClass('active');
+        $("#relBranch").change(function(b) {
+            var c = $(this).val();
+            $.ajax({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        if (csrftoken) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        } else {
+                            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                        }
+                    };
+                    $("#showPercentage").html('');
+                },
+                type: "POST",
+                url: "{% url 'ajax-workload-graph' %}",
+                data: {
+                    'relbranch': c
+                },
+                success: function(json_resp) {
+                    var g = json_resp.graph_data;
+                    var h = {
+                        series: {
+                            pie: {
+                                show: true,
+                                label: {
+                                    show: true,
+                                    formatter: labelFormatter,
+                                },
+                            }
+                        },
+                        legend: {
+                            show: true
+                        },
+                        grid: {
+                            hoverable: true,
+                            clickable: true
+                        },
+                    };
+                    $.plot('#graphsubarea', g, h);
+
+                    $("#graphsubarea").bind("plothover", function(event, pos, obj){
+                        if (!obj){return;}
+                            percent = parseFloat(obj.series.percent).toFixed(2);
+                        var html = [];
+                        html.push("<hr/>&nbsp;&nbsp;", obj.series.label, " - ", percent, "%&nbsp;&nbsp;<hr/>");
+                        $("#showPercentage").html(html.join(''));
+                    });
+
+                    $("#graphdisclaimer").html("<span class='pull-right text-muted'>Consolidated graph of all packages being tracked for " + c + " branch. Accuracy largely depends upon branch mapping.</span>");
+                },
+            });
+            return false;
+        });
+    });
 </script>
 {% endblock %}
 
@@ -15,8 +93,24 @@
     <div style="padding:20px">
         <div class="row" style="padding-bottom:20px">
             <div class="col-xs-12">
-                &nbsp;
+                {% if relbranches %}
+                <select id="relBranch" class="selectpicker" data-live-search="true">
+                    <option selected disabled>Select Release Branch</option>
+                    {% for relbranch in relbranches %}
+                        <option value="{{ relbranch.0 }}">{{ relbranch.1 }}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                    <br/><p>No release-branch added. Add <a href="{% url 'settings-release-streams' %}">one</a> now.</p>
+                {% endif %}
             </div>
         </div>
+        <center>
+            <div id="grapharea" class="panel panel-info graph-area">
+                <span id="showPercentage" class="text-info pull-left"></span>
+                <div id="graphsubarea" class="graph-sub-area"></div>
+            </div>
+        </center>
+        <p id="graphdisclaimer"></p>
     </div>
 {% endblock %}

@@ -152,18 +152,21 @@ class StreamBranches(models.Model):
     Stream Branches Model
     """
     relbranch_id = models.AutoField(primary_key=True)
-    relbranch_name = models.CharField(max_length=500)
-    relbranch_slug = models.CharField(max_length=500, unique=True)
-    relstream_slug = models.CharField(max_length=400)
-    lang_set = models.CharField(max_length=200)
-    scm_branch = models.CharField(max_length=100, null=True)
+    relbranch_name = models.CharField(max_length=500, verbose_name="Release Branch Name")
+    relbranch_slug = models.CharField(max_length=500, unique=True, verbose_name="Release Branch Slug")
+    relstream_slug = models.CharField(max_length=400, verbose_name="Release Stream Slug")
+    lang_set = models.CharField(max_length=200, verbose_name="Language Set")
+    scm_branch = models.CharField(max_length=100, null=True, verbose_name="SCM Branch Name")
     created_on = models.DateTimeField()
-    current_phase = models.CharField(max_length=200, null=True)
-    calendar_url = models.URLField(max_length=500, null=True)
+    current_phase = models.CharField(max_length=200, null=True, verbose_name="Current Phase")
+    calendar_url = models.URLField(max_length=500, null=True, verbose_name="Calender iCal URL")
     schedule_json = JSONField(null=True)
-    sync_calendar = models.BooleanField(default=True)
-    notifications_flag = models.BooleanField(default=True)
-    track_trans_flag = models.BooleanField(default=True)
+    sync_calendar = models.BooleanField(default=True, verbose_name="Sync Calender")
+    notifications_flag = models.BooleanField(default=True, verbose_name="Notification")
+    track_trans_flag = models.BooleanField(default=True, verbose_name="Track Translation")
+
+    def __str__(self):
+        return self.relbranch_name
 
     class Meta:
         db_table = TABLE_PREFIX + 'relbranches'
@@ -174,19 +177,21 @@ class Packages(models.Model):
     Packages Model
     """
     package_id = models.AutoField(primary_key=True)
-    package_name = models.CharField(max_length=1000, unique=True)
-    upstream_name = models.CharField(max_length=1000, null=True)
-    upstream_url = models.URLField(max_length=2000, unique=True)
+    package_name = models.CharField(max_length=1000, unique=True, verbose_name="Package Name")
+    upstream_name = models.CharField(max_length=1000, null=True, verbose_name="Upstream Name")
+    upstream_url = models.URLField(max_length=2000, unique=True, verbose_name="Upstream URL")
     transplatform_slug = models.ForeignKey(
         TransPlatform, on_delete=models.CASCADE,
-        to_field='platform_slug'
+        to_field='platform_slug', verbose_name="Translation Platform"
     )
-    transplatform_name = models.CharField(max_length=1000, null=True)
+    transplatform_name = models.CharField(max_length=1000, null=True,
+                                          verbose_name="Package Name at Translation Platform")
     # translation platform project http url
-    transplatform_url = models.URLField(max_length=500)
+    transplatform_url = models.URLField(max_length=500,
+                                        verbose_name="Translation Platform Project URL")
     release_streams = ArrayField(
         models.CharField(max_length=400, blank=True),
-        default=list, null=True
+        default=list, null=True, verbose_name="Release Streams"
     )
     package_details_json = JSONField(null=True)
     details_json_lastupdated = models.DateTimeField(null=True)
@@ -194,6 +199,9 @@ class Packages(models.Model):
     release_branch_mapping = JSONField(null=True)
     mapping_lastupdated = models.DateTimeField(null=True)
     transtats_lastupdated = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return self.package_name
 
     class Meta:
         db_table = TABLE_PREFIX + 'packages'

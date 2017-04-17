@@ -108,7 +108,7 @@ class TransCoverageView(ManagersMixin, TemplateView):
         return context_data
 
 
-class WorkloadEstimationView(TemplateView):
+class WorkloadEstimationView(ManagersMixin, TemplateView):
     """
     Workload Estimation View
     """
@@ -119,7 +119,9 @@ class WorkloadEstimationView(TemplateView):
         Build the Context Data
         """
         context_data = super(TemplateView, self).get_context_data(**kwargs)
+        relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
         context_data['description'] = APP_DESC
+        context_data['relbranches'] = relbranches
         return context_data
 
 
@@ -574,3 +576,16 @@ def refresh_package(request):
             if package_manager.refresh_package(post_params['package']):
                 return HttpResponse(status=200)
     return HttpResponse(status=500)
+
+
+def workload_graph(request):
+    """
+    Generates workload graph
+    """
+    graph_dataset = {}
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        if post_params.get('relbranch'):
+            graph_manager = GraphManager()
+            graph_dataset = graph_manager.get_workload_graph_data(post_params['relbranch'])
+    return JsonResponse(graph_dataset)
