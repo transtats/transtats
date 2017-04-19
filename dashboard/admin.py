@@ -130,5 +130,5 @@ class StreamBranchesAdmin(admin.ModelAdmin):
 class PackagesAdmin(admin.ModelAdmin):
     search_fields = ('package_name', )
     exclude = ('package_details_json', 'details_json_lastupdated',
-               'package_name_mapping', 'release_branch_mapping',
-               'mapping_lastupdated', 'transtats_lastupdated')
+               'package_name_mapping', 'mapping_lastupdated',
+               'transtats_lastupdated')

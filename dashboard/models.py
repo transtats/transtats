@@ -44,6 +44,7 @@ class Languages(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'locales'
+        verbose_name = "Language"
 
 
 class LanguageSet(models.Model):
@@ -70,6 +71,7 @@ class LanguageSet(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'langset'
+        verbose_name = "Language Set"
 
 
 class TransPlatform(models.Model):
@@ -96,6 +98,7 @@ class TransPlatform(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'transplatforms'
+        verbose_name = "Translation Platform"
 
 
 class ReleaseStream(models.Model):
@@ -145,6 +148,7 @@ class ReleaseStream(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'relstreams'
+        verbose_name = "Release Stream"
 
 
 class StreamBranches(models.Model):
@@ -156,7 +160,7 @@ class StreamBranches(models.Model):
     relbranch_slug = models.CharField(max_length=500, unique=True, verbose_name="Release Branch Slug")
     relstream_slug = models.CharField(max_length=400, verbose_name="Release Stream Slug")
     lang_set = models.CharField(max_length=200, verbose_name="Language Set")
-    scm_branch = models.CharField(max_length=100, null=True, verbose_name="SCM Branch Name")
+    scm_branch = models.CharField(max_length=100, null=True, blank=True, verbose_name="SCM Branch Name")
     created_on = models.DateTimeField()
     current_phase = models.CharField(max_length=200, null=True, verbose_name="Current Phase")
     calendar_url = models.URLField(max_length=500, null=True, verbose_name="Calender iCal URL")
@@ -170,6 +174,7 @@ class StreamBranches(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'relbranches'
+        verbose_name_plural = "Release Branches"
 
 
 class Packages(models.Model):
@@ -196,7 +201,7 @@ class Packages(models.Model):
     package_details_json = JSONField(null=True)
     details_json_lastupdated = models.DateTimeField(null=True)
     package_name_mapping = JSONField(null=True)
-    release_branch_mapping = JSONField(null=True)
+    release_branch_mapping = JSONField(null=True, blank=True)
     mapping_lastupdated = models.DateTimeField(null=True)
     transtats_lastupdated = models.DateTimeField(null=True)
 
@@ -205,6 +210,7 @@ class Packages(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'packages'
+        verbose_name = "Package"
 
 
 class Jobs(models.Model):

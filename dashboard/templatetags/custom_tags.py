@@ -63,3 +63,15 @@ def tag_tabular_form(package):
          'pkg_desc': stats_dict['pkg_desc']}
     )
     return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("stats", "_workload_per_lang.html")
+)
+def tag_workload_per_lang(relbranch, locale):
+    return_value = OrderedDict()
+    graph_manager = GraphManager()
+    headers, workload = graph_manager.get_workload_per_lang(relbranch, locale)
+    return_value.update(dict(headers=headers))
+    return_value.update(dict(packages=workload.items()))
+    return return_value

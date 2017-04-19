@@ -77,11 +77,21 @@ class InventoryManager(BaseManager):
             pass
         return locales
 
-    def get_locale_lang_tuple(self):
+    def get_locale_alias(self, locale):
+        """
+        Fetch alias of a locale
+        :param locale: str
+        :return: alias: str
+        """
+        locale_qset = self.get_locales(pick_locales=[locale])
+        return locale_qset.get().locale_alias if locale_qset else locale
+
+    def get_locale_lang_tuple(self, locales=None):
         """
         Creates locale
         """
-        locales = self.get_locales(only_active=True)
+        locales = self.get_locales(pick_locales=locales) \
+            if locales else self.get_locales(only_active=True)
         return tuple([(locale.locale_id, locale.lang_name)
                       for locale in locales])
 
@@ -238,7 +248,7 @@ class SyncStatsManager(BaseManager):
     Sync Translation Stats Manager
     """
 
-    def get_sync_stats(self, pkgs=None, fields=None):
+    def get_sync_stats(self, pkgs=None, fields=None, versions=None):
         """
         fetch sync translation stats from db
         :return: resultset
@@ -246,10 +256,15 @@ class SyncStatsManager(BaseManager):
         sync_stats = None
         required_params = fields if fields and isinstance(fields, (list, tuple)) \
             else ('package_name', 'project_version', 'stats_raw_json')
+        kwargs = {}
+        kwargs.update(dict(sync_visibility=True))
+        if pkgs:
+            kwargs.update(dict(package_name__in=pkgs))
+        if versions:
+            kwargs.update(dict(project_version__in=versions))
+
         try:
-            sync_stats = SyncStats.objects.only(*required_params) \
-                .filter(package_name__in=pkgs, sync_visibility=True).all() \
-                if pkgs else SyncStats.objects.only(*required_params).all()
+            sync_stats = SyncStats.objects.only(*required_params).filter(**kwargs).all()
         except:
             # log event, passing for now
             pass
@@ -319,15 +334,18 @@ class PackagesManager(InventoryManager):
 
     syncstats_manager = SyncStatsManager()
 
-    def get_packages(self, pkgs=None):
+    def get_packages(self, pkgs=None, pkg_params=None):
         """
         fetch packages from db
         """
         packages = None
+        fields = pkg_params if isinstance(pkg_params, (list, tuple)) else []
+        kwargs = {}
+        if pkgs:
+            kwargs.update(dict(package_name__in=pkgs))
         try:
-            packages = Packages.objects.filter(package_name__in=pkgs) \
-                .order_by('-transtats_lastupdated') if pkgs else \
-                Packages.objects.all().order_by('-transtats_lastupdated')
+            packages = Packages.objects.only(*fields).filter(**kwargs) \
+                .order_by('-transtats_lastupdated')
         except:
             # log event, passing for now
             pass
@@ -562,7 +580,7 @@ class PackagesManager(InventoryManager):
         if apply_branch_mapping and package_details.release_branch_mapping:
             branch_mapping = package_details.release_branch_mapping
             for relbranch, transplatform_version in branch_mapping.items():
-                trans_stats_dict[relbranch] = trans_stats_dict.get(transplatform_version)
+                trans_stats_dict[relbranch] = trans_stats_dict.get(transplatform_version, [])
         return lang_id_name, trans_stats_dict, package_desc
 
     def _get_rest_handle_and_pkg(self, package_name):
@@ -953,6 +971,22 @@ class PackageBranchMapping(object):
             return self._return_origin_version('devel')
         else:
             return ''
+
+    def branch_stats(self, release_branch):
+        """
+        Generates stats for a specific release branch
+        :param release_branch: release branch slug
+        :return: dict
+        """
+        if not release_branch:
+            return {}
+        transplatform_version = self.branch_mapping.get(release_branch)
+        pkg_stats_query_set = self.syncstats_manager.get_sync_stats(
+            pkgs=[self.package_name], versions=[transplatform_version]
+        )
+        pkg_stats_json = pkg_stats_query_set.first().stats_raw_json \
+            if pkg_stats_query_set else {}
+        return pkg_stats_json
 
     @property
     def versions(self):

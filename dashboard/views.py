@@ -86,7 +86,7 @@ class TranStatusGraphView(ManagersMixin, TemplateView):
         if packages:
             context_data['packages'] = packages
         if langs:
-            context_data['languages'] = langs
+            context_data['languages'] = sorted(langs, key=lambda x: x[1])
         return context_data
 
 
@@ -585,7 +585,18 @@ def workload_graph(request):
     graph_dataset = {}
     if request.is_ajax():
         post_params = request.POST.dict()
-        if post_params.get('relbranch'):
+        if post_params.get('relbranch') and post_params.get('lang'):
+            context = Context(
+                {'META': request.META,
+                 'relbranch': post_params['relbranch'],
+                 'locale': post_params['lang']}
+            )
+            template_string = """
+                {% load tag_workload_per_lang from custom_tags %}
+                {% tag_workload_per_lang relbranch locale %}
+            """
+            return HttpResponse(Template(template_string).render(context))
+        elif post_params.get('relbranch'):
             graph_manager = GraphManager()
             graph_dataset = graph_manager.get_workload_graph_data(post_params['relbranch'])
     return JsonResponse(graph_dataset)

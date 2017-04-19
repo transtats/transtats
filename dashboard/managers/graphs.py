@@ -16,6 +16,7 @@
 # Stats Graphs
 
 # python
+from operator import itemgetter
 from collections import OrderedDict
 
 # third-party
@@ -310,33 +311,82 @@ class GraphManager(BaseManager):
         # Reverse stats to depict how much is left
         return sorted([(i, 100 - int(j / pkgs_length)) for i, j in temp_stats_dict.items()])
 
-    def _format_data_for_pie_chart(self, consolidated_stats):
+    def _format_data_for_pie_chart(self, consolidated_stats, lang_options):
         """
         Takes consolidated stats and formats for pie chart
         """
-        formatted_data = []
+        formatted_stats = []
+        formatted_langs = []
         for lang, stat in consolidated_stats:
-            formatted_data.append({'label': lang, 'data': stat})
-        return {'graph_data': formatted_data}
+            formatted_stats.append({'label': lang, 'data': stat})
+        for locale, language in lang_options:
+            formatted_langs.append({'value': locale, 'text': language})
+        return {'graph_data': formatted_stats,
+                'select_options': sorted(formatted_langs, key=itemgetter('text'))}
+
+    def _get_branch_specific_pkgs_stats(self, relbranch):
+        """
+        Generates translation stats of all packages in all langs of attached lang-set
+        """
+        specific_pkgs = [package.package_name for package in
+                         self.package_manager.get_relbranch_specific_pkgs(relbranch, ['package_name'])]
+        all_pkgs_stats_dict = OrderedDict()
+        for pkg in specific_pkgs:
+            pkg_lang_stats = []
+            locale_seq, trans_stats_dict, pkg_desc = \
+                self.package_manager.get_trans_stats(pkg, apply_branch_mapping=True, specify_branch=relbranch)
+            t_stats = self._format_stats_for_default_graphs(locale_seq, trans_stats_dict, pkg_desc)
+            branch_stats = t_stats.get('graph_data').get(relbranch)
+            langs = t_stats.get('ticks')
+            if branch_stats and langs:
+                pkg_lang_stats.extend(list(zip([lang[1] for lang in langs], [stat[1] for stat in branch_stats])))
+            all_pkgs_stats_dict[pkg] = pkg_lang_stats
+        return all_pkgs_stats_dict
 
     def get_workload_graph_data(self, release_branch):
         """
         Build or generates workload graph data
         """
-        package_manager = PackagesManager()
-        specific_pkgs = [package.package_name for package in
-                         package_manager.get_relbranch_specific_pkgs(release_branch, ['package_name'])]
-        all_pkgs_stats_dict = OrderedDict()
-        for pkg in specific_pkgs:
-            pkg_lang_stats = []
-            locale_seq, trans_stats_dict, pkg_desc = \
-                package_manager.get_trans_stats(pkg, apply_branch_mapping=True, specify_branch=release_branch)
-            t_stats = self._format_stats_for_default_graphs(locale_seq, trans_stats_dict, pkg_desc)
-            branch_stats = t_stats.get('graph_data').get(release_branch)
-            langs = t_stats.get('ticks')
-            if branch_stats and langs:
-                pkg_lang_stats.extend(list(zip([lang[1] for lang in langs], [stat[1] for stat in branch_stats])))
-            all_pkgs_stats_dict[pkg] = pkg_lang_stats
+        consolidated_stats = self._consolidate_branch_specific_stats(
+            self._get_branch_specific_pkgs_stats(release_branch)
+        )
+        # get branch specific languages for select option
+        locale_lang_tuple = self.package_manager.get_locale_lang_tuple(
+            locales=self.package_manager.get_relbranch_locales(release_branch)
+        )
+        return self._format_data_for_pie_chart(consolidated_stats, locale_lang_tuple)
 
-        consolidated_stats = self._consolidate_branch_specific_stats(all_pkgs_stats_dict)
-        return self._format_data_for_pie_chart(consolidated_stats)
+    def get_workload_per_lang(self, release_branch, locale):
+        """
+        Build list of packages with translation workload for a given branch in a specific language
+        """
+        relbranch_pkgs_stats_dict = self._get_branch_specific_pkgs_stats(release_branch)
+        relbranch_pkgs = list(relbranch_pkgs_stats_dict.keys())
+
+        locale_alias = self.package_manager.get_locale_alias(locale)
+        required_stats = OrderedDict()
+
+        HEADERS = ('Total', 'Translated', 'Untranslated', 'Remaining')
+
+        for package in relbranch_pkgs:
+            pkg_branch_stats = PackageBranchMapping(package).branch_stats(release_branch)
+            for stat in pkg_branch_stats.get('stats', []):
+                locale_found = stat.get('locale')
+                if (locale_found in locale or locale_found in locale_alias or
+                        locale_found.replace('-', '_') in locale or
+                        locale_found.replace('-', '_') in locale_alias):
+                    temp_stat_field = OrderedDict()
+                    temp_stat_field['Total'] = stat.get('total', 0)
+                    temp_stat_field['Translated'] = stat.get('translated', 0)
+                    temp_stat_field['Untranslated'] = stat.get('untranslated', 0)
+                    remaining = 0
+                    try:
+                        remaining = (stat.get('untranslated') / stat.get('total')) * 100
+                    except ZeroDivisionError:
+                        # log error, pass for now
+                        pass
+                    temp_stat_field['Remaining'] = remaining
+                    required_stats[package] = temp_stat_field
+        return HEADERS, OrderedDict(sorted(
+            required_stats.items(), key=lambda x: x[1]['Remaining'], reverse=True
+        ))

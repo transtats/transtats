@@ -1,4 +1,5 @@
-##### Thu Apr 13 2017 Sundeep Anand <suanand@redhat.com>
+##### Fri Apr 21 2017 Sundeep Anand <suanand@redhat.com>
+* translation workload estimation per release branch
 * add tabular view to translation status
 * split package-refresh into sync and map branches
 * add language-wise status graph for a package
