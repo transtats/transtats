@@ -27,7 +27,7 @@ from dashboard.views import (
     LogsSettingsView, NewPackageView, StreamBranchesSettingsView,
     NewReleaseBranchView, TransCoverageView, GraphRulesSettingsView,
     NewGraphRuleView, WorkloadEstimationView, PackageConfigView,
-    schedule_job, graph_data, tabular_data, refresh_package
+    schedule_job, graph_data, tabular_data, refresh_package, workload_graph
 )
 
 
@@ -40,6 +40,7 @@ ajax_urls = [
     url(r'^graph-data$', graph_data, name="ajax-graph-data"),
     url(r'^tabular-data$', tabular_data, name="ajax-tabular-data"),
     url(r'^refresh-package$', refresh_package, name="ajax-refresh-package"),
+    url(r'^workload-graph$', workload_graph, name="ajax-workload-graph"),
 ]
 
 app_setting_urls = [
@@ -72,6 +73,6 @@ urlpatterns = [
     url(r'^$', TranStatusTextView.as_view(), name="home"),
     url(r'^trans-status$', TranStatusGraphView.as_view(), name="graph-view"),
     url(r'^trans-coverage$', TransCoverageView.as_view(), name="custom-graph"),
-    url(r'^estimate-workload$', WorkloadEstimationView.as_view(), name="workload"),
+    url(r'^trans-workload$', WorkloadEstimationView.as_view(), name="workload"),
     url(r'^how-to$', TemplateView.as_view(template_name="howto.html"), name="howto"),
 ]

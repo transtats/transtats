@@ -86,7 +86,7 @@ class TranStatusGraphView(ManagersMixin, TemplateView):
         if packages:
             context_data['packages'] = packages
         if langs:
-            context_data['languages'] = langs
+            context_data['languages'] = sorted(langs, key=lambda x: x[1])
         return context_data
 
 
@@ -108,7 +108,7 @@ class TransCoverageView(ManagersMixin, TemplateView):
         return context_data
 
 
-class WorkloadEstimationView(TemplateView):
+class WorkloadEstimationView(ManagersMixin, TemplateView):
     """
     Workload Estimation View
     """
@@ -119,7 +119,9 @@ class WorkloadEstimationView(TemplateView):
         Build the Context Data
         """
         context_data = super(TemplateView, self).get_context_data(**kwargs)
+        relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
         context_data['description'] = APP_DESC
+        context_data['relbranches'] = relbranches
         return context_data
 
 
@@ -574,3 +576,27 @@ def refresh_package(request):
             if package_manager.refresh_package(post_params['package']):
                 return HttpResponse(status=200)
     return HttpResponse(status=500)
+
+
+def workload_graph(request):
+    """
+    Generates workload graph
+    """
+    graph_dataset = {}
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        if post_params.get('relbranch') and post_params.get('lang'):
+            context = Context(
+                {'META': request.META,
+                 'relbranch': post_params['relbranch'],
+                 'locale': post_params['lang']}
+            )
+            template_string = """
+                {% load tag_workload_per_lang from custom_tags %}
+                {% tag_workload_per_lang relbranch locale %}
+            """
+            return HttpResponse(Template(template_string).render(context))
+        elif post_params.get('relbranch'):
+            graph_manager = GraphManager()
+            graph_dataset = graph_manager.get_workload_graph_data(post_params['relbranch'])
+    return JsonResponse(graph_dataset)

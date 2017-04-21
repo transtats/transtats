@@ -17,6 +17,7 @@
 APP_DESC = "overview and trends for language translations across packages"
 
 # Supported translation platforms
+# (transifex support looks outdated, todo - check and update code)
 TRANSPLATFORM_ENGINES = ('transifex', 'zanata')
 TRANSIFEX_SLUGS = ('TNFXPUB', )
 ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTADEV')

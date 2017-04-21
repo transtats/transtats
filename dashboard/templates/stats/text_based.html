@@ -2,6 +2,7 @@
 
 {% block extrascript %}
 <script src="/static/js/csrf.js"></script>
+<script src="/static/js/waiting.dialog.js"></script>
 <style type="text/css">
     .table-area {
         width:100%;
@@ -10,7 +11,7 @@
     }
 </style>
 <script type="text/javascript">
-    function csrfSafeMethod(a){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(a)}$(document).ready(function(){$("#tab-translation-status").addClass("active"),$("#tab-view-tabular").addClass("active"),$("#packageName").change(function(a){var b=$(this).val();return $.ajax({beforeSend:function(a,b){csrfSafeMethod(b.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#refreshProgress").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"{% url 'ajax-tabular-data' %}",data:{package:b},success:function(a){$("#refreshProgress").html(""),$("#tablearea").html(a)}}),!1})});
+function csrfSafeMethod(a){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(a)}$(document).ready(function(){$("#tab-translation-status").addClass("active"),$("#tab-view-tabular").addClass("active"),$("#packageName").change(function(a){var b=$(this).val();return $.ajax({beforeSend:function(a,b){csrfSafeMethod(b.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitingDialog.show()},type:"POST",url:"{% url 'ajax-tabular-data' %}",data:{package:b},success:function(a){waitingDialog.hide(),$("#tablearea").html(a)}}),!1})});
 </script>
 {% endblock %}
 
@@ -24,7 +25,7 @@
                     {% for package_name, upstream_name in packages %}
                         <option>{{ package_name }}</option>
                     {% endfor %}
-                </select>&nbsp;<span id="refreshProgress"></span>
+                </select>
                 {% else %}
                     <br/><p>No package configured. Add <a href="{% url 'settings-packages-new' %}">one</a> now.</p>
                 {% endif %}
