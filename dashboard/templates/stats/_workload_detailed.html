@@ -1,0 +1,30 @@
+<table class="table table-bordered table-hover">
+    <thead>
+      <tr>
+        <th>&nbsp;</th>
+        {% for header in headers %}
+            <th>{{ header }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for package in packages %}
+      <tr>
+        <td width="15%">{{ package.0 }}</td>
+        {% for stat in package.1 %}
+            <td>
+                {% if stat > 80 %}
+                    <span class="text-danger">{{ stat|floatformat }}%</span>
+                {% elif stat > 50 %}
+                    <span class="text-warning">{{ stat|floatformat }}%</span>
+                {% elif stat > 0 %}
+                    <span class="text-primary">{{ stat|floatformat }}%</span>
+                {% else %}
+                    <span class="text-muted">{{ stat|floatformat }}%</span>
+                {% endif %}
+            </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+</table>

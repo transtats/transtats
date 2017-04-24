@@ -1,4 +1,6 @@
-##### Fri Apr 21 2017 Sundeep Anand <suanand@redhat.com>
+##### Wed Apr 26 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.1
+* add combined lang view to translation workload
+* add detailed stats view to workload estimation
 * translation workload estimation per release branch
 * add tabular view to translation status
 * split package-refresh into sync and map branches
@@ -21,17 +23,12 @@
 
 ##### Thu Sept 15 2016 Sundeep Anand <suanand@redhat.com> - Prototype
 * add Transifex support - transplatform API configs
-* add feature: fetch translation stats with add package
 * enable displaying some charts based on sync'd data
 * add logs settings page, add package transplatform validation
 * enable transplatform projects and stats sync (zanata)
 * add django-crispy-forms and enable add packages
-* add breadcrumb and streamline ui
 * moved to Apache Licence Version 2.0
-* add packages setting page and fix ui
-* add languages, transplatform, relstreams settings pages (read-only)
+* add languages, transplatform, relstreams settings pages
 * rename project to transtats, fix ui and migrate to PostgreSQL
 * add features page, zanata api, view, manager and model
-* link travis and readmedocs
-* project restructure: settings, requires, docs
-* initial structure with django
+* initial structure with django: settings, requires, docs

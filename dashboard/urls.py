@@ -26,8 +26,9 @@ from dashboard.views import (
     ReleaseStreamSettingsView, PackageSettingsView,
     LogsSettingsView, NewPackageView, StreamBranchesSettingsView,
     NewReleaseBranchView, TransCoverageView, GraphRulesSettingsView,
-    NewGraphRuleView, WorkloadEstimationView, PackageConfigView,
-    schedule_job, graph_data, tabular_data, refresh_package, workload_graph
+    NewGraphRuleView, PackageConfigView, refresh_package, workload_graph,
+    WorkloadEstimationView, WorkloadDetailedView, WorkloadCombinedView,
+    schedule_job, graph_data, tabular_data
 )
 
 
@@ -73,6 +74,8 @@ urlpatterns = [
     url(r'^$', TranStatusTextView.as_view(), name="home"),
     url(r'^trans-status$', TranStatusGraphView.as_view(), name="graph-view"),
     url(r'^trans-coverage$', TransCoverageView.as_view(), name="custom-graph"),
+    url(r'^trans-workload-combined$', WorkloadCombinedView.as_view(), name="workload-combined"),
     url(r'^trans-workload$', WorkloadEstimationView.as_view(), name="workload"),
+    url(r'^trans-workload-detailed$', WorkloadDetailedView.as_view(), name="workload-detailed"),
     url(r'^how-to$', TemplateView.as_view(template_name="howto.html"), name="howto"),
 ]
