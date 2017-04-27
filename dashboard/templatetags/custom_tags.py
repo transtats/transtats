@@ -66,12 +66,38 @@ def tag_tabular_form(package):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_workload_per_lang.html")
+    os.path.join("stats", "_workload_combined.html")
 )
-def tag_workload_per_lang(relbranch, locale):
+def tag_workload_per_lang(relbranch, lang_id):
     return_value = OrderedDict()
     graph_manager = GraphManager()
-    headers, workload = graph_manager.get_workload_per_lang(relbranch, locale)
+    headers, workload = \
+        graph_manager.get_workload_estimate(relbranch,
+                                            locale=lang_id)
+    return_value.update(dict(headers=headers))
+    return_value.update(dict(packages=workload.items()))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("stats", "_workload_combined.html")
+)
+def tag_workload_combined(relbranch):
+    return_value = OrderedDict()
+    graph_manager = GraphManager()
+    headers, workload = graph_manager.get_workload_combined(relbranch)
+    return_value.update(dict(headers=headers))
+    return_value.update(dict(packages=workload.items()))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("stats", "_workload_detailed.html")
+)
+def tag_workload_detailed(relbranch):
+    return_value = OrderedDict()
+    graph_manager = GraphManager()
+    headers, workload = graph_manager.get_workload_detailed(relbranch)
     return_value.update(dict(headers=headers))
     return_value.update(dict(packages=workload.items()))
     return return_value

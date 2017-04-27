@@ -112,17 +112,41 @@ class WorkloadEstimationView(ManagersMixin, TemplateView):
     """
     Workload Estimation View
     """
-    template_name = "stats/workload.html"
+    template_name = "stats/workload_lang_wise.html"
 
     def get_context_data(self, **kwargs):
         """
         Build the Context Data
         """
-        context_data = super(TemplateView, self).get_context_data(**kwargs)
+        context_data = super(WorkloadEstimationView, self).get_context_data(**kwargs)
         relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
         context_data['description'] = APP_DESC
         context_data['relbranches'] = relbranches
         return context_data
+
+
+class WorkloadCombinedView(ManagersMixin, TemplateView):
+    """
+    All languages combined workload estimation view
+    """
+    template_name = "stats/workload_combined.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        """
+        context_data = super(WorkloadCombinedView, self).get_context_data(**kwargs)
+        relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
+        context_data['description'] = APP_DESC
+        context_data['relbranches'] = relbranches
+        return context_data
+
+
+class WorkloadDetailedView(WorkloadCombinedView):
+    """
+    Detailed Workload Estimation View
+    """
+    template_name = "stats/workload_detailed.html"
 
 
 class AppSettingsView(ManagersMixin, TemplateView):
@@ -594,6 +618,26 @@ def workload_graph(request):
             template_string = """
                 {% load tag_workload_per_lang from custom_tags %}
                 {% tag_workload_per_lang relbranch locale %}
+            """
+            return HttpResponse(Template(template_string).render(context))
+        elif post_params.get('relbranch') and post_params.get('combine'):
+            context = Context(
+                {'META': request.META,
+                 'relbranch': post_params['relbranch']}
+            )
+            template_string = """
+                {% load tag_workload_combined from custom_tags %}
+                {% tag_workload_combined relbranch %}
+            """
+            return HttpResponse(Template(template_string).render(context))
+        elif post_params.get('relbranch') and post_params.get('detail'):
+            context = Context(
+                {'META': request.META,
+                 'relbranch': post_params['relbranch']}
+            )
+            template_string = """
+                {% load tag_workload_detailed from custom_tags %}
+                {% tag_workload_detailed relbranch %}
             """
             return HttpResponse(Template(template_string).render(context))
         elif post_params.get('relbranch'):

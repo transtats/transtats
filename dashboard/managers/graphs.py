@@ -356,37 +356,98 @@ class GraphManager(BaseManager):
         )
         return self._format_data_for_pie_chart(consolidated_stats, locale_lang_tuple)
 
-    def get_workload_per_lang(self, release_branch, locale):
+    def _process_workload_combined_view(self, packages, stats_dict, fields):
         """
-        Build list of packages with translation workload for a given branch in a specific language
+        Process packages stats to sum-up all locales and find avg
         """
-        relbranch_pkgs_stats_dict = self._get_branch_specific_pkgs_stats(release_branch)
-        relbranch_pkgs = list(relbranch_pkgs_stats_dict.keys())
+        stats_summary_dict = OrderedDict()
+        fields_dict = OrderedDict([(field, 0) for field in fields])
+        [stats_summary_dict.update({package: fields_dict.copy()}) for package in packages]
+        if not isinstance(stats_dict, dict):
+            return {}
+        forloop_counter = 0
+        for __, stat_dict in stats_dict.items():
+            forloop_counter += 1
+            for pkg, detail_stat in stat_dict.items():
+                for field in fields:
+                    stats_summary_dict[pkg][field] += detail_stat.get(field, 0)
+        for package, detail_stats_dict in stats_summary_dict.items():
+            try:
+                stats_summary_dict[package][fields[3]] = \
+                    (detail_stats_dict.get('Untranslated', 0) /
+                     detail_stats_dict.get('Total', 0) * 100)
+            except ZeroDivisionError:
+                # log error, pass for now
+                pass
+        return stats_summary_dict
 
-        locale_alias = self.package_manager.get_locale_alias(locale)
+    def get_workload_estimate(self, release_branch, locale=None):
+        """
+        Build list of packages with translation workload for a given branch
+        """
+        specific_locale_present = True if locale else False
+        relbranch_pkgs_stats_dict = self._get_branch_specific_pkgs_stats(release_branch)
+        relbranch_pkgs = sorted(list(relbranch_pkgs_stats_dict.keys()))
+
+        locales = self.package_manager.get_relbranch_locales(release_branch) \
+            if not specific_locale_present else [locale]
         required_stats = OrderedDict()
 
         HEADERS = ('Total', 'Translated', 'Untranslated', 'Remaining')
 
-        for package in relbranch_pkgs:
-            pkg_branch_stats = PackageBranchMapping(package).branch_stats(release_branch)
-            for stat in pkg_branch_stats.get('stats', []):
-                locale_found = stat.get('locale')
-                if (locale_found in locale or locale_found in locale_alias or
-                        locale_found.replace('-', '_') in locale or
-                        locale_found.replace('-', '_') in locale_alias):
-                    temp_stat_field = OrderedDict()
-                    temp_stat_field['Total'] = stat.get('total', 0)
-                    temp_stat_field['Translated'] = stat.get('translated', 0)
-                    temp_stat_field['Untranslated'] = stat.get('untranslated', 0)
-                    remaining = 0
-                    try:
-                        remaining = (stat.get('untranslated') / stat.get('total')) * 100
-                    except ZeroDivisionError:
-                        # log error, pass for now
-                        pass
-                    temp_stat_field['Remaining'] = remaining
-                    required_stats[package] = temp_stat_field
+        for locale in locales:
+            required_stats[locale] = OrderedDict()
+            locale_alias = self.package_manager.get_locale_alias(locale)
+            for package in relbranch_pkgs:
+                pkg_branch_stats = PackageBranchMapping(package).branch_stats(release_branch)
+                for stat in pkg_branch_stats.get('stats', []):
+                    locale_found = stat.get('locale')
+                    if (locale_found in locale or locale_found in locale_alias or
+                            locale_found.replace('-', '_') in locale or
+                            locale_found.replace('-', '_') in locale_alias):
+                        temp_stat_field = OrderedDict()
+                        temp_stat_field['Total'] = stat.get('total', 0)
+                        temp_stat_field['Translated'] = stat.get('translated', 0)
+                        temp_stat_field['Untranslated'] = stat.get('untranslated', 0)
+                        remaining = 0
+                        try:
+                            remaining = (stat.get('untranslated') / stat.get('total')) * 100
+                        except ZeroDivisionError:
+                            # log error, pass for now
+                            pass
+                        temp_stat_field['Remaining'] = remaining
+                        required_stats[locale][package] = temp_stat_field
+
+        required_stats_dict = required_stats.get(locale, {}) \
+            if specific_locale_present else \
+            self._process_workload_combined_view(relbranch_pkgs, required_stats, HEADERS)
         return HEADERS, OrderedDict(sorted(
-            required_stats.items(), key=lambda x: x[1]['Remaining'], reverse=True
+            required_stats_dict.items(), key=lambda x: x[1]['Remaining'], reverse=True
         ))
+
+    def get_workload_combined(self, release_branch):
+        """
+        Build list of packages with translation workload for a given branch in all languages
+        """
+        return self.get_workload_estimate(release_branch)
+
+    def get_workload_detailed(self, release_branch):
+        """
+        Build list of packages with translation workload for a given branch in all languages
+        """
+        relbranch_packages_stats = self._get_branch_specific_pkgs_stats(release_branch)
+        locale_lang_tuple = self.package_manager.get_locale_lang_tuple(
+            locales=self.package_manager.get_relbranch_locales(release_branch)
+        )
+        headers = sorted([lang for locale, lang in locale_lang_tuple])
+        # Format data to fill table
+        workload_combined = OrderedDict()
+        for package, lang_stats in relbranch_packages_stats.items():
+            temp_stat_list = []
+            for lang_stat_tuple in lang_stats:
+                temp_stat_list.insert(headers.index(lang_stat_tuple[0]), 100 - lang_stat_tuple[1])
+            # flag incorrect branch mapping
+            if len([i for i in temp_stat_list if i == 100]) == len(temp_stat_list):
+                package += "*"
+            workload_combined[package] = temp_stat_list
+        return headers, OrderedDict(sorted(workload_combined.items()))
