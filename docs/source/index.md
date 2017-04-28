@@ -20,6 +20,8 @@ To be a catalyst in *localisation of applications* by creating mapping between u
 
 2. **Translation Coverage** Coverage of a package list for a specific release in associated or selected languages.
 
+3. **Translation Workload** Translation workload estimation for a release branch across packages.
+
 ##### Settings
 
 1. **Inventory** Languages & their sets, translation platforms and release streams with their branches are grouped as inventory. Plus upstream.
@@ -68,14 +70,16 @@ make run
 
 As the project evolves, a roadmap will be published for each major release. Comments, suggestions, and requests to the current roadmap are welcome. Our goal in publishing a roadmap is transparency and community inclusion. A roadmap is the team's best guess based on experience, community requests, and feedback.
 
-#### Transtats 0.1.0
+#### Transtats 0.1.1
 
-We are currently working on `0.1.0` release.
+We are currently working on `0.1.1` release.
 
-Target delivery: Mid March 2017
+Target delivery: End of April 2017
 
-* Enable admin to manage inventory
-* Bring release branches into custom graphs
+* Package translation status per language
+* Split Package Sync and Branch Mapping
+* Tabular View to Translation Status
+* Workload estimation for releases
 
 
 ### License

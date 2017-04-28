@@ -9,6 +9,10 @@ clean-pyc:
 devel:
 	pip install -r requirements/dev.txt
 
+.PHONY: docs
+docs:
+	cd docs; make html
+
 .PHONY: demo
 demo:
 	python manage.py runserver 0:8015 --settings=transtats.settings.test --insecure

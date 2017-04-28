@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 
 {% block pagebanner %}
-    <div class="page-header">
+    <div style="padding-left:20px">
       <h1>About <small>{{ description }}</small></h1>
     </div>
 {% endblock %}
 
 {% block pagecontent %}
     <ul class="nav nav-tabs nav-justified">
-      <li id="tab-translation-position" role="presentation">
+      <li id="tab-translation-status" role="presentation">
           <a href="{% url 'home' %}">Translation Status</a>
       </li>
       <li id="tab-translation-coverage" role="presentation">
           <a href="{% url 'custom-graph' %}">Translation Coverage</a>
       </li>
-      <li id="tab-compare-downstream" role="presentation" style="pointer-events:none;opacity:0.6;">
-          <a href="{% url 'downstream' %}">Compare with Downstream</a>
+      <li id="tab-translation-workload" role="presentation">
+          <a href="{% url 'workload-combined' %}">Translation Workload</a>
       </li>
     </ul>
     {% block tabcontent %}{% endblock %}

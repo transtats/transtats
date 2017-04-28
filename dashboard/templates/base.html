@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 {% with "Transtats" as app_name %}
-{% with "0.1.0" as app_version %}
+{% with "0.1.1" as app_version %}
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -37,6 +37,12 @@
         right: 0;
         border: 0;
         z-index: 9999;
+      }
+      .modal-open {
+        position: fixed;
+        overflow: scroll;
+        width: 100%;
+        padding-right: 0!important;
       }
     </style>
 
@@ -76,20 +82,23 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-right">
-                <li><a href="{% url 'howto' %}">How to use {{ app_name }}</a></li>
-                <li><a href="{% url 'settings' %}">Inventory and Configuration</a></li>
-                <li><a href="http://docs.transtats.org/" target="_blank">Docs</a></li>
+                <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>
                 {% if user.is_authenticated and user.is_superuser %}
-                  <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                  <li><a href="{% url 'admin:index' %}">Admin Console</a></li>
+                {% else %}
+                  <li><a href="{% url 'admin:index' %}">Admin Login</a></li>
                 {% endif %}
-               </ul>
+                <li><a href="{% url 'settings' %}">Inventory and Configuration</a></li>
+                <li><a href="{% url 'howto' %}">How to use {{ app_name }}</a></li>
+                <li><a href="http://docs.transtats.org/" target="_blank">Docs</a></li>
+              </ul>
             </div><!--/.navbar-collapse -->
           </div>
         </nav>
     {% endblock %}
 
     <div class="container content-area">
-        <div class="well well-lg">
+        <div class="well well-sm">
           {% block pagebanner %}{% endblock %}
         </div>
         <div class="col-xs-12">

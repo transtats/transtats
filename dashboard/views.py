@@ -20,6 +20,7 @@ from django.http import (
     HttpResponse, HttpResponseRedirect, JsonResponse, Http404
 )
 from django.shortcuts import render
+from django.template import Context, Template
 from django.views.generic import (
     TemplateView, ListView, FormView
 )
@@ -50,11 +51,11 @@ class ManagersMixin(object):
     graph_manager = GraphManager()
 
 
-class HomeTemplateView(ManagersMixin, TemplateView):
+class TranStatusTextView(ManagersMixin, TemplateView):
     """
-    Translation Status View
+    Translation Status Text View
     """
-    template_name = "stats/index.html"
+    template_name = "stats/text_based.html"
 
     def get_context_data(self, **kwargs):
         """
@@ -65,6 +66,27 @@ class HomeTemplateView(ManagersMixin, TemplateView):
         packages = self.packages_manager.get_package_name_tuple()
         if packages:
             context_data['packages'] = packages
+        return context_data
+
+
+class TranStatusGraphView(ManagersMixin, TemplateView):
+    """
+    Translation Status Graph View
+    """
+    template_name = "stats/graph_based.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        """
+        context_data = super(TemplateView, self).get_context_data(**kwargs)
+        context_data['description'] = APP_DESC
+        packages = self.packages_manager.get_package_name_tuple()
+        langs = self.inventory_manager.get_locale_lang_tuple()
+        if packages:
+            context_data['packages'] = packages
+        if langs:
+            context_data['languages'] = sorted(langs, key=lambda x: x[1])
         return context_data
 
 
@@ -86,19 +108,45 @@ class TransCoverageView(ManagersMixin, TemplateView):
         return context_data
 
 
-class CompareDownstreamView(TemplateView):
+class WorkloadEstimationView(ManagersMixin, TemplateView):
     """
-    Compare with Downstream View
+    Workload Estimation View
     """
-    template_name = "stats/downstream.html"
+    template_name = "stats/workload_lang_wise.html"
 
     def get_context_data(self, **kwargs):
         """
         Build the Context Data
         """
-        context_data = super(TemplateView, self).get_context_data(**kwargs)
+        context_data = super(WorkloadEstimationView, self).get_context_data(**kwargs)
+        relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
         context_data['description'] = APP_DESC
+        context_data['relbranches'] = relbranches
         return context_data
+
+
+class WorkloadCombinedView(ManagersMixin, TemplateView):
+    """
+    All languages combined workload estimation view
+    """
+    template_name = "stats/workload_combined.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        """
+        context_data = super(WorkloadCombinedView, self).get_context_data(**kwargs)
+        relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
+        context_data['description'] = APP_DESC
+        context_data['relbranches'] = relbranches
+        return context_data
+
+
+class WorkloadDetailedView(WorkloadCombinedView):
+    """
+    Detailed Workload Estimation View
+    """
+    template_name = "stats/workload_detailed.html"
 
 
 class AppSettingsView(ManagersMixin, TemplateView):
@@ -437,14 +485,14 @@ class NewGraphRuleView(ManagersMixin, FormView):
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
 
-class BranchMappingView(ManagersMixin, TemplateView):
+class PackageConfigView(ManagersMixin, TemplateView):
     """
-    Package Branch Mapping View
+    Package Configuration View
     """
     template_name = "settings/package_config.html"
 
     def get_context_data(self, **kwargs):
-        context = super(BranchMappingView, self).get_context_data(**kwargs)
+        context = super(PackageConfigView, self).get_context_data(**kwargs)
         queried_package_name = kwargs['package_name'] \
             if 'package_name' in kwargs and kwargs.get('package_name') else ''
         if queried_package_name:
@@ -457,9 +505,8 @@ class BranchMappingView(ManagersMixin, TemplateView):
                 pkg_details = package_details.package_details_json
                 if pkg_details and pkg_details.get('description'):
                     context['package_details'] = pkg_details['description']
+                context['last_sync'] = package_details.transtats_lastupdated
                 context['name_mapping'] = package_details.package_name_mapping
-                context['branch_mapping'] = package_details.release_branch_mapping
-                context['mapping_lastupdated'] = package_details.mapping_lastupdated
         return context
 
 
@@ -492,6 +539,25 @@ def schedule_job(request):
     return HttpResponse(message)
 
 
+def tabular_data(request):
+    """
+    Prepares and dispatch tabular data
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        if 'package' in request.POST.dict():
+            context = Context(
+                {'META': request.META,
+                 'package_name': post_params['package']}
+            )
+            template_string = """
+                {% load tag_tabular_form from custom_tags %}
+                {% tag_tabular_form package_name %}
+            """
+            return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)
+
+
 def graph_data(request):
     """
     Prepares and dispatch graph data
@@ -499,10 +565,14 @@ def graph_data(request):
     graph_dataset = {}
     if request.is_ajax():
         graph_manager = GraphManager()
-        if 'package' in request.POST.dict():
+        if 'package' in request.POST.dict() and 'locale' in request.POST.dict():
+            package = request.POST.dict().get('package')
+            locale = request.POST.dict().get('locale')
+            graph_dataset = graph_manager.get_stats_by_pkg_per_lang(package, locale)
+        elif 'package' in request.POST.dict():
             package = request.POST.dict().get('package')
             graph_dataset = graph_manager.get_trans_stats_by_package(package)
-        if 'graph_rule' in request.POST.dict():
+        elif 'graph_rule' in request.POST.dict():
             graph_rule = request.POST.dict().get('graph_rule')
             graph_dataset = graph_manager.get_trans_stats_by_rule(graph_rule)
     return JsonResponse(graph_dataset)
@@ -510,12 +580,67 @@ def graph_data(request):
 
 def refresh_package(request):
     """
-    Package sync and re-buid mappings
+    Package sync and re-build mappings
     """
     if request.is_ajax():
         post_params = request.POST.dict()
-        if 'package' in post_params and post_params.get('package'):
-            package_manager = PackagesManager()
+        package_manager = PackagesManager()
+        if post_params.get('task') == "mapBranches" and post_params.get('package'):
+            if package_manager.build_branch_mapping(post_params['package']):
+                context = Context(
+                    {'META': request.META,
+                     'package_name': post_params['package']}
+                )
+                template_string = """
+                    {% load tag_branch_mapping from custom_tags %}
+                    {% tag_branch_mapping package_name %}
+                """
+                return HttpResponse(Template(template_string).render(context))
+        elif post_params.get('task') == "syncPkg" and post_params.get('package'):
             if package_manager.refresh_package(post_params['package']):
                 return HttpResponse(status=200)
     return HttpResponse(status=500)
+
+
+def workload_graph(request):
+    """
+    Generates workload graph
+    """
+    graph_dataset = {}
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        if post_params.get('relbranch') and post_params.get('lang'):
+            context = Context(
+                {'META': request.META,
+                 'relbranch': post_params['relbranch'],
+                 'locale': post_params['lang']}
+            )
+            template_string = """
+                {% load tag_workload_per_lang from custom_tags %}
+                {% tag_workload_per_lang relbranch locale %}
+            """
+            return HttpResponse(Template(template_string).render(context))
+        elif post_params.get('relbranch') and post_params.get('combine'):
+            context = Context(
+                {'META': request.META,
+                 'relbranch': post_params['relbranch']}
+            )
+            template_string = """
+                {% load tag_workload_combined from custom_tags %}
+                {% tag_workload_combined relbranch %}
+            """
+            return HttpResponse(Template(template_string).render(context))
+        elif post_params.get('relbranch') and post_params.get('detail'):
+            context = Context(
+                {'META': request.META,
+                 'relbranch': post_params['relbranch']}
+            )
+            template_string = """
+                {% load tag_workload_detailed from custom_tags %}
+                {% tag_workload_detailed relbranch %}
+            """
+            return HttpResponse(Template(template_string).render(context))
+        elif post_params.get('relbranch'):
+            graph_manager = GraphManager()
+            graph_dataset = graph_manager.get_workload_graph_data(post_params['relbranch'])
+    return JsonResponse(graph_dataset)

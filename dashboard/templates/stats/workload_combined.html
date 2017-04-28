@@ -1,0 +1,36 @@
+{% extends "stats/trans_workload.html" %}
+
+{% block extrascript %}
+<script src="/static/js/waiting.dialog.js"></script>
+<script src="/static/js/csrf.js"></script>
+<style type="text/css">
+    .table-area {
+        width:100%;
+        min-height:400px;
+    }
+</style>
+<script type="text/javascript">
+function csrfSafeMethod(a){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(a)}$(document).ready(function(){$("#tab-translation-workload").addClass("active"),$("#tab-view-combined").addClass("active"),$("#relBranch").change(function(a){var b=$(this).val();$.ajax({beforeSend:function(a,b){csrfSafeMethod(b.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitingDialog.show()},type:"POST",url:"{% url 'ajax-workload-graph' %}",data:{relbranch:b,combine:!0},success:function(a){waitingDialog.hide(),$("#localegraph").html(a),$("#graphdisclaimer").html("<span class='pull-right text-muted'>Percentage is calculated on messages. Accuracy largely depends upon branch mapping.")}})})});
+</script>
+{% endblock %}
+
+{% block viewcontent %}
+    <div style="padding:20px">
+        <div class="row" style="padding-bottom:20px">
+            <div class="col-xs-12">
+                {% if relbranches %}
+                <select id="relBranch" class="selectpicker" data-live-search="true">
+                    <option selected disabled>Select Release Branch</option>
+                    {% for relbranch in relbranches %}
+                        <option value="{{ relbranch.0 }}">{{ relbranch.1 }}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                    <br/><p>No release-branch added. Add <a href="{% url 'settings-release-streams' %}">one</a> now.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div id="localegraph" class="panel panel-info table-area table-responsive"></div>
+        <p id="graphdisclaimer"></p>
+    </div>
+{% endblock %}

@@ -24,7 +24,8 @@ from dashboard.constants import (
     TRANSIFEX_SLUGS, ZANATA_SLUGS,
 )
 from dashboard.models import (
-    Languages, LanguageSet, TransPlatform, ReleaseStream
+    Languages, LanguageSet, TransPlatform, ReleaseStream,
+    StreamBranches, Packages
 )
 from dashboard.managers.inventory import InventoryManager
 
@@ -76,6 +77,24 @@ class LanguageSetAdminForm(forms.ModelForm):
     )
 
 
+class StreamBranchesAdminForm(forms.ModelForm):
+
+    lang_set_choices = ()
+
+    def __init__(self, *args, **kwargs):
+        inventory_manager = InventoryManager()
+        lang_sets = inventory_manager.get_langsets(['lang_set_slug', 'lang_set_name'])
+        self.lang_set_choices = tuple([(lang_set.lang_set_slug, lang_set.lang_set_name)
+                                       for lang_set in lang_sets])
+        super(StreamBranchesAdminForm, self).__init__(*args, **kwargs)
+        self.fields['lang_set'].choices = self.lang_set_choices
+
+    lang_set = forms.ChoiceField(
+        choices=lang_set_choices, label="Language Set",
+        help_text="Select language set to link with this branch.",
+    )
+
+
 @admin.register(Languages)
 class LanguagesAdmin(admin.ModelAdmin):
     search_fields = ('lang_name', )
@@ -98,3 +117,18 @@ class TransPlatformAdmin(admin.ModelAdmin):
 class ReleaseStreamAdmin(admin.ModelAdmin):
     form = ReleaseStreamAdminForm
     search_fields = ('relstream_name', )
+
+
+@admin.register(StreamBranches)
+class StreamBranchesAdmin(admin.ModelAdmin):
+    form = StreamBranchesAdminForm
+    search_fields = ('relbranch_slug', )
+    exclude = ('relstream_slug', 'created_on', 'schedule_json')
+
+
+@admin.register(Packages)
+class PackagesAdmin(admin.ModelAdmin):
+    search_fields = ('package_name', )
+    exclude = ('package_details_json', 'details_json_lastupdated',
+               'package_name_mapping', 'mapping_lastupdated',
+               'transtats_lastupdated')

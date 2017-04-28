@@ -1,0 +1,64 @@
+{% extends "stats/trans_workload.html" %}
+
+{% block extrascript %}
+<script src="/static/js/jquery.flot.js"></script>
+<script src="/static/js/excanvas.min.js"></script>
+<script src="/static/js/jquery.flot.pie.js"></script>
+<script src="/static/js/waiting.dialog.js"></script>
+<script src="/static/js/csrf.js"></script>
+<style type="text/css">
+    .graph-area {
+        width:100%;
+        min-height:600px;
+        padding-top:50px;
+    }
+    .table-area {
+        width:100%;
+        min-height:400px;
+    }
+    .graph-sub-area {
+        width:90%;
+        min-height:500px;
+    }
+</style>
+<script type="text/javascript">
+function csrfSafeMethod(a){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(a)}function labelFormatter(a,b){return"<div style='font-size:11pt; text-align:center; padding:2px; color:grey'>"+a+"<br/>"+Math.round(b.percent)+"%</div>"}$(document).ready(function(){$("#tab-translation-workload").addClass("active");$("#tab-view-lang-wise").addClass("active");var a="Accuracy largely depends upon branch mapping.</span>";$("#localegraph").hide(),$("#hideLocaleGraph").hide(),$("#langName").selectpicker("hide"),$("#relBranch").change(function(b){var c=$(this).val();return $.ajax({beforeSend:function(a,b){csrfSafeMethod(b.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#showPercentage").html(""),$("#hideLocaleGraph").hide(),$("#langName").selectpicker("hide"),$("#langName").empty().append("<option selected disabled>Select Language</option>").selectpicker("val","Select Language"),waitingDialog.show()},type:"POST",url:"{% url 'ajax-workload-graph' %}",data:{relbranch:c},success:function(b){waitingDialog.hide();var d=b.graph_data,e=b.select_options,f={series:{pie:{show:!0,label:{show:!0,formatter:labelFormatter}}},legend:{show:!0},grid:{hoverable:!0,clickable:!0}};$("#localegraph").hide(),$("#hideLocaleGraph").hide(),$("#grapharea").show(),$.plot("#graphsubarea",d,f),$("#graphsubarea").bind("plothover",function(a,b,c){if(c){percent=parseFloat(c.series.percent).toFixed(2);var d=[];d.push("<hr/>&nbsp;&nbsp;",c.series.label," - ",percent,"%&nbsp;&nbsp;<hr/>"),$("#showPercentage").html(d.join(""))}}),$.each(e,function(a,b){$("#langName").append($("<option>",{value:b.value,text:b.text}))}),$("#langName").selectpicker("refresh"),$("#langName").selectpicker("show"),$("#graphdisclaimer").html("<span class='pull-right text-muted'>Consolidated graph of all packages being tracked for "+c+" branch. "+a)}}),!1}),$("#langName").change(function(b){var c=$("#relBranch").val(),d=$(this).val();return $.ajax({beforeSend:function(a,b){csrfSafeMethod(b.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#showPercentage").html(""),waitingDialog.show()},type:"POST",url:"{% url 'ajax-workload-graph' %}",data:{relbranch:c,lang:d},success:function(b){waitingDialog.hide(),$("#grapharea").hide(),$("#localegraph").show(),$("#hideLocaleGraph").show(),$("#localegraph").html(b),$("#graphdisclaimer").html("<span class='pull-right text-muted'>Percentage is calculated on messages. "+a)}}),!1}),$("#hideLocaleGraph").click(function(b){return b.preventDefault(),$("#localegraph").hide(),$("#langName").selectpicker("val","Select Language"),$("#grapharea").show(),$("#graphdisclaimer").html("<span class='pull-right text-muted'>Consolidated graph of all packages being tracked for "+$("#relBranch").val()+" branch. "+a),$(this).hide()})});
+</script>
+{% endblock %}
+
+{% block viewcontent %}
+    <hr/><span style="padding-left:20px;padding-right:10px;"
+               class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+        <span id="coverageinfo" class="text-info">
+            Workload estimation for a release branch across packages in individual languages.</span><hr/>
+    <div style="padding:20px">
+        <div class="row" style="padding-bottom:20px">
+            <div class="col-xs-12">
+                {% if relbranches %}
+                <select id="relBranch" class="selectpicker" data-live-search="true">
+                    <option selected disabled>Select Release Branch</option>
+                    {% for relbranch in relbranches %}
+                        <option value="{{ relbranch.0 }}">{{ relbranch.1 }}</option>
+                    {% endfor %}
+                </select>
+                <select id="langName" class="selectpicker" data-live-search="true">
+                    <option selected disabled>Select Language</option>
+                </select>
+                <a id="hideLocaleGraph" type="button" class="btn btn-default btn-small">
+                    <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                </a>
+                {% else %}
+                    <br/><p>No release-branch added. Add <a href="{% url 'settings-release-streams' %}">one</a> now.</p>
+                {% endif %}
+            </div>
+        </div>
+        <center>
+            <div id="localegraph" class="panel panel-info table-area"></div>
+            <div id="grapharea" class="panel panel-info graph-area">
+                <span id="showPercentage" class="text-info pull-left"></span>
+                <div id="graphsubarea" class="graph-sub-area"></div>
+            </div>
+        </center>
+        <p id="graphdisclaimer"></p>
+    </div>
+{% endblock %}

@@ -1,0 +1,32 @@
+<script>
+    var a = "<span class='pull-right text-muted'>Stats are based on sync'd data. And %age is calculated on messages.</span>";
+    $("#packagedesc").html("{{ pkg_desc }}"); $("#graphdisclaimer").html(a);
+</script>
+<table class="table table-bordered table-hover">
+    <thead>
+      <tr>
+        <th>&nbsp;</th>
+        {% for lang in headers %}
+            <th>{{ lang }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for version, stats in stats_data.items %}
+      <tr>
+        <td width="10%"><span class="text-info">{{ version }}</span></td>
+        {% for index, stat in stats %}
+            <td>
+                {% if stat and stat == 100 %}
+                    <span class="text-success">{{ stat }}%</span>
+                {% elif stat %}
+                    {{ stat }}%
+                {% else %}
+                    <span class="text-muted">N/A</span>
+                {% endif %}
+            </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+</table>
