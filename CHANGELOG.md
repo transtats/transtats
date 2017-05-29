@@ -1,3 +1,6 @@
+##### Tue May 30 2017 Sundeep Anand <suanand@redhat.com>
+* add docker file, based on `fedora:latest`
+
 ##### Wed Apr 26 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.1
 * add combined lang view to translation workload
 * add detailed stats view to workload estimation

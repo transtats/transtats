@@ -70,16 +70,14 @@ make run
 
 As the project evolves, a roadmap will be published for each major release. Comments, suggestions, and requests to the current roadmap are welcome. Our goal in publishing a roadmap is transparency and community inclusion. A roadmap is the team's best guess based on experience, community requests, and feedback.
 
-#### Transtats 0.1.1
+#### Transtats 0.1.2
 
-We are currently working on `0.1.1` release.
+We are currently working on `0.1.2` release.
 
-Target delivery: End of April 2017
+Target delivery: Mid of June 2017
 
-* Package translation status per language
-* Split Package Sync and Branch Mapping
-* Tabular View to Translation Status
-* Workload estimation for releases
+* Docker files for deployment
+* GNOME DamnedLies integration
 
 
 ### License
