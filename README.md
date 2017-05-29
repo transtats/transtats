@@ -7,9 +7,27 @@ Track translation progress across packages for downstream releases with respect 
 
 ### Get Involved
 
-#### Setup development environment: virtualenv
+#### try and test: docker
 
-Setup Virtualenvwrapper and PostgreSQL 9.5. Create virtualenv. Clone repo.
+Get docker daemon running. Build or pull `transtats` image *([docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
+
+Build or Pull and Run
+
+    1. Clone repo $ git clone https://github.com/transtats/transtats.git
+    2. $ cd transtats/deploy/docker
+    3. $ sudo docker build -t transtats .
+
+    or $ sudo docker pull docker.io/transtats/transtats
+
+    and $ sudo docker run -d --name container_name -p 8080:8015 transtats
+
+Application should be available at `localhost:8080` with `transtats | transtats` as login credentials.
+
+
+
+#### develop: virtualenv
+
+Setup [Virtualenvwrapper](http://virtualenvwrapper.readthedocs.io/en/latest/install.html) and [PostgreSQL 9.5](https://fedoraproject.org/wiki/PostgreSQL). Create virtualenv. Clone repo.
 
 ```shell
 workon transtats
@@ -17,16 +35,16 @@ cd /path/to/transtats/repo
 make devel
 ```
 
-Copy `keys.json.example` to `keys.json` and put your values.
+Create `transtats` database. Copy `keys.json.example` to `keys.json` and put your values.
 
 ```shell
-make migrations
-make migrate
-make run
+make migrate && make run
 ```
 
 #### Contribution
 
+* Fork [transtats repo](https://github.com/transtats/transtats) to your username and clone repository locally.
+* Set up a development environment as described above.
 * The *devel* branch is the release actively under development.
 * The *master* branch corresponds to the latest stable release.
 * If you find any bug/issue or got an idea, open a [github issue](https://github.com/transtats/transtats/issues/new).

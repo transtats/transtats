@@ -48,6 +48,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+ADMINS = (
+    # ('Your Name', 'your_email@domain.com'),
+    ('transtats', 'transtats@example.com'),
+)
 
 # Application definition
 
