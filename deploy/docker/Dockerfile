@@ -8,7 +8,13 @@ MAINTAINER Sundeep Anand <suanand@redhat.com>
 
 
 # Environment variable 
-ENV DATABASE_NAME=transtats DATABASE_USER=postgres DATABASE_PASSWD=postgres DATABASE_HOST=localhost TRANSIFEX_USER=suanand TRANSIFEX_PASSWD=transtats YTHONUNBUFFERED=1
+ENV DATABASE_NAME=transtats \
+    DATABASE_USER=postgres \
+    DATABASE_PASSWD=postgres \
+    DATABASE_HOST=localhost \
+    TRANSIFEX_USER=suanand \
+    TRANSIFEX_PASSWD=transtats \
+    PYTHONUNBUFFERED=1
 
 RUN dnf -y update && \
     dnf -y install gcc findutils git python3-pip python3-devel sudo redhat-rpm-config \
