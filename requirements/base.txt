@@ -2,6 +2,7 @@ Django==1.10
 django-crispy-forms==1.6.1
 django-debug-toolbar==1.6
 djangorestframework==3.5.3
+gunicorn==19.7.1
 psycopg2==2.6.2
 python-slugify==1.2.1
 pytz==2016.7

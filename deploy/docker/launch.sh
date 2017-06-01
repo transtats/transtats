@@ -4,6 +4,7 @@ cd /workspace
 export PYTHONPATH=/workspace;$PYTHONPATH
 
 # setup db
+
 su - postgres -c "pg_ctl -D /var/lib/pgsql/data -l logfile start" && sleep 5
 sudo -u postgres psql -c "ALTER USER $DATABASE_USER WITH PASSWORD '$DATABASE_PASSWD';"
 sudo -u postgres psql -c "CREATE DATABASE $DATABASE_NAME;"

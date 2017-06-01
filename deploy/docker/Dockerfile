@@ -6,7 +6,6 @@
 FROM fedora
 MAINTAINER Sundeep Anand <suanand@redhat.com>
 
-
 # Environment variable 
 ENV DATABASE_NAME=transtats \
     DATABASE_USER=postgres \
@@ -15,7 +14,7 @@ ENV DATABASE_NAME=transtats \
     TRANSIFEX_USER=suanand \
     TRANSIFEX_PASSWD=transtats \
     PYTHONUNBUFFERED=1
-
+    
 RUN dnf -y update && \
     dnf -y install gcc findutils git python3-pip python3-devel sudo redhat-rpm-config \
     postgresql-server postgresql-contrib postgresql-devel && \
