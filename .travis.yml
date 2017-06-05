@@ -1,8 +1,36 @@
+---
+sudo: true
+dist: trusty
 language: python
 python:
-  - "3.4"
-  - "3.5"
-# command to install dependencies
-install: "pip install -r requirements/ci.txt"
-# command to run tests
-script: make lint
+    - "3.4"
+    - "3.5"
+    - "3.6"
+
+addons:
+    apt:
+        packages:
+            - build-essential
+            - python-dev
+
+install:
+    - pip install -r requirements/ci.txt
+
+before_script:
+    - sudo /etc/init.d/postgresql stop
+    - sudo apt-get -y remove --purge postgresql-9.1
+    - sudo apt-get -y remove --purge postgresql-9.2
+    - sudo apt-get -y remove --purge postgresql-9.3
+    - sudo apt-get -y remove --purge postgresql-9.4
+    - sudo apt-get -y autoremove
+    - travis_retry sudo apt-key adv --keyserver keys.gnupg.net --recv-keys 7FCC7D46ACCC4CF8
+    - sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main 9.5" >> /etc/apt/sources.list.d/postgresql.list'
+    - sudo apt-get update
+    - sudo apt-get -y install postgresql-9.5
+    - sudo sh -c 'echo "local all postgres trust" > /etc/postgresql/9.5/main/pg_hba.conf'
+    - sudo sh -c 'echo "local all all trust" >> /etc/postgresql/9.5/main/pg_hba.conf'
+    - sudo sh -c 'echo -n "host all all 127.0.0.1/32 trust" >> /etc/postgresql/9.5/main/pg_hba.conf'
+    - sudo service postgresql restart 9.5
+    - mv transtats/settings/keys.json.example transtats/settings/keys.json
+
+script: "make lint test"

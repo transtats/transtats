@@ -41,6 +41,10 @@ Create `transtats` database. Copy `keys.json.example` to `keys.json` and put you
 make migrate && make run
 ```
 
+Run tests   `make test`
+
+Generate docs   `make docs`
+
 #### Contribution
 
 * Fork [transtats repo](https://github.com/transtats/transtats) to your username and clone repository locally.
