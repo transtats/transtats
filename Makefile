@@ -34,6 +34,6 @@ migrations:
 migrate:
 	python3 manage.py migrate
 
-.PHONY: run
-run:
-	python3 manage.py runserver
+.PHONY: test
+test:
+	python3 manage.py test dashboard.tests -v 2 --settings=transtats.settings.test
