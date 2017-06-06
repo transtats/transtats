@@ -41,7 +41,7 @@ Create `transtats` database. Copy `keys.json.example` to `keys.json` and put you
 make migrate && make run
 ```
 
-Run tests   `make test`
+Run tests   `make lint test`
 
 Generate docs   `make docs`
 

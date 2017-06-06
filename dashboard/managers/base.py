@@ -13,6 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import inspect
+import logging
+
 # dashboard
 from dashboard.services.consume.restclient import RestClient
 
@@ -24,6 +27,8 @@ class BaseManager(object):
     """
     Base Manager: create app context, process view request object
     """
+
+    logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
 
@@ -42,3 +47,17 @@ class BaseManager(object):
         if engine_name and base_url:
             return RestClient(engine_name, base_url)
         return
+
+    def app_logger(self, log_level, log_msg):
+        """
+        Custom application logger
+        """
+        level_map = {
+            'DEBUG': 10, 'INFO': 20, 'WARNING': 30,
+            'ERROR': 40, 'CRITICAL': 50
+        }
+
+        func = inspect.currentframe().f_back.f_code
+        log_message = "%s in %s:%i %s" % (func.co_name, func.co_filename,
+                                          func.co_firstlineno, log_msg)
+        self.logger.log(level_map.get(log_level, 10), log_message)

@@ -1,5 +1,5 @@
-##### Mon Jun 05 2017 Sundeep Anand <suanand@redhat.com>
-* add unit tests & configure travis
+##### Tue Jun 06 2017 Sundeep Anand <suanand@redhat.com>
+* add unit tests & configure travis and logging
 * add docker file, based on `fedora:latest`
 
 ##### Wed Apr 26 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.1

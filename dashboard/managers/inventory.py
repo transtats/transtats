@@ -72,9 +72,11 @@ class InventoryManager(BaseManager):
         try:
             locales = Languages.objects.filter(**filter_kwargs) \
                 .order_by('lang_name').order_by('-lang_status')
-        except:
-            # log event, passing for now
-            pass
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "locales could not be fetched for " +
+                         str(filter_kwargs) + " kwargs, details: " + str(e)
+            )
         return locales
 
     def get_locale_alias(self, locale):
@@ -118,8 +120,11 @@ class InventoryManager(BaseManager):
             fetch_fields.extend(fields)
         try:
             langset = LanguageSet.objects.only(*fetch_fields).filter(lang_set_slug=langset_slug).first()
-        except:
-            # log event, passing for now
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "language set could not be fetched for " +
+                         langset_slug + ", details: " + str(e)
+            )
             pass
         return langset
 
@@ -132,9 +137,10 @@ class InventoryManager(BaseManager):
         filter_kwargs = {}
         try:
             langsets = LanguageSet.objects.only(*filter_fields).filter(**filter_kwargs).all()
-        except:
-            # log event, passing for now
-            pass
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "language sets could not be fetched, details: " + str(e)
+            )
         return langsets
 
     def get_locale_groups(self, locale):
@@ -169,9 +175,11 @@ class InventoryManager(BaseManager):
                 release_branch_specific_lang_set.lang_set, fields=('locale_ids')
             )
             required_locales = required_lang_set.locale_ids if required_lang_set else []
-        except:
-            # log event, passing for now
-            pass
+        except Exception as e:
+            self.app_logger(
+                'ERROR', ("locales could not be fetched for " +
+                          release_branch + " release branch, details: " + str(e))
+            )
         return required_locales
 
     def get_translation_platforms(self, engine=None, only_active=None):
@@ -188,9 +196,10 @@ class InventoryManager(BaseManager):
         try:
             platforms = TransPlatform.objects.filter(**filter_kwargs) \
                 .order_by('platform_id')
-        except:
-            # log event, passing for now
-            pass
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "translation platforms could not be fetched, details: " + str(e)
+            )
         return platforms
 
     def get_transplatforms_set(self):
@@ -228,9 +237,10 @@ class InventoryManager(BaseManager):
         try:
             relstreams = ReleaseStream.objects.filter(**filter_kwargs) \
                 .order_by('relstream_id')
-        except:
-            # log event, passing for now
-            pass
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "release streams could not be fetched, details: " + str(e)
+            )
         return relstreams
 
     def get_relstream_slug_name(self):
@@ -265,9 +275,10 @@ class SyncStatsManager(BaseManager):
 
         try:
             sync_stats = SyncStats.objects.only(*required_params).filter(**kwargs).all()
-        except:
-            # log event, passing for now
-            pass
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Sync stats could not be fetched, details: " + str(e)
+            )
         return sync_stats
 
     def filter_stats_for_required_locales(self, transplatform_slug, stats_json, locales):
@@ -346,9 +357,10 @@ class PackagesManager(InventoryManager):
         try:
             packages = Packages.objects.only(*fields).filter(**kwargs) \
                 .order_by('-transtats_lastupdated')
-        except:
-            # log event, passing for now
-            pass
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Packages could not be fetched, details: " + str(e)
+            )
         return packages
 
     def get_relbranch_specific_pkgs(self, release_branch, fields=None):
@@ -361,9 +373,11 @@ class PackagesManager(InventoryManager):
             packages = Packages.objects.only(*fields_required) \
                 .filter(release_branch_mapping__has_key=release_branch) \
                 .order_by('-transtats_lastupdated')
-        except:
-            # log event, passing for now
-            pass
+        except Exception as e:
+            self.app_logger(
+                'ERROR', ("release branch specific package could not be fetched for " +
+                          release_branch + " release branch, details: " + str(e))
+            )
         return packages
 
     def count_packages(self):
@@ -480,8 +494,8 @@ class PackagesManager(InventoryManager):
                     sync_iter_count=existing_sync_stat.sync_iter_count + 1
                 )
         except Exception as e:
-            # log event, passing for now
-            pass
+            self.app_logger(
+                'ERROR', "version stats could not be saved, details: " + str(e))
         else:
             return True
         return False
@@ -614,8 +628,8 @@ class PackagesManager(InventoryManager):
                     details_json_lastupdated=timezone.now()
                 )
             except Exception as e:
-                # log event, passing for now
-                pass
+                self.app_logger(
+                    'ERROR', "Package update failed, details: " + str(e))
             else:
                 update_pkg_status = True
         return update_pkg_status
@@ -658,8 +672,8 @@ class PackagesManager(InventoryManager):
         try:
             Packages.objects.filter(package_name=package_name).update(**kwargs)
         except Exception as e:
-            # log event, passing for now
-            pass
+            self.app_logger(
+                'ERROR', "Package branch mapping could not be saved, details: " + str(e))
         else:
             return True
         return False
@@ -709,9 +723,9 @@ class ReleaseBranchManager(InventoryManager):
         relbranches = None
         try:
             relbranches = StreamBranches.objects.only(*required_fields).filter(**filter_kwargs)
-        except:
-            # log event, passing for now
-            pass
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Release branches could not be fetched, details: " + str(e))
         return relbranches
 
     def get_relbranch_name_slug_tuple(self):
@@ -738,9 +752,9 @@ class ReleaseBranchManager(InventoryManager):
         try:
             relbranches = StreamBranches.objects.only(*fields).filter(
                 relstream_slug__in=release_streams).all()
-        except:
-            # log event, passing for now
-            pass
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Branches of release streams could not be fetched, details: " + str(e))
         else:
             if relbranches:
                 stream_branches = [{i.relstream_slug: i.relbranch_slug} for i in relbranches]
@@ -760,8 +774,9 @@ class ReleaseBranchManager(InventoryManager):
         """
         try:
             rest_response = requests.get(ical_url, verify=False)
-        except:
-            # log event
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "No calender events found, details: " + str(e))
             return {}
         else:
             ical_contents_array = [line.strip() for line in io.StringIO(rest_response.text)]
@@ -788,8 +803,9 @@ class ReleaseBranchManager(InventoryManager):
                             key = DELIMITER.join(event_dict.get('SUMMARY').split(DELIMITER)[1:])
                             branch_schedule_dict[key] = event_dict.get('DTEND', '')
 
-            except:
-                # log event, pass for now
+            except Exception as e:
+                self.app_logger(
+                    'WARNING', "Parsing failed for " + relstream_slug + ", details: " + str(e))
                 return False
         elif relstream_slug == RELSTREAM_SLUGS[1]:
             try:
@@ -798,8 +814,9 @@ class ReleaseBranchManager(InventoryManager):
                         if event.lower() in event_dict.get('SUMMARY').lower():
                             branch_schedule_dict[event_dict.get('SUMMARY')] = \
                                 (event_dict.get('DUE', '') or event_dict.get('DTSTART', ''))[:8]
-            except:
-                # log event, pass for now
+            except Exception as e:
+                self.app_logger(
+                    'WARNING', "Parsing failed for " + relstream_slug + ", details: " + str(e))
                 return False
         return branch_schedule_dict
 
@@ -844,8 +861,9 @@ class ReleaseBranchManager(InventoryManager):
             kwargs['track_trans_flag'] = True if 'track_trans_flag' in flags else False
             new_relstream_branch = StreamBranches(**kwargs)
             new_relstream_branch.save()
-        except:
-            # log event, pass for now
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Release branch could not be added, details: " + str(e))
             return False
         else:
             return True
