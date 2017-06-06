@@ -37,10 +37,10 @@ def get_secret(setting, secrets=secrets):
         error_msg = "Set the {0} environment variable.".format(setting)
         raise ImproperlyConfigured(error_msg)
 
+
 def get_db_env(var):
-        #env_var = dict([(i,'') for i in DB_ENV_VARS])
-        env_var = os.environ.get(var,'') or get_secret(var)
-        return env_var
+    return os.environ.get(var, '') or get_secret(var)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
@@ -176,32 +176,29 @@ STATIC_URL = '/static/'
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        }
-    },
-    'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
-    },
-    'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    }
-}
-
-# Email Backend
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'filters': {
+#         'require_debug_false': {
+#             '()': 'django.utils.log.RequireDebugFalse'
+#         }
+#     },
+#     'handlers': {
+#         'mail_admins': {
+#             'level': 'ERROR',
+#             'filters': ['require_debug_false'],
+#             'class': 'django.utils.log.AdminEmailHandler'
+#         }
+#     },
+#     'loggers': {
+#         'django.request': {
+#             'handlers': ['mail_admins'],
+#             'level': 'ERROR',
+#             'propagate': True,
+#         },
+#     }
+# }
 
 # django-crispy-forms template pack
 CRISPY_TEMPLATE_PACK = 'bootstrap3'

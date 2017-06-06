@@ -6,7 +6,7 @@
 # docker run -d --name container -p 8080:8015 transtats
 
 FROM fedora
-MAINTAINER Sundeep Anand <suanand@redhat.com>
+MAINTAINER Sachin Pathare <spathare@redhat.com>
 
 # Environment variable 
 ENV DATABASE_NAME=transtats \
