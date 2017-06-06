@@ -14,8 +14,8 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 Build or Pull and Run
 
     1. Clone repo $ git clone https://github.com/transtats/transtats.git
-    2. $ cd transtats/deploy/docker
-    3. $ sudo docker build -t transtats .
+    2. $ cd transtats/
+    3. $ sudo docker build -t transtats . OR docker build -t transtats -f deploy/docker/Dockerfile .
 
     or $ sudo docker pull docker.io/transtats/transtats
 

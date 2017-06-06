@@ -1,8 +1,8 @@
 # Dockerfile for transtats
 # http://transtats.org/
 #
-# Run Command from cd /transtats:
-# docker build -t transtats -f deploy/docker/Dockerfile .
+# Run Command: cd /transtats
+# docker build -t transtats .
 # docker run -d --name container -p 8080:8015 transtats
 
 FROM fedora

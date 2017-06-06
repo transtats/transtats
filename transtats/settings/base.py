@@ -18,6 +18,7 @@ import json
 from django.core.exceptions import ImproperlyConfigured
 
 # Imports from your apps
+from dashboard.constants import DB_ENV_VARS
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -36,6 +37,10 @@ def get_secret(setting, secrets=secrets):
         error_msg = "Set the {0} environment variable.".format(setting)
         raise ImproperlyConfigured(error_msg)
 
+def get_db_env(var):
+        #env_var = dict([(i,'') for i in DB_ENV_VARS])
+        env_var = os.environ.get(var,'') or get_secret(var)
+        return env_var
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
@@ -113,14 +118,13 @@ WSGI_APPLICATION = 'transtats.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': get_secret("DATABASE_NAME"),
-        'USER': get_secret("DATABASE_USER"),
-        'PASSWORD': get_secret("DATABASE_PASSWD"),
-        'HOST': get_secret("DATABASE_HOST"),
+        'NAME': get_db_env("DATABASE_NAME"),
+        'USER': get_db_env("DATABASE_USER"),
+        'PASSWORD': get_db_env("DATABASE_PASSWD"),
+        'HOST': get_db_env("DATABASE_HOST"),
         'PORT': '',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
