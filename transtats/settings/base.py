@@ -37,6 +37,10 @@ def get_secret(setting, secrets=secrets):
         raise ImproperlyConfigured(error_msg)
 
 
+def get_db_env(var):
+    return os.environ.get(var, '') or get_secret(var)
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
@@ -113,10 +117,10 @@ WSGI_APPLICATION = 'transtats.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': get_secret("DATABASE_NAME"),
-        'USER': get_secret("DATABASE_USER"),
-        'PASSWORD': get_secret("DATABASE_PASSWD"),
-        'HOST': get_secret("DATABASE_HOST"),
+        'NAME': get_db_env("DATABASE_NAME"),
+        'USER': get_db_env("DATABASE_USER"),
+        'PASSWORD': get_db_env("DATABASE_PASSWD"),
+        'HOST': get_db_env("DATABASE_HOST"),
         'PORT': '',
     }
 }
