@@ -37,6 +37,7 @@ def get_secret(setting, secrets=secrets):
         error_msg = "Set the {0} environment variable.".format(setting)
         raise ImproperlyConfigured(error_msg)
 
+
 def get_db_env(var):
     return os.environ.get(var, '') or get_secret(var)
 
@@ -124,7 +125,6 @@ DATABASES = {
         'PORT': '',
     }
 }
-
 
 
 # Password validation
