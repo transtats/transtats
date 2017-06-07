@@ -9,13 +9,20 @@ su - postgres -c "pg_ctl -D /var/lib/pgsql/data -l logfile start" && sleep 5
 # If env variable not set for db values
 if [ -z "$DATABASE_USER" ]
 then
-    echo "Setting database name, user and pass"
+    echo "Set DB User"
     export DATABASE_USER="postgres"
+elif [ -z "$DATABASE_PASSWD" ]
+then
+    echo "Set DB Password"
     export DATABASE_PASSWD="postgres"
+elif [ -z "$DATABASE_NAME" ]
+then
+    echo "Set DB Name"
     export DATABASE_NAME="transtats"
 else
-    echo "Using Database name ,user & pass from env variable set in dockerfile"
+    echo "Using database user=$DATABASE_USER, name=$DATABASE_NAME and pass=$DATABASE_PASSWD"
 fi
+
 sudo -u postgres psql -c "ALTER USER $DATABASE_USER WITH PASSWORD '$DATABASE_PASSWD';"
 sudo -u postgres psql -c "CREATE DATABASE $DATABASE_NAME;"
 make migrate

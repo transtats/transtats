@@ -1,7 +1,7 @@
 # Dockerfile for transtats
 # http://transtats.org/
 #
-# Run Command: cd /transtats
+# Run Command: cd transtats
 # Build Image: docker build -t transtats .
 # Run Container: docker run -d --name container -p 8080:8015 transtats
 # Run Container with env variable: docker run -d --name container -p 8080:8015 -e DATABASE_NAME=transtats -e \
@@ -45,4 +45,3 @@ ADD deploy/docker/launch.sh /usr/bin/transtats.sh
 EXPOSE 8015
 
 CMD ["/usr/bin/transtats.sh"]
-
