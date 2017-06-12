@@ -37,16 +37,21 @@ class BaseManager(object):
                 setattr(self, str(attrib), value)
 
     @staticmethod
-    def rest_client(engine_name, base_url):
+    def rest_client(engine_name, base_url, resource, *args, **kwargs):
         """
         Instantiate RestClient
-        :param engine_name: str
-        :param base_url: str
+        :param engine_name: API Config: str
+        :param base_url: API Server: str
+        :param resource: API URI: str
+        :param args: arguments: tuple
+        :param kwargs: keyword args: dict
         :return: RestClient
         """
-        if engine_name and base_url:
-            return RestClient(engine_name, base_url)
-        return
+        response_dict = {}
+        if engine_name and base_url and resource:
+            rest_handle = RestClient(engine_name, base_url)
+            response_dict = rest_handle.process_request(resource, *args, **kwargs)
+        return response_dict
 
     def app_logger(self, log_level, log_msg):
         """

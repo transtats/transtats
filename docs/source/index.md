@@ -74,9 +74,11 @@ As the project evolves, a roadmap will be published for each major release. Comm
 
 We are currently working on `0.1.2` release.
 
-Target delivery: Mid of June 2017
+Target delivery: Mid of July 2017
 
 * Docker files for deployment
+* Unit tests and app logs
+* Package Upstream Stats
 * GNOME DamnedLies integration
 
 

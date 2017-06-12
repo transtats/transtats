@@ -387,14 +387,17 @@ class PackagesManager(InventoryManager):
         packages = self.get_packages()
         return packages.count() if packages else 0
 
-    def get_package_name_tuple(self, check_mapping=False):
+    def get_package_name_tuple(self, t_status=False, check_mapping=False):
         """
         returns (package_name, upstream_name) tuple (only sync'd ones)
         """
         packages = self.get_packages()
         name_list = [(package.package_name, package.upstream_name) for package in packages
                      if package.transtats_lastupdated]
-        if check_mapping:
+        if t_status:
+            name_list = [(package.package_name, package.upstream_name) for package in packages
+                         if package.transtats_lastupdated or package.upstream_lastupdated]
+        elif check_mapping:
             name_list = [(package.package_name, package.package_name) for package in packages
                          if package.transtats_lastupdated and package.package_name_mapping]
         return tuple(sorted(name_list))
@@ -416,19 +419,21 @@ class PackagesManager(InventoryManager):
             # derive transplatform project URL
             platform = TransPlatform.objects.only('engine_name', 'api_url') \
                 .filter(platform_slug=kwargs['transplatform_slug']).get()
-            # get rest handle
-            rest_handle = self.rest_client(platform.engine_name, platform.api_url)
             resp_dict = None
             if platform.engine_name == TRANSPLATFORM_ENGINES[0]:
-                resp_dict = rest_handle.process_request(
-                    'project_details', kwargs['package_name'], ext=True
+                resp_dict = self.rest_client(
+                    platform.engine_name, platform.api_url, 'project_details', kwargs['package_name'],
+                    **dict(ext=True, auth_user=platform.auth_login_id, auth_token=platform.auth_token_key)
                 )
                 if resp_dict and resp_dict.get('json_content'):
                     tx_org_slug = resp_dict['json_content']['organization']['slug']
                     kwargs['transplatform_url'] = platform.api_url + "/" + tx_org_slug + "/" + kwargs['package_name']
             elif platform.engine_name == TRANSPLATFORM_ENGINES[1]:
                 kwargs['transplatform_url'] = platform.api_url + "/project/view/" + kwargs['package_name']
-                resp_dict = rest_handle.process_request('project_details', kwargs['package_name'])
+                resp_dict = self.rest_client(
+                    platform.engine_name, platform.api_url, 'project_details', kwargs['package_name'],
+                    **dict(auth_user=platform.auth_login_id, auth_token=platform.auth_token_key)
+                )
 
             if kwargs.get('update_stats') == 'stats':
                 kwargs.pop('update_stats')
@@ -441,8 +446,9 @@ class PackagesManager(InventoryManager):
                     for version in versions:
                         # extension for Zanata should be true, otherwise false
                         extension = True if platform.engine_name == TRANSPLATFORM_ENGINES[1] else False
-                        response_dict = rest_handle.process_request(
-                            'proj_trans_stats', project, version, extension
+                        response_dict = self.rest_client(
+                            platform.engine_name, platform.api_url, 'proj_trans_stats', project, version,
+                            **dict(ext=extension, auth_user=platform.auth_login_id, auth_token=platform.auth_token_key)
                         )
                         if response_dict and response_dict.get('json_content'):
                             if self._save_version_stats(
@@ -521,20 +527,26 @@ class PackagesManager(InventoryManager):
         if not (kwargs.get('package_name')):
             return
         package_name = kwargs['package_name']
+        transplatform_fields = ('engine_name', 'api_url', 'projects_json',
+                                'auth_login_id', 'auth_token_key')
         # get transplatform projects from db
-        platform = TransPlatform.objects.only('engine_name', 'api_url', 'projects_json') \
+        platform = TransPlatform.objects.only(*transplatform_fields) \
             .filter(platform_slug=kwargs['transplatform_slug']).get()
         projects_json = platform.projects_json
         # if not found in db, fetch transplatform projects from API
         if not projects_json:
-            rest_handle = self.rest_client(platform.engine_name, platform.api_url)
             response_dict = None
+            auth_dict = dict(
+                auth_user=platform.auth_login_id, auth_token=platform.auth_token_key
+            )
             if platform.engine_name == TRANSPLATFORM_ENGINES[0]:
-                response_dict = rest_handle.process_request(
-                    'project_details', package_name.lower()
+                response_dict = self.rest_client(
+                    platform.engine_name, platform.api_url, 'project_details',
+                    package_name.lower(), **auth_dict
                 )
             if platform.engine_name == TRANSPLATFORM_ENGINES[1]:
-                response_dict = rest_handle.process_request('list_projects')
+                response_dict = self.rest_client(platform.engine_name, platform.api_url,
+                                                 'list_projects', **auth_dict)
             if response_dict and response_dict.get('json_content'):
                 # save projects_json in db
                 TransPlatform.objects.filter(api_url=platform.api_url).update(
@@ -575,10 +587,10 @@ class PackagesManager(InventoryManager):
         lang_id_name = self._get_lang_id_name_dict(specify_branch) \
             if apply_branch_mapping and specify_branch else self._get_lang_id_name_dict()
         # 2nd, filter stats json for required locales
-        package_details = self.get_packages([package_name])[0]  # this must be a list
-        if not package_details.transtats_lastupdated:
-            return trans_stats_dict
-        if package_details.package_details_json.get('description'):
+        package_details = self.get_packages([package_name]).get()
+        if not (package_details.transtats_lastupdated or package_details.upstream_lastupdated):
+            return lang_id_name, trans_stats_dict, package_desc
+        if package_details.package_details_json and package_details.package_details_json.get('description'):
             package_desc = package_details.package_details_json['description']
         pkg_stats_versions = self.syncstats_manager.get_sync_stats([package_name])
         for pkg_stats_version in pkg_stats_versions:
@@ -597,16 +609,34 @@ class PackagesManager(InventoryManager):
                 trans_stats_dict[relbranch] = trans_stats_dict.get(transplatform_version, [])
         return lang_id_name, trans_stats_dict, package_desc
 
-    def _get_rest_handle_and_pkg(self, package_name):
+    def get_upstream_stats(self, package):
         """
-        Returns REST handle for a package
+        fetch upstream stats of a package for all enabled locales
+        :param package: str
+        :return:upstream_trans_stats: list
         """
+        upstream_trans_stats = []
+        if not package:
+            return upstream_trans_stats
+        lang_id_name = self._get_lang_id_name_dict()
+        package_details = self.get_packages([package], ['upstream_latest_stats']).get()
+        upstream_stats = package_details.upstream_latest_stats if package_details else {}
+        if upstream_stats:
+            selected_locales = []
+            for locale in list(upstream_stats.keys()):
+                selected_locales.extend([locale for locale_tuple in list(lang_id_name.keys())
+                                         if locale in locale_tuple])
+            for s_locale in selected_locales:
+                upstream_trans_stats.append(
+                    [s_locale, upstream_stats.get(s_locale, {}).get('translated_percent')]
+                )
+        return upstream_trans_stats
+
+    def _get_pkg_and_ext(self, package_name):
         package = self.get_packages([package_name]).get()
-        rest_handle = self.rest_client(package.transplatform_slug.engine_name,
-                                       package.transplatform_slug.api_url)
         # extension for Transifex should be true, otherwise false
         extension = (True if package.transplatform_slug.engine_name == TRANSPLATFORM_ENGINES[0] else False)
-        return rest_handle, extension, package
+        return package, extension
 
     def sync_update_package_details(self, package_name):
         """
@@ -615,11 +645,15 @@ class PackagesManager(InventoryManager):
         :return: boolean
         """
         update_pkg_status = False
-        rest_handle, ext, package = self._get_rest_handle_and_pkg(package_name)
+        package, ext = self._get_pkg_and_ext(package_name)
         # Package name can be diff from its id/slug, hence extracting from url
         transplatform_project_name = package.transplatform_url.split('/')[-1]
-        project_details_response_dict = rest_handle.process_request(
-            'project_details', transplatform_project_name, ext=ext
+        project_details_response_dict = self.rest_client(
+            package.transplatform_slug.engine_name, package.transplatform_slug.api_url,
+            'project_details', transplatform_project_name, **dict(
+                ext=ext, auth_user=package.transplatform_slug.auth_login_id,
+                auth_token=package.transplatform_slug.auth_token_key
+            )
         )
         if project_details_response_dict and project_details_response_dict.get('json_content'):
             try:
@@ -641,13 +675,17 @@ class PackagesManager(InventoryManager):
         :return: boolean
         """
         update_stats_status = False
-        rest_handle, ext, package = self._get_rest_handle_and_pkg(package_name)
+        package, ext = self._get_pkg_and_ext(package_name)
         project, versions = parse_project_details_json(
             package.transplatform_slug.engine_name, package.package_details_json
         )
         for version in versions:
-            proj_trans_stats_response_dict = rest_handle.process_request(
-                'proj_trans_stats', project, version, ext
+            proj_trans_stats_response_dict = self.rest_client(
+                package.transplatform_slug.engine_name, package.transplatform_slug.api_url,
+                'proj_trans_stats', project, version, **dict(
+                    ext=ext, auth_user=package.transplatform_slug.auth_login_id,
+                    auth_token=package.transplatform_slug.auth_token_key
+                )
             )
             if proj_trans_stats_response_dict and proj_trans_stats_response_dict.get('json_content'):
                 if self._save_version_stats(

@@ -202,6 +202,3 @@ STATIC_URL = '/static/'
 
 # django-crispy-forms template pack
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
-
-# Transifex Credentials
-TRANSIFEX_AUTH = (get_secret("TRANSIFEX_USER"), get_secret("TRANSIFEX_PASSWD"))

@@ -89,10 +89,10 @@
                   </div>
                 </div>
             {% endif %}
-            <!--<p>-->
-                <!--<a href="#" class="btn btn-default btn-small disabled" role="button">Edit</a>-->
-                <!--<a href="#" class="btn btn-default btn-small disabled" role="button">Mark Unsupported</a>-->
-            <!--</p>-->
+            {% if user.is_authenticated and user.is_staff %}<p>
+                <a href="{% url 'admin:dashboard_streambranches_changelist' %}" class="btn btn-default btn-small" role="button">Edit</a>
+                <a href="#" class="btn btn-default btn-small disabled" role="button">Mark Unsupported</a>
+            </p>{% endif %}
           </div>
         </div>
       </div>

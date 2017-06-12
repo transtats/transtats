@@ -31,7 +31,7 @@
             {% if user.is_authenticated and user.is_superuser %}
                 <a href="{% url 'admin:dashboard_transplatform_add' %}" role="button" class="btn btn-default">Add Server Instance</a>
             {% else %}
-                <a href="{% url 'admin:index' %}" role="button" class="btn btn-default">Manage Translation Platforms</a>
+                <a href="{% url 'admin:dashboard_transplatform_changelist' %}" role="button" class="btn btn-default">Manage Translation Platforms</a>
             {% endif %}
         </span>
     </div>
