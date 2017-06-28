@@ -51,6 +51,7 @@ coverage.xml
 
 # Django stuff:
 *.log
+*.log.*
 
 # Sphinx documentation
 docs/_build/
@@ -68,7 +69,11 @@ target/
 alembic.ini
 initial-data.sql
 
+# Project related
+keys.json
+freeze.txt
+*.patch
+dashboard/sandbox/*
+
 # IDE
 .idea/
-keys.json
-requirements/freeze.txt

@@ -24,7 +24,7 @@ from uuid import uuid4
 from django.utils import timezone
 
 # dashboard
-from dashboard.constants import TRANSPLATFORM_ENGINES
+from dashboard.constants import TRANSPLATFORM_ENGINES, TS_JOB_TYPES
 from dashboard.managers.base import BaseManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.managers.utilities import parse_project_details_json
@@ -83,7 +83,8 @@ class JobManager(object):
             Jobs.objects.filter(job_uuid=self.uuid).update(
                 job_end_time=timezone.now(),
                 job_log_json=self.log_json,
-                job_result=self.job_result
+                job_result=self.job_result,
+                job_remarks=self.job_remarks
             )
         except:
             return False
@@ -127,12 +128,12 @@ class TransplatformSyncManager(BaseManager):
     Translation Platform Sync Manager
     """
 
-    def __init__(self, job_type):
+    def __init__(self):
         """
         entry point
         """
         super(TransplatformSyncManager, self).__init__()
-        self.job_manager = JobManager(job_type)
+        self.job_manager = JobManager(TS_JOB_TYPES[0])
 
     def syncstats_initiate_job(self):
         """
@@ -161,7 +162,8 @@ class TransplatformSyncManager(BaseManager):
         """
         self.job_manager.log_json['Projects'] = OrderedDict()
         try:
-            transplatforms = TransPlatform.objects.only('engine_name', 'api_url') \
+            transplatforms = TransPlatform.objects.only('engine_name', 'api_url',
+                                                        'auth_login_id', 'auth_token_key') \
                 .filter(server_status=True).all()
         except Exception as e:
             self.job_manager.log_json['Projects'].update(
@@ -173,8 +175,11 @@ class TransplatformSyncManager(BaseManager):
                 {str(datetime.now()): str(len(transplatforms)) + ' translation platforms fetched from db.'}
             )
             for platform in transplatforms:
-                rest_handle = self.rest_client(platform.engine_name, platform.api_url)
-                response_dict = rest_handle.process_request('list_projects')
+                response_dict = self.rest_client(
+                    platform.engine_name, platform.api_url, 'list_projects', **dict(
+                        auth_user=platform.auth_login_id, auth_token=platform.auth_token_key
+                    )
+                )
                 if response_dict and response_dict.get('json_content'):
                     # save projects json in db
                     try:
@@ -219,12 +224,14 @@ class TransplatformSyncManager(BaseManager):
                     # todo - this can be delegated to PackagesManager's sync_update_package_details()
                     # Package name can be diff from its id/slug, hence extracting from url
                     transplatform_project_name = url.transplatform_url.split('/')[-1]
-                    rest_handle = self.rest_client(url.transplatform_slug.engine_name,
-                                                   url.transplatform_slug.api_url)
                     # extension for Transifex should be true, otherwise false
                     ext = True if url.transplatform_slug.engine_name == TRANSPLATFORM_ENGINES[0] else False
-                    response_dict = rest_handle.process_request(
-                        'project_details', transplatform_project_name, ext=ext
+                    response_dict = self.rest_client(
+                        url.transplatform_slug.engine_name, url.transplatform_slug.api_url, 'project_details',
+                        transplatform_project_name, **dict(
+                            ext=ext, auth_user=url.transplatform_slug.auth_login_id,
+                            auth_token=url.transplatform_slug.auth_token_key
+                        )
                     )
                     if response_dict and response_dict.get('json_content'):
                         try:
@@ -265,15 +272,19 @@ class TransplatformSyncManager(BaseManager):
             for package in packages:
                 # todo - this can be delegated to PackagesManager's sync_update_package_stats()
                 transplatform_engine = package.transplatform_slug.engine_name
-                rest_handle = self.rest_client(transplatform_engine, package.transplatform_slug.api_url)
+
                 project, versions = parse_project_details_json(
                     transplatform_engine, package.package_details_json
                 )
                 for version in versions:
                     # extension for Zanata should be true, otherwise false
                     extension = True if transplatform_engine == TRANSPLATFORM_ENGINES[1] else False
-                    response_dict = rest_handle.process_request(
-                        'proj_trans_stats', project, version, extension
+                    response_dict = self.rest_client(
+                        transplatform_engine, package.transplatform_slug.api_url, 'proj_trans_stats',
+                        project, version, **dict(
+                            ext=extension, auth_user=package.transplatform_slug.auth_login_id,
+                            auth_token=package.transplatform_slug.auth_token_key
+                        )
                     )
                     if response_dict and response_dict.get('json_content'):
                         try:
@@ -316,12 +327,12 @@ class ReleaseScheduleSyncManager(BaseManager):
     Release Schedule Sync Manager
     """
 
-    def __init__(self, job_type):
+    def __init__(self):
         """
         entry point
         """
         super(ReleaseScheduleSyncManager, self).__init__()
-        self.job_manager = JobManager(job_type)
+        self.job_manager = JobManager(TS_JOB_TYPES[1])
         self.release_branch_manager = ReleaseBranchManager()
 
     def syncschedule_initiate_job(self):

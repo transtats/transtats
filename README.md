@@ -5,27 +5,12 @@
 
 Track translation progress across packages for downstream releases with respect to current development.
 
+
 ### Get Involved
-
-#### try and test: docker
-
-Get docker daemon running. Build or pull `transtats` image *([docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
-
-Build or Pull and Run
-
-    1. Clone repo $ git clone https://github.com/transtats/transtats.git
-    2. $ cd transtats/deploy/docker
-    3. $ sudo docker build -t transtats .
-
-    or $ sudo docker pull docker.io/transtats/transtats
-
-    and $ sudo docker run -d --name container_name -p 8080:8015 transtats
-
-Application should be available at `localhost:8080` with `transtats | transtats` as login credentials.
-
 
 
 #### develop: virtualenv
+
 
 Setup [Virtualenvwrapper](http://virtualenvwrapper.readthedocs.io/en/latest/install.html) and [PostgreSQL 9.5](https://fedoraproject.org/wiki/PostgreSQL). Create virtualenv. Clone repo.
 
@@ -49,13 +34,18 @@ Generate docs   `make docs`
 #### develop: docker
 
 
-Build and Run 
+Get docker daemon running. Build or pull `transtats` image *([docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
+
+Build or Pull and Run
 
     1. Clone repo $ git clone https://github.com/transtats/transtats.git
     2. $ cd transtats
     3. Make your changes 
     4. $ sudo docker build -t transtats .
-    5. $ sudo docker run -d --name container_name -p 8080:8015 transtats
+
+    or $ sudo docker pull docker.io/transtats/transtats
+
+    and $ sudo docker run -d --name container_name -p 8080:8015 transtats
     
     or $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
          -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats 

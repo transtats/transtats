@@ -40,7 +40,6 @@
                 <th>Translation Platform</th>
                 <th>Release Streams</th>
                 <th>Branch Mapping</th>
-                <th>Last Sync</th>
                 <th>&nbsp;</th>
             </tr>
         </thead>
@@ -51,38 +50,38 @@
                 <th>Translation Platform</th>
                 <th>Release Streams</th>
                 <th>Branch Mapping</th>
-                <th>Last Sync</th>
                 <th>&nbsp;</th>
             </tr>
         </tfoot>
         <tbody>
             {% for package in packages %}
             <tr>
-                <td>{{ package.package_name }}</td>
-                <td>
+                <td width="12%">{{ package.package_name }}</td>
+                <td width="28%">
                     <a href="{{ package.upstream_url }}" target="_blank">{{ package.upstream_url }}</a>
-                    <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-link" aria-hidden="true"></span><br/>
+                    {% if package.upstream_lastupdated %}
+                        <span class="text-muted">Last Sync:</span> {{ package.upstream_lastupdated|timesince }}
+                        <span class="text-muted">ago</span>.
+                    {% endif %}
                 </td>
-                <td>
+                <td width="28%">
                     <a href="{{ package.transplatform_url }}" target="_blank">{{ package.transplatform_url }}</a>
-                    <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-link" aria-hidden="true"></span><br/>
+                    {% if package.transtats_lastupdated %}
+                        <span class="text-muted">Last Sync:</span>
+                        {{ package.transtats_lastupdated|timesince }} <span class="text-muted">ago</span>.
+                    {% endif %}
                 </td>
-                <td>{{ package.release_streams|join:", " }}</td>
-                <td align="center">
+                <td width="12%">{{ package.release_streams|join:", " }}</td>
+                <td align="center" width="5%">
                     {% if package.release_branch_mapping %}
                         <span class="glyphicon glyphicon-ok-sign" style="color:green; font-size:22px"></span>
                     {% else %}
                         <span class="glyphicon glyphicon-exclamation-sign" style="color:orange; font-size:22px"></span>
                     {% endif %}
                 </td>
-                <td align="center">
-                    {% if package.transtats_lastupdated %}
-                        {{ package.transtats_lastupdated|timesince }} <span style="color:grey">ago</span>.
-                    {% else %}
-                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
-                    {% endif %}
-                </td>
-                <td align="center">
+                <td align="center" width="5%">
                     <a class="btn btn-default btn-small" href="{% url 'settings-package-config' package.package_name %}">
                         <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
                     </a>

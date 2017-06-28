@@ -64,7 +64,7 @@ app_setting_urls = [
                                   login_url="admin:index"), name="settings-jobs"),
     url(r'^graph-rules/new$', NewGraphRuleView.as_view(), name="settings-graph-rules-new"),
     url(r'^graph-rules$', GraphRulesSettingsView.as_view(), name="settings-graph-rules"),
-    url(r'^logs$', login_required(LogsSettingsView.as_view(), login_url="admin:index"), name="settings-logs"),
+    url(r'^logs$', LogsSettingsView.as_view(), name="settings-logs"),
 ]
 
 urlpatterns = [

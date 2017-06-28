@@ -14,7 +14,6 @@
 # under the License.
 
 import requests
-from django.conf import settings
 from requests.auth import HTTPBasicAuth
 
 
@@ -39,7 +38,7 @@ class ServiceConfig(object):
     """
     transplatform service configuration
     """
-    def __init__(self, engine, service):
+    def __init__(self, engine, service, auth=None):
         """
         entry point
         """
@@ -47,7 +46,7 @@ class ServiceConfig(object):
             self._config_dict = transifex_resources
             self._middle_url = '/api/2'
             self._service = transifex_services[service]
-            self.http_auth = HTTPBasicAuth(*settings.TRANSIFEX_AUTH)
+            self.http_auth = HTTPBasicAuth(*auth)
         if engine == TRANSPLATFORM_ENGINES[1]:
             self._config_dict = zanata_resources
             self._middle_url = '/rest'
@@ -166,7 +165,13 @@ class RestHandle(object):
 
 
 class RestClient(object):
+
+    """
+    REST Client for all Managers
+    """
+
     def __init__(self, engine, base_url):
+
         self.engine = engine
         self.base_url = base_url
         self.disable_ssl_certificate_validation = NO_CERT_VALIDATION
@@ -185,8 +190,16 @@ class RestClient(object):
         headers = kwargs['headers'] if 'headers' in kwargs else {}
         body = kwargs['body'] if 'body' in kwargs else None
         extension = kwargs.get('ext')
-        service_details = ServiceConfig(self.engine, service_name)
+        # set auth
+        auth_tuple = None
+        if kwargs.get('auth_user') and kwargs.get('auth_token'):
+            if self.engine == TRANSPLATFORM_ENGINES[0]:
+                auth_tuple = (kwargs['auth_user'], kwargs['auth_token'])
+            elif self.engine == TRANSPLATFORM_ENGINES[1]:
+                headers['X-Auth-User'] = kwargs['auth_user']
+                headers['X-Auth-Token'] = kwargs['auth_token']
         # set headers
+        service_details = ServiceConfig(self.engine, service_name, auth=auth_tuple)
         if hasattr(service_details, 'response_media_type') and service_details.response_media_type:
             headers['Accept'] = service_details.response_media_type
         if hasattr(service_details, 'request_media_type') and service_details.request_media_type:

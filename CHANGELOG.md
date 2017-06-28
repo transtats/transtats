@@ -1,4 +1,6 @@
-##### Tue Jun 06 2017 Sundeep Anand <suanand@redhat.com>
+##### Fri Jun 16 2017 Sundeep Anand <suanand@redhat.com>
+* translation platforms auth settings for API
+* package upstream sync for translation stats
 * add unit tests & configure travis and logging
 * add docker file, based on `fedora:latest`
 

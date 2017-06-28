@@ -37,7 +37,7 @@
                 <a href="{% url 'admin:dashboard_languages_add' %}" role="button" class="btn btn-default">Add Language</a>
                 <a href="{% url 'admin:dashboard_languages_changelist' %}" role="button" class="btn btn-default">Edit Languages</a>
             {% else %}
-                <a href="{% url 'admin:index' %}" role="button" class="btn btn-default">Manage Languages</a>
+                <a href="{% url 'admin:dashboard_languages_changelist' %}" role="button" class="btn btn-default">Manage Languages</a>
             {% endif %}
         </span>
     </div>

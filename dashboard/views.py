@@ -37,7 +37,8 @@ from dashboard.managers.jobs import (
     ReleaseScheduleSyncManager
 )
 from dashboard.managers.graphs import GraphManager
-from dashboard.constants import APP_DESC
+from dashboard.managers.upstream import UpstreamManager
+from dashboard.constants import APP_DESC, TS_JOB_TYPES
 
 
 class ManagersMixin(object):
@@ -63,7 +64,7 @@ class TranStatusTextView(ManagersMixin, TemplateView):
         """
         context_data = super(TemplateView, self).get_context_data(**kwargs)
         context_data['description'] = APP_DESC
-        packages = self.packages_manager.get_package_name_tuple()
+        packages = self.packages_manager.get_package_name_tuple(t_status=True)
         if packages:
             context_data['packages'] = packages
         return context_data
@@ -517,8 +518,8 @@ def schedule_job(request):
     message = "&nbsp;&nbsp;<span class='text-warning'>Request could not be processed.</span>"
     if request.is_ajax():
         job_type = request.POST.dict().get('job')
-        if job_type == 'synctransplatform':
-            transplatform_sync_manager = TransplatformSyncManager(job_type)
+        if job_type == TS_JOB_TYPES[0]:
+            transplatform_sync_manager = TransplatformSyncManager()
             job_uuid = transplatform_sync_manager.syncstats_initiate_job()
             if job_uuid:
                 message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
@@ -526,8 +527,8 @@ def schedule_job(request):
                 transplatform_sync_manager.sync_trans_stats()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
-        elif job_type == 'syncrelschedule':
-            relschedule_sync_manager = ReleaseScheduleSyncManager(job_type)
+        elif job_type == TS_JOB_TYPES[1]:
+            relschedule_sync_manager = ReleaseScheduleSyncManager()
             job_uuid = relschedule_sync_manager.syncschedule_initiate_job()
             if job_uuid:
                 message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
@@ -535,7 +536,6 @@ def schedule_job(request):
                 relschedule_sync_manager.sync_release_schedule()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
-            pass
     return HttpResponse(message)
 
 
@@ -585,7 +585,8 @@ def refresh_package(request):
     if request.is_ajax():
         post_params = request.POST.dict()
         package_manager = PackagesManager()
-        if post_params.get('task') == "mapBranches" and post_params.get('package'):
+        task_type = post_params.get('task', '')
+        if task_type == "mapBranches" and post_params.get('package'):
             if package_manager.build_branch_mapping(post_params['package']):
                 context = Context(
                     {'META': request.META,
@@ -596,7 +597,18 @@ def refresh_package(request):
                     {% tag_branch_mapping package_name %}
                 """
                 return HttpResponse(Template(template_string).render(context))
-        elif post_params.get('task') == "syncPkg" and post_params.get('package'):
+        elif task_type == "syncUpstream" and post_params.get('package'):
+            input_package_name = post_params['package']
+            package = package_manager.get_packages([input_package_name], ['package_name', 'upstream_url']).get()
+            if package:
+                upstream_repo = package.upstream_url if package.upstream_url.endswith('.git') \
+                    else package.upstream_url + ".git"
+                upstream_sync_manager = UpstreamManager(package.package_name, upstream_repo,
+                                                        'dashboard/sandbox', package.translation_file_ext)
+                job_uuid = upstream_sync_manager.syncupstream_initiate_job()
+                if job_uuid and upstream_sync_manager.upstream_trans_stats():
+                    return HttpResponse(status=200)
+        elif task_type == "syncPlatform" and post_params.get('package'):
             if package_manager.refresh_package(post_params['package']):
                 return HttpResponse(status=200)
     return HttpResponse(status=500)

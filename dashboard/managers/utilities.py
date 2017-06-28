@@ -29,6 +29,8 @@ def parse_project_details_json(engine, json_dict):
     """
     Parse project details json
     """
+    if not isinstance(json_dict, dict):
+        json_dict = {}
     project = ''
     versions = []
     if engine == TRANSPLATFORM_ENGINES[0]:

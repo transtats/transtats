@@ -15,8 +15,6 @@ ENV DATABASE_NAME=transtats \
     DATABASE_USER=postgres \
     DATABASE_PASSWD=postgres \
     DATABASE_HOST=localhost \
-    TRANSIFEX_USER=suanand \
-    TRANSIFEX_PASSWD=transtats \
     PYTHONUNBUFFERED=1
     
 RUN dnf -y update && \

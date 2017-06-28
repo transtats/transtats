@@ -131,4 +131,5 @@ class PackagesAdmin(admin.ModelAdmin):
     search_fields = ('package_name', )
     exclude = ('package_details_json', 'details_json_lastupdated',
                'package_name_mapping', 'mapping_lastupdated',
-               'transtats_lastupdated')
+               'transtats_lastupdated', 'upstream_latest_stats',
+               'upstream_lastupdated')
