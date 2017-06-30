@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 {% with "Transtats" as app_name %}
-{% with "0.1.1" as app_version %}
+{% with "0.1.2" as app_version %}
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -83,7 +83,7 @@
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-right">
                 <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>
-                {% if user.is_authenticated and user.is_superuser %}
+                {% if user.is_authenticated and user.is_staff %}
                   <li><a href="{% url 'admin:index' %}">Admin Console</a></li>
                 {% else %}
                   <li><a href="{% url 'admin:index' %}">Admin Login</a></li>

@@ -36,6 +36,9 @@
                         <span style="color:grey">Job#</span> {{ log.job_uuid }}
                     </a>&nbsp;&nbsp;&nbsp;
                     <span style="color:grey">Type#</span> {{ log.job_type|title }}
+                    {% if log.job_remarks %}
+                    &nbsp;&nbsp;&nbsp;<span style="color:grey">Remarks#</span> {{ log.job_remarks }}
+                    {% endif %}
                     <span class="pull-right">
                         {% if log.job_result %}
                             <span class="text-success">Succeed</span>

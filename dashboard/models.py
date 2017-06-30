@@ -92,6 +92,12 @@ class TransPlatform(models.Model):
     server_status = models.BooleanField(verbose_name="Enable/Disable")
     projects_json = JSONField(null=True)
     projects_lastupdated = models.DateTimeField(null=True)
+    auth_login_id = models.CharField(
+        max_length=200, null=True, blank=True, verbose_name="Auth User"
+    )
+    auth_token_key = models.CharField(
+        max_length=200, null=True, blank=True, verbose_name="Auth Token"
+    )
 
     def __str__(self):
         return "{0} {1}".format(self.engine_name, self.subject)
@@ -183,16 +189,17 @@ class Packages(models.Model):
     """
     package_id = models.AutoField(primary_key=True)
     package_name = models.CharField(max_length=1000, unique=True, verbose_name="Package Name")
-    upstream_name = models.CharField(max_length=1000, null=True, verbose_name="Upstream Name")
+    upstream_name = models.CharField(max_length=1000, null=True, blank=True,
+                                     verbose_name="Upstream Name")
     upstream_url = models.URLField(max_length=2000, unique=True, verbose_name="Upstream URL")
     transplatform_slug = models.ForeignKey(
         TransPlatform, on_delete=models.CASCADE,
         to_field='platform_slug', verbose_name="Translation Platform"
     )
-    transplatform_name = models.CharField(max_length=1000, null=True,
+    transplatform_name = models.CharField(max_length=1000, null=True, blank=True,
                                           verbose_name="Package Name at Translation Platform")
     # translation platform project http url
-    transplatform_url = models.URLField(max_length=500,
+    transplatform_url = models.URLField(max_length=500, null=True, blank=True,
                                         verbose_name="Translation Platform Project URL")
     release_streams = ArrayField(
         models.CharField(max_length=400, blank=True),
@@ -204,6 +211,12 @@ class Packages(models.Model):
     release_branch_mapping = JSONField(null=True, blank=True)
     mapping_lastupdated = models.DateTimeField(null=True)
     transtats_lastupdated = models.DateTimeField(null=True)
+    upstream_latest_stats = JSONField(null=True)
+    translation_file_ext = models.CharField(
+        max_length=10, null=True, blank=True, default='po',
+        verbose_name="Translation Format (po)"
+    )
+    upstream_lastupdated = models.DateTimeField(null=True)
 
     def __str__(self):
         return self.package_name

@@ -1,3 +1,9 @@
+##### Fri Jun 16 2017 Sundeep Anand <suanand@redhat.com>
+* translation platforms auth settings for API
+* package upstream sync for translation stats
+* add unit tests & configure travis and logging
+* add docker file, based on `fedora:latest`
+
 ##### Wed Apr 26 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.1
 * add combined lang view to translation workload
 * add detailed stats view to workload estimation

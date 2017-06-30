@@ -37,6 +37,10 @@ def get_secret(setting, secrets=secrets):
         raise ImproperlyConfigured(error_msg)
 
 
+def get_db_env(var):
+    return os.environ.get(var, '') or get_secret(var)
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
@@ -48,6 +52,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+ADMINS = (
+    # ('Your Name', 'your_email@domain.com'),
+    ('transtats', 'transtats@example.com'),
+)
 
 # Application definition
 
@@ -109,10 +117,10 @@ WSGI_APPLICATION = 'transtats.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': get_secret("DATABASE_NAME"),
-        'USER': get_secret("DATABASE_USER"),
-        'PASSWORD': get_secret("DATABASE_PASSWD"),
-        'HOST': get_secret("DATABASE_HOST"),
+        'NAME': get_db_env("DATABASE_NAME"),
+        'USER': get_db_env("DATABASE_USER"),
+        'PASSWORD': get_db_env("DATABASE_PASSWD"),
+        'HOST': get_db_env("DATABASE_HOST"),
         'PORT': '',
     }
 }
@@ -168,35 +176,29 @@ STATIC_URL = '/static/'
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        }
-    },
-    'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
-    },
-    'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    }
-}
-
-# Email Backend
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'filters': {
+#         'require_debug_false': {
+#             '()': 'django.utils.log.RequireDebugFalse'
+#         }
+#     },
+#     'handlers': {
+#         'mail_admins': {
+#             'level': 'ERROR',
+#             'filters': ['require_debug_false'],
+#             'class': 'django.utils.log.AdminEmailHandler'
+#         }
+#     },
+#     'loggers': {
+#         'django.request': {
+#             'handlers': ['mail_admins'],
+#             'level': 'ERROR',
+#             'propagate': True,
+#         },
+#     }
+# }
 
 # django-crispy-forms template pack
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
-
-# Transifex Credentials
-TRANSIFEX_AUTH = (get_secret("TRANSIFEX_USER"), get_secret("TRANSIFEX_PASSWD"))

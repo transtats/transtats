@@ -7,7 +7,7 @@ clean-pyc:
 
 .PHONY: devel
 devel:
-	pip install -r requirements/dev.txt
+	pip3 install -r requirements/dev.txt
 
 .PHONY: docs
 docs:
@@ -15,7 +15,7 @@ docs:
 
 .PHONY: demo
 demo:
-	python manage.py runserver 0:8015 --settings=transtats.settings.test --insecure
+	python3 manage.py runserver 0:8015 --settings=transtats.settings.test --insecure
 
 .PHONY: env-info
 env-info:
@@ -28,12 +28,16 @@ lint:
 
 .PHONY: migrations
 migrations:
-	python manage.py makemigrations
+	python3 manage.py makemigrations
 
 .PHONY: migrate
 migrate:
-	python manage.py migrate
+	python3 manage.py migrate
 
 .PHONY: run
 run:
-	python manage.py runserver
+	python3 manage.py runserver
+
+.PHONY: test
+test:
+	python3 manage.py test dashboard.tests -v 2 --settings=transtats.settings.test

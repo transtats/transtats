@@ -13,14 +13,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# application description
+# Application description
 APP_DESC = "overview and trends for language translations across packages"
 
 # Supported translation platforms
 # (transifex support looks outdated, todo - check and update code)
 TRANSPLATFORM_ENGINES = ('transifex', 'zanata')
 TRANSIFEX_SLUGS = ('TNFXPUB', )
-ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTADEV')
+ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTAVDR')
 
 # Supported release streams
 RELSTREAM_SLUGS = ('RHEL', 'fedora')
+
+
+# Environment variables
+DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
+               'DATABASE_HOST', 'TRANSIFEX_USER', 'TRANSIFEX_PASSWD')
+
+# Job Types
+TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream')
