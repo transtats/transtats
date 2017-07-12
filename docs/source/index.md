@@ -70,16 +70,14 @@ make run
 
 As the project evolves, a roadmap will be published for each major release. Comments, suggestions, and requests to the current roadmap are welcome. Our goal in publishing a roadmap is transparency and community inclusion. A roadmap is the team's best guess based on experience, community requests, and feedback.
 
-#### Transtats 0.1.2
+#### Transtats 0.1.3
 
-We are currently working on `0.1.2` release.
+We are currently working on `0.1.3` release.
 
-Target delivery: Mid of July 2017
+Target delivery: Mid of August 2017
 
-* Docker files for deployment
-* Unit tests and app logs
-* Package Upstream Stats
-* GNOME DamnedLies integration
+* GNOME Damned Lies integration
+* Koji Build System integration
 
 
 ### License
