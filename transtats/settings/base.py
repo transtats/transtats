@@ -110,6 +110,8 @@ SESSION_COOKIE_SECURE = False
 
 WSGI_APPLICATION = 'transtats.wsgi.application'
 
+LOGIN_REDIRECT_URL = '/'
+
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
