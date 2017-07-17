@@ -11,16 +11,18 @@ if [ -z "$DATABASE_USER" ]
 then
     echo "Set DB User"
     export DATABASE_USER="postgres"
-elif [ -z "$DATABASE_PASSWD" ]
+fi
+
+if [ -z "$DATABASE_PASSWD" ]
 then
     echo "Set DB Password"
     export DATABASE_PASSWD="postgres"
-elif [ -z "$DATABASE_NAME" ]
+fi
+
+if [ -z "$DATABASE_NAME" ]
 then
     echo "Set DB Name"
     export DATABASE_NAME="transtats"
-else
-    echo "Using database user=$DATABASE_USER, name=$DATABASE_NAME and pass=$DATABASE_PASSWD"
 fi
 
 sudo -u postgres psql -c "ALTER USER $DATABASE_USER WITH PASSWORD '$DATABASE_PASSWD';"

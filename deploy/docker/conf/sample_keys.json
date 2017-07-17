@@ -4,7 +4,5 @@
   "DATABASE_NAME": "transtats",
   "DATABASE_USER": "postgres",
   "DATABASE_PASSWD": "postgres" ,
-  "DATABASE_HOST": "localhost",
-  "TRANSIFEX_USER": "suanand",
-  "TRANSIFEX_PASSWD": "transtats"
+  "DATABASE_HOST": "localhost"
 }
