@@ -1,4 +1,5 @@
-##### Fri Jun 16 2017 Sundeep Anand <suanand@redhat.com>
+##### Fri Aug 04 2017 Sundeep Anand <suanand@redhat.com>
+* Update Dockerfile and add Vagrant + Ansible playbook
 * translation platforms auth settings for API
 * package upstream sync for translation stats
 * add unit tests & configure travis and logging
