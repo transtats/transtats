@@ -9,29 +9,7 @@ Track translation progress across packages for downstream releases with respect 
 ### Get Involved
 
 
-#### develop: virtualenv
-
-
-Setup [Virtualenvwrapper](http://virtualenvwrapper.readthedocs.io/en/latest/install.html) and [PostgreSQL 9.5](https://fedoraproject.org/wiki/PostgreSQL). Create virtualenv. Clone repo.
-
-```shell
-workon transtats
-cd /path/to/transtats/repo
-make devel
-```
-
-Create `transtats` database. Copy `keys.json.example` to `keys.json` and put your values.
-
-```shell
-make migrate && make run
-```
-
-Run tests   `make lint test`
-
-Generate docs   `make docs`
-
-
-#### develop: docker
+#### try and test: docker
 
 
 Get docker daemon running. Build or pull `transtats` image *([docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
@@ -53,11 +31,40 @@ Build or Pull and Run
 Application should be available at `localhost:8080` with `transtats | transtats` as login credentials.
 
 
+#### develop: vagrant
+
+
+Pull code `$ git clone https://github.com/transtats/transtats.git`
+
+Install ansible, docker and vagrant.
+
+```shell
+$ sudo vagrant up
+$ sudo vagrant ssh
+```
+
+This will setup devel env and run container plus, `ssh` into it.
+
+Run application
+
+```shell
+$ cd /workspace
+$ make run
+hit localhost:8080 in browser
+```
+
+Create migrations `make migrations`
+
+Run tests `make lint test` 
+
+Generate docs `make docs`
+
+
 
 #### Contribution
 
 * Fork [transtats repo](https://github.com/transtats/transtats) to your username and clone repository locally.
-* Set up a development environment as described above.
+* Setup development environment as described above.
 * The *devel* branch is the release actively under development.
 * The *master* branch corresponds to the latest stable release.
 * If you find any bug/issue or got an idea, open a [github issue](https://github.com/transtats/transtats/issues/new).
