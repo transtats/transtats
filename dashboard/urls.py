@@ -19,7 +19,10 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic.base import TemplateView
 
 # dashboard
-from dashboard.services.expose.views import PingServer
+from dashboard.services.expose.views import (
+    PingServer, PackageStatus, GraphRuleCoverage,
+    TranslationWorkload, TranslationWorkloadDetail
+)
 from dashboard.views import (
     TranStatusTextView, TranStatusGraphView, AppSettingsView,
     TransPlatformSettingsView, LanguagesSettingsView,
@@ -33,7 +36,13 @@ from dashboard.views import (
 
 
 api_urls = [
-    url(r'^ping$', PingServer.as_view(), name='ping_server'),
+    url(r'^ping$', PingServer.as_view(), name='api_ping_server'),
+    url(r'^status/(?P<package_name>[\w-]+)/$', PackageStatus.as_view(), name='api_package_status'),
+    url(r'^coverage/(?P<graph_rule>[\w-]+)/$', GraphRuleCoverage.as_view(), name='api_custom_graph'),
+    url(r'^workload/(?P<release_stream>[\w-]+)/$', TranslationWorkload.as_view(),
+        name='api_release_workload'),
+    url(r'^workload/(?P<release_stream>[\w-]+)/detail$', TranslationWorkloadDetail.as_view(),
+        name='api_release_workload_detail'),
 ]
 
 ajax_urls = [

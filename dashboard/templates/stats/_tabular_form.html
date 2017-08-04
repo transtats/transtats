@@ -13,7 +13,11 @@
     </thead>
     <tbody>
       {% for version, stats in stats_data.items %}
+      {% if version|lower == 'upstream' %}
+      <tr style="background-color:AliceBlue">
+      {% else %}
       <tr>
+      {% endif %}
         <td width="10%"><span class="text-info">{{ version }}</span></td>
         {% for index, stat in stats %}
             <td>

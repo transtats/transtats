@@ -74,10 +74,11 @@ As the project evolves, a roadmap will be published for each major release. Comm
 
 We are currently working on `0.1.3` release.
 
-Target delivery: Mid of August 2017
+Target delivery: End of August 2017
 
+* Add Vagrant to dev env setup
+* REST APIs and client development
 * GNOME Damned Lies integration
-* Koji Build System integration
 
 
 ### License
