@@ -1,5 +1,8 @@
-##### Fri Aug 04 2017 Sundeep Anand <suanand@redhat.com>
+##### Thu Aug 17 2017 Sundeep Anand <suanand@redhat.com>
+* REST API development: status, coverage, workload
 * Update Dockerfile and add Vagrant + Ansible playbook
+
+##### Fri Jun 30 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.2
 * translation platforms auth settings for API
 * package upstream sync for translation stats
 * add unit tests & configure travis and logging

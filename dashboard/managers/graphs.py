@@ -437,7 +437,7 @@ class GraphManager(BaseManager):
 
     def get_workload_detailed(self, release_branch):
         """
-        Build list of packages with translation workload for a given branch in all languages
+        Build translation workload percentage for a given branch in all languages
         """
         relbranch_packages_stats = self._get_branch_specific_pkgs_stats(release_branch)
         locale_lang_tuple = self.package_manager.get_locale_lang_tuple(
@@ -455,3 +455,20 @@ class GraphManager(BaseManager):
                 package += "*"
             workload_combined[package] = temp_stat_list
         return headers, OrderedDict(sorted(workload_combined.items()))
+
+    def get_workload_combined_detailed(self, release_branch):
+        """
+        Build translation workload for a given branch in all langs for all pkgs
+        :param release_branch: str
+        :return: dict
+        """
+        if not isinstance(release_branch, str):
+            return {}
+        locale_lang_tuple = self.package_manager.get_locale_lang_tuple(
+            locales=self.package_manager.get_relbranch_locales(release_branch)
+        )
+        workload_combined_detailed = {}
+        for locale, lang in locale_lang_tuple:
+            workload_combined_detailed[lang] = \
+                self.get_workload_estimate(release_branch, locale=locale)[1]
+        return workload_combined_detailed
