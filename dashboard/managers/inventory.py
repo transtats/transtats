@@ -42,11 +42,12 @@ from dashboard.models import (
 )
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, ZANATA_SLUGS,
-    TRANSIFEX_SLUGS, RELSTREAM_SLUGS
+    DAMNEDLIES_SLUGS, TRANSIFEX_SLUGS, RELSTREAM_SLUGS
 )
 from dashboard.managers.utilities import (
     parse_project_details_json, parse_ical_file
 )
+from dashboard.utilities.xmltodict import parse
 
 
 __all__ = ['InventoryManager', 'SyncStatsManager', 'PackagesManager',
@@ -292,7 +293,7 @@ class SyncStatsManager(BaseManager):
         trans_stats = []
         locales_found = []
 
-        if transplatform_slug in ZANATA_SLUGS:
+        if transplatform_slug in ZANATA_SLUGS or transplatform_slug in DAMNEDLIES_SLUGS:
             if not stats_json.get('stats'):
                 return trans_stats, ()
             for stats_param in stats_json['stats']:
@@ -324,7 +325,7 @@ class SyncStatsManager(BaseManager):
         """
         locale_translated = []
 
-        if transplatform_slug in ZANATA_SLUGS:
+        if transplatform_slug in ZANATA_SLUGS or transplatform_slug in DAMNEDLIES_SLUGS:
             for stats_dict in stats_dict_list:
                 translation_percent = \
                     round((stats_dict.get('translated') * 100) / stats_dict.get('total'), 2) \
@@ -434,10 +435,13 @@ class PackagesManager(InventoryManager):
                     platform.engine_name, platform.api_url, 'project_details', kwargs['package_name'],
                     **dict(auth_user=platform.auth_login_id, auth_token=platform.auth_token_key)
                 )
+            elif platform.engine_name == TRANSPLATFORM_ENGINES[2]:
+                kwargs['transplatform_url'] = platform.api_url + "/module/" + kwargs['package_name'] + "/"
 
             if kwargs.get('update_stats') == 'stats':
                 kwargs.pop('update_stats')
-                # fetch project details from transplatform and save in db
+                # fetch project details from translation platform and save in db
+                # todo - handle it for DamnedLies
                 if resp_dict and resp_dict.get('json_content'):
                     kwargs['package_details_json'] = resp_dict['json_content']
                     kwargs['details_json_lastupdated'] = timezone.now()
@@ -516,6 +520,9 @@ class PackagesManager(InventoryManager):
         elif isinstance(projects, dict) and engine == TRANSPLATFORM_ENGINES[0]:
             ids.append(projects.get('slug'))
             names.append(projects.get('name'))
+        elif isinstance(projects, list) and engine == TRANSPLATFORM_ENGINES[2]:
+            for project in projects:
+                ids.append(project['fields']['name'])
         return ids, names
 
     def validate_package(self, **kwargs):
@@ -544,7 +551,8 @@ class PackagesManager(InventoryManager):
                     platform.engine_name, platform.api_url, 'project_details',
                     package_name.lower(), **auth_dict
                 )
-            if platform.engine_name == TRANSPLATFORM_ENGINES[1]:
+            elif platform.engine_name == TRANSPLATFORM_ENGINES[1] or \
+                    platform.engine_name == TRANSPLATFORM_ENGINES[2]:
                 response_dict = self.rest_client(platform.engine_name, platform.api_url,
                                                  'list_projects', **auth_dict)
             if response_dict and response_dict.get('json_content'):
@@ -599,7 +607,7 @@ class PackagesManager(InventoryManager):
                     package_details.transplatform_slug_id,
                     pkg_stats_version.stats_raw_json, list(lang_id_name)
                 )
-            if 'test' not in pkg_stats_version.project_version:
+            if 'test' not in pkg_stats_version.project_version and 'extras' not in pkg_stats_version.project_version:
                 trans_stats_dict[pkg_stats_version.project_version] = \
                     self.syncstats_manager.extract_locale_translated(package_details.transplatform_slug_id,
                                                                      trans_stats_list)
@@ -646,15 +654,40 @@ class PackagesManager(InventoryManager):
         """
         update_pkg_status = False
         package, ext = self._get_pkg_and_ext(package_name)
-        # Package name can be diff from its id/slug, hence extracting from url
-        transplatform_project_name = package.transplatform_url.split('/')[-1]
-        project_details_response_dict = self.rest_client(
-            package.transplatform_slug.engine_name, package.transplatform_slug.api_url,
-            'project_details', transplatform_project_name, **dict(
-                ext=ext, auth_user=package.transplatform_slug.auth_login_id,
-                auth_token=package.transplatform_slug.auth_token_key
+        platform = package.transplatform_slug
+        project_details_response_dict = {}
+        if platform.engine_name == TRANSPLATFORM_ENGINES[2]:
+            response_projects = self.rest_client(
+                platform.engine_name, platform.api_url, 'list_projects'
             )
-        )
+            if response_projects and response_projects.get('json_content'):
+                projects = response_projects['json_content']
+                for project in projects or []:
+                    if package.package_name == project['fields']['name']:
+                        project_details_response_dict.update({
+                            "json_content": project['fields']
+                        })
+            response_releases = self.rest_client(
+                platform.engine_name, platform.api_url, 'releases'
+            )
+            pick_releases = []
+            if response_releases and response_projects.get('json_content'):
+                releases = response_releases['json_content']
+                for release in releases:
+                    if '(development)' in release['fields']['description'] or \
+                            '(stable)' in release['fields']['description']:
+                        pick_releases.append(release['fields']['name'])
+                project_details_response_dict['json_content']['releases'] = pick_releases
+        else:
+            # Package name can be diff from its id/slug, hence extracting from url
+            transplatform_project_name = package.transplatform_url.split('/')[-1]
+            project_details_response_dict = self.rest_client(
+                package.transplatform_slug.engine_name, package.transplatform_slug.api_url,
+                'project_details', transplatform_project_name, **dict(
+                    ext=ext, auth_user=package.transplatform_slug.auth_login_id,
+                    auth_token=package.transplatform_slug.auth_token_key
+                )
+            )
         if project_details_response_dict and project_details_response_dict.get('json_content'):
             try:
                 Packages.objects.filter(transplatform_url=package.transplatform_url).update(
@@ -680,13 +713,63 @@ class PackagesManager(InventoryManager):
             package.transplatform_slug.engine_name, package.package_details_json
         )
         for version in versions:
-            proj_trans_stats_response_dict = self.rest_client(
-                package.transplatform_slug.engine_name, package.transplatform_slug.api_url,
-                'proj_trans_stats', project, version, **dict(
-                    ext=ext, auth_user=package.transplatform_slug.auth_login_id,
-                    auth_token=package.transplatform_slug.auth_token_key
+            proj_trans_stats_response_dict = {}
+            if package.transplatform_slug.engine_name == TRANSPLATFORM_ENGINES[2]:
+                locales = [locale.locale_alias for locale in self.get_locales(only_active=True)]
+                # Quick fix for chinese, todo - remove this
+                locales.append('zh_CN')
+                locales.append('zh_TW')
+                # API has to be called for all locales, todo - optimize code
+                locales_stats_list = []
+                for locale in locales:
+                    locale_stat_dict = {}
+                    locale_stat_dict["unit"] = "MESSAGE"
+                    locale_stat_dict["locale"] = locale
+                    resp_release_stats = self.rest_client(
+                        package.transplatform_slug.engine_name, package.transplatform_slug.api_url,
+                        'release_trans_stats', locale, version
+                    )
+                    if resp_release_stats and resp_release_stats.get('content'):
+                        json_content = parse(resp_release_stats['content'])
+                        json_content['stats']['category'][0].get('module')[0].get('@id')
+
+                        gnome_module_categories = json_content['stats']['category'] or []
+                        for category in gnome_module_categories:
+                            modules = category.get('module')
+                            for module in modules:
+                                if module.get('@id') == package.package_name:
+                                    translated, fuzzy, untranslated, total = 0, 0, 0, 0
+                                    if isinstance(module.get('domain'), list):
+                                        for domain in module.get('domain'):
+                                            if domain.get('@id') == 'po':
+                                                translated = int(domain.get('translated'))
+                                                fuzzy = int(domain.get('fuzzy'))
+                                                untranslated = int(domain.get('untranslated'))
+                                                total = translated + fuzzy + untranslated
+                                    elif isinstance(module.get('domain'), dict):
+                                        translated = int(module.get('domain').get('translated'))
+                                        fuzzy = int(module.get('domain').get('fuzzy'))
+                                        untranslated = int(module.get('domain').get('untranslated'))
+                                        total = translated + fuzzy + untranslated
+                                    locale_stat_dict["translated"] = translated
+                                    locale_stat_dict["untranslated"] = untranslated
+                                    locale_stat_dict["fuzzy"] = fuzzy
+                                    locale_stat_dict["total"] = total
+                                    locales_stats_list.append(locale_stat_dict)
+                proj_trans_stats_response_dict.update({
+                    "json_content": {
+                        "id": version,
+                        "stats": locales_stats_list
+                    }
+                })
+            else:
+                proj_trans_stats_response_dict = self.rest_client(
+                    package.transplatform_slug.engine_name, package.transplatform_slug.api_url,
+                    'proj_trans_stats', project, version, **dict(
+                        ext=ext, auth_user=package.transplatform_slug.auth_login_id,
+                        auth_token=package.transplatform_slug.auth_token_key
+                    )
                 )
-            )
             if proj_trans_stats_response_dict and proj_trans_stats_response_dict.get('json_content'):
                 if self._save_version_stats(
                         project, version, proj_trans_stats_response_dict['json_content']

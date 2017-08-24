@@ -18,9 +18,10 @@ APP_DESC = "overview and trends for language translations across packages"
 
 # Supported translation platforms
 # (transifex support looks outdated, todo - check and update code)
-TRANSPLATFORM_ENGINES = ('transifex', 'zanata')
+TRANSPLATFORM_ENGINES = ('transifex', 'zanata', 'damnedlies')
 TRANSIFEX_SLUGS = ('TNFXPUB', )
 ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTAVDR')
+DAMNEDLIES_SLUGS = ('DMLSPUB', )
 
 # Supported release streams
 RELSTREAM_SLUGS = ('RHEL', 'fedora')
