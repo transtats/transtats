@@ -61,7 +61,7 @@ app_setting_urls = [
         url(r'^branches/new$', NewReleaseBranchView.as_view(), name="settings-stream-branches-new")
     ])),
     url(r'^release-streams$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
-    url(r'^package/(?P<package_name>[\w-]+)/', include([
+    url(r'^package/(?P<package_name>[\w\-\+]+)/', include([
         url(r'^config$', PackageConfigView.as_view(), name="settings-package-config"),
     ])),
     url(r'^packages/new$', NewPackageView.as_view(), name="settings-packages-new"),

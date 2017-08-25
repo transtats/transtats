@@ -221,6 +221,9 @@ class TransplatformSyncManager(BaseManager):
             )
             if project_urls and len(project_urls) > 0:
                 for url in project_urls:
+                    # Skipping this for DamnedLies as of now, todo - fix this
+                    if url.transplatform_slug.engine_name == TRANSPLATFORM_ENGINES[2]:
+                        continue
                     # todo - this can be delegated to PackagesManager's sync_update_package_details()
                     # Package name can be diff from its id/slug, hence extracting from url
                     transplatform_project_name = url.transplatform_url.split('/')[-1]
@@ -277,6 +280,9 @@ class TransplatformSyncManager(BaseManager):
                     transplatform_engine, package.package_details_json
                 )
                 for version in versions:
+                    # Skipping this for DamnedLies as of now, todo - fix this
+                    if transplatform_engine == TRANSPLATFORM_ENGINES[2]:
+                        continue
                     # extension for Zanata should be true, otherwise false
                     extension = True if transplatform_engine == TRANSPLATFORM_ENGINES[1] else False
                     response_dict = self.rest_client(
