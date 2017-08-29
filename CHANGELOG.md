@@ -1,4 +1,9 @@
-##### Fri Jun 16 2017 Sundeep Anand <suanand@redhat.com>
+##### Fri Aug 25 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.3
+* DamnedLies APIs initial integration: translation status
+* REST API development: status, coverage, workload
+* Update Dockerfile and add Vagrant + Ansible playbook
+
+##### Fri Jun 30 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.2
 * translation platforms auth settings for API
 * package upstream sync for translation stats
 * add unit tests & configure travis and logging

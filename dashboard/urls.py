@@ -19,7 +19,10 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic.base import TemplateView
 
 # dashboard
-from dashboard.services.expose.views import PingServer
+from dashboard.services.expose.views import (
+    PingServer, PackageStatus, GraphRuleCoverage,
+    TranslationWorkload, TranslationWorkloadDetail
+)
 from dashboard.views import (
     TranStatusTextView, TranStatusGraphView, AppSettingsView,
     TransPlatformSettingsView, LanguagesSettingsView,
@@ -33,7 +36,13 @@ from dashboard.views import (
 
 
 api_urls = [
-    url(r'^ping$', PingServer.as_view(), name='ping_server'),
+    url(r'^ping$', PingServer.as_view(), name='api_ping_server'),
+    url(r'^status/(?P<package_name>[\w-]+)/$', PackageStatus.as_view(), name='api_package_status'),
+    url(r'^coverage/(?P<graph_rule>[\w-]+)/$', GraphRuleCoverage.as_view(), name='api_custom_graph'),
+    url(r'^workload/(?P<release_stream>[\w-]+)/$', TranslationWorkload.as_view(),
+        name='api_release_workload'),
+    url(r'^workload/(?P<release_stream>[\w-]+)/detail$', TranslationWorkloadDetail.as_view(),
+        name='api_release_workload_detail'),
 ]
 
 ajax_urls = [
@@ -52,7 +61,7 @@ app_setting_urls = [
         url(r'^branches/new$', NewReleaseBranchView.as_view(), name="settings-stream-branches-new")
     ])),
     url(r'^release-streams$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
-    url(r'^package/(?P<package_name>[\w-]+)/', include([
+    url(r'^package/(?P<package_name>[\w\-\+]+)/', include([
         url(r'^config$', PackageConfigView.as_view(), name="settings-package-config"),
     ])),
     url(r'^packages/new$', NewPackageView.as_view(), name="settings-packages-new"),

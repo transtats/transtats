@@ -74,15 +74,24 @@ class UpstreamManager(BaseManager):
         """
         Run in sequential steps
         """
-        stages = (
+        get_stats_first = (
             self.clone_git_repo,
-            self.filter_files_collect_stats,
-            self.save_in_db,
+            self.filter_files_collect_stats
+        )
+
+        [method() for method in get_stats_first]
+
+        if self.trans_stats:
+            self.save_in_db()
+        else:
+            self.job_manager.job_result = False
+
+        wrap_up = (
             self.clean_workspace,
             self.job_manager.mark_job_finish,
         )
 
-        [method() for method in stages]
+        [method() for method in wrap_up]
         return self.job_manager.job_result
 
     def clone_git_repo(self):

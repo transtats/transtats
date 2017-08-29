@@ -3,12 +3,11 @@
 #
 # Run Command: cd transtats
 # Build Image: docker build -t transtats .
-# Run Container: docker run -d --name container -p 8080:8015 transtats
 # Run Container with env variable: docker run -d --name container -p 8080:8015 -e DATABASE_NAME=transtats -e \
 #                                  DATABASE_USER=postgres -e DATABASE_PASSWD=postgres -e DATABASE_HOST=localhost transtats
 
 FROM fedora
-MAINTAINER Sachin Pathare <spathare@redhat.com>
+LABEL maintainer="spathare@redhat.com,suanand@redhat.com"
 
 # Environment variable 
 ENV DATABASE_NAME=transtats \
@@ -17,10 +16,14 @@ ENV DATABASE_NAME=transtats \
     DATABASE_HOST=localhost \
     PYTHONUNBUFFERED=1
     
+RUN echo 'root:root' | chpasswd
+
 RUN dnf -y update && \
-    dnf -y install gcc findutils git python3-pip python3-devel sudo redhat-rpm-config \
-    postgresql-server postgresql-contrib postgresql-devel && \
+    dnf -y install gcc findutils git python python3-pip python3-devel redhat-rpm-config \
+    sudo koji postgresql-server postgresql-contrib postgresql-devel openssh-server && \
     dnf clean all
+
+RUN /usr/bin/ssh-keygen -A
 
 RUN su - postgres -c "PGDATA=/var/lib/pgsql/data initdb"
 
@@ -36,10 +39,11 @@ ADD / /workspace
 
 ADD deploy/docker/conf/sample_keys.json /workspace/transtats/settings/keys.json
 
-RUN pip3 install -r /workspace/requirements/base.txt
+RUN pip3 install -r /workspace/requirements/dev.txt
 
-ADD deploy/docker/launch.sh /usr/bin/transtats.sh
+RUN mkdir /var/run/sshd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
-EXPOSE 8015
+EXPOSE 22 8014 8015
 
-CMD ["/usr/bin/transtats.sh"]
+CMD ["/usr/sbin/sshd", "-D"]

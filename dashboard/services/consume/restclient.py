@@ -25,6 +25,10 @@ from .config.transifex import resource_config_dict as transifex_resources
 from .config.zanata import services as zanata_services
 from .config.zanata import resource_config_dict as zanata_resources
 
+# DamnedLies specific imports
+from .config.damnedlies import services as damnedlies_services
+from .config.damnedlies import resource_config_dict as damnedlies_resources
+
 from dashboard.constants import TRANSPLATFORM_ENGINES
 
 
@@ -52,6 +56,12 @@ class ServiceConfig(object):
             self._middle_url = '/rest'
             self._service = zanata_services[service]
             self.http_auth = None
+        if engine == TRANSPLATFORM_ENGINES[2]:
+            self._config_dict = damnedlies_resources
+            self._middle_url = ''
+            self._service = damnedlies_services[service]
+            self.http_auth = None
+
         for attrib, value in (self._config_dict[self._service.rest_resource]
                               [self._service.mount_point][self._service.http_method].items()):
             setattr(self, str(attrib), value)

@@ -1,0 +1,8 @@
+---
+- hosts: all
+  vars:
+    - db_user: postgres
+    - db_pass: postgres
+    - db_name: transtats
+  roles:
+    - setup
