@@ -15,7 +15,7 @@ docs:
 
 .PHONY: demo
 demo:
-	python3 manage.py runserver 0:8014 --settings=transtats.settings.test --insecure
+	python3 manage.py runserver 0:8015 --settings=transtats.settings.test --insecure
 
 .PHONY: env-info
 env-info:
@@ -36,7 +36,7 @@ migrate:
 
 .PHONY: run
 run:
-	python3 manage.py runserver 0:8015
+	python3 manage.py runserver 0:8014
 
 .PHONY: test
 test:
