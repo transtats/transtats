@@ -1,0 +1,30 @@
+{% if branch_mapping %}
+    <div class="panel panel-default">
+      <div class="panel-heading" style="padding-bottom:20px">
+        <span style="font-size:large">Branch Mapping</span>
+        <span class="pull-right">
+            {% if mapping_lastupdated %}
+                <span class="text-muted">Last Updated:</span> {{ mapping_lastupdated|timesince }} <span style="color:grey">ago</span>.
+            {% endif %}
+        </span>
+      </div>
+      <table class="table table-hover table-bordered" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Release Stream Branch</th>
+                <th>Translation Platform Project Version</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for branch, version in branch_mapping.items %}
+            <tr>
+                <td>{{ branch }}</td>
+                <td>{{ version }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+    </div>
+{% else %}
+    No mapping found. <span class="text-muted">Please check release branch(es) and refresh the package.</span>
+{% endif %}

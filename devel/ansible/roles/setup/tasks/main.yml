@@ -1,0 +1,17 @@
+- name: Start Postgresql Server
+  shell: runuser -l postgres -c "pg_ctl -D /var/lib/pgsql/data -l logfile start" && sleep 5
+
+- name: Set DB User and Password
+  shell: runuser -l - postgres -c "psql -U postgres -d postgres -c \"alter user {{ db_user }} with password '{{ db_pass }}';\""
+
+- name: Create Database
+  shell: runuser -l - postgres -c "psql -U postgres -d postgres -c \"create database {{ db_name }};\""
+
+- name: Setup transtats keys
+  shell: cp /workspace/transtats/settings/keys.json.example /workspace/transtats/settings/keys.json
+
+- name: Setup DB Schema
+  shell: cd /workspace; make migrate
+
+- name: Load Initial Data
+  shell: runuser -l postgres -c "psql -d {{ db_name }} -a -f /workspace/deploy/docker/data/initial.sql"

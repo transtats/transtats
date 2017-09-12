@@ -1,0 +1,54 @@
+{% extends "settings/settings_base.html" %}
+{% load crispy_forms_tags custom_tags %}
+
+{% block extrascript %}
+<script src="/static/js/csrf.js"></script>
+<script src="/static/js/jquery-1.12.3.js"></script>
+<script type="text/javascript">
+    function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}$(document).ready(function(){$("#tab-packages").addClass("active"),$("#syncUpstreamLink").click(function(e){return e.preventDefault(),$.ajax({beforeSend:function(e,a){csrfSafeMethod(a.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#refreshProgress").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"{% url 'ajax-refresh-package' %}",data:{package:"{{ package_name }}",task:$("#syncUpstreamIdentifier").val()},success:function(e){$("#refreshProgress").html("<span class='glyphicon glyphicon-ok-sign' style='color:green'></span>")},error:function(e,a,s){$("#refreshProgress").html("<span class='glyphicon glyphicon-exclamation-sign' style='color:orange'></span>")}}),!1}),$("#syncTransplatformLink").click(function(e){return e.preventDefault(),$.ajax({beforeSend:function(e,a){csrfSafeMethod(a.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#refreshProgress").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"{% url 'ajax-refresh-package' %}",data:{package:"{{ package_name }}",task:$("#syncPackageIdentifier").val()},success:function(e){$("#refreshProgress").html("<span class='glyphicon glyphicon-ok-sign' style='color:green'></span>")},error:function(e,a,s){$("#refreshProgress").html("<span class='glyphicon glyphicon-exclamation-sign' style='color:orange'></span>")}}),!1}),$("#createBranchMapping").click(function(e){return e.preventDefault(),$.ajax({beforeSend:function(e,a){csrfSafeMethod(a.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#createBranchMapping").attr("disabled",!0)},type:"POST",url:"{% url 'ajax-refresh-package' %}",data:{package:"{{ package_name }}",task:$("#mapBranchesIdentifier").val()},success:function(e){$("#createBranchMapping").attr("disabled",!1),setTimeout(function(){$("#div-branch-mapping").html(e)},1e3)},error:function(e,a,s){$("#createBranchMapping").attr("disabled",!1)}}),!1})});
+</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-packages' %}" class="btn btn-default">Package</a>
+    <a href="{% url 'settings-package-config' package_name %}" class="btn btn-default">Config</a>
+{% endblock %}
+
+{% block tabcontent %}
+    <div class="row">
+        <div class="col-xs-12">
+            <span>
+                <span class="text-muted" style="font-size:large"><b>{{ package_name }}</b> | Configuration</span>
+            </span>
+            <span class="pull-right">
+                <span class="btn-group">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                   <span id="refreshProgress"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></span>
+                      Sync <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a id="syncUpstreamLink"><input type="hidden" value="syncUpstream" id="syncUpstreamIdentifier"/>Upstream Repository</a></li>
+                    <li><a id="syncTransplatformLink"><input type="hidden" value="syncPlatform" id="syncPackageIdentifier"/>Translation Platform</a></li>
+                  </ul>
+                </span>
+                <span class="btn-group" role="group" aria-label="...">
+                  {% if last_sync %}
+                      <a id="createBranchMapping" type="button" class="btn btn-default btn-small">
+                        <input type="hidden" value="mapBranches" id="mapBranchesIdentifier"/> Map Branches
+                      </a>
+                  {% endif %}
+                </span>
+                <a type="button" class="btn btn-default" href="{% url 'settings-packages' %}">Back to List Packages</a>
+            </span>
+        </div>
+    </div>
+    <hr/>
+    {% if package_details  %}
+        <span class="text-info"><b>Description:</b> {{ package_details }}</span><hr/>
+    {% endif %}
+    <div id="div-branch-mapping">
+        {% tag_branch_mapping package_name %}
+    </div>
+{% endblock %}

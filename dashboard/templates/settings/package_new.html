@@ -1,0 +1,55 @@
+{% extends "settings/settings_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block extrascript %}
+<script src="/static/js/jquery-1.12.3.js"></script>
+<script type="text/javascript">
+    function slugify(e){return e.toString().toLowerCase().replace(/\s+/g,"-").replace(/\./g,"-").replace(/[^\w\-]+/g,"").replace(/\-\-+/g,"-").replace(/^-+/,"").replace(/-+$/,"")}function showPackageSlug(){document.getElementById("show_package_name").innerHTML="Package Slug ({{ app_name }}): <b>"+slugify(document.getElementById("id_package_name").value)+"</b>"}function showUpstreamName(){var e=document.getElementById("id_upstream_url").value.split("/");document.getElementById("show_upstream_name").innerHTML="Package Name (Upstream): <b>"+e[e.length-1]+"</b>"}function showTransplatformId(){var e=$("#id_transplatform_slug option:selected").text();document.getElementById("show_transplatform_id").innerHTML="<b>"+document.getElementById("id_package_name").value+"</b> at "+e}$(document).ready(function(){$("#tab-packages").addClass("active")});
+</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
+    <a href="{% url 'settings-packages' %}" class="btn btn-default">Packages</a>
+    <a href="{% url 'settings-packages-new' %}" class="btn btn-default">Add</a>
+{% endblock %}
+
+{% block tabcontent %}
+<div class="row">
+    <div class="col-xs-12">
+        <span>
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            &nbsp;&nbsp;<span class="text-muted" style="font-size:large">Register a new package</span>
+        </span>
+        <div class="pull-right">
+            <a type="button" class="btn btn-default" href="{% url 'settings-packages' %}">Back to List Packages</a>
+        </div>
+    </div>
+</div>
+<hr/>
+{% for message in messages %}
+    {% if 'success' in message.tags %}
+        <div class="alert alert-success alert-dismissable">
+          <button type="button" class="close" aria-hidden="true">&times;</button>
+          <p>{{ message }}</p>
+        </div>
+    {% endif %}
+    {% if 'error' in message.tags %}
+        <div class="alert alert-danger alert-dismissable">
+          <button type="button" class="close" aria-hidden="true">&times;</button>
+          <p>{{ message }}</p>
+        </div>
+    {% endif %}
+{% endfor %}
+<div id="settings-packages-new">
+    <span class="col-xs-8 well">
+        {% crispy form %}
+    </span>
+    <span class="col-xs-4" style="padding-top:40px">
+        <p class="text-info" id="show_package_name"></p>
+        <p class="text-info" id="show_upstream_name"></p>
+        <p class="text-info" id="show_transplatform_id"></p>
+    </span>
+</div>
+{% endblock %}
