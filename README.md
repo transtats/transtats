@@ -19,14 +19,14 @@ Build or Pull and Run
     1. Clone repo $ git clone https://github.com/transtats/transtats.git
     2. $ cd transtats
     3. Make your changes 
-    4. $ sudo docker build -t transtats .
+    4. $ sudo docker build -t transtats/transtats .
 
     or $ sudo docker pull docker.io/transtats/transtats
 
-    and $ sudo docker run -d --name container_name -p 8080:8015 transtats
+    and $ sudo docker run -d --name container_name -p 8080:8015 transtats/transtats
     
     or $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
-         -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats 
+         -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats/transtats
 
 Application should be available at `localhost:8080` with `transtats | transtats` as login credentials.
 
