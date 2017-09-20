@@ -89,7 +89,9 @@
                     <li><a href="{% url 'admin:index' %}">Admin Console</a></li>
                   {% endif %}
                 {% else %}
-                  <li><a href="{% url 'oidc_authentication_init' %}">Login</a></li>
+                  <li><a href="{% url 'admin:index' %}">Admin Login</a></li>
+                  <!--Waiting on https://github.com/mozilla/mozilla-django-oidc/pull/161-->
+                  <!--<li><a href="{% url 'oidc_authentication_init' %}">Login</a></li>-->
                 {% endif %}
                 <li><a href="{% url 'settings' %}">Inventory and Configuration</a></li>
                 <li><a href="{% url 'howto' %}">How to use {{ app_name }}</a></li>
