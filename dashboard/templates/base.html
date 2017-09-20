@@ -83,10 +83,13 @@
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-right">
                 <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>
-                {% if user.is_authenticated and user.is_staff %}
-                  <li><a href="{% url 'admin:index' %}">Admin Console</a></li>
+                {% if user.is_authenticated %}
+                  <li>{{ user.username }}</li>
+                  {% if user.is_staff %}
+                    <li><a href="{% url 'admin:index' %}">Admin Console</a></li>
+                  {% endif %}
                 {% else %}
-                  <li><a href="{% url 'admin:index' %}">Admin Login</a></li>
+                  <li><a href="{% url 'oidc_authentication_init' %}">Login</a></li>
                 {% endif %}
                 <li><a href="{% url 'settings' %}">Inventory and Configuration</a></li>
                 <li><a href="{% url 'howto' %}">How to use {{ app_name }}</a></li>
