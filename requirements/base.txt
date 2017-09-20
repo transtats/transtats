@@ -13,3 +13,4 @@ requests==2.11.1
 smmap2==2.0.2
 sqlparse==0.2.2
 Unidecode==0.4.19
+mozilla-django-oidc
