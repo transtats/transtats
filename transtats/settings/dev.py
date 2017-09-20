@@ -19,7 +19,7 @@ DEBUG = True
 # OpenID Connect
 # NOTE: This client ID only works on localhost:8080.
 INSTALLED_APPS += ('mozilla_django_oidc', )
-AUTHENTICATION_BACKENDS += ('transtats.utils.TranstateOIDCBackend', )
+AUTHENTICATION_BACKENDS += ('transtats.utils.TranstatsOIDCBackend', )
 OIDC_RP_CLIENT_ID = 'transtatsdev'
 OIDC_RP_CLIENT_SECRET = 'uvwFVN7SNgmNCQVJTR9QdrkMginl0RM4'
 OIDC_OP_AUTHORIZATION_ENDPOINT = 'https://iddev.fedorainfracloud.org/openidc/Authorization'

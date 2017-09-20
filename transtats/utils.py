@@ -5,7 +5,7 @@ Some base utilities/classes.
 from mozilla_django_oidc.auth import OIDCAuthenticationBackend
 
 
-class TranstateOIDCBackend(OIDCAuthenticationBackend):
+class TranstatsOIDCBackend(OIDCAuthenticationBackend):
     def filter_users_by_claims(self, claims):
         """Find users by matching username=sub."""
         # The claims.get and None-case were dropped, since if there is no sub,

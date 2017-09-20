@@ -33,11 +33,12 @@ Application should be available at `localhost:8080` with `transtats | transtats`
 #### develop: vagrant
 
 
-Pull code `$ git clone https://github.com/transtats/transtats.git`
-
 Install ansible, docker and vagrant.
 
 ```shell
+$ vagrant plugin install vagrant-hostmanager
+$ git clone https://github.com/transtats/transtats.git
+$ cd transtats
 $ sudo vagrant up
 $ sudo vagrant ssh
 ```
