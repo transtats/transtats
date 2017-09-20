@@ -18,8 +18,7 @@ Build or Pull and Run
 
     1. Clone repo $ git clone https://github.com/transtats/transtats.git
     2. $ cd transtats
-    3. Make your changes 
-    4. $ sudo docker build -t transtats/transtats .
+    3. $ sudo docker build -t transtats/transtats deploy/docker
 
     or $ sudo docker pull docker.io/transtats/transtats
 
@@ -55,7 +54,7 @@ hit localhost:8080 in browser
 
 Create migrations `make migrations`
 
-Run tests `make lint test` 
+Run tests `make lint test`
 
 Generate docs `make docs`
 

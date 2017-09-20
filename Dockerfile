@@ -2,9 +2,9 @@
 # http://transtats.org/
 #
 # Run Command: cd transtats
-# Build Image: docker build -t transtats .
-# Run Container with env variable: docker run -d --name container -p 8080:8015 -e DATABASE_NAME=transtats -e \
-#                                  DATABASE_USER=postgres -e DATABASE_PASSWD=postgres -e DATABASE_HOST=localhost transtats
+# Build Image: docker build -t transtats/transtats .
+# Run Container with env variable: docker run -d --name container -p 8080:8014 -e DATABASE_NAME=transtats -e \
+#                                  DATABASE_USER=postgres -e DATABASE_PASSWD=postgres -e DATABASE_HOST=localhost transtats/transtats
 
 FROM fedora
 LABEL maintainer="spathare@redhat.com,suanand@redhat.com"
