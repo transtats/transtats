@@ -34,27 +34,38 @@ To be a catalyst in *localisation of applications* by creating mapping between u
 
 5. **Graph Rules** Rules to track translation *as in* coverage of a package list for a specific release branch in a set of languages.
 
+#### Releases
+
+Please look [here](https://github.com/transtats/transtats/releases) for release details.
+
 
 
 ### Get Involved
 
-#### Setup development environment: virtualenv
+Pull code `$ git clone https://github.com/transtats/transtats.git`
 
-Setup Virtualenvwrapper and PostgreSQL 9.5. Create virtualenv. Clone repo.
-
-```shell
-workon transtats
-cd /path/to/transtats/repo
-make devel
-```
-
-Copy `keys.json.example` to `keys.json` and put your values.
+Install ansible, docker and vagrant.
 
 ```shell
-make migrations
-make migrate
-make run
+$ sudo vagrant up
+$ sudo vagrant ssh
 ```
+
+This will setup devel env and run container plus, `ssh` into it.
+
+Run application
+
+```shell
+$ cd /workspace
+$ make run
+hit localhost:8080 in browser
+```
+
+Create migrations `make migrations`
+
+Run tests `make lint test` 
+
+Generate docs `make docs`
 
 #### Contribution
 
@@ -70,16 +81,13 @@ make run
 
 As the project evolves, a roadmap will be published for each major release. Comments, suggestions, and requests to the current roadmap are welcome. Our goal in publishing a roadmap is transparency and community inclusion. A roadmap is the team's best guess based on experience, community requests, and feedback.
 
-#### Transtats 0.1.3
+#### Transtats 0.1.4
 
-We are currently working on `0.1.3` release.
+We are currently working on `0.1.4` release.
 
-Target delivery: End of August 2017
+Target delivery: Mid of October 2017
 
-* Add Vagrant to dev env setup
-* REST APIs and client development
-* GNOME Damned Lies integration
-
+For features list please look [here](https://github.com/transtats/transtats/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_0.1.4).
 
 ### License
 

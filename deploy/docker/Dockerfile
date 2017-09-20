@@ -1,7 +1,7 @@
 # Dockerfile for transtats
-# http://transtats.org/
+# https://hub.docker.com/r/transtats/transtats/
 #
-# Run Command: docker run -d --name container -p 8080:8015 transtats
+# Run Command: docker run -d --name container_name -p 8080:8015 transtats/transtats
 
 FROM fedora
 MAINTAINER Sundeep Anand <suanand@redhat.com>
