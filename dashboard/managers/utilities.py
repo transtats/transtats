@@ -34,14 +34,14 @@ def parse_project_details_json(engine, json_dict):
     project = ''
     versions = []
     if engine == TRANSPLATFORM_ENGINES[0]:
+        project = json_dict.get('fields', {}).get('name')
+        versions = json_dict.get('releases', [])
+    elif engine == TRANSPLATFORM_ENGINES[1]:
         project = json_dict.get('slug', '')
         versions = [version.get('slug') for version in json_dict.get('resources', [])]
-    elif engine == TRANSPLATFORM_ENGINES[1]:
+    elif engine == TRANSPLATFORM_ENGINES[2]:
         project = json_dict.get('id', '')
         versions = [version.get('id') for version in json_dict.get('iterations', [])]
-    elif engine == TRANSPLATFORM_ENGINES[2]:
-        project = json_dict.get('name', '')
-        versions = json_dict.get('releases', '')
     return project, versions
 
 
