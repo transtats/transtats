@@ -282,3 +282,22 @@ class GraphRules(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'graphrules'
+
+
+class CacheAPI(models.Model):
+    """
+    Cache API Model
+    """
+    cache_api_id = models.AutoField(primary_key=True)
+    base_url = models.URLField(max_length=800)
+    resource = models.CharField(max_length=200)
+    request_args = ArrayField(
+        models.CharField(max_length=400, blank=True), default=list
+    )
+    request_kwargs = models.CharField(max_length=1000)
+    response_content = models.TextField(max_length=10000)
+    response_content_json = JSONField(null=True)
+    expiry = models.DateTimeField()
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'cacheapi'

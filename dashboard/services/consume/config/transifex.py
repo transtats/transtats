@@ -59,8 +59,8 @@ list_projects = resource('ProjectsResource', list(resource_config_dict['Projects
 project_details = resource('ProjectResource', list(resource_config_dict['ProjectResource'].keys())[0], http_methods[0])
 proj_trans_stats = resource('StatisticsResource', list(resource_config_dict['StatisticsResource'].keys())[0],
                             http_methods[0])
-# Transtats Transifex support operates on services listed here
-services = {
+# Transtats Transifex support operates on resources listed here
+resources = {
     'list_projects': list_projects,
     'project_details': project_details,
     'proj_trans_stats': proj_trans_stats,

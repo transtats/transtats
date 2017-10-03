@@ -150,7 +150,6 @@ class TransplatformSyncManager(BaseManager):
         stages = (
             self.update_trans_projects,
             self.update_project_details,
-            self.update_trans_stats,
             self.job_manager.mark_job_finish,
         )
 
@@ -175,16 +174,16 @@ class TransplatformSyncManager(BaseManager):
                 {str(datetime.now()): str(len(transplatforms)) + ' translation platforms fetched from db.'}
             )
             for platform in transplatforms:
-                response_dict = self.rest_client(
-                    platform.engine_name, platform.api_url, 'list_projects', **dict(
+                response_dict = self.api_resources.fetch_all_projects(
+                    platform.engine_name, platform.api_url, **dict(
                         auth_user=platform.auth_login_id, auth_token=platform.auth_token_key
                     )
                 )
-                if response_dict and response_dict.get('json_content'):
+                if response_dict:
                     # save projects json in db
                     try:
                         TransPlatform.objects.filter(api_url=platform.api_url).update(
-                            projects_json=response_dict['json_content'], projects_lastupdated=timezone.now()
+                            projects_json=response_dict, projects_lastupdated=timezone.now()
                         )
                     except Exception as e:
                         self.job_manager.log_json['Projects'].update(
@@ -221,108 +220,27 @@ class TransplatformSyncManager(BaseManager):
             )
             if project_urls and len(project_urls) > 0:
                 for url in project_urls:
-                    # Skipping this for DamnedLies as of now, todo - fix this
-                    if url.transplatform_slug.engine_name == TRANSPLATFORM_ENGINES[2]:
-                        continue
-                    # todo - this can be delegated to PackagesManager's sync_update_package_details()
-                    # Package name can be diff from its id/slug, hence extracting from url
-                    transplatform_project_name = url.transplatform_url.split('/')[-1]
-                    # extension for Transifex should be true, otherwise false
-                    ext = True if url.transplatform_slug.engine_name == TRANSPLATFORM_ENGINES[0] else False
-                    response_dict = self.rest_client(
-                        url.transplatform_slug.engine_name, url.transplatform_slug.api_url, 'project_details',
-                        transplatform_project_name, **dict(
-                            ext=ext, auth_user=url.transplatform_slug.auth_login_id,
-                            auth_token=url.transplatform_slug.auth_token_key
-                        )
+                    project_details_resp_dict = self.api_resources.fetch_project_details(
+                        url.transplatform_slug.engine_name, url.transplatform_slug.api_url, url.package_name,
+                        **(dict(auth_user=url.transplatform_slug.auth_login_id,
+                                auth_token=url.transplatform_slug.auth_token_key))
                     )
-                    if response_dict and response_dict.get('json_content'):
+                    if project_details_resp_dict:
                         try:
                             Packages.objects.filter(transplatform_url=url.transplatform_url).update(
-                                package_details_json=response_dict['json_content'],
+                                package_details_json=project_details_resp_dict,
                                 details_json_lastupdated=timezone.now()
                             )
                         except Exception as e:
                             self.job_manager.log_json['Project-Details'].update(
-                                {str(datetime.now()): 'Project Details JSON for ' + transplatform_project_name +
+                                {str(datetime.now()): 'Project Details JSON for ' + url.package_name +
                                                       ' failed to get saved in db. Details: ' + str(e)}
                             )
                             self.job_manager.job_result = False
                         else:
                             self.job_manager.log_json['Project-Details'].update(
                                 {str(datetime.now()): 'Project Details JSON for ' +
-                                                      transplatform_project_name + ' saved in db.'}
-                            )
-                            self.job_manager.job_result = True
-        return self.job_manager.job_result
-
-    def update_trans_stats(self):
-        """
-        Update translation stats for each project-version in db
-        """
-        self.job_manager.log_json['Translation-Stats'] = OrderedDict()
-        try:
-            packages = Packages.objects.select_related()
-        except Exception as e:
-            self.job_manager.log_json['Translation-Stats'].update(
-                {str(datetime.now()): 'Fetch Project Details from db failed. Details: ' + str(e)}
-            )
-            self.job_manager.job_result = False
-        else:
-            self.job_manager.log_json['Translation-Stats'].update(
-                {str(datetime.now()): str(len(packages)) + ' packages fetched from db.'}
-            )
-            for package in packages:
-                # todo - this can be delegated to PackagesManager's sync_update_package_stats()
-                transplatform_engine = package.transplatform_slug.engine_name
-
-                project, versions = parse_project_details_json(
-                    transplatform_engine, package.package_details_json
-                )
-                for version in versions:
-                    # Skipping this for DamnedLies as of now, todo - fix this
-                    if transplatform_engine == TRANSPLATFORM_ENGINES[2]:
-                        continue
-                    # extension for Zanata should be true, otherwise false
-                    extension = True if transplatform_engine == TRANSPLATFORM_ENGINES[1] else False
-                    response_dict = self.rest_client(
-                        transplatform_engine, package.transplatform_slug.api_url, 'proj_trans_stats',
-                        project, version, **dict(
-                            ext=extension, auth_user=package.transplatform_slug.auth_login_id,
-                            auth_token=package.transplatform_slug.auth_token_key
-                        )
-                    )
-                    if response_dict and response_dict.get('json_content'):
-                        try:
-                            existing_sync_stat = SyncStats.objects.filter(package_name=project,
-                                                                          project_version=version).first()
-                            if not existing_sync_stat:
-                                params = {}
-                                params.update(dict(package_name=project))
-                                params.update(dict(job_uuid=self.job_manager.uuid))
-                                params.update(dict(project_version=version))
-                                params.update(dict(stats_raw_json=response_dict['json_content']))
-                                params.update(dict(sync_iter_count=1))
-                                params.update(dict(sync_visibility=True))
-                                new_sync_stats = SyncStats(**params)
-                                new_sync_stats.save()
-                            else:
-                                SyncStats.objects.filter(package_name=project, project_version=version).update(
-                                    job_uuid=self.job_manager.uuid, stats_raw_json=response_dict['json_content'],
-                                    sync_iter_count=existing_sync_stat.sync_iter_count + 1
-                                )
-                            Packages.objects.filter(transplatform_url=package.transplatform_url).update(
-                                transtats_lastupdated=timezone.now())
-                        except Exception as e:
-                            self.job_manager.log_json['Translation-Stats'].update(
-                                {str(datetime.now()): 'Transtats JSON for project: ' + project + ' of version: ' +
-                                                      version + ' failed to get saved in db. Details: ' + str(e)}
-                            )
-                            self.job_manager.job_result = False
-                        else:
-                            self.job_manager.log_json['Translation-Stats'].update(
-                                {str(datetime.now()): 'Transtats JSON for project: ' + project + ' of version: ' +
-                                                      version + ' saved in db.'}
+                                                      url.package_name + ' saved in db.'}
                             )
                             self.job_manager.job_result = True
         return self.job_manager.job_result

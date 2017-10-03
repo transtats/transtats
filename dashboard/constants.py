@@ -17,15 +17,14 @@
 APP_DESC = "overview and trends for language translations across packages"
 
 # Supported translation platforms
-# (transifex support looks outdated, todo - check and update code)
-TRANSPLATFORM_ENGINES = ('transifex', 'zanata', 'damnedlies')
-TRANSIFEX_SLUGS = ('TNFXPUB', )
-ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTAVDR')
+TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata')
 DAMNEDLIES_SLUGS = ('DMLSPUB', )
+TRANSIFEX_SLUGS = ('TNFXPUB', )
+# Supported Zanata Instances
+ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTAVDR')
 
-# Supported release streams
+# Supported products
 RELSTREAM_SLUGS = ('RHEL', 'fedora')
-
 
 # Environment variables
 DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
