@@ -31,7 +31,7 @@ from dashboard.views import (
     NewReleaseBranchView, TransCoverageView, GraphRulesSettingsView,
     NewGraphRuleView, PackageConfigView, refresh_package, workload_graph,
     WorkloadEstimationView, WorkloadDetailedView, WorkloadCombinedView,
-    schedule_job, graph_data, tabular_data
+    schedule_job, graph_data, tabular_data, export_packages
 )
 
 
@@ -65,6 +65,7 @@ app_setting_urls = [
         url(r'^config$', PackageConfigView.as_view(), name="settings-package-config"),
     ])),
     url(r'^packages/new$', NewPackageView.as_view(), name="settings-packages-new"),
+    url(r'^packages/export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
     url(r'^packages$', PackageSettingsView.as_view(), name="settings-packages"),
     url(r'^languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),

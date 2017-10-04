@@ -27,6 +27,8 @@
         </span>
         <div class="pull-right">
             <a class="btn btn-default" role="button" href="{% url 'settings-packages-new' %}">Add Package</a>
+            <a class="btn btn-default" role="button" href="{% url 'packages-export' 'csv' %}">
+                <span class="glyphicon glyphicon-download" aria-hidden="true"></span> Export to CSV</a>
         </div>
     </div>
 </div>
