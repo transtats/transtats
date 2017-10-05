@@ -1,4 +1,5 @@
-##### Fri Aug 29 2017 Sundeep Anand <suanand@redhat.com>
+##### Wed Oct 04 2017 Sundeep Anand <suanand@redhat.com>
+* Add packages export to CSV option
 * Add service layer between API responses and logic
 
 ##### Fri Aug 25 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.3

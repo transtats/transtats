@@ -13,6 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import csv
+from datetime import datetime
+
 # django
 from django.contrib import messages
 from django.forms.utils import ErrorList
@@ -611,6 +614,30 @@ def refresh_package(request):
         elif task_type == "syncPlatform" and post_params.get('package'):
             if package_manager.refresh_package(post_params['package']):
                 return HttpResponse(status=200)
+    return HttpResponse(status=500)
+
+
+def export_packages(request, **kwargs):
+    """
+    Exports packages to CSV
+    """
+    if request.method == 'GET' and kwargs.get('format', '') == 'csv':
+        file_name = "ts-packages-%s.csv" % datetime.today().strftime('%d-%m-%Y')
+        packages_manager = PackagesManager()
+        required_fields = ['package_name', 'upstream_url', 'transplatform_url',
+                           'release_streams', 'release_branch_mapping']
+        packages = packages_manager.get_packages(pkg_params=required_fields)
+        response = HttpResponse(content_type='text/csv', status=200)
+        response['Content-Disposition'] = 'attachment; filename="' + file_name + '"'
+        writer = csv.writer(response)
+        writer.writerow([field.replace('_', ' ').title() for field in required_fields])
+        for package in packages:
+            writer.writerow(
+                [package.package_name, package.upstream_url,
+                 package.transplatform_url, " ".join(package.release_streams),
+                 package.release_branch_mapping if package.release_branch_mapping
+                 else ''])
+        return response
     return HttpResponse(status=500)
 
 
