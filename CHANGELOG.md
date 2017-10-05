@@ -1,4 +1,5 @@
-##### Wed Oct 04 2017 Sundeep Anand <suanand@redhat.com>
+##### Mon Oct 09 2017 Sundeep Anand <suanand@redhat.com>
+* Enable FAS authentication and adjust user roles
 * Add packages export to CSV option
 * Add service layer between API responses and logic
 

@@ -1,6 +1,6 @@
 ---
 sudo: true
-dist: trusty
+dist: xenial
 language: python
 python:
     - "3.4"
