@@ -12,6 +12,8 @@ addons:
         packages:
             - build-essential
             - python-dev
+            - python-krbv
+            - koji-client
 
 install:
     - pip install -r requirements/ci.txt
