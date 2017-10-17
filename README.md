@@ -32,7 +32,7 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
   ```shell
   $ sudo docker run -d --name container_name -p 8080:8015 transtats/transtats
   ```
-  or you can specify custom database credentials usig environment variables 
+  or you can specify custom database credentials using environment variables 
   ```shell
   $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
        -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats/transtats
@@ -41,35 +41,33 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 - Application should be available at `localhost:8080` with `transtats | transtats` as login credentials.
 
 
-#### develop: vagrant
+#### Develop: Vagrant
 
 
-Install ansible, docker and vagrant.
+- Install Ansible, Docker and Vagrant.
 
-```shell
-$ vagrant plugin install vagrant-hostmanager
-$ git clone https://github.com/transtats/transtats.git
-$ cd transtats
-$ sudo vagrant up
-$ sudo vagrant ssh
-```
+- This will setup devel environment and run container plus, `ssh` into it
+  ```shell
+  $ vagrant plugin install vagrant-hostmanager
+  $ git clone https://github.com/transtats/transtats.git
+  $ cd transtats
+  $ sudo vagrant up
+  $ sudo vagrant ssh
+  ```
 
-This will setup devel env and run container plus, `ssh` into it.
+- Run application
+  ```shell
+  $ cd /workspace
+  $ make run
+  ```
 
-Run application
+- Hit `localhost:8080` in browser
 
-```shell
-$ cd /workspace
-$ make run
-hit localhost:8080 in browser
-```
+- Create migrations `make migrations`
 
-Create migrations `make migrations`
+- Run tests `make lint test`
 
-Run tests `make lint test`
-
-Generate docs `make docs`
-
+- Generate docs `make docs`
 
 
 #### Contribution
