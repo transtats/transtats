@@ -174,6 +174,7 @@ class StreamBranches(models.Model):
     sync_calendar = models.BooleanField(default=True, verbose_name="Sync Calender")
     notifications_flag = models.BooleanField(default=True, verbose_name="Notification")
     track_trans_flag = models.BooleanField(default=True, verbose_name="Track Translation")
+    created_by = models.EmailField(null=True)
 
     def __str__(self):
         return self.relbranch_name
@@ -217,6 +218,7 @@ class Packages(models.Model):
         verbose_name="Translation Format (po)"
     )
     upstream_lastupdated = models.DateTimeField(null=True)
+    created_by = models.EmailField(null=True)
 
     def __str__(self):
         return self.package_name
@@ -279,6 +281,7 @@ class GraphRules(models.Model):
     rule_relbranch = models.CharField(max_length=500)
     created_on = models.DateTimeField()
     rule_status = models.BooleanField()
+    created_by = models.EmailField(null=True)
 
     class Meta:
         db_table = TABLE_PREFIX + 'graphrules'

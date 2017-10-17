@@ -23,27 +23,7 @@
 
     <!-- Custom styles for this template -->
     <style type="text/css">
-      body {
-        padding-top: 50px;
-        padding-bottom: 10px;
-      }
-      .content-area {
-        padding: 20px;
-        min-height: 600px;
-      }
-      .ribbon {
-        position: absolute;
-        top: 0;
-        right: 0;
-        border: 0;
-        z-index: 9999;
-      }
-      .modal-open {
-        position: fixed;
-        overflow: scroll;
-        width: 100%;
-        padding-right: 0!important;
-      }
+      body{padding-top:50px;padding-bottom:10px}.content-area{padding:20px;min-height:600px}.ribbon{position:absolute;top:0;right:0;border:0;z-index:9999}.modal-open{position:fixed;overflow:scroll;width:100%;padding-right:0!important}.btn-logout{width:100%;padding:3px 20px!important;text-align:left!important}.nounderline{text-decoration:none}
     </style>
 
     <!-- jQuery and Bootstrap core JS -->
@@ -83,19 +63,40 @@
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-right">
                 <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>
+                <li><a href="{% url 'settings' %}">
+                  <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+                  &nbsp;Inventory and Configuration</a></li>
+                <li><a href="{% url 'howto' %}">
+                  <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+                  &nbsp;Quick Start</a></li>
+                <li><a href="http://docs.transtats.org/" target="_blank">
+                  <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                  &nbsp;Docs</a></li>
                 {% if user.is_authenticated %}
-                  <!--<li>{{ user.username }}</li>-->
-                  {% if user.is_staff %}
-                    <li><a href="{% url 'admin:index' %}">Admin Console</a></li>
-                  {% endif %}
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                      <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                      &nbsp;{{ user.email }} <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                      {% if user.is_staff %}
+                      <li><a href="{% url 'admin:index' %}">
+                        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                        &nbsp;Admin Panel</a></li>
+                      {% endif %}
+                      <li>
+                        <form id="logout" action="{% url 'oidc_logout' %}" method="post">{% csrf_token %}
+                          <button type="submit" class="btn btn-link btn-logout">
+                            <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
+                            <span class="nounderline">&nbsp;Logout</span></button>
+                        </form>
+                      </li>
+                    </ul>
+                  </li>
                 {% else %}
-                  <li><a href="{% url 'admin:index' %}">Admin Login</a></li>
-                  <!--Waiting on https://github.com/mozilla/mozilla-django-oidc/pull/161-->
-                  <!--<li><a href="{% url 'oidc_authentication_init' %}">Login</a></li>-->
+                  <li><a href="{% url 'oidc_authentication_init' %}">
+                    <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                    &nbsp;Fedora Login</a></li>
                 {% endif %}
-                <li><a href="{% url 'settings' %}">Inventory and Configuration</a></li>
-                <li><a href="{% url 'howto' %}">How to use {{ app_name }}</a></li>
-                <li><a href="http://docs.transtats.org/" target="_blank">Docs</a></li>
               </ul>
             </div><!--/.navbar-collapse -->
           </div>

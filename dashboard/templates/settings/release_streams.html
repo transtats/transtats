@@ -11,20 +11,19 @@
 {% block navigation %}
     <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
     <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
-    <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Release Streams</a>
+    <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Products</a>
 {% endblock %}
 
 {% block tabcontent %}
 <div class="row">
     <div class="col-xs-12">
         <span>
-            <span class="badge">{{ relstreams|length }}</span> release stream.
+            <span class="badge">{{ relstreams|length }}</span> products
         </span>
         <span class="pull-right">
-            {% if user.is_authenticated and user.is_superuser %}
-                <a href="{% url 'admin:dashboard_releasestream_add' %}" role="button" class="btn btn-default">Add Release Stream</a>
-            {% else %}
-                <a href="{% url 'admin:dashboard_releasestream_changelist' %}" role="button" class="btn btn-default">Manage Release Streams</a>
+            {% if user.is_authenticated and user.is_staff %}
+                <a href="{% url 'admin:dashboard_releasestream_add' %}" role="button" class="btn btn-default">Add Product</a>
+                <a href="{% url 'admin:dashboard_releasestream_changelist' %}" role="button" class="btn btn-default">Manage Products</a>
             {% endif %}
         </span>
     </div>
@@ -58,7 +57,7 @@
                 <span style="color:grey">Message bus:</span> {{ relstream.msgbus_exchange }}
                 <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
             </p>
-            {% if user.is_authenticated and user.is_superuser %}
+            {% if user.is_authenticated and user.is_staff %}
             <p>
                 <a href="{% url 'admin:dashboard_releasestream_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Edit</a>
                 {% if relstream.relstream_status %}
@@ -75,7 +74,7 @@
             <div class="list-group">
               <a href="{% url 'settings-stream-branches' relstream.relstream_slug %}" class="list-group-item">
                 <h4 class="list-group-item-heading">{{ relstream.relstream_name }}
-                    <small class="text-primary">Releases/Branches</small></h4>
+                    <small class="text-primary">Releases</small></h4>
               </a>
             </div>
           </div>

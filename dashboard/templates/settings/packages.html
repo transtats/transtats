@@ -23,10 +23,12 @@
 <div class="row">
     <div class="col-xs-12">
         <span>
-            <span class="badge">{{ packages|length }}</span> packages registered.
+            <span class="badge">{{ packages|length }}</span> packages
         </span>
         <div class="pull-right">
-            <a class="btn btn-default" role="button" href="{% url 'settings-packages-new' %}">Add Package</a>
+            {% if user.is_authenticated %}
+                <a class="btn btn-default" role="button" href="{% url 'settings-packages-new' %}">Add Package</a>
+            {% endif %}
             <a class="btn btn-default" role="button" href="{% url 'packages-export' 'csv' %}">
                 <span class="glyphicon glyphicon-download" aria-hidden="true"></span> Export to CSV</a>
         </div>
