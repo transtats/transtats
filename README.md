@@ -9,25 +9,36 @@ Track translation progress across packages for downstream releases with respect 
 ### Get Involved
 
 
-#### try and test: docker
+#### Try and test: Docker
 
 
 Get docker daemon running. Build or pull `transtats` image *([docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
 
-Build or Pull and Run
+- Build the image *(optional)*
 
-    1. Clone repo $ git clone https://github.com/transtats/transtats.git
-    2. $ cd transtats
-    3. $ sudo docker build -t transtats/transtats deploy/docker
+  - Clone the repo and build the image 
+    ```shell
+    $ git clone https://github.com/transtats/transtats.git
+    $ cd transtats
+    $ sudo docker build -t transtats/transtats deploy/docker
+    ```
 
-    or $ sudo docker pull docker.io/transtats/transtats
+- Pull the image *(No need to pull, if you have built the image)*
+  ```shell
+  $ sudo docker pull docker.io/transtats/transtats
+  ``` 
 
-    and $ sudo docker run -d --name container_name -p 8080:8015 transtats/transtats
-    
-    or $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
-         -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats/transtats
-
-Application should be available at `localhost:8080` with `transtats | transtats` as login credentials.
+- Run the image
+  ```shell
+  $ sudo docker run -d --name container_name -p 8080:8015 transtats/transtats
+  ```
+  or you can specify custom database credentials usig environment variables 
+  ```shell
+  $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
+       -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats/transtats
+  ```
+  
+- Application should be available at `localhost:8080` with `transtats | transtats` as login credentials.
 
 
 #### develop: vagrant
@@ -75,3 +86,4 @@ Generate docs `make docs`
 ### License
 
 [Apache License](http://www.apache.org/licenses/LICENSE-2.0), Version 2.0
+
