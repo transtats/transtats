@@ -1,31 +1,65 @@
 Get Involved
 ============
 
-Pull code `$ git clone https://github.com/transtats/transtats.git`
+**Try and test: Docker**
 
-Install ansible, docker and vagrant.
+Get docker daemon running. Build or pull `transtats image <https://hub.docker.com/r/transtats/transtats>`_  and get started.
 
-::
+- Build the image *(optional)*
 
-    $ sudo vagrant up
-    $ sudo vagrant ssh
+  - Clone the repo and build the image
+     .. code-block:: bash
 
-This will setup devel env and run container plus, `ssh` into it.
+        $ git clone https://github.com/transtats/transtats.git
+        $ cd transtats
+        $ sudo docker build -t transtats/transtats deploy/docker
 
-Run application
+- Pull the image *(No need to pull, if you have built the image)*
+    .. code-block:: bash
 
-::
+        $ sudo docker pull docker.io/transtats/transtats
 
-    $ cd /workspace
-    $ make run
-    hit localhost:8080 in browser
+- Run the image
+    .. code-block:: bash
+
+        $ sudo docker run -d --name container_name -p 8080:8015 transtats/transtats
+
+  or you can specify custom database credentials using environment variables
+    .. code-block:: bash
+
+        $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
+               -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats/transtats
+
+- Application should be available at :code:`localhost:8080` with :code:`transtats | transtats` as login credentials.
 
 
-Create migrations `make migrations`
+**Develop: Vagrant**
 
-Run tests `make lint test`
+- Install Ansible, Docker and Vagrant.
 
-Generate docs `make docs`
+- This will setup devel environment and run container plus, `ssh` into it
+    .. code-block:: bash
+
+        $ vagrant plugin install vagrant-hostmanager
+        $ git clone https://github.com/transtats/transtats.git
+        $ cd transtats
+        $ sudo vagrant up
+        $ sudo vagrant ssh
+
+- Run application
+    .. code-block:: bash
+
+        $ cd /workspace
+        $ make run
+
+- Hit :code:`localhost:8080` in browser
+
+- Create migrations :code:`make migrations`
+
+- Run tests :code:`make lint test`
+
+- Generate docs :code:`make docs`
+
 
 Contribution
 ------------
