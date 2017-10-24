@@ -38,6 +38,47 @@ Settings
 API
 ---
 
+1. **Ping Server** : :code:`<transtats_server>/api/ping`
+
+    Returns server version.
+
+    .. code-block:: http
+
+        GET /api/ping HTTP/1.1
+
+2. **Package Status** : :code:`<transtats_server>/api/status/<package_name>`
+
+    Returns all translation stats of package.
+
+    .. code-block:: http
+
+        GET /api/status/abrt HTTP/1.1
+
+3. **Graph Rule Coverage** : :code:`<transtats_server>/api/coverage/<graph_rule_name>`
+
+    Returns translation coverage according to graph rule.
+
+    .. code-block:: http
+
+        GET /api/coverage/rhinstaller HTTP/1.1
+
+4. **Translation Workload** : :code:`<transtats_server>/api/workload/<release_branch_name>`
+
+    Returns translation stats of packages which come under given release branch.
+
+    .. code-block:: http
+
+        GET /api/workload/fedora-27 HTTP/1.1
+
+    a. **Translation Workload Detail** : :code:`<transtats_server>/api/workload/<release_branch_name>/detail`
+
+        Returns per language translation stats of packages which come under given release branch.
+
+        .. code-block:: http
+
+            GET /api/workload/fedora-27/detail HTTP/1.1
+
+
 Client
 ======
 
