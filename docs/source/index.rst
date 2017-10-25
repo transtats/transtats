@@ -1,3 +1,10 @@
+.. raw:: html
+
+    <a href="http://transtats.org"><img src="https://img.shields.io/badge/website-transtats.org-orange.svg" alt="website"></a>
+    <a href="https://travis-ci.org/transtats/transtats"><img src="https://travis-ci.org/transtats/transtats.svg?branch=master" alt="Build Status"></a>
+    <a href="https://github.com/transtats/transtats/stargazers"><img src="https://img.shields.io/github/stars/transtats/transtats.svg?style=social&label=Stars" alt="Stars"></a>
+    <br><br>
+
 =========
 Transtats
 =========
