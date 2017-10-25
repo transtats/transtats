@@ -10,6 +10,9 @@ Purpose
 To be a catalyst in *localisation of applications* by creating mapping between upstream, translation platform and release streams.
 
 .. toctree::
+    :caption: Table of Contents
+    :maxdepth: 2
+
     description
     usage
     getinvolved

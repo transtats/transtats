@@ -17,8 +17,8 @@ Graphs
 3. Translation Workload
     Translation workload estimation for a release branch across packages.
 
-Settings
---------
+Configuration
+-------------
 
 1. Inventory
     Languages & their sets, translation platforms and release streams with their branches are grouped as inventory. Plus upstream.
@@ -48,7 +48,7 @@ API
 
 2. **Package Status** : :code:`<transtats_server>/api/status/<package_name>`
 
-    Returns all translation stats of package.
+    Returns all translation stats of package, for example :code:`abrt`.
 
     .. code-block:: http
 
@@ -56,7 +56,7 @@ API
 
 3. **Graph Rule Coverage** : :code:`<transtats_server>/api/coverage/<graph_rule_name>`
 
-    Returns translation coverage according to graph rule.
+    Returns translation coverage according to graph rule, for example :code:`rhinstaller`.
 
     .. code-block:: http
 
@@ -64,7 +64,7 @@ API
 
 4. **Translation Workload** : :code:`<transtats_server>/api/workload/<release_branch_name>`
 
-    Returns translation stats of packages which come under given release branch.
+    Returns translation stats of packages which come under given release branch, for example :code:`fedora-27`.
 
     .. code-block:: http
 
@@ -86,7 +86,7 @@ Client
 
 - **Usage**
 
-    ::
+    .. code-block:: bash
 
         $ transtats [OPTIONS] COMMAND [ARGS]...
 
