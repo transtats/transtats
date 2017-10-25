@@ -11,6 +11,7 @@ To be a catalyst in *localisation of applications* by creating mapping between u
 
 .. toctree::
     description
+    usage
     getinvolved
     roadmap
     releases
