@@ -48,7 +48,7 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 
 - This will setup devel environment and run container plus, `ssh` into it
   ```shell
-  $ vagrant plugin install vagrant-hostmanager
+  $ sudo vagrant plugin install vagrant-hostmanager
   $ git clone https://github.com/transtats/transtats.git
   $ cd transtats
   $ sudo vagrant up
