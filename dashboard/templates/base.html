@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 
-{% with "Transtats" as app_name %}
-{% with "0.1.4" as app_version %}
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -84,18 +82,33 @@
                         &nbsp;Admin Panel</a></li>
                       {% endif %}
                       <li>
-                        <form id="logout" action="{% url 'oidc_logout' %}" method="post">{% csrf_token %}
-                          <button type="submit" class="btn btn-link btn-logout">
+                        {% if auth == 'fas' %}
+                            <form id="logout" action="{% url 'oidc_logout' %}" method="post">{% csrf_token %}
+                                <button type="submit" class="btn btn-link btn-logout">
                             <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
                             <span class="nounderline">&nbsp;Logout</span></button>
                         </form>
+                        {% else %}
+                          <a href="{% url 'admin:logout' %}">
+                              <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
+                               Logout</a>
+                        {% endif %}
                       </li>
                     </ul>
                   </li>
                 {% else %}
-                  <li><a href="{% url 'oidc_authentication_init' %}">
-                    <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                    &nbsp;Fedora Login</a></li>
+                  <li>
+                    {% if auth == 'fas' %}
+                        <a href="{% url 'oidc_authentication_init' %}">
+                        <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                        &nbsp;Fedora Login</a>
+                    {% else %}
+                        <a href="{% url 'admin:login' %}">
+                        <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                        &nbsp;Admin Login</a>
+                    {% endif %}
+                  </li>
+
                 {% endif %}
               </ul>
             </div><!--/.navbar-collapse -->
@@ -137,4 +150,3 @@
     {% block extrafooter %}{% endblock %}
   </body>
 </html>
-{% endwith %}{% endwith %}

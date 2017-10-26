@@ -1,4 +1,5 @@
-##### Mon Oct 09 2017 Sundeep Anand <suanand@redhat.com>
+##### Fri Oct 27 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.4
+* Improved transtats docs ([bhavin192](https://github.com/bhavin192))
 * Enable FAS authentication and adjust user roles
 * Add packages export to CSV option
 * Add service layer between API responses and logic
