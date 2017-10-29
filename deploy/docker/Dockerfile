@@ -3,7 +3,7 @@
 #
 # Run Command: docker run -d --name container_name -p 8080:8015 transtats/transtats
 
-FROM fedora
+FROM registry.fedoraproject.org/fedora:latest
 MAINTAINER Sundeep Anand <suanand@redhat.com>
 
 RUN dnf -y update && \
