@@ -13,6 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import csv
+from datetime import datetime
+
 # django
 from django.contrib import messages
 from django.forms.utils import ErrorList
@@ -24,6 +27,7 @@ from django.template import Context, Template
 from django.views.generic import (
     TemplateView, ListView, FormView
 )
+from django.urls import reverse
 
 # dashboard
 from dashboard.forms import (
@@ -296,7 +300,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
         kwargs = {}
         release_stream = self._get_relstream()
         lang_sets = self._get_langsets()
-        kwargs.update({'action_url': 'release-stream/' + release_stream.relstream_slug + '/branches/new'})
+        kwargs.update({'action_url': reverse('settings-stream-branches-new', args=[release_stream.relstream_slug])})
         kwargs.update({'phases_choices': tuple([(phase, phase) for phase in release_stream.relstream_phases])})
         kwargs.update({'langset_choices': tuple([(set.lang_set_slug, set.lang_set_name) for set in lang_sets])})
         kwargs.update({'initial': self.get_initial()})
@@ -319,9 +323,12 @@ class NewReleaseBranchView(ManagersMixin, FormView):
             errors = form._errors.setdefault('calendar_url', ErrorList())
             errors.append("Please check calendar URL, could not parse required dates!")
         if schedule_json:
-            success_url = '/settings/release-stream/' + relstream + '/branches/new'
+            success_url = reverse('settings-stream-branches-new', args=[relstream])
             post_params['schedule_json'] = schedule_json
             post_params['relbranch_slug'] = relbranch_slug
+            active_user = getattr(request, 'user', None)
+            if active_user:
+                post_params['created_by'] = active_user.email
             if not self.release_branch_manager.add_relbranch(relstream, **post_params):
                 messages.add_message(request, messages.ERROR, (
                     'Alas! Something unexpected happened. Please try adding release branch again!'
@@ -399,6 +406,9 @@ class NewPackageView(ManagersMixin, FormView):
             errors.append("Not found at selected translation platform")
         if validate_package and form.is_valid():
             post_params['package_name'] = validate_package
+            active_user = getattr(request, 'user', None)
+            if active_user:
+                post_params['created_by'] = active_user.email
             if not self.packages_manager.add_package(**post_params):
                 messages.add_message(request, messages.ERROR, (
                     'Alas! Something unexpected happened. Please try adding your package again!'
@@ -474,6 +484,9 @@ class NewGraphRuleView(ManagersMixin, FormView):
             errors.append(err_msg)
         if rule_slug and not pkgs_not_participate:
             post_params['rule_name'] = rule_slug
+            active_user = getattr(request, 'user', None)
+            if active_user:
+                post_params['created_by'] = active_user.email
             if not self.graph_manager.add_graph_rule(**post_params):
                 messages.add_message(request, messages.ERROR, (
                     'Alas! Something unexpected happened. Please try adding your rule again!'
@@ -611,6 +624,30 @@ def refresh_package(request):
         elif task_type == "syncPlatform" and post_params.get('package'):
             if package_manager.refresh_package(post_params['package']):
                 return HttpResponse(status=200)
+    return HttpResponse(status=500)
+
+
+def export_packages(request, **kwargs):
+    """
+    Exports packages to CSV
+    """
+    if request.method == 'GET' and kwargs.get('format', '') == 'csv':
+        file_name = "ts-packages-%s.csv" % datetime.today().strftime('%d-%m-%Y')
+        packages_manager = PackagesManager()
+        required_fields = ['package_name', 'upstream_url', 'transplatform_url',
+                           'release_streams', 'release_branch_mapping']
+        packages = packages_manager.get_packages(pkg_params=required_fields)
+        response = HttpResponse(content_type='text/csv', status=200)
+        response['Content-Disposition'] = 'attachment; filename="' + file_name + '"'
+        writer = csv.writer(response)
+        writer.writerow([field.replace('_', ' ').title() for field in required_fields])
+        for package in packages:
+            writer.writerow(
+                [package.package_name, package.upstream_url,
+                 package.transplatform_url, ', '.join(package.release_streams),
+                 package.release_branch_mapping if package.release_branch_mapping
+                 else ''])
+        return response
     return HttpResponse(status=500)
 
 

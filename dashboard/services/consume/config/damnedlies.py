@@ -82,10 +82,10 @@ release_details = resource('ReleaseDetailsResource', list(resource_config_dict['
                            http_methods[0])
 release_trans_stats = resource('ReleaseStatisticsResource',
                                list(resource_config_dict['ReleaseStatisticsResource'].keys())[0], http_methods[0])
-# Transtats DamnedLies support operates on services listed here
-services = {
+# Transtats DamnedLies support operates on resources listed here
+resources = {
     'teams': teams,
-    'list_projects': modules,
+    'modules': modules,
     'releases': releases,
     'release_details': release_details,
     'release_trans_stats': release_trans_stats

@@ -9,56 +9,65 @@ Track translation progress across packages for downstream releases with respect 
 ### Get Involved
 
 
-#### try and test: docker
+#### Try and test: Docker
 
 
 Get docker daemon running. Build or pull `transtats` image *([docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
 
-Build or Pull and Run
+- Build the image *(optional)*
 
-    1. Clone repo $ git clone https://github.com/transtats/transtats.git
-    2. $ cd transtats
-    3. Make your changes 
-    4. $ sudo docker build -t transtats .
+  - Clone the repo and build the image 
+    ```shell
+    $ git clone https://github.com/transtats/transtats.git
+    $ cd transtats
+    $ sudo docker build -t transtats/transtats deploy/docker
+    ```
 
-    or $ sudo docker pull docker.io/transtats/transtats
+- Pull the image *(No need to pull, if you have built the image)*
+  ```shell
+  $ sudo docker pull docker.io/transtats/transtats
+  ``` 
 
-    and $ sudo docker run -d --name container_name -p 8080:8015 transtats
-    
-    or $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
-         -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats 
+- Run the image
+  ```shell
+  $ sudo docker run -d --name container_name -p 8080:8015 transtats/transtats
+  ```
+  or you can specify custom database credentials using environment variables 
+  ```shell
+  $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
+       -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats/transtats
+  ```
+  
+- Application should be available at `localhost:8080` with `transtats | transtats` as login credentials.
 
-Application should be available at `localhost:8080` with `transtats | transtats` as login credentials.
+
+#### Develop: Vagrant
 
 
-#### develop: vagrant
+- Install Ansible, Docker and Vagrant.
 
+- This will setup devel environment and run container plus, `ssh` into it
+  ```shell
+  $ sudo vagrant plugin install vagrant-hostmanager
+  $ git clone https://github.com/transtats/transtats.git
+  $ cd transtats
+  $ sudo vagrant up
+  $ sudo vagrant ssh
+  ```
 
-Pull code `$ git clone https://github.com/transtats/transtats.git`
+- Run application
+  ```shell
+  $ cd /workspace
+  $ make run
+  ```
 
-Install ansible, docker and vagrant.
+- Hit `localhost:8080` in browser
 
-```shell
-$ sudo vagrant up
-$ sudo vagrant ssh
-```
+- Create migrations `make migrations`
 
-This will setup devel env and run container plus, `ssh` into it.
+- Run tests `make lint test`
 
-Run application
-
-```shell
-$ cd /workspace
-$ make run
-hit localhost:8080 in browser
-```
-
-Create migrations `make migrations`
-
-Run tests `make lint test` 
-
-Generate docs `make docs`
-
+- Generate docs `make docs`
 
 
 #### Contribution
@@ -75,3 +84,4 @@ Generate docs `make docs`
 ### License
 
 [Apache License](http://www.apache.org/licenses/LICENSE-2.0), Version 2.0
+

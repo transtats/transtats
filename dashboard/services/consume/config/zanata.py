@@ -204,8 +204,8 @@ proj_trans_stats = resource('StatisticsResource', list(resource_config_dict['Sta
 doc_trans_stats = resource('StatisticsResource', list(resource_config_dict['StatisticsResource'].keys())[1], http_methods[0])
 project_config = resource('ProjectIterationResource', list(resource_config_dict['ProjectIterationResource'].keys())[1],
                           http_methods[0])
-# Transtats Zanata support operates on services listed here
-services = {
+# Transtats Zanata support operates on resources listed here
+resources = {
     'server_version': server_version,
     'list_projects': list_projects,
     'project_details': project_details,

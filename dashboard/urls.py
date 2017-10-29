@@ -16,6 +16,7 @@
 # django
 from django.conf.urls import url, include
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.views.generic.base import TemplateView
 
 # dashboard
@@ -31,7 +32,7 @@ from dashboard.views import (
     NewReleaseBranchView, TransCoverageView, GraphRulesSettingsView,
     NewGraphRuleView, PackageConfigView, refresh_package, workload_graph,
     WorkloadEstimationView, WorkloadDetailedView, WorkloadCombinedView,
-    schedule_job, graph_data, tabular_data
+    schedule_job, graph_data, tabular_data, export_packages
 )
 
 
@@ -56,22 +57,28 @@ ajax_urls = [
 app_setting_urls = [
     url(r'^$', AppSettingsView.as_view(), name="settings"),
     url(r'^translation-platforms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
-    url(r'^release-stream/(?P<stream_slug>\w+)/', include([
-        url(r'^branches$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches"),
-        url(r'^branches/new$', NewReleaseBranchView.as_view(), name="settings-stream-branches-new")
+    url(r'^product/(?P<stream_slug>\w+)/', include([
+        url(r'^releases$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches"),
+        url(r'^releases/new$', staff_member_required(NewReleaseBranchView.as_view()),
+            name="settings-stream-branches-new")
     ])),
-    url(r'^release-streams$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
+    url(r'^products$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
     url(r'^package/(?P<package_name>[\w\-\+]+)/', include([
         url(r'^config$', PackageConfigView.as_view(), name="settings-package-config"),
     ])),
-    url(r'^packages/new$', NewPackageView.as_view(), name="settings-packages-new"),
+    url(r'^packages/new$', login_required(NewPackageView.as_view(),
+                                          login_url="oidc_authentication_init"),
+        name="settings-packages-new"),
+    url(r'^packages/export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
     url(r'^packages$', PackageSettingsView.as_view(), name="settings-packages"),
     url(r'^languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
-    url(r'^jobs$', login_required(TemplateView.as_view(template_name="settings/jobs.html"),
-                                  login_url="admin:index"), name="settings-jobs"),
-    url(r'^graph-rules/new$', NewGraphRuleView.as_view(), name="settings-graph-rules-new"),
+    url(r'^jobs$', login_required(TemplateView.as_view(template_name="settings/jobs.html")),
+        name="settings-jobs"),
+    url(r'^graph-rules/new$', login_required(NewGraphRuleView.as_view(),
+                                             login_url="oidc_authentication_init"),
+        name="settings-graph-rules-new"),
     url(r'^graph-rules$', GraphRulesSettingsView.as_view(), name="settings-graph-rules"),
     url(r'^logs$', LogsSettingsView.as_view(), name="settings-logs"),
 ]

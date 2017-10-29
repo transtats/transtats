@@ -17,7 +17,7 @@ import inspect
 import logging
 
 # dashboard
-from dashboard.services.consume.restclient import RestClient
+from dashboard.managers.resources import APIResources
 
 
 __all__ = ['BaseManager']
@@ -25,7 +25,10 @@ __all__ = ['BaseManager']
 
 class BaseManager(object):
     """
-    Base Manager: create app context, process view request object
+    Base Manager:
+        create app context
+        facilitate common methods
+        application logger
     """
 
     logger = logging.getLogger(__name__)
@@ -36,22 +39,7 @@ class BaseManager(object):
             if value:
                 setattr(self, str(attrib), value)
 
-    @staticmethod
-    def rest_client(engine_name, base_url, resource, *args, **kwargs):
-        """
-        Instantiate RestClient
-        :param engine_name: API Config: str
-        :param base_url: API Server: str
-        :param resource: API URI: str
-        :param args: arguments: tuple
-        :param kwargs: keyword args: dict
-        :return: RestClient
-        """
-        response_dict = {}
-        if engine_name and base_url and resource:
-            rest_handle = RestClient(engine_name, base_url)
-            response_dict = rest_handle.process_request(resource, *args, **kwargs)
-        return response_dict
+        self.api_resources = APIResources()
 
     def app_logger(self, log_level, log_msg):
         """

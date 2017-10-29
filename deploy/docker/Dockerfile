@@ -1,14 +1,14 @@
 # Dockerfile for transtats
-# http://transtats.org/
+# https://hub.docker.com/r/transtats/transtats/
 #
-# Run Command: docker run -d --name container -p 8080:8015 transtats
+# Run Command: docker run -d --name container_name -p 8080:8015 transtats/transtats
 
-FROM fedora
+FROM registry.fedoraproject.org/fedora:latest
 MAINTAINER Sundeep Anand <suanand@redhat.com>
 
 RUN dnf -y update && \
     dnf -y install gcc findutils git python3-pip python3-devel sudo redhat-rpm-config \
-    koji postgresql-server postgresql-contrib postgresql-devel && \
+    koji postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel && \
     dnf clean all
 
 RUN su - postgres -c "PGDATA=/var/lib/pgsql/data initdb"

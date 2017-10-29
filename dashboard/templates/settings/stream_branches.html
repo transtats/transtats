@@ -11,20 +11,22 @@
 {% block navigation %}
     <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
     <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
-    <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Release Streams</a>
-    <a href="{% url 'settings-stream-branches' relstream.relstream_slug %}" class="btn btn-default">Branches</a>
+    <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Products</a>
+    <a href="{% url 'settings-stream-branches' relstream.relstream_slug %}" class="btn btn-default">Releases</a>
 {% endblock %}
 
 {% block tabcontent %}
 <div class="row">
     <span class="col-xs-12">
         <span>
-            <span class="badge">{{ relbranches|length }}</span> {{ relstream.relstream_name }} branches.
+            <span class="badge">{{ relbranches|length }}</span> {{ relstream.relstream_name }} releases
         </span>
         <span class="pull-right">
-            <a href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}" class="btn btn-default">Add Branch</a>
-            <button type="button" class="btn btn-default disabled">Unsupported Branches</button>
-            <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Back to Release Streams</a>
+            {% if user.is_authenticated and user.is_staff %}
+                <a href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}" class="btn btn-default">Add Release</a>
+            {% endif %}
+            <!--<button type="button" class="btn btn-default disabled">Unsupported Releases</button>-->
+            <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Back to Products</a>
         </span>
     </span>
 </div>
@@ -100,7 +102,7 @@
     </div>
 {% else %}
     <p>
-        No release branch configured. Add <a href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}">one</a> now.
+        No release configured. Add <a href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}">one</a> now.
     </p>
 {% endif %}
 {% endblock %}
