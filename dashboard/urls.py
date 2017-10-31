@@ -17,7 +17,7 @@
 from django.conf.urls import url, include
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, RedirectView
 
 # dashboard
 from dashboard.services.expose.views import (
@@ -25,14 +25,11 @@ from dashboard.services.expose.views import (
     TranslationWorkload, TranslationWorkloadDetail
 )
 from dashboard.views import (
-    TranStatusTextView, TranStatusGraphView, AppSettingsView,
-    TransPlatformSettingsView, LanguagesSettingsView,
-    ReleaseStreamSettingsView, PackageSettingsView,
-    LogsSettingsView, NewPackageView, StreamBranchesSettingsView,
-    NewReleaseBranchView, TransCoverageView, GraphRulesSettingsView,
-    NewGraphRuleView, PackageConfigView, refresh_package, workload_graph,
-    WorkloadEstimationView, WorkloadDetailedView, WorkloadCombinedView,
-    schedule_job, graph_data, tabular_data, export_packages
+    TranStatusPackagesView, TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
+    AppSettingsView, TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView,
+    PackageSettingsView, JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView,
+    StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView,
+    refresh_package, release_graph, schedule_job, graph_data, tabular_data, export_packages
 )
 
 
@@ -51,7 +48,13 @@ ajax_urls = [
     url(r'^graph-data$', graph_data, name="ajax-graph-data"),
     url(r'^tabular-data$', tabular_data, name="ajax-tabular-data"),
     url(r'^refresh-package$', refresh_package, name="ajax-refresh-package"),
-    url(r'^workload-graph$', workload_graph, name="ajax-workload-graph"),
+    url(r'^release-graph$', release_graph, name="ajax-release-graph"),
+]
+
+app_jobs_urls = [
+    url(r'^$', JobsView.as_view(), name="jobs"),
+    url(r'^logs$', JobsLogsView.as_view(), name="jobs-logs"),
+    url(r'^archive$', JobsArchiveView.as_view(), name="jobs-archive")
 ]
 
 app_setting_urls = [
@@ -63,9 +66,6 @@ app_setting_urls = [
             name="settings-stream-branches-new")
     ])),
     url(r'^products$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
-    url(r'^package/(?P<package_name>[\w\-\+]+)/', include([
-        url(r'^config$', PackageConfigView.as_view(), name="settings-package-config"),
-    ])),
     url(r'^packages/new$', login_required(NewPackageView.as_view(),
                                           login_url="oidc_authentication_init"),
         name="settings-packages-new"),
@@ -74,24 +74,32 @@ app_setting_urls = [
     url(r'^languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
-    url(r'^jobs$', login_required(TemplateView.as_view(template_name="settings/jobs.html")),
-        name="settings-jobs"),
+
     url(r'^graph-rules/new$', login_required(NewGraphRuleView.as_view(),
                                              login_url="oidc_authentication_init"),
         name="settings-graph-rules-new"),
-    url(r'^graph-rules$', GraphRulesSettingsView.as_view(), name="settings-graph-rules"),
-    url(r'^logs$', LogsSettingsView.as_view(), name="settings-logs"),
+    url(r'^graph-rules$', GraphRulesSettingsView.as_view(), name="settings-graph-rules")
+]
+
+trans_status_urls = [
+    url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/packages'),
+        name="trans-status"),
+    url(r'^packages$', TranStatusPackagesView.as_view(), name="trans-status-packages"),
+    url(r'^package/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(),
+        name="trans-status-package"),
+    url(r'^releases$', TranStatusReleasesView.as_view(), name="trans-status-releases"),
+    url(r'^release/(?P<release_branch>[\w\-\+]+)$', TranStatusReleaseView.as_view(),
+        name="trans-status-release")
 ]
 
 urlpatterns = [
     url(r'^api/', include(api_urls)),
     url(r'^ajax/', include(ajax_urls)),
     url(r'^settings/', include(app_setting_urls)),
-    url(r'^$', TranStatusTextView.as_view(), name="home"),
-    url(r'^trans-status$', TranStatusGraphView.as_view(), name="graph-view"),
-    url(r'^trans-coverage$', TransCoverageView.as_view(), name="custom-graph"),
-    url(r'^trans-workload-combined$', WorkloadCombinedView.as_view(), name="workload-combined"),
-    url(r'^trans-workload$', WorkloadEstimationView.as_view(), name="workload"),
-    url(r'^trans-workload-detailed$', WorkloadDetailedView.as_view(), name="workload-detailed"),
+    url(r'^jobs/', include(app_jobs_urls)),
+    # Landing URLs
+    url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status'), name="home"),
+    url(r'^translation-status/', include(trans_status_urls)),
+    url(r'^translation-coverage/$', TransCoverageView.as_view(), name="custom-graph"),
     url(r'^how-to$', TemplateView.as_view(template_name="howto.html"), name="howto"),
 ]

@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block navigation %}
-    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
     <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
     <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Products</a>
     <a href="{% url 'settings-stream-branches' relstream.relstream_slug %}" class="btn btn-default">Releases</a>
@@ -41,6 +41,12 @@
                 {% if relbranch.scm_branch %}
                     <small>{{ relbranch.scm_branch }}</small>
                 {% endif %}
+                <span class="pull-right">
+                    <a type="button" class="btn btn-default btn-small"
+                       href="{% url 'trans-status-release' relbranch.relbranch_slug %}">
+                        <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
+                    </a>
+                </span>
             </h3>
             <p>
                 <span style="color:grey">Current Status:</span> {{ relbranch.current_phase|capfirst }}

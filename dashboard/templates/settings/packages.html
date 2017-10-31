@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block navigation %}
-    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
     <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
     <a href="{% url 'settings-packages' %}" class="btn btn-default">Packages</a>
 {% endblock %}
@@ -44,7 +44,6 @@
                 <th>Translation Platform</th>
                 <th>Release Streams</th>
                 <th>Branch Mapping</th>
-                <th>&nbsp;</th>
             </tr>
         </thead>
         <tfoot>
@@ -54,13 +53,14 @@
                 <th>Translation Platform</th>
                 <th>Release Streams</th>
                 <th>Branch Mapping</th>
-                <th>&nbsp;</th>
             </tr>
         </tfoot>
         <tbody>
             {% for package in packages %}
             <tr>
-                <td width="12%">{{ package.package_name }}</td>
+                <td width="12%">
+                    <a href="{% url 'trans-status-package' package.package_name %}">{{ package.package_name }}</a>
+                </td>
                 <td width="28%">
                     <a href="{{ package.upstream_url }}" target="_blank">{{ package.upstream_url }}</a>
                     <span class="glyphicon glyphicon-link" aria-hidden="true"></span><br/>
@@ -84,11 +84,6 @@
                     {% else %}
                         <span class="glyphicon glyphicon-exclamation-sign" style="color:orange; font-size:22px"></span>
                     {% endif %}
-                </td>
-                <td align="center" width="5%">
-                    <a class="btn btn-default btn-small" href="{% url 'settings-package-config' package.package_name %}">
-                        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
-                    </a>
                 </td>
             </tr>
             {% endfor %}

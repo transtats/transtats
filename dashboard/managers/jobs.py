@@ -117,9 +117,10 @@ class JobsLogManager(BaseManager):
         last_ran_type = None
         jobs_logs = self.get_job_logs()
         jobs_count = jobs_logs.count()
-        if jobs_count > 0:
-            last_ran_on = jobs_logs[0].job_end_time
-            last_ran_type = jobs_logs[0].job_type
+        successful_jobs = jobs_logs.filter(**{'job_result': True})
+        if successful_jobs.count() > 0:
+            last_ran_on = successful_jobs[0].job_end_time
+            last_ran_type = successful_jobs[0].job_type
         return jobs_count, last_ran_on, last_ran_type
 
 

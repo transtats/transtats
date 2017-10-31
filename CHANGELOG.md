@@ -1,3 +1,6 @@
+##### Fri Nov 03 2017 Sundeep Anand <suanand@redhat.com> 
+* Improve UI, Jobs tab, package config with stats, better navigation
+
 ##### Fri Oct 27 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.4
 * Improved transtats docs ([bhavin192](https://github.com/bhavin192))
 * Enable FAS authentication and adjust user roles

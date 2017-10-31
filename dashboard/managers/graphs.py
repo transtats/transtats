@@ -449,9 +449,9 @@ class GraphManager(BaseManager):
         for package, lang_stats in relbranch_packages_stats.items():
             temp_stat_list = []
             for lang_stat_tuple in lang_stats:
-                temp_stat_list.insert(headers.index(lang_stat_tuple[0]), 100 - lang_stat_tuple[1])
+                temp_stat_list.insert(headers.index(lang_stat_tuple[0]), lang_stat_tuple[1])
             # flag incorrect branch mapping
-            if len([i for i in temp_stat_list if i == 100]) == len(temp_stat_list):
+            if len([i for i in temp_stat_list if i == 0]) == len(temp_stat_list):
                 package += "*"
             workload_combined[package] = temp_stat_list
         return headers, OrderedDict(sorted(workload_combined.items()))

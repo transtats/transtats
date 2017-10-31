@@ -1,0 +1,48 @@
+{% extends "stats/translation_status.html" %}
+
+{% block extrascript %}
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#tab-translation-status").addClass("active"),
+    $("#tab-trans-status-releases").addClass("active"),
+    $("#btn-tabular").addClass("active"),
+    $("#hideLocaleGraph").hide(),
+    $("#langName").selectpicker("hide"),
+    $("#relBranch").change(function(a) {
+        window.location.replace("/translation-status/release/" + $(this).val())
+    });
+});
+</script>
+{% endblock %}
+
+{% block viewcontent %}
+    <div style="padding:20px">
+        <div class="row" style="padding-bottom:20px">
+            <div class="col-xs-12">
+                {% if releases %}
+                <select id="relBranch" class="selectpicker" data-live-search="true">
+                    <option selected disabled>Select Release</option>
+                    {% for release in releases %}
+                        <option value="{{ release.0 }}">{{ release.1 }}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                    <br/><p>No release added. Add <a href="{% url 'settings-release-streams' %}">one</a> now.</p>
+                {% endif %}
+                {% if languages %}
+                <select id="langName" class="selectpicker" data-live-search="true">
+                    <option selected disabled>Select Language</option>
+                    {% for locale, lang in languages %}
+                        <option value="{{ locale }}">{{ lang }}</option>
+                    {% endfor %}
+                </select>
+                <a id="hideLocaleGraph" type="button" class="btn btn-default btn-small">
+                    <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                </a>
+                {% endif %}
+                {% block dataviews %}{% endblock %}
+            </div>
+        </div>
+        {% block datacontent %}{% endblock %}
+    </div>
+{% endblock %}

@@ -55,44 +55,103 @@ class ManagersMixin(object):
     release_branch_manager = ReleaseBranchManager()
     graph_manager = GraphManager()
 
+    def get_summary(self):
+        """
+        Application Inventory Stats
+        """
+        locales_set = self.inventory_manager.get_locales_set()
+        summary = {}
+        summary['locales_len'] = len(locales_set[0]) \
+            if isinstance(locales_set, tuple) else 0
+        platforms = self.inventory_manager.get_transplatform_slug_url()
+        summary['platforms_len'] = len(platforms) if platforms else 0
+        relstreams = self.inventory_manager.get_relstream_slug_name()
+        summary['products_len'] = len(relstreams) if relstreams else 0
+        relbranches = self.release_branch_manager.get_release_branches()
+        summary['releases_len'] = relbranches.count() if relbranches else 0
+        summary['packages_len'] = self.packages_manager.count_packages()
+        jobs_count, last_ran_on, last_ran_type = \
+            self.jobs_log_manager.get_joblog_stats()
+        summary['jobs_len'] = jobs_count
+        graph_rules = self.graph_manager.get_graph_rules(only_active=True)
+        summary['graph_rules_len'] = graph_rules.count() if graph_rules else 0
+        return summary
 
-class TranStatusTextView(ManagersMixin, TemplateView):
+
+class TranStatusPackagesView(ManagersMixin, TemplateView):
     """
-    Translation Status Text View
+    Translation Status Packages View
     """
-    template_name = "stats/text_based.html"
+    template_name = "stats/status_packages.html"
 
     def get_context_data(self, **kwargs):
         """
         Build the Context Data
         """
-        context_data = super(TemplateView, self).get_context_data(**kwargs)
-        context_data['description'] = APP_DESC
-        packages = self.packages_manager.get_package_name_tuple(t_status=True)
-        if packages:
-            context_data['packages'] = packages
-        return context_data
-
-
-class TranStatusGraphView(ManagersMixin, TemplateView):
-    """
-    Translation Status Graph View
-    """
-    template_name = "stats/graph_based.html"
-
-    def get_context_data(self, **kwargs):
-        """
-        Build the Context Data
-        """
-        context_data = super(TemplateView, self).get_context_data(**kwargs)
-        context_data['description'] = APP_DESC
+        context = super(TemplateView, self).get_context_data(**kwargs)
+        context['description'] = APP_DESC
         packages = self.packages_manager.get_package_name_tuple()
         langs = self.inventory_manager.get_locale_lang_tuple()
         if packages:
-            context_data['packages'] = packages
+            context['packages'] = packages
         if langs:
-            context_data['languages'] = sorted(langs, key=lambda x: x[1])
-        return context_data
+            context['languages'] = sorted(langs, key=lambda x: x[1])
+        context.update(self.get_summary())
+        return context
+
+
+class TranStatusPackageView(TranStatusPackagesView):
+    """
+    Translation Status Package View
+    """
+    template_name = "stats/trans_status_package.html"
+
+    def get(self, request, *args, **kwargs):
+        response = super(TranStatusPackageView, self).get(
+            request, *args, **kwargs)
+        if not self.packages_manager.is_package_exist(
+                kwargs.get('package_name', '')):
+            raise Http404("Package does not exist.")
+        return response
+
+
+class TranStatusReleasesView(ManagersMixin, TemplateView):
+    """
+    Translation Status Releases View
+    """
+    template_name = "stats/status_releases.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Build the Context Data
+        """
+        context = super(TemplateView, self).get_context_data(**kwargs)
+        context['description'] = APP_DESC
+        relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
+        langs = self.inventory_manager.get_locale_lang_tuple()
+        context['releases'] = relbranches
+        if langs:
+            context['languages'] = sorted(langs, key=lambda x: x[1])
+        context.update(self.get_summary())
+        return context
+
+
+class TranStatusReleaseView(TranStatusReleasesView):
+    """
+    Translation Status Release View
+    """
+    template_name = "stats/trans_status_release.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(TranStatusReleaseView, self).get_context_data(**kwargs)
+        if not self.release_branch_manager.is_relbranch_exist(
+                kwargs.get('release_branch', '')):
+            raise Http404("Release does not exist.")
+        release_stream = self.release_branch_manager.get_release_branches(
+            relbranch=kwargs.get('release_branch'), fields=['relstream_slug']).get()
+        if release_stream:
+            context['release_stream'] = release_stream.relstream_slug
+        return context
 
 
 class TransCoverageView(ManagersMixin, TemplateView):
@@ -105,53 +164,13 @@ class TransCoverageView(ManagersMixin, TemplateView):
         """
         Build the Context Data
         """
-        context_data = super(TemplateView, self).get_context_data(**kwargs)
-        context_data['description'] = APP_DESC
+        context = super(TemplateView, self).get_context_data(**kwargs)
+        context['description'] = APP_DESC
         graph_rules = self.graph_manager.get_graph_rules(only_active=True)
         if graph_rules:
-            context_data['rules'] = graph_rules
-        return context_data
-
-
-class WorkloadEstimationView(ManagersMixin, TemplateView):
-    """
-    Workload Estimation View
-    """
-    template_name = "stats/workload_lang_wise.html"
-
-    def get_context_data(self, **kwargs):
-        """
-        Build the Context Data
-        """
-        context_data = super(WorkloadEstimationView, self).get_context_data(**kwargs)
-        relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
-        context_data['description'] = APP_DESC
-        context_data['relbranches'] = relbranches
-        return context_data
-
-
-class WorkloadCombinedView(ManagersMixin, TemplateView):
-    """
-    All languages combined workload estimation view
-    """
-    template_name = "stats/workload_combined.html"
-
-    def get_context_data(self, **kwargs):
-        """
-        Build the Context Data
-        """
-        context_data = super(WorkloadCombinedView, self).get_context_data(**kwargs)
-        relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
-        context_data['description'] = APP_DESC
-        context_data['relbranches'] = relbranches
-        return context_data
-
-
-class WorkloadDetailedView(WorkloadCombinedView):
-    """
-    Detailed Workload Estimation View
-    """
-    template_name = "stats/workload_detailed.html"
+            context['rules'] = graph_rules
+        context.update(self.get_summary())
+        return context
 
 
 class AppSettingsView(ManagersMixin, TemplateView):
@@ -259,7 +278,7 @@ class StreamBranchesSettingsView(ManagersMixin, TemplateView):
                 release_stream = self.inventory_manager.get_release_streams(stream_slug=relstream_slug).get()
                 release_branches = self.release_branch_manager.get_release_branches(relstream=relstream_slug)
             except:
-                raise Http404("ReleaseStream matching query does not exist.")
+                raise Http404("Product does not exist.")
             else:
                 context['relstream'] = release_stream
                 context['relbranches'] = release_branches
@@ -278,7 +297,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
                 stream_slug=self.kwargs.get('stream_slug'), only_active=True
             ).get()
         except:
-            raise Http404("ReleaseStream matching query does not exist.")
+            raise Http404("Product does not exist.")
         else:
             return release_stream
 
@@ -341,18 +360,6 @@ class NewReleaseBranchView(ManagersMixin, FormView):
         return render(request, self.template_name, {
             'form': form, 'relstream': self._get_relstream(), 'POST': 'invalid'
         })
-
-
-class LogsSettingsView(ManagersMixin, ListView):
-    """
-    Logs Settings View
-    """
-    template_name = "settings/logs.html"
-    context_object_name = 'logs'
-
-    def get_queryset(self):
-        job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs
 
 
 class PackageSettingsView(ManagersMixin, ListView):
@@ -499,29 +506,47 @@ class NewGraphRuleView(ManagersMixin, FormView):
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
 
-class PackageConfigView(ManagersMixin, TemplateView):
+class JobsView(ManagersMixin, TemplateView):
     """
-    Package Configuration View
+    Logs Settings View
     """
-    template_name = "settings/package_config.html"
+    template_name = "jobs/jobs_home.html"
 
     def get_context_data(self, **kwargs):
-        context = super(PackageConfigView, self).get_context_data(**kwargs)
-        queried_package_name = kwargs['package_name'] \
-            if 'package_name' in kwargs and kwargs.get('package_name') else ''
-        if queried_package_name:
-            context['package_name'] = queried_package_name
-            try:
-                package_details = self.packages_manager.get_packages([queried_package_name]).get()
-            except:
-                raise Http404("Package matching query does not exist.")
-            else:
-                pkg_details = package_details.package_details_json
-                if pkg_details and pkg_details.get('description'):
-                    context['package_details'] = pkg_details['description']
-                context['last_sync'] = package_details.transtats_lastupdated
-                context['name_mapping'] = package_details.package_name_mapping
+        context = super(TemplateView, self).get_context_data(**kwargs)
+        jobs_count, last_ran_on, last_ran_type = \
+            self.jobs_log_manager.get_joblog_stats()
+        context['jobs_count'] = jobs_count
+        context['job_last_ran_on'] = last_ran_on
+        context['job_last_ran_type'] = last_ran_type
+        packages = self.packages_manager.get_package_name_tuple()
+        if packages:
+            context['packages'] = packages
         return context
+
+
+class JobsLogsView(ManagersMixin, ListView):
+    """
+    Logs Settings View
+    """
+    template_name = "jobs/logs.html"
+    context_object_name = 'logs'
+
+    def get_queryset(self):
+        job_logs = self.jobs_log_manager.get_job_logs()
+        return job_logs[:15]
+
+
+class JobsArchiveView(ManagersMixin, ListView):
+    """
+    Logs Settings View
+    """
+    template_name = "jobs/archive.html"
+    context_object_name = 'logs'
+
+    def get_queryset(self):
+        job_logs = self.jobs_log_manager.get_job_logs()
+        return job_logs[15:]
 
 
 def schedule_job(request):
@@ -536,7 +561,7 @@ def schedule_job(request):
             job_uuid = transplatform_sync_manager.syncstats_initiate_job()
             if job_uuid:
                 message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
-                          "&nbsp;Job created and logged! UUID: <a href='/settings/logs'>" + str(job_uuid) + "</a>"
+                          "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
                 transplatform_sync_manager.sync_trans_stats()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
@@ -545,8 +570,24 @@ def schedule_job(request):
             job_uuid = relschedule_sync_manager.syncschedule_initiate_job()
             if job_uuid:
                 message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
-                          "&nbsp;Job created and logged! UUID: <a href='/settings/logs'>" + str(job_uuid) + "</a>"
+                          "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
                 relschedule_sync_manager.sync_release_schedule()
+            else:
+                message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+        elif job_type == TS_JOB_TYPES[2]:
+            input_package_name = request.POST.dict().get('package')
+            package_manager = PackagesManager()
+            package = package_manager.get_packages([input_package_name], ['package_name', 'upstream_url']).get()
+            if package:
+                upstream_repo = package.upstream_url if package.upstream_url.endswith('.git') \
+                    else package.upstream_url + ".git"
+                upstream_sync_manager = UpstreamManager(package.package_name, upstream_repo,
+                                                        'dashboard/sandbox', package.translation_file_ext)
+                job_uuid = upstream_sync_manager.syncupstream_initiate_job()
+                if job_uuid and upstream_sync_manager.upstream_trans_stats():
+                    message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                        "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
+                upstream_sync_manager.clean_workspace()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
     return HttpResponse(message)
@@ -624,6 +665,17 @@ def refresh_package(request):
         elif task_type == "syncPlatform" and post_params.get('package'):
             if package_manager.refresh_package(post_params['package']):
                 return HttpResponse(status=200)
+        elif task_type == "details" and post_params.get('package'):
+            context = Context(
+                {'META': request.META,
+                 'package_name': post_params['package'],
+                 'user': request.user}
+            )
+            template_string = """
+                    {% load tag_package_details from custom_tags %}
+                    {% tag_package_details package_name user %}
+            """
+            return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)
 
 
@@ -651,9 +703,9 @@ def export_packages(request, **kwargs):
     return HttpResponse(status=500)
 
 
-def workload_graph(request):
+def release_graph(request):
     """
-    Generates workload graph
+    Generates release graph
     """
     graph_dataset = {}
     if request.is_ajax():
