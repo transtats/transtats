@@ -29,8 +29,10 @@
             {% if user.is_authenticated %}
                 <a class="btn btn-default" role="button" href="{% url 'settings-packages-new' %}">Add Package</a>
             {% endif %}
+            {% if packages %}
             <a class="btn btn-default" role="button" href="{% url 'packages-export' 'csv' %}">
                 <span class="glyphicon glyphicon-download" aria-hidden="true"></span> Export to CSV</a>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -42,7 +44,7 @@
                 <th>Package</th>
                 <th>Upstream</th>
                 <th>Translation Platform</th>
-                <th>Release Streams</th>
+                <th>Products</th>
                 <th>Branch Mapping</th>
             </tr>
         </thead>
@@ -51,7 +53,7 @@
                 <th>Package</th>
                 <th>Upstream</th>
                 <th>Translation Platform</th>
-                <th>Release Streams</th>
+                <th>Products</th>
                 <th>Branch Mapping</th>
             </tr>
         </tfoot>

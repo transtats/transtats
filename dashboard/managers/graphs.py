@@ -16,6 +16,8 @@
 # Stats Graphs
 
 # python
+from datetime import timedelta
+import functools
 from operator import itemgetter
 from collections import OrderedDict
 
@@ -26,14 +28,15 @@ from slugify import slugify
 from django.utils import timezone
 
 # dashboard
+from dashboard.constants import RELSTREAM_SLUGS
 from dashboard.managers.base import BaseManager
 from dashboard.managers.inventory import (
     PackagesManager, ReleaseBranchManager, PackageBranchMapping
 )
-from dashboard.models import GraphRules
+from dashboard.models import GraphRules, Reports
 
 
-__all__ = ['GraphManager']
+__all__ = ['GraphManager', 'ReportsManager']
 
 
 class GraphManager(BaseManager):
@@ -472,3 +475,117 @@ class GraphManager(BaseManager):
             workload_combined_detailed[lang] = \
                 self.get_workload_estimate(release_branch, locale=locale)[1]
         return workload_combined_detailed
+
+
+class ReportsManager(GraphManager):
+    """
+    Manage Reports Generations
+    """
+
+    def get_reports(self, report_subject):
+        """
+        Fetch reports from db
+        :return: Queryset
+        """
+        filter_kwargs = {}
+        if report_subject:
+            filter_kwargs.update(dict(report_subject=report_subject))
+
+        reports = None
+        try:
+            reports = Reports.objects.filter(**filter_kwargs)
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Reports could not be fetched, details: " + str(e))
+        return reports
+
+    def create_or_update_report(self, **kwargs):
+        """
+        Creates or Updates a report
+        :param kwargs: dict
+        :return: boolean
+        """
+        if not kwargs.get('subject') and not kwargs.get('report_json'):
+            return
+        default_params = {}
+        match_params = {
+            'report_subject': kwargs['subject']
+        }
+        default_params.update(match_params)
+        default_params['report_json'] = kwargs['report_json']
+        default_params['report_updated'] = timezone.now()
+        try:
+            Reports.objects.update_or_create(
+                report_subject=kwargs['subject'], defaults=default_params
+            )
+        except Exception as e:
+            # log error
+            return False
+        else:
+            return True
+
+    def analyse_releases_status(self):
+        """
+        Summarize Releases Status
+        """
+        relbranches = self.branch_manager.get_relbranch_name_slug_tuple()
+        relbranch_report = {}
+        for branch_slug, branch_name in relbranches:
+            relbranch_report[branch_name] = {}
+            stats_estimate = self.get_workload_estimate(branch_slug)
+            untranslated_messages = \
+                [stats.get('Untranslated') for pkg, stats in stats_estimate[1].items()]
+            packages_need_attention = (len(untranslated_messages) - untranslated_messages.count(0)) or 0
+            relbranch_report[branch_name]['packages_need_attention'] = packages_need_attention
+            total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_messages)) or 0
+            relbranch_report[branch_name]['total_untranslated_msgs'] = total_untranslated_msgs
+            lang_stats_report = self.get_workload_combined_detailed(branch_slug)
+            relbranch_report[branch_name]['languages'] = {}
+            for lang, pkg_stats in lang_stats_report.items():
+                untranslated_msgs = []
+                untranslated_msgs.extend(
+                    [stats.get('Untranslated') for pkg, stats in pkg_stats.items()]
+                )
+                total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_msgs)) or 0
+                relbranch_report[branch_name]['languages'][lang] = total_untranslated_msgs
+        if self.create_or_update_report(**{
+            'subject': 'releases', 'report_json': relbranch_report
+        }):
+            return OrderedDict(sorted(relbranch_report.items(), reverse=True))
+        return False
+
+    def analyse_packages_status(self):
+        """
+        Summarize Packages Status
+        """
+        all_packages = self.package_manager.get_packages(pkg_params=[
+            'package_name', 'release_streams', 'details_json_lastupdated',
+            'release_branch_mapping', 'transtats_lastupdated', 'upstream_lastupdated'
+        ])
+        pkg_tracking_for_RHEL = all_packages.filter(release_streams__icontains=RELSTREAM_SLUGS[0]).count()
+        pkg_tracking_for_fedora = all_packages.filter(release_streams__icontains=RELSTREAM_SLUGS[1]).count()
+        pkg_details_week_old = all_packages.filter(
+            details_json_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
+        pkg_transtats_week_old = all_packages.filter(
+            transtats_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
+        pkg_upstream_week_old = all_packages.filter(
+            upstream_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
+        relbranches = self.branch_manager.get_relbranch_name_slug_tuple()
+        pkg_improper_branch_mapping = 0
+        if relbranches and len(relbranches) > 0:
+            relbranch_slugs = sorted([slug for slug, name in relbranches], reverse=True)
+            pkg_improper_branch_mapping = all_packages.filter(
+                release_branch_mapping__contains={relbranch_slugs[0]: ""}).count()
+        package_report = {
+            RELSTREAM_SLUGS[0]: pkg_tracking_for_RHEL or 0,
+            RELSTREAM_SLUGS[1]: pkg_tracking_for_fedora or 0,
+            'pkg_details_week_old': pkg_details_week_old or 0,
+            'pkg_transtats_week_old': pkg_transtats_week_old or 0,
+            'pkg_upstream_week_old': pkg_upstream_week_old or 0,
+            'pkg_improper_branch_mapping': pkg_improper_branch_mapping or 0
+        }
+        if self.create_or_update_report(**{
+            'subject': 'packages', 'report_json': package_report
+        }):
+            return package_report
+        return False

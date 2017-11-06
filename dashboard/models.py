@@ -304,3 +304,20 @@ class CacheAPI(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'cacheapi'
+
+
+class Reports(models.Model):
+    """
+    Reports Model
+    """
+    reports_id = models.AutoField(primary_key=True)
+    report_subject = models.CharField(max_length=200, unique=True)
+    report_json = JSONField(null=True)
+    report_updated = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return self.report_subject
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'reports'
+        verbose_name = "Reports"

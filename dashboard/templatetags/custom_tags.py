@@ -17,7 +17,7 @@ import os
 from collections import OrderedDict
 from django import template
 
-from dashboard.managers.graphs import GraphManager
+from dashboard.managers.graphs import GraphManager, ReportsManager
 from dashboard.managers.inventory import PackagesManager
 
 
@@ -124,4 +124,34 @@ def tag_workload_detailed(relbranch):
     headers, workload = graph_manager.get_workload_detailed(relbranch)
     return_value.update(dict(headers=headers))
     return_value.update(dict(packages=workload.items()))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("stats", "_releases_summary.html")
+)
+def tag_releases_summary():
+    return_value = OrderedDict()
+    reports_manager = ReportsManager()
+    releases_summary = reports_manager.get_reports('releases')
+    if releases_summary:
+        return_value.update(dict(
+            relsummary=releases_summary.get().report_json,
+            last_updated=releases_summary.get().report_updated
+        ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("stats", "_packages_summary.html")
+)
+def tag_packages_summary():
+    return_value = OrderedDict()
+    reports_manager = ReportsManager()
+    packages_summary = reports_manager.get_reports('packages')
+    if packages_summary:
+        return_value.update(dict(
+            pkgsummary=packages_summary.get().report_json,
+            last_updated=packages_summary.get().report_updated
+        ))
     return return_value

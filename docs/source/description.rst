@@ -46,13 +46,13 @@ API
 
         GET /api/ping HTTP/1.1
 
-2. **Package Status** : :code:`<transtats_server>/api/status/<package_name>`
+2. **Package Status** : :code:`<transtats_server>/api/package/<package_name>`
 
-    Returns all translation stats of package, for example :code:`abrt`.
+    Returns translation stats of package for enabled languages, for example :code:`abrt`.
 
     .. code-block:: http
 
-        GET /api/status/abrt HTTP/1.1
+        GET /api/package/abrt HTTP/1.1
 
 3. **Graph Rule Coverage** : :code:`<transtats_server>/api/coverage/<graph_rule_name>`
 
@@ -62,21 +62,21 @@ API
 
         GET /api/coverage/rhinstaller HTTP/1.1
 
-4. **Translation Workload** : :code:`<transtats_server>/api/workload/<release_branch_name>`
+4. **Release Status** : :code:`<transtats_server>/api/release/<release_branch_name>`
 
-    Returns translation stats of packages which come under given release branch, for example :code:`fedora-27`.
+    Returns translation stats of packages which are being tracked for a given release, for example :code:`fedora-27`.
 
     .. code-block:: http
 
-        GET /api/workload/fedora-27 HTTP/1.1
+        GET /api/release/fedora-27 HTTP/1.1
 
-    a. **Translation Workload Detail** : :code:`<transtats_server>/api/workload/<release_branch_name>/detail`
+    a. **Release Status Detail** : :code:`<transtats_server>/api/release/<release_branch_name>/detail`
 
-        Returns per language translation stats of packages which come under given release branch.
+        Returns per language translation stats of packages for a release.
 
         .. code-block:: http
 
-            GET /api/workload/fedora-27/detail HTTP/1.1
+            GET /api/release/fedora-27/detail HTTP/1.1
 
 
 Client
@@ -100,11 +100,11 @@ Client
     1. coverage
         Translation coverage as per graph rule.
 
-    2. status
+    2. package
         Translation status of a package.
 
     3. version
         Display the current version.
 
-    4. workload
-        Translation workload of a release branch.
+    4. release
+        Translation status of a release.

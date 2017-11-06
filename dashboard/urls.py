@@ -21,26 +21,25 @@ from django.views.generic.base import TemplateView, RedirectView
 
 # dashboard
 from dashboard.services.expose.views import (
-    PingServer, PackageStatus, GraphRuleCoverage,
-    TranslationWorkload, TranslationWorkloadDetail
+    PingServer, PackageStatus, GraphRuleCoverage, ReleaseStatus, ReleaseStatusDetail
 )
 from dashboard.views import (
     TranStatusPackagesView, TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
-    AppSettingsView, TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView,
-    PackageSettingsView, JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView,
-    StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView,
-    refresh_package, release_graph, schedule_job, graph_data, tabular_data, export_packages
+    TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
+    JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView,
+    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, refresh_package, release_graph,
+    schedule_job, graph_data, tabular_data, export_packages, generate_reports
 )
 
 
 api_urls = [
     url(r'^ping$', PingServer.as_view(), name='api_ping_server'),
-    url(r'^status/(?P<package_name>[\w-]+)/$', PackageStatus.as_view(), name='api_package_status'),
+    url(r'^package/(?P<package_name>[\w-]+)/$', PackageStatus.as_view(), name='api_package_status'),
     url(r'^coverage/(?P<graph_rule>[\w-]+)/$', GraphRuleCoverage.as_view(), name='api_custom_graph'),
-    url(r'^workload/(?P<release_stream>[\w-]+)/$', TranslationWorkload.as_view(),
-        name='api_release_workload'),
-    url(r'^workload/(?P<release_stream>[\w-]+)/detail$', TranslationWorkloadDetail.as_view(),
-        name='api_release_workload_detail'),
+    url(r'^release/(?P<release_stream>[\w-]+)/$', ReleaseStatus.as_view(),
+        name='api_release_status'),
+    url(r'^release/(?P<release_stream>[\w-]+)/detail$', ReleaseStatusDetail.as_view(),
+        name='api_release_status_detail'),
 ]
 
 ajax_urls = [
@@ -49,6 +48,7 @@ ajax_urls = [
     url(r'^tabular-data$', tabular_data, name="ajax-tabular-data"),
     url(r'^refresh-package$', refresh_package, name="ajax-refresh-package"),
     url(r'^release-graph$', release_graph, name="ajax-release-graph"),
+    url(r'^generate-reports$', generate_reports, name="ajax-releases-report"),
 ]
 
 app_jobs_urls = [
@@ -58,7 +58,8 @@ app_jobs_urls = [
 ]
 
 app_setting_urls = [
-    url(r'^$', AppSettingsView.as_view(), name="settings"),
+    url(r'^$', RedirectView.as_view(permanent=False, url='/settings/languages'), name="settings"),
+    url(r'^languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^translation-platforms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
     url(r'^product/(?P<stream_slug>\w+)/', include([
         url(r'^releases$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches"),
@@ -71,10 +72,8 @@ app_setting_urls = [
         name="settings-packages-new"),
     url(r'^packages/export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
     url(r'^packages$', PackageSettingsView.as_view(), name="settings-packages"),
-    url(r'^languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
-
     url(r'^graph-rules/new$', login_required(NewGraphRuleView.as_view(),
                                              login_url="oidc_authentication_init"),
         name="settings-graph-rules-new"),
@@ -82,7 +81,7 @@ app_setting_urls = [
 ]
 
 trans_status_urls = [
-    url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/packages'),
+    url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/releases'),
         name="trans-status"),
     url(r'^packages$', TranStatusPackagesView.as_view(), name="trans-status-packages"),
     url(r'^package/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(),
@@ -97,7 +96,7 @@ urlpatterns = [
     url(r'^ajax/', include(ajax_urls)),
     url(r'^settings/', include(app_setting_urls)),
     url(r'^jobs/', include(app_jobs_urls)),
-    # Landing URLs
+    # landing URLs
     url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status'), name="home"),
     url(r'^translation-status/', include(trans_status_urls)),
     url(r'^translation-coverage/$', TransCoverageView.as_view(), name="custom-graph"),

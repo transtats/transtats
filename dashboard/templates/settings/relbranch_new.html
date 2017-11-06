@@ -3,23 +3,7 @@
 
 {% block extrascript %}
 <script type="text/javascript">
-    function slugify(text)
-    {
-      return text.toString().toLowerCase()
-        .replace(/\s+/g, '-')           // Replace spaces with -
-        .replace(/\./g, '-')            // Replace dot with -
-        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-        .replace(/^-+/, '')             // Trim - from start of text
-        .replace(/-+$/, '');            // Trim - from end of text
-    }
-    $(document).ready(function() {
-        $('#tab-release-streams').addClass('active');
-    })
-    function showBranchNameSlug() {
-        document.getElementById('show_branch_name_slug').innerHTML =
-                    "Branch Slug: <b>" + slugify(document.getElementById("id_relbranch_name").value) + "</b>";
-    }
+    function slugify(e){return e.toString().toLowerCase().replace(/\s+/g,"-").replace(/\./g,"-").replace(/[^\w\-]+/g,"").replace(/\-\-+/g,"-").replace(/^-+/,"").replace(/-+$/,"")}function showBranchNameSlug(){document.getElementById("show_branch_name_slug").innerHTML="Branch Slug: <b>"+slugify(document.getElementById("id_relbranch_name").value)+"</b>"}$(document).ready(function(){$("#tab-release-streams").addClass("active")});
 </script>
 {% endblock %}
 

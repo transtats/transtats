@@ -40,7 +40,9 @@ from dashboard.managers.jobs import (
     JobsLogManager, TransplatformSyncManager,
     ReleaseScheduleSyncManager
 )
-from dashboard.managers.graphs import GraphManager
+from dashboard.managers.graphs import (
+    GraphManager, ReportsManager
+)
 from dashboard.managers.upstream import UpstreamManager
 from dashboard.constants import APP_DESC, TS_JOB_TYPES
 
@@ -170,37 +172,6 @@ class TransCoverageView(ManagersMixin, TemplateView):
         if graph_rules:
             context['rules'] = graph_rules
         context.update(self.get_summary())
-        return context
-
-
-class AppSettingsView(ManagersMixin, TemplateView):
-    """
-    Application Settings List View
-    """
-    template_name = "settings/summary.html"
-
-    def get_context_data(self, **kwargs):
-        """
-        Build the Context Data
-        """
-        context = super(TemplateView, self).get_context_data(**kwargs)
-        locales_set = self.inventory_manager.get_locales_set()
-        context['locales'] = len(locales_set[0]) \
-            if isinstance(locales_set, tuple) else 0
-        platforms = self.inventory_manager.get_transplatform_slug_url()
-        context['platforms'] = len(platforms) if platforms else 0
-        relstreams = self.inventory_manager.get_relstream_slug_name()
-        context['streams'] = len(relstreams) if relstreams else 0
-        relbranches = self.release_branch_manager.get_release_branches()
-        context['branches'] = relbranches.count() if relbranches else 0
-        context['packages'] = self.packages_manager.count_packages()
-        jobs_count, last_ran_on, last_ran_type = \
-            self.jobs_log_manager.get_joblog_stats()
-        context['jobs_count'] = jobs_count
-        context['job_last_ran_on'] = last_ran_on
-        context['job_last_ran_type'] = last_ran_type
-        graph_rules = self.graph_manager.get_graph_rules(only_active=True)
-        context['graph_rules'] = graph_rules.count() if graph_rules else 0
         return context
 
 
@@ -745,3 +716,40 @@ def release_graph(request):
             graph_manager = GraphManager()
             graph_dataset = graph_manager.get_workload_graph_data(post_params['relbranch'])
     return JsonResponse(graph_dataset)
+
+
+def generate_reports(request):
+    """
+    Generates Reports
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        report_subject = post_params.get('subject', '')
+        reports_manager = ReportsManager()
+        if report_subject == 'releases':
+            releases_summary = reports_manager.analyse_releases_status()
+            if releases_summary:
+                context = Context(
+                    {'META': request.META,
+                     'relsummary': releases_summary,
+                     'last_updated': datetime.now()}
+                )
+                template_string = """
+                                {% load tag_releases_summary from custom_tags %}
+                                {% tag_releases_summary %}
+                            """
+                return HttpResponse(Template(template_string).render(context))
+        if report_subject == 'packages':
+            packages_summary = reports_manager.analyse_packages_status()
+            if packages_summary:
+                context = Context(
+                    {'META': request.META,
+                     'pkgsummary': packages_summary,
+                     'last_updated': datetime.now()}
+                )
+                template_string = """
+                                    {% load tag_packages_summary from custom_tags %}
+                                    {% tag_packages_summary %}
+                                """
+                return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)

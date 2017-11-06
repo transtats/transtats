@@ -1,18 +1,17 @@
 {% extends "stats/translation_status.html" %}
+{% load custom_tags %}
 
 {% block extrascript %}
+<script src="/static/js/waiting.dialog.js"></script>
+<script src="/static/js/csrf.js"></script>
 <script type="text/javascript">
-$(document).ready(function() {
-    $("#tab-translation-status").addClass("active"),
-    $("#tab-trans-status-releases").addClass("active"),
-    $("#btn-tabular").addClass("active"),
-    $("#hideLocaleGraph").hide(),
-    $("#langName").selectpicker("hide"),
-    $("#relBranch").change(function(a) {
-        window.location.replace("/translation-status/release/" + $(this).val())
-    });
-});
-</script>
+    function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}function refresh_releases_summary(){$.ajax({beforeSend:function(e,a){csrfSafeMethod(a.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitingDialog.show()},type:"POST",url:"{% url 'ajax-releases-report' %}",data:{subject:"releases"},success:function(e){waitingDialog.hide(),$("#div-releases-summary").html(e)},error:function(e,a,s){waitingDialog.hide(),$("#div-releases-summary").html("<div class='alert alert-warning' role='alert'>Some unexpected error occurred.</div>")}})}$(document).ready(function(){$("#tab-translation-status").addClass("active"),$("#tab-trans-status-releases").addClass("active"),$("#btn-tabular").addClass("active"),$("#hideLocaleGraph").hide(),$("#langName").selectpicker("hide"),$("#relBranch").change(function(e){window.location.replace("/translation-status/release/"+$(this).val())}),$("#refresh-releases-summary").click(function(e){return e.preventDefault(),refresh_releases_summary(),!1})});</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
+    <a href="{% url 'trans-status' %}" class="btn btn-default">Translation Status</a>
+    <a href="{% url 'trans-status-releases' %}" class="btn btn-default">Releases</a>
 {% endblock %}
 
 {% block viewcontent %}
@@ -40,9 +39,19 @@ $(document).ready(function() {
                     <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
                 </a>
                 {% endif %}
-                {% block dataviews %}{% endblock %}
+                {% block dataviews %}
+                    {% if releases %}
+                    <span class="pull-right">
+                        <a id="refresh-releases-summary" class="btn btn-default btn-small">
+                            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+                        </a>
+                    </span>
+                    {% endif %}
+                {% endblock %}
             </div>
         </div>
-        {% block datacontent %}{% endblock %}
+        {% block datacontent %}
+            <div id="div-releases-summary">{% tag_releases_summary %}</div>
+        {% endblock %}
     </div>
 {% endblock %}
