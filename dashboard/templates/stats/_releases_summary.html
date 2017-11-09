@@ -6,8 +6,11 @@
           <div class="caption">
             <h3>{{ release }}</h3>
             <p>
-                <span class="text-info">{{ summary.packages_need_attention }}</span> packages need attention.<br/>
-                In total we have <span class="text-info">{{ summary.total_untranslated_msgs }}</span> untranslated messages across
+                <span class="text-info">
+                    {% if summary.packages_need_attention %}{{ summary.packages_need_attention }}
+                    {% else %}0{% endif %}</span> packages need attention.<br/>
+                In total we have <span class="text-info">{% if summary.total_untranslated_msgs %}
+                {{ summary.total_untranslated_msgs }}{% else %}0{% endif %}</span> untranslated messages across
                 <span class="text-info">{{ summary.languages|length }}</span> languages!
                 <table class="table table-bordered table-striped">
                     <tbody>

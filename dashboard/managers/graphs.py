@@ -535,19 +535,20 @@ class ReportsManager(GraphManager):
             stats_estimate = self.get_workload_estimate(branch_slug)
             untranslated_messages = \
                 [stats.get('Untranslated') for pkg, stats in stats_estimate[1].items()]
-            packages_need_attention = (len(untranslated_messages) - untranslated_messages.count(0)) or 0
-            relbranch_report[branch_name]['packages_need_attention'] = packages_need_attention
-            total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_messages)) or 0
-            relbranch_report[branch_name]['total_untranslated_msgs'] = total_untranslated_msgs
-            lang_stats_report = self.get_workload_combined_detailed(branch_slug)
-            relbranch_report[branch_name]['languages'] = {}
-            for lang, pkg_stats in lang_stats_report.items():
-                untranslated_msgs = []
-                untranslated_msgs.extend(
-                    [stats.get('Untranslated') for pkg, stats in pkg_stats.items()]
-                )
-                total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_msgs)) or 0
-                relbranch_report[branch_name]['languages'][lang] = total_untranslated_msgs
+            if untranslated_messages:
+                packages_need_attention = (len(untranslated_messages) - untranslated_messages.count(0)) or 0
+                relbranch_report[branch_name]['packages_need_attention'] = packages_need_attention
+                total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_messages)) or 0
+                relbranch_report[branch_name]['total_untranslated_msgs'] = total_untranslated_msgs
+                lang_stats_report = self.get_workload_combined_detailed(branch_slug)
+                relbranch_report[branch_name]['languages'] = {}
+                for lang, pkg_stats in lang_stats_report.items():
+                    untranslated_msgs = []
+                    untranslated_msgs.extend(
+                        [stats.get('Untranslated') for pkg, stats in pkg_stats.items()]
+                    )
+                    total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_msgs)) or 0
+                    relbranch_report[branch_name]['languages'][lang] = total_untranslated_msgs
         if self.create_or_update_report(**{
             'subject': 'releases', 'report_json': relbranch_report
         }):
