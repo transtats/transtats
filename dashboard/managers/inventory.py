@@ -327,9 +327,9 @@ class SyncStatsManager(BaseManager):
         if transplatform_slug in ZANATA_SLUGS or transplatform_slug in DAMNEDLIES_SLUGS:
             for stats_dict in stats_dict_list:
                 translation_percent = \
-                    round((stats_dict.get('translated') * 100) / stats_dict.get('total'), 2) \
-                    if stats_dict.get('total') > 0 else 0
-                locale_translated.append([stats_dict.get('locale'), translation_percent])
+                    round((stats_dict.get('translated', 0) * 100) / stats_dict.get('total', 0), 2) \
+                    if stats_dict.get('total', 0) > 0 else 0
+                locale_translated.append([stats_dict.get('locale', ''), translation_percent])
         elif transplatform_slug in TRANSIFEX_SLUGS:
             for stats_dict in stats_dict_list:
                 for locale, stat_params in stats_dict.items():
@@ -363,6 +363,14 @@ class PackagesManager(InventoryManager):
             )
         return packages
 
+    def is_package_exist(self, package_name):
+        """
+        check package existance
+        """
+        if self.get_packages(pkgs=[package_name]):
+            return True
+        return False
+
     def get_relbranch_specific_pkgs(self, release_branch, fields=None):
         """
         fetch release branch specific packages from db
@@ -392,8 +400,7 @@ class PackagesManager(InventoryManager):
         returns (package_name, upstream_name) tuple (only sync'd ones)
         """
         packages = self.get_packages()
-        name_list = [(package.package_name, package.upstream_name) for package in packages
-                     if package.transtats_lastupdated]
+        name_list = [(package.package_name, package.upstream_name) for package in packages]
         if t_status:
             name_list = [(package.package_name, package.upstream_name) for package in packages
                          if package.transtats_lastupdated or package.upstream_lastupdated]
@@ -615,26 +622,27 @@ class PackagesManager(InventoryManager):
         lang_id_name = self._get_lang_id_name_dict(specify_branch) \
             if apply_branch_mapping and specify_branch else self._get_lang_id_name_dict()
         # 2nd, filter stats json for required locales
-        package_details = self.get_packages([package_name]).get()
-        if not (package_details.transtats_lastupdated or package_details.upstream_lastupdated):
-            return lang_id_name, trans_stats_dict, package_desc
-        if package_details.package_details_json and package_details.package_details_json.get('description'):
-            package_desc = package_details.package_details_json['description']
-        pkg_stats_versions = self.syncstats_manager.get_sync_stats([package_name])
-        for pkg_stats_version in pkg_stats_versions:
-            trans_stats_list, missing_locales = \
-                self.syncstats_manager.filter_stats_for_required_locales(
-                    package_details.transplatform_slug_id,
-                    pkg_stats_version.stats_raw_json, list(lang_id_name)
-                )
-            if 'test' not in pkg_stats_version.project_version and 'extras' not in pkg_stats_version.project_version:
-                trans_stats_dict[pkg_stats_version.project_version] = \
-                    self.syncstats_manager.extract_locale_translated(package_details.transplatform_slug_id,
-                                                                     trans_stats_list)
-        if apply_branch_mapping and package_details.release_branch_mapping:
-            branch_mapping = package_details.release_branch_mapping
-            for relbranch, transplatform_version in branch_mapping.items():
-                trans_stats_dict[relbranch] = trans_stats_dict.get(transplatform_version, [])
+        if self.is_package_exist(package_name):
+            package_details = self.get_packages([package_name]).get()
+            if not (package_details.transtats_lastupdated or package_details.upstream_lastupdated):
+                return lang_id_name, trans_stats_dict, package_desc
+            if package_details.package_details_json and package_details.package_details_json.get('description'):
+                package_desc = package_details.package_details_json['description']
+            pkg_stats_versions = self.syncstats_manager.get_sync_stats([package_name])
+            for pkg_stats_version in pkg_stats_versions:
+                trans_stats_list, missing_locales = \
+                    self.syncstats_manager.filter_stats_for_required_locales(
+                        package_details.transplatform_slug_id,
+                        pkg_stats_version.stats_raw_json, list(lang_id_name)
+                    )
+                if 'test' not in pkg_stats_version.project_version and 'extras' not in pkg_stats_version.project_version:
+                    trans_stats_dict[pkg_stats_version.project_version] = \
+                        self.syncstats_manager.extract_locale_translated(package_details.transplatform_slug_id,
+                                                                         trans_stats_list)
+            if apply_branch_mapping and package_details.release_branch_mapping:
+                branch_mapping = package_details.release_branch_mapping
+                for relbranch, transplatform_version in branch_mapping.items():
+                    trans_stats_dict[relbranch] = trans_stats_dict.get(transplatform_version, [])
         return lang_id_name, trans_stats_dict, package_desc
 
     def get_upstream_stats(self, package):
@@ -731,6 +739,8 @@ class PackagesManager(InventoryManager):
                     Packages.objects.filter(transplatform_url=package.transplatform_url).update(
                         transtats_lastupdated=timezone.now())
                     update_stats_status = True
+        # this makes sense if we create branch-mapping just after package sync
+        self.build_branch_mapping(package_name)
         return update_stats_status
 
     def build_branch_mapping(self, package_name):
@@ -802,6 +812,14 @@ class ReleaseBranchManager(InventoryManager):
             self.app_logger(
                 'ERROR', "Release branches could not be fetched, details: " + str(e))
         return relbranches
+
+    def is_relbranch_exist(self, release_branch):
+        """
+        Checks release branch existence
+        """
+        if self.get_release_branches(relbranch=release_branch):
+            return True
+        return False
 
     def get_relbranch_name_slug_tuple(self):
         """

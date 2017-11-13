@@ -2,6 +2,7 @@
     var a = "<span class='pull-right text-muted'>Stats are based on sync'd data. And %age is calculated on messages.</span>";
     $("#packagedesc").html("{{ pkg_desc }}"); $("#graphdisclaimer").html(a);
 </script>
+{% if stats_data %}
 <table class="table table-bordered table-hover">
     <thead>
       <tr>
@@ -34,3 +35,4 @@
       {% endfor %}
     </tbody>
 </table>
+{% endif %}

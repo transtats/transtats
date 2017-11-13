@@ -1,3 +1,8 @@
+##### Tue Nov 07 2017 Sundeep Anand <suanand@redhat.com> 
+* Modify APIs - `status` is `package` and `workload` is `release` now
+* Add `releases` and `packages` reports to landing page
+* Improve UI, Jobs tab, package config with stats, better navigation
+
 ##### Fri Oct 27 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.4
 * Improved transtats docs ([bhavin192](https://github.com/bhavin192))
 * Enable FAS authentication and adjust user roles

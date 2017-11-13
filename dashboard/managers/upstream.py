@@ -105,7 +105,8 @@ class UpstreamManager(BaseManager):
             self.job_manager.log_json[SUBJECT].update(
                 {str(datetime.now()): "Start cloning git repository.."}
             )
-            clone_result = Repo.clone_from(self.upstream_repo_url, self.sandbox_path)
+            clone_result = Repo.clone_from(self.upstream_repo_url, self.sandbox_path,
+                                           config='http.sslVerify=false')
         except Exception as e:
             self.job_manager.log_json[SUBJECT].update(
                 {str(datetime.now()): 'Cloning failed. Details: ' + str(e)}

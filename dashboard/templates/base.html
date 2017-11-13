@@ -20,10 +20,7 @@
     <link href="/static/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <style type="text/css">
-      body{padding-top:50px;padding-bottom:10px}.content-area{padding:20px;min-height:600px}.ribbon{position:absolute;top:0;right:0;border:0;z-index:9999}.modal-open{position:fixed;overflow:scroll;width:100%;padding-right:0!important}.btn-logout{width:100%;padding:3px 20px!important;text-align:left!important}.nounderline{text-decoration:none}
-    </style>
-
+    <link href="/static/css/transtats.css" rel="stylesheet">
     <!-- jQuery and Bootstrap core JS -->
     <script src="/static/js/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')</script>
@@ -55,21 +52,19 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="{% url 'home' %}" style="font-size: x-large;">Translation Stats
+              <a class="navbar-brand" href="{% url 'home' %}" style="font-size: x-large;">Transtats
                 <sup><span class="label label-info" style="font-size: x-small;">Alpha</span></sup></a>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-right">
-                <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>
+                <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span>
+                    Dashboard</a></li>
+                <li><a href="{% url 'jobs' %}">
+                  <span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>
+                  &nbsp;Jobs</a></li>
                 <li><a href="{% url 'settings' %}">
-                  <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
-                  &nbsp;Inventory and Configuration</a></li>
-                <li><a href="{% url 'howto' %}">
-                  <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
-                  &nbsp;Quick Start</a></li>
-                <li><a href="http://docs.transtats.org/" target="_blank">
-                  <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
-                  &nbsp;Docs</a></li>
+                  <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                  &nbsp;Settings</a></li>
                 {% if user.is_authenticated %}
                   <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
@@ -78,8 +73,8 @@
                     <ul class="dropdown-menu">
                       {% if user.is_staff %}
                       <li><a href="{% url 'admin:index' %}">
-                        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
-                        &nbsp;Admin Panel</a></li>
+                        <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+                          Admin Panel</a></li>
                       {% endif %}
                       <li>
                         {% if auth == 'fas' %}
@@ -91,7 +86,7 @@
                         {% else %}
                           <a href="{% url 'admin:logout' %}">
                               <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
-                               Logout</a>
+                              Logout</a>
                         {% endif %}
                       </li>
                     </ul>
@@ -110,6 +105,20 @@
                   </li>
 
                 {% endif %}
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+                        Help<span class="caret"></span>
+                    </a>
+                      <ul class="dropdown-menu">
+                        <li><a href="{% url 'howto' %}">
+                          <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+                          &nbsp;Quick Start</a></li>
+                        <li><a href="http://docs.transtats.org/" target="_blank">
+                          <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                          &nbsp;Project Docs</a></li>
+                      </ul>
+                </li>
               </ul>
             </div><!--/.navbar-collapse -->
           </div>
@@ -135,8 +144,9 @@
         <footer>
             <div class="container">
                 <p>
-                  <span><a href="{% url 'home' %}">Home</a> | <a href="{% url 'howto' %}">How To</a> |
-                    <a href="{% url 'settings' %}">Inventory and Configuration</a> |
+                  <span><a href="{% url 'home' %}">Dashboard</a> | <a href="{% url 'howto' %}">Get Started</a> |
+                    <a href="{% url 'jobs' %}">Jobs</a> |
+                    <a href="{% url 'settings' %}">Settings</a> |
                     <a href="http://transtats.org/terms.html" target="_blank">Terms of Use</a> |
                     <a href="https://github.com/transtats/transtats/issues/new" target="_blank">Report Issue</a>
                   </span>

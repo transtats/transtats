@@ -2,20 +2,18 @@
 
 {% block pagebanner %}
     <div style="padding-left:20px">
-      <h1>About <small>{{ description }}</small></h1>
+      <h1>About&nbsp;&nbsp;&nbsp;&nbsp;<small>{{ description }} ...</small></h1>
+      {% include 'summary.html' %}
     </div>
 {% endblock %}
 
 {% block pagecontent %}
     <ul class="nav nav-tabs nav-justified">
       <li id="tab-translation-status" role="presentation">
-          <a href="{% url 'home' %}">Translation Status</a>
+          <a href="{% url 'trans-status' %}">Translation Status</a>
       </li>
       <li id="tab-translation-coverage" role="presentation">
           <a href="{% url 'custom-graph' %}">Translation Coverage</a>
-      </li>
-      <li id="tab-translation-workload" role="presentation">
-          <a href="{% url 'workload-combined' %}">Translation Workload</a>
       </li>
     </ul>
     {% block tabcontent %}{% endblock %}

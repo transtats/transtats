@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block pagebanner %}
+    <div style="padding-left:20px">
+      <h1>Jobs <small>&nbsp;Sync with translation platforms, upstream repositories or calendars ...</small></h1>
+    </div>
+{% endblock %}
+
+{% block extrascript %}
+<style type="text/css">
+    img{display:block;max-width:50px;max-height:50px;width:auto;height:auto}
+</style>
+{% endblock %}
+
+{% block pagecontent %}
+    <ul class="nav nav-tabs">
+      <li id="tab-jobs" role="presentation"><a href="{% url 'jobs' %}">Run Jobs</a></li>
+      <li id="tab-logs" role="presentation"><a href="{% url 'jobs-logs' %}">Inspect Logs</a></li>
+      <li id="tab-archive" role="presentation"><a href="{% url 'jobs-archive' %}">Archive</a></li>
+    </ul>
+    <div style="padding:20px">
+        {% block tabcontent %}{% endblock %}
+</div>
+{% endblock %}

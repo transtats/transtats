@@ -148,9 +148,9 @@ class GraphRuleCoverage(APIMixin, APIView):
         return Response(response_text)
 
 
-class TranslationWorkload(APIMixin, APIView):
+class ReleaseStatus(APIMixin, APIView):
     """
-    Translation Workload API View
+    Release Status API View
     """
 
     def _process_stats_data(self, trans_stats_data):
@@ -179,15 +179,15 @@ class TranslationWorkload(APIMixin, APIView):
             estimate = self.graph_manager.get_workload_combined(release)
             if isinstance(estimate, tuple) and len(estimate) > 1:
                 response_text = {release: self._process_stats_data(estimate[1])} \
-                    if estimate[1] else {release: "Release branch not found"}
+                    if estimate[1] else {release: "Release not found"}
             else:
-                response_text = {release: "Workload could not be calculated"}
+                response_text = {release: "Release status could not be determined."}
         return Response(response_text)
 
 
-class TranslationWorkloadDetail(TranslationWorkload):
+class ReleaseStatusDetail(ReleaseStatus):
     """
-    Translation Workload Detail API View
+    Release Status Detail API View
     """
 
     def get(self, request, **kwargs):
@@ -210,5 +210,5 @@ class TranslationWorkloadDetail(TranslationWorkload):
                 detailed_workload_data["Release"] = release
                 response_text = detailed_workload_data
             else:
-                response_text = {release: "Release branch not found"}
+                response_text = {release: "Release not found"}
         return Response(response_text)

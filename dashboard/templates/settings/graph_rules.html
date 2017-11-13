@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block navigation %}
-    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
     <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
     <a href="{% url 'settings-graph-rules' %}" class="btn btn-default">Graph Rules</a>
 {% endblock %}
@@ -57,7 +57,8 @@
         <tbody>
             {% for rule in rules %}
             <tr>
-                <td><a href="{% url 'custom-graph' %}" class="text-info">{{ rule.rule_name }}</a></td>
+                <td><a href="{% url 'custom-graph' %}?rule={{ rule.rule_name }}" class="text-info">
+                    {{ rule.rule_name }}</a></td>
                 <td>{{ rule.rule_packages|join:", " }}</td>
                 <td>{{ rule.rule_langs|join:", " }}</td>
                 <td>{{ rule.rule_relbranch }}</td>

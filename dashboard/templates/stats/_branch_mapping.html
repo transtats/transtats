@@ -4,7 +4,8 @@
         <span style="font-size:large">Branch Mapping</span>
         <span class="pull-right">
             {% if mapping_lastupdated %}
-                <span class="text-muted">Last Updated:</span> {{ mapping_lastupdated|timesince }} <span style="color:grey">ago</span>.
+                <span class="text-muted">Last Updated:</span> {{ mapping_lastupdated|timesince }}
+                <span style="color:grey">ago</span>.&nbsp;&nbsp;
             {% endif %}
         </span>
       </div>
@@ -13,6 +14,7 @@
             <tr>
                 <th>Release Stream Branch</th>
                 <th>Translation Platform Project Version</th>
+                <th>Build System Tag</th>
             </tr>
         </thead>
         <tbody>
@@ -20,11 +22,12 @@
             <tr>
                 <td>{{ branch }}</td>
                 <td>{{ version }}</td>
+                <td>&nbsp;&nbsp;</td>
             </tr>
             {% endfor %}
         </tbody>
       </table>
     </div>
 {% else %}
-    No mapping found. <span class="text-muted">Please check release branch(es) and refresh the package.</span>
+    No mapping found. <span class="text-muted">Please check release branch(es) and create branch mapping.</span>
 {% endif %}

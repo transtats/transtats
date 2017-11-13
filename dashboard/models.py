@@ -192,9 +192,10 @@ class Packages(models.Model):
     package_name = models.CharField(max_length=1000, unique=True, verbose_name="Package Name")
     upstream_name = models.CharField(max_length=1000, null=True, blank=True,
                                      verbose_name="Upstream Name")
+    component = models.CharField(max_length=200, null=True, blank=True, verbose_name="Component")
     upstream_url = models.URLField(max_length=2000, unique=True, verbose_name="Upstream URL")
     transplatform_slug = models.ForeignKey(
-        TransPlatform, on_delete=models.CASCADE,
+        TransPlatform, on_delete=models.PROTECT,
         to_field='platform_slug', verbose_name="Translation Platform"
     )
     transplatform_name = models.CharField(max_length=1000, null=True, blank=True,
@@ -219,6 +220,7 @@ class Packages(models.Model):
     )
     upstream_lastupdated = models.DateTimeField(null=True)
     created_by = models.EmailField(null=True)
+    maintainers = JSONField(null=True)
 
     def __str__(self):
         return self.package_name
@@ -304,3 +306,20 @@ class CacheAPI(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'cacheapi'
+
+
+class Reports(models.Model):
+    """
+    Reports Model
+    """
+    reports_id = models.AutoField(primary_key=True)
+    report_subject = models.CharField(max_length=200, unique=True)
+    report_json = JSONField(null=True)
+    report_updated = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return self.report_subject
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'reports'
+        verbose_name = "Reports"
