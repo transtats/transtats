@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 from .base import *
+from .auth import *
 
 
 # SECURITY WARNING: don't run with debug turned on in production!

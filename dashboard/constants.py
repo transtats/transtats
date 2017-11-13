@@ -14,7 +14,7 @@
 # under the License.
 
 # Application description
-APP_DESC = "overview and trends for language translations across packages"
+APP_DESC = "Language translation status of packages across releases"
 
 # Supported translation platforms
 TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata')

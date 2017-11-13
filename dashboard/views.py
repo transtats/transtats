@@ -44,8 +44,6 @@ from dashboard.managers.graphs import GraphManager
 from dashboard.managers.upstream import UpstreamManager
 from dashboard.constants import APP_DESC, TS_JOB_TYPES
 
-from dashboard.managers.downstream import KojiResources
-
 
 class ManagersMixin(object):
     """
@@ -71,9 +69,6 @@ class TranStatusTextView(ManagersMixin, TemplateView):
         context_data = super(TemplateView, self).get_context_data(**kwargs)
         context_data['description'] = APP_DESC
         packages = self.packages_manager.get_package_name_tuple(t_status=True)
-
-        KojiResources()
-
         if packages:
             context_data['packages'] = packages
         return context_data

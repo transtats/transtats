@@ -6,7 +6,7 @@
 # Run Container with env variable: docker run -d --name container -p 8080:8014 -e DATABASE_NAME=transtats -e \
 #                                  DATABASE_USER=postgres -e DATABASE_PASSWD=postgres -e DATABASE_HOST=localhost transtats/transtats
 
-FROM fedora
+FROM registry.fedoraproject.org/fedora:latest
 LABEL maintainer="spathare@redhat.com,suanand@redhat.com"
 
 # Environment variable 
@@ -14,14 +14,13 @@ ENV DATABASE_NAME=transtats \
     DATABASE_USER=postgres \
     DATABASE_PASSWD=postgres \
     DATABASE_HOST=localhost \
-    PYTHONUNBUFFERED=1 \
-    KRB5CCNAME=/tmp/ticket
+    PYTHONUNBUFFERED=1
     
 RUN echo 'root:root' | chpasswd
 
 RUN dnf -y update && \
-    dnf -y install gcc findutils git python python3-pip python3-devel redhat-rpm-config krb5-workstation \
-    sudo koji krb5-devel postgresql-server postgresql-contrib postgresql-devel openssh-server && \
+    dnf -y install gcc findutils git python python3-pip python3-devel redhat-rpm-config \
+    sudo koji postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel && \
     dnf clean all
 
 RUN /usr/bin/ssh-keygen -A
@@ -41,8 +40,6 @@ ADD / /workspace
 ADD deploy/docker/conf/sample_keys.json /workspace/transtats/settings/keys.json
 
 RUN pip3 install -r /workspace/requirements/dev.txt
-
-RUN echo "export KRB5CCNAME=/tmp/ticket" >> ~/.bashrc
 
 RUN mkdir /var/run/sshd
 RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config

@@ -3,6 +3,7 @@
   "SECRET_KEY": "111ioii2!n7dv+p@kq905a1m7zs7%_5%j9zw@%8qw20z&*k+b_",
   "DATABASE_NAME": "transtats",
   "DATABASE_USER": "postgres",
-  "DATABASE_PASSWD": "postgres" ,
-  "DATABASE_HOST": "localhost"
+  "DATABASE_PASSWD": "postgres",
+  "DATABASE_HOST": "localhost",
+  "OIDC_RP_CLIENT_SECRET": "uvwFVN7SNgmNCQVJTR9QdrkMginl0RM4"
 }

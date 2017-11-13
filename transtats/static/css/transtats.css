@@ -1,0 +1,29 @@
+body {
+    padding-top: 50px;
+    padding-bottom: 10px
+}
+.content-area {
+    padding: 20px;
+    min-height: 600px
+}
+.ribbon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: 0;
+    z-index: 9999
+}
+.modal-open {
+    position: fixed;
+    overflow: scroll;
+    width: 100%;
+    padding-right: 0!important
+}
+.btn-logout {
+    width: 100%;
+    padding: 3px 20px!important;
+    text-align: left!important
+}
+.nounderline {
+    text-decoration: none
+}

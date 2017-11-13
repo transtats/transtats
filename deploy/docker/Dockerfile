@@ -3,12 +3,12 @@
 #
 # Run Command: docker run -d --name container_name -p 8080:8015 transtats/transtats
 
-FROM fedora
+FROM registry.fedoraproject.org/fedora:latest
 MAINTAINER Sundeep Anand <suanand@redhat.com>
 
 RUN dnf -y update && \
     dnf -y install gcc findutils git python3-pip python3-devel sudo redhat-rpm-config \
-    koji krb5-devel krb5-workstation postgresql-server postgresql-contrib postgresql-devel && \
+    koji postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel && \
     dnf clean all
 
 RUN su - postgres -c "PGDATA=/var/lib/pgsql/data initdb"
@@ -21,7 +21,6 @@ WORKDIR /workspace
 RUN git clone -b master https://github.com/transtats/transtats.git .
 ADD conf/sample_keys.json /workspace/transtats/settings/keys.json
 RUN pip3 install -r /workspace/requirements/base.txt
-RUN echo "export KRB5CCNAME=/tmp/ticket" >> ~/.bashrc
 ADD launch.sh /usr/bin/transtats.sh
 
 EXPOSE 8015

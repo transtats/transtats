@@ -4,5 +4,6 @@
   "DATABASE_NAME": "transtats",
   "DATABASE_USER": "postgres",
   "DATABASE_PASSWD": "postgres" ,
-  "DATABASE_HOST": "localhost"
+  "DATABASE_HOST": "localhost",
+  "OIDC_RP_CLIENT_SECRET": "oidc-secret-key"
 }

@@ -8,14 +8,16 @@
 <script src="/static/js/waiting.dialog.js"></script>
 <script src="/static/js/csrf.js"></script>
 <style type="text/css">
-    .graph-area {
-        width:100%;
-        min-height:600px;
-    }
+    .graph-area{width:100%;min-height:600px}
 </style>
 <script type="text/javascript">
-function csrfSafeMethod(a){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(a)}$(document).ready(function(){$("#tab-translation-coverage").addClass("active"),$("#ruleName").change(function(a){$(this).val();return $.ajax({beforeSend:function(a,b){csrfSafeMethod(b.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitingDialog.show()},type:"POST",url:"/ajax/graph-data",data:{graph_rule:$(this).val()},dataType:"json",success:function(a){waitingDialog.hide();var b=a.branch,c=a.graph_data,d=a.ticks,e={series:{stack:0,bars:{show:!0,barWidth:.4,align:"center"}},xaxis:{axisLabel:"Packages",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:"Verdana, Arial",axisLabelPadding:10,ticks:d},yaxis:{axisLabel:"Translation",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:"Verdana, Arial",axisLabelPadding:3,tickFormatter:function(a,b){return a+"%"},tickDecimals:2},legend:{noColumns:0,labelBoxBorderColor:"#000000",position:"ne"},grid:{hoverable:!0,borderWidth:2,backgroundColor:{colors:["#ffffff","#EDF5FF"]}},tooltip:{show:!0,content:"%s | %y translated"}};$.plot($("#grapharea"),c,e),$("#coverageinfo").html("Translation coverage of "+d.length+" packages for "+b+" release in "+c.length+" languages."),$("#relbranch").html("Release [ "+b+" ]"),$("#graphdisclaimer").html("<span class='pull-right text-muted'>Graph is based on branch mapping. And %age is calculated on messages.</span>")}}),!1})});
+function getUrlVars(){for(var a,e=[],t=window.location.href.slice(window.location.href.indexOf("?")+1).split("&"),r=0;r<t.length;r++)a=t[r].split("="),e.push(a[0]),e[a[0]]=a[1];return e}function csrfSafeMethod(a){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(a)}function get_coverage(){return $.ajax({beforeSend:function(a,e){csrfSafeMethod(e.type)||this.crossDomain||(csrftoken?a.setRequestHeader("X-CSRFToken",csrftoken):a.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitingDialog.show()},type:"POST",url:"/ajax/graph-data",data:{graph_rule:$("#ruleName").val()},dataType:"json",success:function(a){waitingDialog.hide();var e=a.branch,t=a.graph_data,r=a.ticks,n={series:{stack:0,bars:{show:!0,barWidth:.4,align:"center"}},xaxis:{axisLabel:"Packages",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:"Verdana, Arial",axisLabelPadding:10,ticks:r},yaxis:{axisLabel:"Translation",axisLabelUseCanvas:!0,axisLabelFontSizePixels:12,axisLabelFontFamily:"Verdana, Arial",axisLabelPadding:3,tickFormatter:function(a,e){return a+"%"},tickDecimals:2},legend:{noColumns:0,labelBoxBorderColor:"#000000",position:"ne"},grid:{hoverable:!0,borderWidth:2,backgroundColor:{colors:["#ffffff","#EDF5FF"]}},tooltip:{show:!0,content:"%s | %y translated"}};$.plot($("#grapharea"),t,n),$("#coverageinfo").html("Translation coverage of "+r.length+" packages for "+e+" release in "+t.length+" languages."),$("#relbranch").html("Release [ "+e+" ]"),$("#graphdisclaimer").html("<span class='pull-right text-muted'>Graph is based on branch mapping. And %age is calculated on messages.</span>")}})}$(document).ready(function(){$("#tab-translation-coverage").addClass("active"),getUrlVars().rule&&$("#ruleName").val(getUrlVars().rule)&&get_coverage(),$("#ruleName").change(function(a){get_coverage()})});
 </script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
+    <a href="{% url 'custom-graph' %}" class="btn btn-default">Translation Coverage</a>
 {% endblock %}
 
 {% block tabcontent %}

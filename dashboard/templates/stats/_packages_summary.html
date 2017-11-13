@@ -1,0 +1,35 @@
+{% if pkgsummary %}
+    <ul class="list-group" style="width:600px">
+      {% if pkgsummary.RHEL %}
+      <li class="list-group-item">
+        <span class="badge">{{ pkgsummary.RHEL }}</span>
+        Packages tracking for RHEL
+      </li>
+      {% endif %}
+      {% if pkgsummary.fedora %}
+      <li class="list-group-item">
+        <span class="badge">{{ pkgsummary.fedora }}</span>
+        Packages tracking for Fedora
+      </li>
+      {% endif %}
+      <li class="list-group-item {% if pkgsummary.pkg_improper_branch_mapping > 0 %}list-group-item-warning{% endif %}">
+        <span class="badge">{{ pkgsummary.pkg_improper_branch_mapping }}</span>
+        Packages having improper branch mapping.
+      </li>
+      <li class="list-group-item {% if pkgsummary.pkg_transtats_week_old > 0 %}list-group-item-warning{% endif %}">
+        <span class="badge">{{ pkgsummary.pkg_transtats_week_old }}</span>
+        Packages sync&apos;d with translation platform more than a week ago.
+      </li>
+      <li class="list-group-item {% if pkgsummary.pkg_upstream_week_old > 0 %}list-group-item-warning{% endif %}">
+        <span class="badge">{{ pkgsummary.pkg_upstream_week_old }}</span>
+        Packages which were sync&apos;d with upstream repository more than a week back.
+      </li>
+    </ul>
+    <hr>
+    <span class="text-info">Select a package to get into insights!</span>
+    <span class="pull-right text-muted">Updated {{ last_updated|timesince }} ago.</span>
+{% else %}
+<h5 class="text-warning">
+    Package&apos;s reports are not generated yet.
+</h5>
+{% endif %}

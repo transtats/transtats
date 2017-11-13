@@ -52,11 +52,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
-    ('transtats', 'transtats@example.com'),
-)
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -98,6 +93,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'dashboard.context_processors.app_info'
             ],
         },
     },
