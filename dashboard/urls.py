@@ -28,7 +28,7 @@ from dashboard.views import (
     TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
     JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView,
     NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, refresh_package, release_graph,
-    schedule_job, graph_data, tabular_data, export_packages, generate_reports
+    schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs
 )
 
 
@@ -49,12 +49,15 @@ ajax_urls = [
     url(r'^refresh-package$', refresh_package, name="ajax-refresh-package"),
     url(r'^release-graph$', release_graph, name="ajax-release-graph"),
     url(r'^generate-reports$', generate_reports, name="ajax-releases-report"),
+    url(r'^read-file-logs$', read_file_logs, name="ajax-read-logs"),
 ]
 
 app_jobs_urls = [
     url(r'^$', JobsView.as_view(), name="jobs"),
     url(r'^logs$', JobsLogsView.as_view(), name="jobs-logs"),
-    url(r'^archive$', JobsArchiveView.as_view(), name="jobs-archive")
+    url(r'^archive$', JobsArchiveView.as_view(), name="jobs-archive"),
+    url(r'^yml-based$', TemplateView.as_view(template_name="jobs/jobs_yml_based.html"),
+        name="jobs-yml-based")
 ]
 
 app_setting_urls = [

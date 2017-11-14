@@ -8,7 +8,8 @@ function getUrlVars(){for(var e,t=[],n=window.location.href.slice(window.locatio
 
 {% block navigation %}
     <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
-    <div class="btn btn-default disabled">Jobs</div>
+    <a href="{% url 'jobs' %}" class="btn btn-default">Jobs</a>
+    <div class="btn btn-default disabled">Sync Jobs</div>
 {% endblock %}
 
 {% block tabcontent %}

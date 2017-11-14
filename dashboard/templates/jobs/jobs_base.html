@@ -14,9 +14,10 @@
 
 {% block pagecontent %}
     <ul class="nav nav-tabs">
-      <li id="tab-jobs" role="presentation"><a href="{% url 'jobs' %}">Run Jobs</a></li>
+      <li id="tab-jobs" role="presentation"><a href="{% url 'jobs' %}">Sync Jobs</a></li>
       <li id="tab-logs" role="presentation"><a href="{% url 'jobs-logs' %}">Inspect Logs</a></li>
       <li id="tab-archive" role="presentation"><a href="{% url 'jobs-archive' %}">Archive</a></li>
+      <li id="tab-yml-based" role="presentation"><a href="{% url 'jobs-yml-based' %}">YML based Jobs</a></li>
     </ul>
     <div style="padding:20px">
         {% block tabcontent %}{% endblock %}

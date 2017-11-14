@@ -1,0 +1,72 @@
+{% extends "jobs/jobs_base.html" %}
+
+{% block extrascript %}
+<script src="/static/js/csrf.js"></script>
+<script type="text/javascript">
+    function csrfSafeMethod(a) {
+        return /^(GET|HEAD|OPTIONS|TRACE)$/.test(a)
+    }
+
+    var poll_timeout;
+    function ajax_read_logs() {
+        (function poll() {
+            poll_timeout = setTimeout(function() {
+                $.ajax({
+                    beforeSend: function(a, e) {
+                        csrfSafeMethod(e.type) || this.crossDomain || (csrftoken ? a.setRequestHeader("X-CSRFToken", csrftoken) : a.setRequestHeader("X-CSRFToken", "{{ csrf_token }}"))
+                    },
+                    type: "POST",
+                    url: "{% url 'ajax-read-logs' %}",
+                    success: function(a) {
+                        if (a) { $("#div-job-output").html(a) }
+                    },
+                    complete: poll
+                });
+            }, 2000);
+        })()
+    }
+
+    function ajax_yml_jobs() {
+        $.ajax({
+            beforeSend: function(a, e) {
+                csrfSafeMethod(e.type) || this.crossDomain || (csrftoken ? a.setRequestHeader("X-CSRFToken", csrftoken) : a.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), ajax_read_logs(), $("#span-job-progress").html("<img src='/static/img/spin.gif'></img>")
+            },
+            type: "POST",
+            url: "{% url 'ajax-schedule-job' %}",
+            data: {
+                job: $("#ymlBasedJobIdentifier").val()
+            },
+            success: function(a) {
+                clearTimeout(poll_timeout), $("#job-result").html(a), $("#span-job-progress").html("<span class='glyphicon glyphicon-ok-sign' style='color:green'></span>")
+            },
+            error: function(a, e, t) {
+                clearTimeout(poll_timeout), $("#job-result").html(a), $("#span-job-progress").html("<span class='glyphicon glyphicon-exclamation-sign' style='color:orange'></span>")
+            }
+        })
+    }
+
+    $(document).ready(function() {
+        $('#tab-yml-based').addClass('active'),
+        $("#fireJobLink").click(function(a) {
+            return a.preventDefault(), ajax_yml_jobs(), !1
+        })
+    })
+</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
+    <a href="{% url 'jobs' %}" class="btn btn-default">Jobs</a>
+    <a href="{% url 'jobs-yml-based' %}" class="btn btn-default">YML based Jobs</a>
+{% endblock %}
+
+{% block tabcontent %}
+    YML Based Jobs&nbsp;&nbsp;&nbsp;<button id="fireJobLink" class="btn btn-default">
+    <input type="hidden" value="syncdownstream" id="ymlBasedJobIdentifier"/>
+    <span id="span-job-progress"></span> Run Job</button>&nbsp;&nbsp;<span id="job-result"></span><hr/>
+    <div class="row">
+        <div class="col-md-12 col-md-offset-0">
+            <div id="div-job-output" class="panel panel-default text-primary" style="padding:20px;background:AliceBlue"></div>
+        </div>
+    </div>
+{% endblock %}

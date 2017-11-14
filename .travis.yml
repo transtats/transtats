@@ -11,6 +11,18 @@ addons:
             - build-essential
             - python-dev
 
+virtualenv:
+    system_site_packages: true
+
+before_install:
+    - sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu trusty main universe multiverse restricted';
+    - sudo apt-get -y update;
+    - sudo apt-get install -y python-krbv yum
+    - wget http://archive.ubuntu.com/ubuntu/pool/universe/k/koji/koji-common_1.10.0-1_all.deb
+    - wget http://archive.ubuntu.com/ubuntu/pool/universe/k/koji/koji-client_1.10.0-1_all.deb
+    - sudo dpkg -i koji-common_1.10.0-1_all.deb
+    - sudo dpkg -i koji-client_1.10.0-1_all.deb
+
 install:
     - pip install -r requirements/ci.txt
 

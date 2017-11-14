@@ -8,8 +8,10 @@ gunicorn
 mozilla-django-oidc
 polib
 psycopg2
+python-rpm-spec
 python-slugify
 pytz
+pyyaml
 requests
 six
 smmap2

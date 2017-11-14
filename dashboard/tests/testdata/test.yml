@@ -1,0 +1,17 @@
+job:
+  buildsys: koji
+  exception: raise
+  name: "test dnf"
+  package: dnf
+  return_type: json
+  tags:
+    - rawhide
+  tasks:
+    - "GET latest builds"
+    - "FETCH SRPM"
+    - "Unpack SRPM"
+    - "Load Spec File"
+    - "Untar tarball"
+    - "Filter PO files"
+    - "Calculate Stats"
+  type: i18nTestSRPM

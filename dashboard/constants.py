@@ -31,4 +31,4 @@ DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
                'DATABASE_HOST', 'TRANSIFEX_USER', 'TRANSIFEX_PASSWD')
 
 # Job Types
-TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream')
+TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream', 'syncdownstream')

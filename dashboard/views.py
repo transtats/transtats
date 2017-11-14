@@ -14,7 +14,9 @@
 # under the License.
 
 import csv
+import time
 from datetime import datetime
+from pathlib import Path
 
 # django
 from django.contrib import messages
@@ -43,6 +45,7 @@ from dashboard.managers.jobs import (
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
+from dashboard.managers.downstream import DownstreamManager
 from dashboard.managers.upstream import UpstreamManager
 from dashboard.constants import APP_DESC, TS_JOB_TYPES
 
@@ -561,7 +564,30 @@ def schedule_job(request):
                 upstream_sync_manager.clean_workspace()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+        elif job_type == TS_JOB_TYPES[3]:
+            downstream_manager = DownstreamManager()
+            try:
+                downstream_manager.lets_do_some_stuff()
+            except:
+                message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+            else:
+                message = "&nbsp;&nbsp;<span class='text-success'>Job ran successfully.</span>"
+            finally:
+                time.sleep(3)
+                downstream_manager.clean_workspace()
     return HttpResponse(message)
+
+
+def read_file_logs(request):
+    if request.is_ajax():
+        log_file = Path("dashboard/sandbox/downstream.log")
+        if log_file.is_file():
+            with open("dashboard/sandbox/downstream.log") as f:
+                content = f.readlines()
+                content = [x.strip() for x in content]
+                message = "<br/>".join(content)
+                return HttpResponse(message)
+    return HttpResponse(status=204)
 
 
 def tabular_data(request):

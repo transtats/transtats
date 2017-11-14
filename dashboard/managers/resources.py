@@ -18,7 +18,7 @@
 # dashboard
 from dashboard.constants import TRANSPLATFORM_ENGINES
 from dashboard.decorators import call_service
-from dashboard.utilities.xmltodict import parse
+from dashboard.converters.xml2dict import parse
 
 
 __all__ = ['APIResources']
