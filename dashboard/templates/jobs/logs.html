@@ -1,4 +1,4 @@
-{% extends "settings/settings_base.html" %}
+{% extends "jobs/jobs_base.html" %}
 
 {% block extrascript %}
 <script type="text/javascript">
@@ -9,23 +9,12 @@
 {% endblock %}
 
 {% block navigation %}
-    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
-    <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
-    <a href="{% url 'settings-logs' %}" class="btn btn-default">Logs</a>
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
+    <a href="{% url 'jobs' %}" class="btn btn-default">Jobs</a>
+    <a href="{% url 'jobs-logs' %}" class="btn btn-default">Logs</a>
 {% endblock %}
 
 {% block tabcontent %}
-<div class="row">
-    <div class="col-xs-12">
-        <span>
-            <span class="badge">{{ logs|length }}</span> logs
-        </span>
-        <span class="pull-right">
-            <!--<button type="button" class="btn btn-default disabled">Archive Logs</button>-->
-        </span>
-    </div>
-</div>
-<hr/>
 <div class="panel-group" id="accordion">
     {% for log in logs %}
         <div class="panel panel-default">

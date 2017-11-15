@@ -1,0 +1,85 @@
+{% extends "jobs/jobs_base.html" %}
+
+{% block extrascript %}
+<script src="/static/js/csrf.js"></script>
+<script type="text/javascript">
+function getUrlVars(){for(var e,t=[],n=window.location.href.slice(window.location.href.indexOf("?")+1).split("&"),s=0;s<n.length;s++)e=n[s].split("="),t.push(e[0]),t[e[0]]=e[1];return t}function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}$(document).ready(function(){$("#tab-jobs").addClass("active"),getUrlVars().package&&$("#packageName").val(getUrlVars().package),$("#syncTransForm").submit(function(e){var t=$(this).find("button");return t.button("loading"),$.ajax({beforeSend:function(e,t){csrfSafeMethod(t.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#transplatformwaiting").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"/ajax/schedule-job",data:{job:$("#syncTransIdentifier").val()},success:function(e){$("#transplatformwaiting").html(""),$("#syncTransMsg").html(e),t.button("reset")}}),!1}),$("#syncUpstreamForm").submit(function(e){var t=$(this).find("button");return t.button("loading"),$.ajax({beforeSend:function(e,t){csrfSafeMethod(t.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#upstreamwaiting").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"/ajax/schedule-job",data:{job:$("#syncUpstreamIdentifier").val(),package:$("#packageName").val()},success:function(e){$("#upstreamwaiting").html(""),$("#syncUpstreamMsg").html(e),t.button("reset")}}),!1}),$("#syncCalendarForm").submit(function(e){var t=$(this).find("button");return t.button("loading"),$.ajax({beforeSend:function(e,t){csrfSafeMethod(t.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#relschedulewaiting").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"/ajax/schedule-job",data:{job:$("#syncCalendarIdentifier").val()},success:function(e){$("#relschedulewaiting").html(""),$("#syncCalendarMsg").html(e),t.button("reset")}}),!1})});</script>
+{% endblock %}
+
+{% block navigation %}
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
+    <div class="btn btn-default disabled">Jobs</div>
+{% endblock %}
+
+{% block tabcontent %}
+<div class="row">
+    <div class="col-xs-12">
+        <span>
+            <span class="badge">{{ jobs_count }}</span> jobs ran.
+            {% if jobs_count > 0 and job_last_ran_on %}
+                <span class="text-muted">Last successful on <span class="text-info">{{ job_last_ran_on }}</span>
+                    of type <span class="text-info">{{ job_last_ran_type }}</span>.</span>
+            {% endif %}
+        </span>
+    </div>
+</div>
+<hr/>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Sync Translation Platforms
+        <span id="transplatformwaiting" class="pull-right"></span></h3>
+  </div>
+  <div class="panel-body">
+    This would initiate a synctransplatform job to update:
+      <span class="text-info"> translation platform&apos;s projects and their details in {{ app_name }}.</span><hr/>
+    <form method="post" id ="syncTransForm" class="form-horizontal">{% csrf_token %}
+        <input type="hidden" value="synctransplatform" id="syncTransIdentifier"/>
+        <button type="submit" data-loading-text="Syncing..." class="btn btn-default">
+            <span class="glyphicon glyphicon-play-circle"></span> Trigger Now</button>
+        <span id="syncTransMsg"></span>
+    </form>
+  </div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Sync Package Upstream
+        <span id="upstreamwaiting" class="pull-right"></span></h3>
+  </div>
+  <div class="panel-body">
+    This would initiate a syncupstream job to update:
+      <span class="text-info"> clone package upstream repository, filter translations and calculate translation statistics.</span><hr/>
+    <form method="post" id ="syncUpstreamForm" class="form-horizontal">{% csrf_token %}
+        <input type="hidden" value="syncupstream" id="syncUpstreamIdentifier"/>
+        {% if packages %}
+        <select id="packageName" class="selectpicker" data-live-search="true">
+            <option selected disabled>Select Package</option>
+            {% for package_name, upstream_name in packages %}
+                <option>{{ package_name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" data-loading-text="Syncing..." class="btn btn-default">
+            <span class="glyphicon glyphicon-play-circle"></span> Trigger Now</button>
+        {% else %}
+            <span>No package configured. Add <a href="{% url 'settings-packages-new' %}">one</a> now.</span>
+        {% endif %}
+        <span id="syncUpstreamMsg"></span>
+    </form>
+  </div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">
+      <h3 class="panel-title">Sync Release Schedule {{ key }}
+          <span id="relschedulewaiting" class="pull-right"></span></h3>
+  </div>
+  <div class="panel-body">
+    This would initiate a syncrelschedule job to update:
+      <span class="text-info"> event dates in release schedule.</span><hr/>
+    <form method="post" id ="syncCalendarForm" class="form-horizontal">{% csrf_token %}
+        <input type="hidden" value="syncrelschedule" id="syncCalendarIdentifier"/>
+        <button type="submit" data-loading-text="Syncing..." class="btn btn-default">
+            <span class="glyphicon glyphicon-play-circle"></span> Trigger Now</button>
+        <span id="syncCalendarMsg"></span>
+    </form>
+  </div>
+</div>
+{% endblock %}

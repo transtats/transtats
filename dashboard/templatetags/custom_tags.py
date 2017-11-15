@@ -17,7 +17,7 @@ import os
 from collections import OrderedDict
 from django import template
 
-from dashboard.managers.graphs import GraphManager
+from dashboard.managers.graphs import GraphManager, ReportsManager
 from dashboard.managers.inventory import PackagesManager
 
 
@@ -30,7 +30,31 @@ def get_item(dict_object, key):
 
 
 @register.inclusion_tag(
-    os.path.join("settings", "_branch_mapping.html")
+    os.path.join("stats", "_package_details.html")
+)
+def tag_package_details(package_name, user):
+    package_manager = PackagesManager()
+    return_value = OrderedDict()
+    try:
+        package = package_manager.get_packages([package_name]).get()
+        pkg_details = package.package_details_json
+        if pkg_details and pkg_details.get('description'):
+            return_value.update(
+                {'package_desc': pkg_details['description']}
+            )
+    except:
+        # log event, passing for now
+        pass
+    else:
+        return_value.update(
+            {'package': package,
+             'user': user}
+        )
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("stats", "_branch_mapping.html")
 )
 def tag_branch_mapping(package):
     package_manager = PackagesManager()
@@ -100,4 +124,34 @@ def tag_workload_detailed(relbranch):
     headers, workload = graph_manager.get_workload_detailed(relbranch)
     return_value.update(dict(headers=headers))
     return_value.update(dict(packages=workload.items()))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("stats", "_releases_summary.html")
+)
+def tag_releases_summary():
+    return_value = OrderedDict()
+    reports_manager = ReportsManager()
+    releases_summary = reports_manager.get_reports('releases')
+    if releases_summary:
+        return_value.update(dict(
+            relsummary=releases_summary.get().report_json,
+            last_updated=releases_summary.get().report_updated
+        ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("stats", "_packages_summary.html")
+)
+def tag_packages_summary():
+    return_value = OrderedDict()
+    reports_manager = ReportsManager()
+    packages_summary = reports_manager.get_reports('packages')
+    if packages_summary:
+        return_value.update(dict(
+            pkgsummary=packages_summary.get().report_json,
+            last_updated=packages_summary.get().report_updated
+        ))
     return return_value

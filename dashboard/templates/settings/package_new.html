@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block navigation %}
-    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-home"></i></a>
+    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
     <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
     <a href="{% url 'settings-packages' %}" class="btn btn-default">Packages</a>
     <a href="{% url 'settings-packages-new' %}" class="btn btn-default">Add</a>
@@ -31,13 +31,13 @@
 {% for message in messages %}
     {% if 'success' in message.tags %}
         <div class="alert alert-success alert-dismissable">
-          <button type="button" class="close" aria-hidden="true">&times;</button>
+          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
           <p>{{ message }}</p>
         </div>
     {% endif %}
     {% if 'error' in message.tags %}
         <div class="alert alert-danger alert-dismissable">
-          <button type="button" class="close" aria-hidden="true">&times;</button>
+          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
           <p>{{ message }}</p>
         </div>
     {% endif %}

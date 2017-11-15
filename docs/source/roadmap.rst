@@ -9,6 +9,6 @@ Transtats 0.1.5
 
 We are currently working on :code:`0.1.5` release.
 
-Target delivery: By the mid of November 2017
+Target delivery: By the mid of December 2017
 
 For features list please look `here <https://github.com/transtats/transtats/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_0.1.5>`_.
