@@ -21,31 +21,31 @@ from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECRET_FILE = os.path.dirname(os.path.abspath(__file__)) + "/keys.json"
-
-# JSON-based secrets module
-with open(SECRET_FILE) as f:
-    secrets = json.loads(f.read())
-
-
-def get_secret(setting, secrets=secrets):
-    """Get the secret variable or return explicit exception."""
-    try:
-        return secrets[setting]
-    except KeyError:
-        error_msg = "Set the {0} environment variable.".format(setting)
-        raise ImproperlyConfigured(error_msg)
-
-
-def get_db_env(var):
-    return os.environ.get(var, '') or get_secret(var)
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
+
+def get_secret(config_var):
+    """Get the secret variable or return explicit exception."""
+    file_location = os.path.dirname(os.path.abspath(__file__)) + "/"
+    try:
+        with open(file_location + "keys.json") as f:
+            return json.loads(f.read())[config_var]
+    except FileNotFoundError:
+        with open(file_location + "keys.json.example") as f:
+            return json.loads(f.read()).get(config_var, '')
+    except KeyError:
+        error_msg = "Set the {0} environment variable.".format(config_var)
+        raise ImproperlyConfigured(error_msg)
+
+
+def app_config_vars(var):
+    return os.getenv(var, get_secret(var))
+
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_secret("SECRET_KEY")
+SECRET_KEY = app_config_vars('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -112,14 +112,16 @@ LOGIN_REDIRECT_URL = '/'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
+service_name = os.getenv('DATABASE_SERVICE_NAME', '').upper().replace('-', '_')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': get_db_env("DATABASE_NAME"),
-        'USER': get_db_env("DATABASE_USER"),
-        'PASSWORD': get_db_env("DATABASE_PASSWD"),
-        'HOST': get_db_env("DATABASE_HOST"),
-        'PORT': '',
+        'NAME': app_config_vars('DATABASE_NAME'),
+        'USER': app_config_vars('DATABASE_USER'),
+        'PASSWORD': app_config_vars('DATABASE_PASSWORD'),
+        'HOST': os.getenv('{}_SERVICE_HOST'.format(service_name)) or app_config_vars('DATABASE_HOST'),
+        'PORT': os.getenv('{}_SERVICE_PORT'.format(service_name)) or '',
     }
 }
 
@@ -168,6 +170,9 @@ STATICFILES_DIRS = (
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

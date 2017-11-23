@@ -3,8 +3,6 @@ sudo: true
 dist: xenial
 language: python
 python:
-    - "3.4"
-    - "3.5"
     - "3.6"
 
 addons:
@@ -31,6 +29,5 @@ before_script:
     - sudo sh -c 'echo "local all all trust" >> /etc/postgresql/9.5/main/pg_hba.conf'
     - sudo sh -c 'echo -n "host all all 127.0.0.1/32 trust" >> /etc/postgresql/9.5/main/pg_hba.conf'
     - sudo service postgresql restart 9.5
-    - mv transtats/settings/keys.json.example transtats/settings/keys.json
 
 script: "make lint test"
