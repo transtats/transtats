@@ -35,10 +35,10 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
   or you can specify custom database credentials using environment variables 
   ```shell
   $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
-       -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats/transtats
+       -e DATABASE_USER=db_user -e DATABASE_PASSWORD=db_passwd transtats/transtats
   ```
   
-- Application should be available at `localhost:8080` with `transtats | transtats` as login credentials.
+- Application should be available at `localhost:8080`.
 
 
 #### Develop: Vagrant
@@ -63,7 +63,7 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 
 - Hit `localhost:8080` in browser
 
-- Create migrations `make migrations`
+- Update db `make migrations`
 
 - Run tests `make lint test`
 

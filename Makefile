@@ -15,7 +15,7 @@ docs:
 
 .PHONY: demo
 demo:
-	python3 manage.py runserver 0:8015 --settings=transtats.settings.test --insecure
+	python3 manage.py runserver 0:8015 --settings=transtats.settings.test
 
 .PHONY: env-info
 env-info:
