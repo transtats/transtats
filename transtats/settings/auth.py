@@ -7,7 +7,7 @@ from .base import (
     app_config_vars, INSTALLED_APPS, AUTHENTICATION_BACKENDS
 )
 
-FAS_AUTH = app_config_vars('TS_AUTH_SYSTEM')
+FAS_AUTH = app_config_vars('TS_AUTH_SYSTEM') == 'fedora'
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),

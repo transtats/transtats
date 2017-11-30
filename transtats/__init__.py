@@ -6,7 +6,7 @@ __version__ = '0.1.4'
 
 __all__ = ['__version__']
 
-MODE = 'dev'
+MODE = os.getenv('APP_MODE', 'dev')
 
 
 def prepare_env():

@@ -15,4 +15,3 @@ six
 smmap2
 sqlparse
 Unidecode
-whitenoise
