@@ -9,6 +9,23 @@ Transtats 0.1.5
 
 We are currently working on :code:`0.1.5` release.
 
-Target delivery: By the mid of December 2017
+Target delivery: In early January 2018
 
 For features list please look `here <https://github.com/transtats/transtats/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_0.1.5>`_.
+
+
+To Do
+===============
+
+- Translation Status at all 3 places:
+    - Translation Platform (Done)
+    - Upstream Repository (Partially Working)
+    - Build System (In Progress)
+
+- Transtats Jobs
+    - YML Based Jobs - Parser & ActionMapper
+    - String Breakage Monitoring Job
+    - Scheduling of Jobs as per Release Schedule
+
+- Transtats Notifications
+    - Emails about push/pull or translation status
