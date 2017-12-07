@@ -13,67 +13,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.test import TestCase
+from fixture import DjangoFixture
+from fixture.style import NamedDataStyle
+from fixture.django_testcase import FixtureTestCase
 from dashboard.managers.inventory import InventoryManager
-from dashboard.models import Languages, LanguageSet, TransPlatform, ReleaseStream, StreamBranches
-from dashboard.constants import RELSTREAM_SLUGS
+from dashboard.models import ReleaseStream
+from dashboard.tests.testdata.db_fixtures import (LanguagesData, LanguageSetData, TransPlatformData, ReleaseStreamData,
+                                                  StreamBranchesData)
+
+db_fixture = DjangoFixture(style=NamedDataStyle())
 
 
-class InventoryTest(TestCase):
+class InventoryManagerTest(FixtureTestCase):
 
     inventory_manager = InventoryManager()
-
-    def setUp(self):
-        """
-        Lets dump some test data in db
-        """
-        Languages.objects.update_or_create(
-            locale_id='ja_JP', lang_name='Japanese', locale_alias='ja', lang_status=True
-        )
-
-        Languages.objects.update_or_create(
-            locale_id='fr_FR', lang_name='French', locale_alias='fr', lang_status=False
-        )
-
-        Languages.objects.update_or_create(
-            locale_id='ru_RU', lang_name='Russian', locale_alias='ru', lang_status=True
-        )
-
-        Languages.objects.update_or_create(
-            locale_id='ko_KR', lang_name='Korean', locale_alias='ko', lang_status=True
-        )
-
-        LanguageSet.objects.update_or_create(
-            lang_set_name='Custom Set', lang_set_slug='custom-set', lang_set_color='Peru',
-            locale_ids=['fr_FR', 'ja_JP']
-        )
-
-        LanguageSet.objects.update_or_create(
-            lang_set_name='F27 Set', lang_set_slug='f27-set', lang_set_color='Green',
-            locale_ids=['ja_JP', 'fr_FR', 'ru_RU']
-        )
-
-        TransPlatform.objects.update_or_create(
-            engine_name='zanata', subject='public', api_url='https://translate.zanata.org',
-            platform_slug='ZNTAPUB', server_status=True
-        )
-
-        # todo: specify top_url (if top_url is missing, it should raise error but it doesn't)
-        ReleaseStream.objects.update_or_create(
-            relstream_name='Fedora', relstream_slug=RELSTREAM_SLUGS[1],
-            relstream_server='http://koji.fedoraproject.org/kojihub', relstream_status=True
-        )
-
-        ReleaseStream.objects.update_or_create(
-            relstream_name='RHEL', relstream_slug=RELSTREAM_SLUGS[0],
-            relstream_server='http://companyserver.net/tool', top_url='http://companyserver.net/topdir',
-            relstream_status=False
-        )
-
-        StreamBranches.objects.update_or_create(
-            relbranch_name='Fedora 27', relbranch_slug='fedora-27', relstream_slug=RELSTREAM_SLUGS[1],
-            lang_set='f27-set', created_on='2017-10-30 00:00+05:30', sync_calendar=False
-        )
+    fixture = db_fixture
+    datasets = [LanguagesData, LanguageSetData, TransPlatformData, ReleaseStreamData, StreamBranchesData]
 
     def test_get_locales(self):
         """
