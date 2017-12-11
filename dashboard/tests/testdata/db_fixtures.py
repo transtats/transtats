@@ -69,11 +69,18 @@ class TransPlatformData(DataSet):
     class Meta:
         django_model = 'dashboard.TransPlatform'
 
-    class platform_zanata:
+    class platform_zanata_public:
         engine_name = 'zanata'
         subject = 'public'
         api_url = 'https://translate.zanata.org'
         platform_slug = 'ZNTAPUB'
+        server_status = True
+
+    class platform_zanata_fedora:
+        engine_name = 'zanata'
+        subject = 'fedora'
+        api_url = 'https://fedora.zanata.org'
+        platform_slug = 'ZNTAFED'
         server_status = True
 
 
@@ -107,3 +114,44 @@ class StreamBranchesData(DataSet):
         lang_set = 'f27-set'
         created_on = '2017-10-30 00:00+05:30'
         sync_calendar = False
+
+
+class PackagesData(DataSet):
+    class Meta:
+        django_model = 'dashboard.Packages'
+
+    class package_candlepin:
+        package_name = 'candlepin'
+        upstream_name = 'candlepin'
+        upstream_url = 'https://github.com/candlepin/candlepin'
+        transplatform_slug = TransPlatformData.platform_zanata_public
+        transplatform_name = 'candlepin'
+        transplatform_url = 'https://translate.zanata.org/project/view/candlepin'
+        release_streams = ['fedora']
+
+    class package_subscription_manager:
+        package_name = 'subscription-manager'
+        upstream_name = 'subscription-manager'
+        upstream_url = 'https://github.com/candlepin/subscription-manager'
+        transplatform_slug = TransPlatformData.platform_zanata_public
+        transplatform_name = 'subscription-manager'
+        transplatform_url = 'https://translate.zanata.org/project/view/subscription-manager'
+        release_streams = ['fedora']
+
+    class package_anaconda:
+        package_name = 'anaconda'
+        upstream_name = 'anaconda'
+        upstream_url = 'https://github.com/rhinstaller/anaconda'
+        transplatform_slug = TransPlatformData.platform_zanata_fedora
+        transplatform_name = 'anaconda'
+        transplatform_url = 'https://fedora.zanata.org/project/view/anaconda'
+        release_streams = ['fedora']
+
+    class package_ibus:
+        package_name = 'ibus'
+        upstream_name = 'ibus'
+        upstream_url = 'https://github.com/ibus/ibus'
+        transplatform_slug = TransPlatformData.platform_zanata_fedora
+        transplatform_name = 'ibus'
+        transplatform_url = 'https://fedora.zanata.org/project/view/ibus'
+        release_streams = ['fedora']

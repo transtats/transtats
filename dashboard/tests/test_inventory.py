@@ -13,13 +13,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from django.test import mock
 from fixture import DjangoFixture
 from fixture.style import NamedDataStyle
 from fixture.django_testcase import FixtureTestCase
-from dashboard.managers.inventory import InventoryManager
+from dashboard.managers.inventory import InventoryManager, PackagesManager
 from dashboard.models import ReleaseStream
 from dashboard.tests.testdata.db_fixtures import (LanguagesData, LanguageSetData, TransPlatformData, ReleaseStreamData,
-                                                  StreamBranchesData)
+                                                  StreamBranchesData, PackagesData)
+from dashboard.tests.testdata.mock_values import mock_requests_get_add_package, mock_requests_get_validate_package
 
 db_fixture = DjangoFixture(style=NamedDataStyle())
 
@@ -99,15 +101,15 @@ class InventoryManagerTest(FixtureTestCase):
         Test get_translation_platforms
         """
         transplatforms = self.inventory_manager.get_translation_platforms(engine='zanata')
-        self.assertEqual(transplatforms[0].api_url, 'https://translate.zanata.org')
-        self.assertEqual(transplatforms[0].platform_slug, 'ZNTAPUB')
+        self.assertEqual(transplatforms[1].api_url, 'https://translate.zanata.org')
+        self.assertEqual(transplatforms[1].platform_slug, 'ZNTAPUB')
 
     def test_get_transplatforms_set(self):
         """
         Test get_transplatforms_set
         """
         active_platforms, inactive_platforms = self.inventory_manager.get_transplatforms_set()
-        self.assertEqual(len(active_platforms), 1)
+        self.assertEqual(len(active_platforms), 2)
         self.assertEqual(len(inactive_platforms), 0)
 
     def test_get_transplatform_slug_url(self):
@@ -115,7 +117,8 @@ class InventoryManagerTest(FixtureTestCase):
         test get_transplatform_slug_url
         """
         slug_url_tuple = self.inventory_manager.get_transplatform_slug_url()
-        self.assertTupleEqual(slug_url_tuple, (('ZNTAPUB', 'https://translate.zanata.org'),))
+        self.assertTupleEqual(slug_url_tuple, (('ZNTAFED', 'https://fedora.zanata.org'),
+                                               ('ZNTAPUB', 'https://translate.zanata.org')))
 
     def test_get_relbranch_locales(self):
         """
@@ -167,3 +170,61 @@ class InventoryManagerTest(FixtureTestCase):
         relstream_slug_name_tuple = self.inventory_manager.get_relstream_slug_name()
         self.assertEqual(len(relstream_slug_name_tuple), 1)
         self.assertTupleEqual(relstream_slug_name_tuple[0], ('fedora', 'Fedora'))
+
+
+class PackagesManagerTest(FixtureTestCase):
+
+    packages_manager = PackagesManager()
+    fixture = db_fixture
+    datasets = [PackagesData]
+
+    def test_get_packages(self):
+        """
+        Test get_packages
+        """
+        packages = self.packages_manager.get_packages()
+        self.assertEqual(len(packages), 4)
+        package_names = [PackagesData.package_anaconda.package_name,
+                         PackagesData.package_ibus.package_name]
+        packages = self.packages_manager.get_packages(pkgs=package_names).values()
+        self.assertEqual(len(packages), 2)
+        self.assertEqual(packages[0]['package_name'], PackagesData.package_anaconda.package_name)
+        self.assertEqual(packages[1]['package_name'], PackagesData.package_ibus.package_name)
+        # todo: test the filtering according to params
+        # params = ['package_name', 'upstream_url']
+        # packages = self.packages_manager.get_packages(pkgs=['ibus'], pkg_params=params)
+        # self.assertTrue(set(params).issubset(vars(packages.get()).keys()))
+
+    def test_is_package_exist(self):
+        """
+        Test is_package_exist
+        """
+        self.assertTrue(self.packages_manager.is_package_exist(PackagesData.package_anaconda.package_name))
+        self.assertFalse(self.packages_manager.is_package_exist('otherpackage'))
+
+    @mock.patch('requests.get', new=mock_requests_get_add_package)
+    def test_add_package(self):
+        """
+        Test add_package
+        """
+        kwargs = {'package_name': 'authconfig', 'upstream_url': 'https://github.com/jcam/authconfig',
+                  'transplatform_slug': 'ZNTAFED', 'release_streams': ['fedora']}
+        package_added = self.packages_manager.add_package(**kwargs)
+        self.assertTrue(package_added)
+        self.assertTrue(self.packages_manager.is_package_exist('authconfig'))
+        package_added = self.packages_manager.add_package(**kwargs)
+        self.assertFalse(package_added)
+
+    @mock.patch('requests.get', new=mock_requests_get_validate_package)
+    def test_validate_package(self):
+        """
+        Test validate_package
+        """
+        transplatform = TransPlatformData.platform_zanata_public.platform_slug
+        package_candlepin_name = PackagesData.package_candlepin.package_name
+        package_validated = self.packages_manager.validate_package(package_name=package_candlepin_name,
+                                                                   transplatform_slug=transplatform)
+        self.assertEqual(package_validated, package_candlepin_name)
+        package_validated = self.packages_manager.validate_package(package_name='otherpackage',
+                                                                   transplatform_slug=transplatform)
+        self.assertFalse(package_validated)
