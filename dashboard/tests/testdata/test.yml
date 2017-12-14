@@ -1,7 +1,7 @@
 job:
+  name: "sync downstream"
   buildsys: koji
   exception: raise
-  name: "test dnf"
   package: dnf
   return_type: json
   tags:

@@ -565,24 +565,32 @@ def schedule_job(request):
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
         elif job_type == TS_JOB_TYPES[3]:
-            downstream_manager = DownstreamManager()
-            try:
-                downstream_manager.lets_do_some_stuff()
-            except:
-                message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+            fields = ['YML_FILE', 'PACKAGE_NAME', 'BUILD_TAG']
+            not_available = [field for field in fields if not request.POST.dict().get(field)]
+            if len(not_available) > 0:
+                message = "&nbsp;&nbsp;<span class='text-warning'>Provide value for %s</span>" % not_available[0]
             else:
-                message = "&nbsp;&nbsp;<span class='text-success'>Job ran successfully.</span>"
-            finally:
-                time.sleep(3)
-                downstream_manager.clean_workspace()
+                fields.append('DRY_RUN')
+                downstream_manager = DownstreamManager(**{
+                    field: request.POST.dict().get(field) for field in fields})
+                try:
+                    downstream_manager.lets_do_some_stuff()
+                except:
+                    message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+                else:
+                    message = "&nbsp;&nbsp;<span class='text-success'>Job ran successfully.</span>"
+                finally:
+                    time.sleep(3)
+                    downstream_manager.clean_workspace()
     return HttpResponse(message)
 
 
 def read_file_logs(request):
     if request.is_ajax():
-        log_file = Path("dashboard/sandbox/downstream.log")
+        downstream_manager = DownstreamManager()
+        log_file = Path(downstream_manager.job_log_file)
         if log_file.is_file():
-            with open("dashboard/sandbox/downstream.log") as f:
+            with open(downstream_manager.job_log_file) as f:
                 content = f.readlines()
                 content = [x.strip() for x in content]
                 message = "<br/>".join(content)

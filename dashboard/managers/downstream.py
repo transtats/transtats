@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import io
 import os
 try:
     import koji
@@ -70,23 +71,48 @@ class KojiResources(object):
         kinit.wait()
 
 
+class YMLPreProcessor(object):
+    """
+    Load and form YML, fill values
+    """
+
+    delimiter = '%'
+
+    def __init__(self, YML_Source, **vars):
+        for attrib, value in vars.items():
+            setattr(self, str(attrib), value)
+        self.YML = YML_Source
+        self.variables = [segment for segment in self.YML.split()
+                          if segment.startswith(self.delimiter) and
+                          segment.endswith(self.delimiter)]
+
+    @property
+    def output(self):
+        in_process_text = self.YML
+        for variable in self.variables:
+            in_process_text = in_process_text.replace(
+                variable, getattr(self, variable.replace(self.delimiter, ''), '')
+            )
+        return in_process_text
+
+
 class YMLJobParser(object):
     """
     Parse YML and build objects
     """
     test_yml_path = 'dashboard/tests/testdata/test.yml'
 
-    def __init__(self):
+    def __init__(self, yml_stream=None):
 
-        with open(self.test_yml_path, 'r') as stream:
-            try:
-                parsed_data = load(stream)
-            except YAMLError as exc:
-                # log error
-                pass
-            else:
-                if isinstance(parsed_data, dict):
-                    self.data = parsed_data.get('job', {})
+        stream = yml_stream if yml_stream else open(self.test_yml_path)
+        try:
+            parsed_data = load(stream)
+        except YAMLError as exc:
+            # log error
+            pass
+        else:
+            if isinstance(parsed_data, dict):
+                self.data = parsed_data.get('job', {})
 
     @property
     def buildsys(self):
@@ -321,9 +347,10 @@ class DownstreamManager(BaseManager):
 
     def lets_do_some_stuff(self):
         """
-        1. Parse YML and build objects
-        2. Map objects to actions
-        3. Perform actions and return responses
+        1. Process YML and fill values
+        2. Parse processed YML and build objects
+        3. Map objects to respective actions
+        4. Perform actions and return responses
         """
 
         # active_repos = self.koji_resources.session.getActiveRepos()
@@ -331,17 +358,22 @@ class DownstreamManager(BaseManager):
         #     self._write_to_file("Active Repos: %s\n" % ", ".join(
         #         set([repo['tag_name'] for repo in active_repos])))
 
-        yml_job = YMLJobParser()
-        self.package = yml_job.package
-        self.tag = yml_job.tags[0] if len(yml_job.tags) > 0 else None
+        yml_preprocessed = YMLPreProcessor(self.YML_FILE, **{
+            'PACKAGE_NAME': self.PACKAGE_NAME, 'BUILD_TAG': self.BUILD_TAG
+        }).output
 
-        if os.path.exists(self.job_log_file):
-            os.remove(self.job_log_file)
-        if self.tag and self.package:
-            tasks = yml_job.tasks
-            steps = ActionMapper(tasks).actions
-            for step in steps:
-                getattr(self, step, self.skip)()
+        if yml_preprocessed:
+            yml_job = YMLJobParser(yml_stream=io.StringIO(yml_preprocessed))
+            self.package = yml_job.package
+            self.tag = yml_job.tags[0] if len(yml_job.tags) > 0 else None
+
+            if os.path.exists(self.job_log_file):
+                os.remove(self.job_log_file)
+            if self.tag and self.package:
+                tasks = yml_job.tasks
+                steps = ActionMapper(tasks).actions
+                for step in steps:
+                    getattr(self, step, self.skip)()
 
     def clean_workspace(self):
         """
