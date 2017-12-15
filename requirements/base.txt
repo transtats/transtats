@@ -11,6 +11,7 @@ psycopg2
 python-slugify
 pytz
 requests
+six
 smmap2
 sqlparse
 Unidecode
