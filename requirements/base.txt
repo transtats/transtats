@@ -5,7 +5,7 @@ django-crispy-forms
 django-debug-toolbar
 djangorestframework
 gunicorn
-mozilla-django-oidc==0.3.2
+mozilla-django-oidc
 polib
 psycopg2
 python-slugify
