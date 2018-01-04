@@ -4,7 +4,7 @@
 # Run Command: docker run -d --name container_name -p 8080:8015 transtats/transtats
 
 FROM registry.fedoraproject.org/fedora:latest
-MAINTAINER Sundeep Anand <suanand@redhat.com>
+LABEL maintainer="suanand@redhat.com"
 
 RUN dnf -y update && \
     dnf -y install gcc findutils git python3-pip python3-devel sudo redhat-rpm-config \

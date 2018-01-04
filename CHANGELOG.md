@@ -1,3 +1,6 @@
+##### Thu Nov 30 2017 Sundeep Anand <suanand@redhat.com>
+* Making ready for openshift deployment, fix static files
+
 ##### Wed Nov 15 2017 Sundeep Anand <suanand@redhat.com> - release_0.1.4
 * Modify APIs - `status` is `package` and `workload` is `release` now
 * Add `releases` and `packages` reports to landing page

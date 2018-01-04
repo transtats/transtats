@@ -3,12 +3,11 @@ Authentication settings for transtats project.
     - this is a temporary placement of OIDC values
     - they should be a part of dev, test only.
 """
-
 from .base import (
-    get_secret, INSTALLED_APPS, AUTHENTICATION_BACKENDS
+    app_config_vars, INSTALLED_APPS, AUTHENTICATION_BACKENDS
 )
 
-FAS_AUTH = False
+FAS_AUTH = app_config_vars('TS_AUTH_SYSTEM') == 'fedora'
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
@@ -20,7 +19,7 @@ ADMINS = (
 INSTALLED_APPS += ('mozilla_django_oidc', )
 AUTHENTICATION_BACKENDS += ('transtats.utils.TranstatsOIDCBackend', )
 OIDC_RP_CLIENT_ID = 'transtatsdev'
-OIDC_RP_CLIENT_SECRET = get_secret("OIDC_RP_CLIENT_SECRET")
+OIDC_RP_CLIENT_SECRET = app_config_vars('OIDC_RP_CLIENT_SECRET')
 OIDC_OP_AUTHORIZATION_ENDPOINT = 'https://iddev.fedorainfracloud.org/openidc/Authorization'
 OIDC_OP_TOKEN_ENDPOINT = 'https://iddev.fedorainfracloud.org/openidc/Token'
 OIDC_OP_USER_ENDPOINT = 'https://iddev.fedorainfracloud.org/openidc/UserInfo'
