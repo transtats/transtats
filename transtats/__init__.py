@@ -2,7 +2,7 @@
 import os
 import sys
 
-__version__ = '0.1.4'
+__version__ = '0.1.5-rc.1'
 
 __all__ = ['__version__']
 

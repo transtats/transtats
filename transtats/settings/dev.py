@@ -21,8 +21,10 @@ DEBUG = True
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Django Debug Toolbar
-INSTALLED_APPS += ('debug_toolbar', )
-MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware', )
+DEBUG_TOOLBAR_PATCH_SETTINGS = False
+if DEBUG:
+    INSTALLED_APPS += ('debug_toolbar', )
+    MIDDLEWARE += ('debug_toolbar.middleware.DebugToolbarMiddleware', )
 
 INTERNAL_IPS = ('127.0.0.1', )
 

@@ -1,11 +1,11 @@
 gitdb2
 GitPython
-Django==1.11.8
+Django
 django-crispy-forms
 django-debug-toolbar
 djangorestframework
 gunicorn
-mozilla-django-oidc==0.3.2
+mozilla-django-oidc
 polib
 psycopg2
 python-slugify

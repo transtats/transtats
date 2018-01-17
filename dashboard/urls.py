@@ -97,7 +97,7 @@ urlpatterns = [
     url(r'^settings/', include(app_setting_urls)),
     url(r'^jobs/', include(app_jobs_urls)),
     # landing URLs
-    url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status'), name="home"),
+    url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/'), name="home"),
     url(r'^translation-status/', include(trans_status_urls)),
     url(r'^translation-coverage/$', TransCoverageView.as_view(), name="custom-graph"),
     url(r'^how-to$', TemplateView.as_view(template_name="howto.html"), name="howto"),
