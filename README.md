@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/transtats/transtats.svg?branch=master)](https://travis-ci.org/transtats/transtats)
+[![Build Status](https://travis-ci.org/transtats/transtats.svg?branch=devel)](https://travis-ci.org/transtats/transtats)
 [![Documentation Status](https://readthedocs.org/projects/transtats/badge/?version=latest)](http://transtats.readthedocs.io/en/latest/?badge=latest)
 
 ## Transtats

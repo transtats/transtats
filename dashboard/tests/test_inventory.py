@@ -13,15 +13,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.test import mock
+from mock import patch
 from fixture import DjangoFixture
 from fixture.style import NamedDataStyle
 from fixture.django_testcase import FixtureTestCase
 from dashboard.managers.inventory import InventoryManager, PackagesManager
 from dashboard.models import ReleaseStream
-from dashboard.tests.testdata.db_fixtures import (LanguagesData, LanguageSetData, TransPlatformData, ReleaseStreamData,
-                                                  StreamBranchesData, PackagesData)
-from dashboard.tests.testdata.mock_values import mock_requests_get_add_package, mock_requests_get_validate_package
+from dashboard.tests.testdata.db_fixtures import (
+    LanguagesData, LanguageSetData, TransPlatformData, ReleaseStreamData,
+    StreamBranchesData, PackagesData
+)
+from dashboard.tests.testdata.mock_values import (mock_requests_get_add_package,
+                                                  mock_requests_get_validate_package)
 
 db_fixture = DjangoFixture(style=NamedDataStyle())
 
@@ -202,7 +205,7 @@ class PackagesManagerTest(FixtureTestCase):
         self.assertTrue(self.packages_manager.is_package_exist(PackagesData.package_anaconda.package_name))
         self.assertFalse(self.packages_manager.is_package_exist('otherpackage'))
 
-    @mock.patch('requests.get', new=mock_requests_get_add_package)
+    @patch('requests.get', new=mock_requests_get_add_package)
     def test_add_package(self):
         """
         Test add_package
@@ -215,7 +218,7 @@ class PackagesManagerTest(FixtureTestCase):
         package_added = self.packages_manager.add_package(**kwargs)
         self.assertFalse(package_added)
 
-    @mock.patch('requests.get', new=mock_requests_get_validate_package)
+    @patch('requests.get', new=mock_requests_get_validate_package)
     def test_validate_package(self):
         """
         Test validate_package
