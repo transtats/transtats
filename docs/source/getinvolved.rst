@@ -1,36 +1,52 @@
 Get Involved
 ============
 
-**Try and test: Docker**
+**Try and test:**
 
-Get docker daemon running. Build or pull `transtats image <https://hub.docker.com/r/transtats/transtats>`_  and get started.
+- **Docker**
 
-- Build the image *(optional)*
+  Get docker daemon running. Build or pull `transtats image <https://hub.docker.com/r/transtats/transtats>`_  and get started.
 
-  - Clone the repo and build the image
-     .. code-block:: bash
+  - Build the image *(optional)*
 
-        $ git clone https://github.com/transtats/transtats.git
-        $ cd transtats
-        $ sudo docker build -t transtats/transtats deploy/docker
+    - Clone the repo and build the image
+       .. code-block:: bash
 
-- Pull the image *(No need to pull, if you have built the image)*
-    .. code-block:: bash
+          $ git clone https://github.com/transtats/transtats.git
+          $ cd transtats
+          $ sudo docker build -t transtats/transtats deploy/docker
 
-        $ sudo docker pull docker.io/transtats/transtats
+  - Pull the image *(No need to pull, if you have built the image)*
+      .. code-block:: bash
 
-- Run the image
-    .. code-block:: bash
+          $ sudo docker pull docker.io/transtats/transtats
 
-        $ sudo docker run -d --name container_name -p 8080:8015 transtats/transtats
+  - Run the image
+      .. code-block:: bash
 
-  or you can specify custom database credentials using environment variables
-    .. code-block:: bash
+          $ sudo docker run -d --name container_name -p 8080:8015 transtats/transtats
 
-        $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
-               -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats/transtats
+    or you can specify custom database credentials using environment variables
+      .. code-block:: bash
 
-- Application should be available at :code:`localhost:8080` with :code:`transtats | transtats` as login credentials.
+          $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
+                 -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats/transtats
+
+  - Application should be available at :code:`localhost:8080` with :code:`transtats | transtats` as login credentials.
+
+
+- **docker-compose**
+
+  - Install `docker-compose <https://docs.docker.com/compose>`_
+
+  - This will clone the repo and start `transtats` server
+      .. code-block:: bash
+
+          $ git clone https://github.com/transtats/transtats.git
+          $ cd transtats/deploy/docker-compose
+          $ sudo docker-compose up
+
+  - Application should be available at :code:`localhost:8080`.
 
 
 **Develop: Vagrant**

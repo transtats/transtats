@@ -1,3 +1,6 @@
+##### Wed Jan 24 2018 Bhavin Gandhi <bhavin7392@gmail.com> 
+* Add docker-compose setup for easy deployment 
+
 ##### Thu Nov 30 2017 Sundeep Anand <suanand@redhat.com>
 * Making ready for openshift deployment, fix static files
 
