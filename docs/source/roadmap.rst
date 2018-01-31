@@ -9,7 +9,7 @@ Transtats 0.1.5
 
 We are currently working on :code:`0.1.5` release.
 
-Target delivery: In early January 2018
+Target delivery: In mid February 2018
 
 For features list please look `here <https://github.com/transtats/transtats/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_0.1.5>`_.
 
@@ -17,7 +17,7 @@ For features list please look `here <https://github.com/transtats/transtats/issu
 To Do
 ===============
 
-- Translation Status at all 3 places:
+- Translation Status of Packages at all 3 places:
     - Translation Platform (Done)
     - Upstream Repository (Partially Working)
     - Build System (In Progress)
