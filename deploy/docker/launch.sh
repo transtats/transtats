@@ -13,10 +13,10 @@ then
     export DATABASE_USER="postgres"
 fi
 
-if [ -z "$DATABASE_PASSWD" ]
+if [ -z "$DATABASE_PASSWORD" ]
 then
     echo "Set DB Password"
-    export DATABASE_PASSWD="postgres"
+    export DATABASE_PASSWORD="postgres"
 fi
 
 if [ -z "$DATABASE_NAME" ]
@@ -25,10 +25,10 @@ then
     export DATABASE_NAME="transtats"
 fi
 
-sudo -u postgres psql -c "ALTER USER $DATABASE_USER WITH PASSWORD '$DATABASE_PASSWD';"
+sudo -u postgres psql -c "ALTER USER $DATABASE_USER WITH PASSWORD '$DATABASE_PASSWORD';"
 sudo -u postgres psql -c "CREATE DATABASE $DATABASE_NAME ENCODING = 'UTF-8' LC_CTYPE = 'en_US.utf8' LC_COLLATE = 'en_US.utf8' template = template0;"
 make migrate
 su - postgres -c "psql -d $DATABASE_NAME -a -f /workspace/deploy/docker/data/initial.sql"
 
 # setup app
-python3 manage.py initlogin && make demo
+python3 manage.py initlogin && make static && make demo

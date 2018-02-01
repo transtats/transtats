@@ -2,11 +2,11 @@
 import os
 import sys
 
-__version__ = '0.1.4'
+__version__ = '0.1.5-rc.1'
 
 __all__ = ['__version__']
 
-MODE = 'dev'
+MODE = os.getenv('TS_APP_MODE', 'dev')
 
 
 def prepare_env():

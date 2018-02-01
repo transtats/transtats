@@ -57,19 +57,8 @@
                 <span style="color:grey">ago</span>.
                 <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
             </p>
-            {% endif %}
-            {% if user.is_authenticated and user.is_staff %}
-            <p>
-                <a href="{% url 'admin:dashboard_transplatform_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Edit</a>
-                {% if platform.server_status %}
-                    <a href="{% url 'admin:dashboard_transplatform_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Deactivate</a>
-                {% else %}
-                    <a href="{% url 'admin:dashboard_transplatform_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Activate</a>
-                    <a href="{% url 'admin:dashboard_transplatform_delete' forloop.counter %}" class="btn btn-danger btn-small">
-                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                    </a>
-                {% endif %}
-            </p>
+            {% else %}
+              <p>&nbsp;</p>
             {% endif %}
           </div>
         </div>

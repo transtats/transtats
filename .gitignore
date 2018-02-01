@@ -74,6 +74,7 @@ keys.json
 freeze.txt
 *.patch
 dashboard/sandbox/*
+staticfiles/
 
 # IDE
 .idea/

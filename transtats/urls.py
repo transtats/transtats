@@ -24,9 +24,9 @@ admin.site.site_title = 'Transtats Admin'
 
 urlpatterns = [
     url(r'^', include('dashboard.urls')),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^oidc/', include('mozilla_django_oidc.urls')),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
 
 if settings.DEBUG:
     import debug_toolbar

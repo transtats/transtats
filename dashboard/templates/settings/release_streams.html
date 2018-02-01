@@ -57,19 +57,6 @@
                 <span style="color:grey">Message bus:</span> {{ relstream.msgbus_exchange }}
                 <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
             </p>
-            {% if user.is_authenticated and user.is_staff %}
-            <p>
-                <a href="{% url 'admin:dashboard_releasestream_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Edit</a>
-                {% if relstream.relstream_status %}
-                    <a href="{% url 'admin:dashboard_releasestream_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Deactivate</a>
-                {% else %}
-                    <a href="{% url 'admin:dashboard_releasestream_change' forloop.counter %}" class="btn btn-default btn-small" role="button">Activate</a>
-                    <a href="{% url 'admin:dashboard_releasestream_delete' forloop.counter %}" class="btn btn-danger btn-small">
-                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                    </a>
-                {% endif %}
-            </p>
-            {% endif %}
             <hr/>
             <div class="list-group">
               <a href="{% url 'settings-stream-branches' relstream.relstream_slug %}" class="list-group-item">

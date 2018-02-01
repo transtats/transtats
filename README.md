@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/transtats/transtats.svg?branch=master)](https://travis-ci.org/transtats/transtats)
+[![Build Status](https://travis-ci.org/transtats/transtats.svg?branch=devel)](https://travis-ci.org/transtats/transtats)
 [![Documentation Status](https://readthedocs.org/projects/transtats/badge/?version=latest)](http://transtats.readthedocs.io/en/latest/?badge=latest)
 
 ## Transtats
@@ -9,8 +9,9 @@ Track translation progress across packages for downstream releases with respect 
 ### Get Involved
 
 
-#### Try and test: Docker
+#### Try and test
 
+##### Docker
 
 Get docker daemon running. Build or pull `transtats` image *([docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
 
@@ -35,10 +36,23 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
   or you can specify custom database credentials using environment variables 
   ```shell
   $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
-       -e DATABASE_USER=db_user -e DATABASE_PASSWD=db_passwd transtats/transtats
+       -e DATABASE_USER=db_user -e DATABASE_PASSWORD=db_passwd transtats/transtats
   ```
   
-- Application should be available at `localhost:8080` with `transtats | transtats` as login credentials.
+- Application should be available at `localhost:8080`.
+
+##### docker-compose
+
+- Install [docker-compose](https://docs.docker.com/compose) 
+
+- This will clone the repo and start transtats server
+  ```shell
+  $ git clone https://github.com/transtats/transtats.git
+  $ cd transtats/deploy/docker-compose
+  $ sudo docker-compose up 
+  ```
+
+- Application should be available at `localhost:8080`. 
 
 
 #### Develop: Vagrant
@@ -63,7 +77,7 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 
 - Hit `localhost:8080` in browser
 
-- Create migrations `make migrations`
+- Update db `make migrations`
 
 - Run tests `make lint test`
 
