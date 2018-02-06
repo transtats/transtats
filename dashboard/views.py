@@ -40,7 +40,7 @@ from dashboard.managers.inventory import (
 )
 from dashboard.managers.jobs import (
     JobsLogManager, TransplatformSyncManager,
-    ReleaseScheduleSyncManager
+    ReleaseScheduleSyncManager, BuildTagsSyncManager
 )
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager
@@ -523,6 +523,28 @@ class JobsArchiveView(ManagersMixin, ListView):
         return job_logs[15:]
 
 
+class JobsYMLBasedView(ManagersMixin, TemplateView):
+    """
+    YML Based Job View
+    """
+    template_name = "jobs/jobs_yml_based.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(TemplateView, self).get_context_data(**kwargs)
+        packages = self.packages_manager.get_package_name_tuple()
+        if packages:
+            context['packages'] = packages
+        # currently, it is limited to koji
+        # Enable it for brew, #todo
+        fedora_release_stream = \
+            self.packages_manager.get_release_streams(stream_slug='fedora')
+        if fedora_release_stream:
+            release_stream = fedora_release_stream.get()
+            if release_stream.relstream_built_tags:
+                context['build_tags'] = release_stream.relstream_built_tags
+        return context
+
+
 def schedule_job(request):
     """
     Handles job schedule AJAX POST request
@@ -574,7 +596,7 @@ def schedule_job(request):
                 downstream_manager = DownstreamManager(**{
                     field: request.POST.dict().get(field) for field in fields})
                 try:
-                    downstream_manager.lets_do_some_stuff()
+                    downstream_manager.execute_job()
                 except:
                     message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
                 else:
@@ -582,6 +604,15 @@ def schedule_job(request):
                 finally:
                     time.sleep(3)
                     downstream_manager.clean_workspace()
+        elif job_type == TS_JOB_TYPES[4]:
+            buildtags_sync_manager = BuildTagsSyncManager()
+            job_uuid = buildtags_sync_manager.syncbuildtags_initiate_job()
+            if job_uuid:
+                message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                          "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
+                buildtags_sync_manager.sync_build_tags()
+            else:
+                message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
     return HttpResponse(message)
 
 

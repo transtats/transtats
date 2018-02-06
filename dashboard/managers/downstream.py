@@ -15,15 +15,11 @@
 
 import io
 import os
-try:
-    import koji
-except Exception as e:
-    raise Exception("koji could not be imported, details: %s" % e)
 from shlex import split
 from shutil import rmtree
 from subprocess import Popen, PIPE, call
 import tarfile
-from yaml import load, YAMLError
+
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -38,144 +34,13 @@ from pyrpm.spec import Spec
 from django.conf import settings
 
 # dashboard
+from dashboard.engine.action_mapper import ActionMapper
+from dashboard.engine.ds import TaskList
+from dashboard.engine.parser import YMLPreProcessor, YMLJobParser
 from dashboard.managers.base import BaseManager
+from dashboard.managers.inventory import InventoryManager
 
 __all__ = ['DownstreamManager']
-
-
-class KojiResources(object):
-    """
-    Koji Resources
-    """
-
-    def __init__(self):
-        """
-        Setup self, for koji_resources
-        """
-        print("Koji Version: %s" % koji.API_VERSION)
-        self.server = "https://koji.fedoraproject.org/kojihub/"
-        self.session = koji.ClientSession(self.server)
-        # self.session.gssapi_login()
-
-    def establish_kerberos_ticket(self):
-        """
-        Get kerberos ticket in-place
-        """
-        userid = "transtats"
-        realm = "FEDORAPROJECT.ORG"
-
-        kinit = '/usr/bin/kinit'
-        kinit_args = [kinit, '%s@%s' % (userid, realm)]
-        kinit = Popen(kinit_args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        kinit.stdin.write(b'secret')
-        kinit.wait()
-
-
-class YMLPreProcessor(object):
-    """
-    Load and form YML, fill values
-    """
-
-    delimiter = '%'
-
-    def __init__(self, YML_Source, **vars):
-        for attrib, value in vars.items():
-            setattr(self, str(attrib), value)
-        self.YML = YML_Source
-        self.variables = [segment for segment in self.YML.split()
-                          if segment.startswith(self.delimiter) and
-                          segment.endswith(self.delimiter)]
-
-    @property
-    def output(self):
-        in_process_text = self.YML
-        for variable in self.variables:
-            in_process_text = in_process_text.replace(
-                variable, getattr(self, variable.replace(self.delimiter, ''), '')
-            )
-        return in_process_text
-
-
-class YMLJobParser(object):
-    """
-    Parse YML and build objects
-    """
-    test_yml_path = 'dashboard/tests/testdata/test.yml'
-
-    def __init__(self, yml_stream=None):
-
-        stream = yml_stream if yml_stream else open(self.test_yml_path)
-        try:
-            parsed_data = load(stream)
-        except YAMLError as exc:
-            # log error
-            pass
-        else:
-            if isinstance(parsed_data, dict):
-                self.data = parsed_data.get('job', {})
-
-    @property
-    def buildsys(self):
-        return self.data.get('buildsys', '')
-
-    @property
-    def exception(self):
-        return self.data.get('exception', '')
-
-    @property
-    def job_name(self):
-        return self.data.get('name', '')
-
-    @property
-    def job_type(self):
-        return self.data.get('type', '')
-
-    @property
-    def package(self):
-        return self.data.get('package', '')
-
-    @property
-    def return_type(self):
-        return self.data.get('return_type', '')
-
-    @property
-    def tags(self):
-        return self.data.get('tags', [])
-
-    @property
-    def tasks(self):
-        return self.data.get('tasks', [])
-
-
-class ActionMapper(object):
-    """
-    YML Parsed Objects to Actions Mapper
-    """
-    KEYWORDS = [
-        'GET',      # Call some koji method
-        'FETCH'     # Download some resource
-    ]
-
-    def __init__(self, tasks):
-        self.tasks = tasks
-
-    @property
-    def actions(self):
-        actions = []
-        actions_dict = {
-            'GET latest builds': 'get_latest_build',
-            'FETCH SRPM': 'fetch_SRPM',
-            'Unpack SRPM': 'unpack_SRPM',
-            'Load Spec File': 'load_spec_file',
-            'Untar tarball': 'untar_tarball',
-            'Filter PO files': 'filter_translations',
-            'Calculate Stats': 'calculate_stats'
-        }
-        for action in self.tasks:
-            executable = actions_dict.get(action)
-            if executable:
-                actions.append(executable)
-        return actions
 
 
 class DownstreamManager(BaseManager):
@@ -183,7 +48,6 @@ class DownstreamManager(BaseManager):
     Packages Downstream Manager
     """
 
-    koji_resources = KojiResources()
     sandbox_path = 'dashboard/sandbox/'
     job_log_file = sandbox_path + 'downstream.log'
     translation_file_extension = '.po'
@@ -204,8 +68,9 @@ class DownstreamManager(BaseManager):
             return False
 
     def get_latest_build(self):
-        self.builds = self.koji_resources.session.getLatestBuilds(
-            self.tag, package=self.package)
+        self.builds = self.api_resources.latest_build_info(
+            hub_url=self.hub_url, tag=self.tag, pkg=self.package
+        )
         if len(self.builds) > 0:
             self._write_to_file('\n<b>Latest Build Details</b> ...\n%s\n'
                                 % str(self.builds[0]))
@@ -220,11 +85,12 @@ class DownstreamManager(BaseManager):
         if self.builds and len(self.builds) > 0:
             latest_build = self.builds[0]
             build_id = latest_build.get('id', 0)
-            build_info = self.koji_resources.session.getBuild(build_id)
-            rpms = self.koji_resources.session.listRPMs(buildID=build_id)
+            build_info = self.api_resources.get_build(hub_url=self.hub_url, build_id=build_id)
+            rpms = self.api_resources.list_RPMs(hub_url=self.hub_url, build_id=build_id)
             src_rpm = [rpm for rpm in rpms if rpm.get('arch') == 'src'][0]
             self.srpm_download_url = os.path.join(
-                koji.pathinfo.build(build_info), koji.pathinfo.rpm(src_rpm)
+                self.api_resources.get_path_info(build=build_info),
+                self.api_resources.get_path_info(srpm=src_rpm)
             ).replace('/mnt/koji', 'https://kojipkgs.fedoraproject.org')
             if self._download_srpm(self.srpm_download_url):
                 self._write_to_file(
@@ -345,18 +211,24 @@ class DownstreamManager(BaseManager):
     def skip(self):
         pass
 
-    def lets_do_some_stuff(self):
-        """
-        1. Process YML and fill values
-        2. Parse processed YML and build objects
-        3. Map objects to respective actions
-        4. Perform actions and return responses
-        """
+    def _bootstrap(self, build_system):
+        inventory_manager = InventoryManager()
+        release_streams = \
+            inventory_manager.get_release_streams(built=build_system)
+        release_stream = release_streams.get()
+        if release_stream:
+            self.hub_url = release_stream.relstream_server
 
-        # active_repos = self.koji_resources.session.getActiveRepos()
-        # if active_repos:
-        #     self._write_to_file("Active Repos: %s\n" % ", ".join(
-        #         set([repo['tag_name'] for repo in active_repos])))
+    def execute_job(self):
+        """
+        1. PreProcess YML and replace variables with input_values
+            - Example: %PACKAGE_NAME%
+        2. Parse processed YML and build Job object
+        3. Select data structure for tasks and instantiate one
+            - Example: Linked list should be used for sequential tasks
+        3. Discover namespace and method for each task and fill in TaskNode
+        4. Perform actions (execute tasks) and return responses
+        """
 
         yml_preprocessed = YMLPreProcessor(self.YML_FILE, **{
             'PACKAGE_NAME': self.PACKAGE_NAME, 'BUILD_TAG': self.BUILD_TAG
@@ -366,12 +238,20 @@ class DownstreamManager(BaseManager):
             yml_job = YMLJobParser(yml_stream=io.StringIO(yml_preprocessed))
             self.package = yml_job.package
             self.tag = yml_job.tags[0] if len(yml_job.tags) > 0 else None
+            self._bootstrap(yml_job.buildsys)
+            # for sequential jobs, tasks should be pushed to linked list
+            # and output of previous task should be input for next task
+            if yml_job.execution == 'sequential':
+                self.tasks_ds = TaskList()
 
             if os.path.exists(self.job_log_file):
                 os.remove(self.job_log_file)
-            if self.tag and self.package:
+            if self.tag and self.package and self.hub_url:
                 tasks = yml_job.tasks
-                steps = ActionMapper(tasks).actions
+                for task in tasks:
+                    self.tasks_ds.add_task(task)
+
+                steps = ActionMapper(self.tasks_ds).actions
                 for step in steps:
                     getattr(self, step, self.skip)()
 

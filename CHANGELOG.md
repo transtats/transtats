@@ -1,5 +1,6 @@
-##### Thu Feb 01 2018 Sundeep Anand <suanand@redhat.com>
-* Add Koji API Resources and YML based TS Jobs
+##### Tue Feb 06 2018 Sundeep Anand <suanand@redhat.com>
+* Add Koji API Resources and YAML based TS Jobs
+* Add Sync Build Tags Job to facilitate YAML based Jobs
 
 ##### Wed Jan 24 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.5-rc.1
 * Add docker-compose setup for easy deployment ([bhavin192](https://github.com/bhavin192))

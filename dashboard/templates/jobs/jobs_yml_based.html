@@ -150,6 +150,14 @@
         });
 
         $('div.setup-panel div a.btn-primary').trigger('click');
+
+        $(function() {
+          $('.dropdown-menu a').click(function() {
+            console.log($(this).attr('data-value'));
+            $(this).closest('.dropdown').find('input.options')
+              .val($(this).attr('data-value'));
+          });
+        });
     });
 </script>
 {% endblock %}
@@ -178,33 +186,37 @@
         </div>
     </div>
     <hr/>
-    <div>
+    <div style="min-height:400px">
       <form role="form" action="" method="post">
         <div class="row setup-content" id="step-1">
           <div class="col-xs-6 col-md-offset-3">
             <div class="col-md-12">
               <div class="form-group">
                   <label for="YMLfile">YAML File</label>
-                  <textarea class="form-control" rows="18" id="YMLfile" required="required">
+                  <textarea class="form-control" rows="20" id="YMLfile" required="required">
 job:
-  name: "sync downstream"
+  name: downstream stats
+  type: syncdownstream
   buildsys: koji
   exception: raise
+  execution: sequential
   package: %PACKAGE_NAME%
   return_type: json
   tags:
     - %BUILD_TAG%
   tasks:
-    - "GET latest builds"
-    - "FETCH SRPM"
-    - "Unpack SRPM"
-    - "Load Spec File"
-    - "Untar tarball"
-    - "Filter PO files"
-    - "Calculate Stats"
-  type: i18nTestSRPM
+    - get: latest build info
+    - download: SRPM
+    - unpack: SRPM
+    - load: Spec file
+    - unpack: tarball
+    - filter: PO files
+    - calculate: Stats
                   </textarea>
               </div>
+              <span class="pull-left text-muted">This YAML template can be used as is.<br/>
+                  *<small>Currently, limited to <a href="https://koji.fedoraproject.org/koji/" target="_blank">Koji</a>
+                      Build System.</small></span>
               <button class="btn btn-default nextBtn pull-right" type="button">Next</button>
             </div>
           </div>
@@ -214,11 +226,27 @@ job:
             <div class="col-md-12">
               <div class="form-group">
                 <label class="control-label">Package Name</label>
-                <input maxlength="200" id="pkgName" type="text" required="required" class="form-control" placeholder="Enter Package Name">
+                <div class="input-group dropdown">
+                    <input id="pkgName" type="text" class="form-control options dropdown-toggle" value="Select Package">
+                    <ul class="dropdown-menu">
+                        {% for package_name, upstream_name in packages %}
+                            <li><a href="#" data-value="{{ package_name }}">{{ upstream_name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                    <span role="button" class="input-group-addon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="caret"></span></span>
+                </div>
               </div>
               <div class="form-group">
                 <label class="control-label">Build Tag</label>
-                <input maxlength="200" id="buildTag" type="text" required="required" class="form-control" placeholder="Enter Build Tag">
+                <div class="input-group dropdown">
+                    <input id="buildTag" type="text" class="form-control options dropdown-toggle" value="Select Build Tag">
+                    <ul class="dropdown-menu">
+                        {% for build_tag in build_tags %}
+                            <li><a href="#" data-value="{{ build_tag }}">{{ build_tag }}</a></li>
+                        {% endfor %}
+                    </ul>
+                    <span role="button" class="input-group-addon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="caret"></span></span>
+                </div>
               </div>
               <button class="btn btn-default prevBtn pull-left" type="button">Previous</button>
               <button class="btn btn-default nextBtn pull-right" type="button">Next</button>

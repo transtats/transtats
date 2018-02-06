@@ -15,6 +15,12 @@
 
 # Process and cache REST resource's responses here.
 
+from subprocess import Popen, PIPE
+try:
+    import koji
+except Exception as e:
+    raise Exception("koji could not be imported, details: %s" % e)
+
 # dashboard
 from dashboard.constants import TRANSPLATFORM_ENGINES
 from dashboard.decorators import call_service
@@ -257,7 +263,66 @@ class TransplatformResources(object):
         return self._execute_method(selected_config, *args, **kwargs)
 
 
-class APIResources(TransplatformResources):
+class KojiResources(object):
+    """
+    Koji Resources
+    """
+
+    @staticmethod
+    def _session(hub):
+        return koji.ClientSession(hub)
+        # self.session.gssapi_login()
+
+    def establish_kerberos_ticket(self):
+        """
+        Get kerberos ticket in-place
+        """
+        userid = "transtats"
+        realm = "FEDORAPROJECT.ORG"
+
+        kinit = '/usr/bin/kinit'
+        kinit_args = [kinit, '%s@%s' % (userid, realm)]
+        kinit = Popen(kinit_args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        kinit.stdin.write(b'secret')
+        kinit.wait()
+
+    def build_tags(self, hub_url):
+        """
+        Get build tags
+        """
+        tags = self._session(hub_url).listTags()
+        selective_tags = []
+        for tag in tags:
+            if not tag.get('locked', True):
+                continue
+            if tag.get('name', '').startswith('dist'):
+                continue
+            if 'modul' in tag.get('name', ''):
+                continue
+            if 'olpc' in tag.get('name', ''):
+                continue
+            selective_tags.append(tag['name'])
+        return sorted(selective_tags)[::-1]
+
+    def latest_build_info(self, hub_url, tag, pkg):
+        return self._session(hub_url).getLatestBuilds(tag, package=pkg)
+
+    def get_build(self, hub_url, build_id):
+        return self._session(hub_url).getBuild(build_id)
+
+    def list_RPMs(self, hub_url, build_id):
+        return self._session(hub_url).listRPMs(buildID=build_id)
+
+    def get_path_info(self, build=None, srpm=None):
+        if build and not srpm:
+            path = koji.pathinfo.build(build)
+            return path[0] if isinstance(path, list) and len(path) > 0 else path
+        elif srpm and not build:
+            return koji.pathinfo.rpm(srpm)
+
+
+class APIResources(KojiResources,
+                   TransplatformResources):
     """
     Single Entry Point to
      REST Communications

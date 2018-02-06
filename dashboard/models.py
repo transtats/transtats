@@ -124,6 +124,11 @@ class ReleaseStream(models.Model):
     relstream_built = models.CharField(
         max_length=200, null=True, verbose_name="Release Build System"
     )
+    relstream_built_tags = ArrayField(
+        models.CharField(max_length=200, blank=True),
+        default=list, null=True, verbose_name="Release Build Tags"
+    )
+    relstream_built_tags_lastupdated = models.DateTimeField(null=True)
     srcpkg_format = models.CharField(
         max_length=50, null=True, verbose_name="Source Package Format"
     )
@@ -214,11 +219,13 @@ class Packages(models.Model):
     mapping_lastupdated = models.DateTimeField(null=True)
     transtats_lastupdated = models.DateTimeField(null=True)
     upstream_latest_stats = JSONField(null=True)
+    upstream_lastupdated = models.DateTimeField(null=True)
+    downstream_latest_stats = JSONField(null=True)
+    downstream_lastupdated = models.DateTimeField(null=True)
     translation_file_ext = models.CharField(
         max_length=10, null=True, blank=True, default='po',
         verbose_name="Translation Format (po)"
     )
-    upstream_lastupdated = models.DateTimeField(null=True)
     created_by = models.EmailField(null=True)
     maintainers = JSONField(null=True)
 

@@ -1,17 +1,18 @@
 job:
-  name: "sync downstream"
+  name: downstream stats
+  type: syncdownstream
   buildsys: koji
   exception: raise
-  package: dnf
+  execution: sequential
+  package: %PACKAGE_NAME%
   return_type: json
   tags:
-    - rawhide
+    - %BUILD_TAG%
   tasks:
-    - "GET latest builds"
-    - "FETCH SRPM"
-    - "Unpack SRPM"
-    - "Load Spec File"
-    - "Untar tarball"
-    - "Filter PO files"
-    - "Calculate Stats"
-  type: i18nTestSRPM
+    - get: latest build info
+    - download: SRPM
+    - unpack: SRPM
+    - load: Spec file
+    - unpack: tarball
+    - filter: PO files
+    - calculate: Stats

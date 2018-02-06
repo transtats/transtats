@@ -3,7 +3,8 @@
 {% block extrascript %}
 <script src="/static/js/csrf.js"></script>
 <script type="text/javascript">
-function getUrlVars(){for(var e,t=[],n=window.location.href.slice(window.location.href.indexOf("?")+1).split("&"),s=0;s<n.length;s++)e=n[s].split("="),t.push(e[0]),t[e[0]]=e[1];return t}function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}$(document).ready(function(){$("#tab-jobs").addClass("active"),getUrlVars().package&&$("#packageName").val(getUrlVars().package),$("#syncTransForm").submit(function(e){var t=$(this).find("button");return t.button("loading"),$.ajax({beforeSend:function(e,t){csrfSafeMethod(t.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#transplatformwaiting").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"/ajax/schedule-job",data:{job:$("#syncTransIdentifier").val()},success:function(e){$("#transplatformwaiting").html(""),$("#syncTransMsg").html(e),t.button("reset")}}),!1}),$("#syncUpstreamForm").submit(function(e){var t=$(this).find("button");return t.button("loading"),$.ajax({beforeSend:function(e,t){csrfSafeMethod(t.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#upstreamwaiting").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"/ajax/schedule-job",data:{job:$("#syncUpstreamIdentifier").val(),package:$("#packageName").val()},success:function(e){$("#upstreamwaiting").html(""),$("#syncUpstreamMsg").html(e),t.button("reset")}}),!1}),$("#syncCalendarForm").submit(function(e){var t=$(this).find("button");return t.button("loading"),$.ajax({beforeSend:function(e,t){csrfSafeMethod(t.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#relschedulewaiting").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"/ajax/schedule-job",data:{job:$("#syncCalendarIdentifier").val()},success:function(e){$("#relschedulewaiting").html(""),$("#syncCalendarMsg").html(e),t.button("reset")}}),!1})});</script>
+function getUrlVars(){for(var t,e=[],s=window.location.href.slice(window.location.href.indexOf("?")+1).split("&"),n=0;n<s.length;n++)t=s[n].split("="),e.push(t[0]),e[t[0]]=t[1];return e}function csrfSafeMethod(t){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(t)}$(document).ready(function(){$("#tab-jobs").addClass("active"),getUrlVars().package&&$("#packageName").val(getUrlVars().package),$("#syncTransForm").submit(function(t){var e=$(this).find("button");return e.button("loading"),$.ajax({beforeSend:function(t,e){csrfSafeMethod(e.type)||this.crossDomain||(csrftoken?t.setRequestHeader("X-CSRFToken",csrftoken):t.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#transplatformwaiting").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"/ajax/schedule-job",data:{job:$("#syncTransIdentifier").val()},success:function(t){$("#transplatformwaiting").html(""),$("#syncTransMsg").html(t),e.button("reset")}}),!1}),$("#syncUpstreamForm").submit(function(t){var e=$(this).find("button");return e.button("loading"),$.ajax({beforeSend:function(t,e){csrfSafeMethod(e.type)||this.crossDomain||(csrftoken?t.setRequestHeader("X-CSRFToken",csrftoken):t.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#upstreamwaiting").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"/ajax/schedule-job",data:{job:$("#syncUpstreamIdentifier").val(),package:$("#packageName").val()},success:function(t){$("#upstreamwaiting").html(""),$("#syncUpstreamMsg").html(t),e.button("reset")}}),!1}),$("#syncCalendarForm").submit(function(t){var e=$(this).find("button");return e.button("loading"),$.ajax({beforeSend:function(t,e){csrfSafeMethod(e.type)||this.crossDomain||(csrftoken?t.setRequestHeader("X-CSRFToken",csrftoken):t.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#relschedulewaiting").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"/ajax/schedule-job",data:{job:$("#syncCalendarIdentifier").val()},success:function(t){$("#relschedulewaiting").html(""),$("#syncCalendarMsg").html(t),e.button("reset")}}),!1}),$("#syncBuildTagsForm").submit(function(t){var e=$(this).find("button");return e.button("loading"),$.ajax({beforeSend:function(t,e){csrfSafeMethod(e.type)||this.crossDomain||(csrftoken?t.setRequestHeader("X-CSRFToken",csrftoken):t.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#buildtagswaiting").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"/ajax/schedule-job",data:{job:$("#syncBuildTagsIdentifier").val()},success:function(t){$("#buildtagswaiting").html(""),$("#syncBuildTagsMsg").html(t),e.button("reset")}}),!1})});
+</script>
 {% endblock %}
 
 {% block navigation %}
@@ -80,6 +81,22 @@ function getUrlVars(){for(var e,t=[],n=window.location.href.slice(window.locatio
         <button type="submit" data-loading-text="Syncing..." class="btn btn-default">
             <span class="glyphicon glyphicon-play-circle"></span> Trigger Now</button>
         <span id="syncCalendarMsg"></span>
+    </form>
+  </div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">
+      <h3 class="panel-title">Sync Build Tags
+          <span id="buildtagswaiting" class="pull-right"></span></h3>
+  </div>
+  <div class="panel-body">
+    This would initiate a syncbuildtags job to update:
+      <span class="text-info"> tags in build system.</span><hr/>
+    <form method="post" id ="syncBuildTagsForm" class="form-horizontal">{% csrf_token %}
+        <input type="hidden" value="syncbuildtags" id="syncBuildTagsIdentifier"/>
+        <button type="submit" data-loading-text="Syncing..." class="btn btn-default">
+            <span class="glyphicon glyphicon-play-circle"></span> Trigger Now</button>
+        <span id="syncBuildTagsMsg"></span>
     </form>
   </div>
 </div>

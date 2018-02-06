@@ -223,7 +223,7 @@ class InventoryManager(BaseManager):
         return tuple([(platform.platform_slug, platform.api_url)
                       for platform in active_platforms]) or ()
 
-    def get_release_streams(self, stream_slug=None, only_active=None):
+    def get_release_streams(self, stream_slug=None, only_active=None, built=None):
         """
         Fetch all release streams from the db
         """
@@ -232,6 +232,8 @@ class InventoryManager(BaseManager):
             filter_kwargs.update(dict(relstream_status=True))
         if stream_slug:
             filter_kwargs.update(dict(relstream_slug=stream_slug))
+        if built:
+            filter_kwargs.update(dict(relstream_built=built))
 
         relstreams = None
         try:
