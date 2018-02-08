@@ -1,152 +1,255 @@
 <!DOCTYPE html>
+<html lang="en" class="layout-pf layout-pf-fixed">
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <meta name="description" content="Translation Stats">
-    <meta name="author" content="suanand@redhat.com">
-    <link rel="icon" href="/static/img/favicon.ico">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Translation Stats">
+  <meta name="author" content="suanand@redhat.com">
+  <link rel="icon" href="/static/img/favicon.ico">
 
-    <title>{{ app_name }}</title>
+  <title>{{ app_name }}</title>
+  <!-- PatternFly CSS -->
+  <link rel="stylesheet" type="text/css" href="/static/dist/css/patternfly.css">
+  <link rel="stylesheet" type="text/css" href="/static/dist/css/patternfly-additions.css">
+  <!-- Transtats custom CSS -->
+  <link rel="stylesheet" type="text/css" href="/static/css/transtats.css">
+  <!-- JQuery, Bootstrap and PatternFly JS -->
+  <script src="/static/node_modules/jquery/dist/jquery.js"></script>
+  <script src="/static/node_modules/bootstrap/dist/js/bootstrap.js"></script> 
+  {% block pre-pf-script %}{% endblock %}
+  <script src="/static/dist/js/patternfly.js"></script> 
+  {% block extrascript %} {% endblock %}
+</head>
 
-    <!-- Bootstrap core CSS -->
-    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/breadcrumbs-arrows.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-select.min.css" rel="stylesheet" >
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <link href="/static/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
-    <link href="/static/css/transtats.css" rel="stylesheet">
-    <!-- jQuery and Bootstrap core JS -->
-    <script src="/static/js/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')</script>
-    <script src="/static/js/bootstrap.min.js"></script>
-    <script src="/static/js/bootstrap-select.min.js"></script>
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="/static/js/ie10-viewport-bug-workaround.js"></script>
-
-    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
-    <!--[if lt IE 9]><script src="/static/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="/static/js/ie-emulation-modes-warning.js"></script>
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-    {% block extrascript %}{% endblock %}
-  </head>
-
-  <body>
-    {% block navbar %}
-        <nav class="navbar navbar-default navbar-fixed-top">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-              <a class="navbar-brand" href="{% url 'home' %}" style="font-size: x-large;">Transtats
-                <sup><span class="label label-info" style="font-size: x-small;">Alpha</span></sup></a>
-            </div>
-            <div id="navbar" class="navbar-collapse collapse">
-              <ul class="nav navbar-nav navbar-right">
-                <li><a href="{% url 'home' %}"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span>
-                    Dashboard</a></li>
-                <li><a href="{% url 'jobs' %}">
-                  <span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>
-                  &nbsp;Jobs</a></li>
-                <li><a href="{% url 'settings' %}">
-                  <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
-                  &nbsp;Settings</a></li>
-                {% if user.is_authenticated %}
-                  <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                      <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-                      &nbsp;{{ user.email }} <span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                      {% if user.is_staff %}
-                      <li><a href="{% url 'admin:index' %}">
-                        <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
-                          Admin Panel</a></li>
-                      {% endif %}
-                      {% if user.auth_token %}
-                        <li>
-                            <a href="#" data-toggle="modal" data-target="#authToken">
-                                <span class="glyphicon glyphicon-paperclip" aria-hidden="true"></span> Auth Token</a>
-                        </li>
-                      {% endif %}
-                      <li>
-                        {% if auth == 'fas' %}
-                            <form id="logout" action="{% url 'oidc_logout' %}" method="post">{% csrf_token %}
-                                <button type="submit" class="btn btn-link btn-logout">
-                            <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
-                            <span class="nounderline">&nbsp;Logout</span></button>
-                        </form>
-                        {% else %}
-                          <a href="{% url 'admin:logout' %}">
-                              <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
-                              Logout</a>
-                        {% endif %}
-                      </li>
-                    </ul>
-                  </li>
-                {% else %}
-                  <li>
-                    {% if auth == 'fas' %}
-                        <a href="{% url 'oidc_authentication_init' %}">
-                        <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                        &nbsp;Fedora Login</a>
-                    {% else %}
-                        <a href="{% url 'admin:login' %}">
-                        <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                        &nbsp;Admin Login</a>
-                    {% endif %}
-                  </li>
-
-                {% endif %}
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
-                        Help<span class="caret"></span>
-                    </a>
-                      <ul class="dropdown-menu">
-                        <li><a href="{% url 'howto' %}" target="_blank">
-                          <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
-                          &nbsp;Quick Start</a></li>
-                        <li><a href="http://docs.transtats.org/" target="_blank">
-                          <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
-                          &nbsp;Project Docs</a></li>
-                      </ul>
-                </li>
-              </ul>
-            </div><!--/.navbar-collapse -->
+<body class="cards-ts">
+  <div class="modal fade" id="about-modal" tabindex="-1" role="dialog" aria-labelledby="aboutModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content about-modal-pf">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+            <span class="pficon pficon-close"></span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h1>{{ app_name }}</h1>
+          <div class="product-versions-pf">
+            <ul class="list-unstyled">
+              <li>
+                <strong>Version</strong> {{ app_version }}</li>
+            </ul>
           </div>
-        </nav>
-    {% endblock %}
-
-    <div class="container content-area">
-        <div class="well well-sm">
-          {% block pagebanner %}{% endblock %}
+          <div class="trademark-pf">
+            Copyright &copy; {% now 'Y' %} Red Hat, Inc.
+          </div>
         </div>
-        <div class="col-xs-12">
-          <span class="btn-group btn-breadcrumb">
-            {% block navigation %}{% endblock %}
-          </span>
-          <span class="pull-right">
-            {% block right-navigation %}{% endblock %}
-          </span>
+        <div class="modal-footer">
+          <img src="" alt="{{ app_name }} logo">
         </div>
-        <div style="padding:10px" class="col-xs-12">
-          {% block pagecontent %}{% endblock %}
-        </div>
+      </div>
     </div>
+  </div>
+
+  {% block navbar %}
+  <nav class="navbar navbar-pf-vertical">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" id="button-nav-toggle">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a href="/" class="navbar-brand">
+        <img class="navbar-brand-icon" src="" alt="" />
+        <img class="navbar-brand-name" src="" alt="{{ app_name }}" />
+      </a>
+    </div>
+    <nav class="collapse navbar-collapse">
+      <ul class="nav navbar-nav navbar-right navbar-iconic navbar-utility">
+
+        <li class="dropdown">
+          <a href="#0" class="dropdown-toggle nav-item-iconic" id="dropdown-help" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            <span title="Help" class="fa pficon-help"></span>
+            <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="dropdown-help">
+            <li>
+              <a href="{% url 'howto' %}">Help</a>
+            </li>
+            <li>
+              <a href="http://docs.transtats.org">Project Docs</a>
+            </li>
+            <li>
+              <a data-toggle="modal" data-target="#about-modal">About</a>
+            </li>
+          </ul>
+        </li>
+        {% if user.is_authenticated %}
+        <li class="dropdown">
+          <a href="#0" class="dropdown-toggle nav-item-iconic" id="dropdown-user" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            <span title="Username" class="fa pficon-user"></span>
+            {{ user.email }}
+            <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="dropdown-user">
+            {% if user.is_staff %}
+            <li>
+              <a href="{% url 'admin:index' %}">Admin Panel</a>
+            </li>
+            {% endif %}
+            <li>
+              <a href="{% url 'admin:logout' %}">Logout</a>
+            </li>
+          </ul>
+        </li>
+        {% else %}
+        <li>
+          <a class="nav-item-iconic" href="{% url 'admin:login' %}">
+            <span title="Login" class="fa pficon-user"></span>
+            Login
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </nav>
+  {% endblock %} 
+  
+  {% block vertical-navbar %}
+  <div class="nav-pf-vertical nav-pf-vertical-with-sub-menus 
+  nav-pf-persistent-secondary
+  ">
+    <ul class="list-group">
+      <li class="list-group-item ">
+        <a href="/" id="button-dashboard">
+          <span class="fa fa-dashboard" data-toggle="tooltip" title="Dashboard"></span>
+          <span class="list-group-item-value">Dashboard</span>
+        </a>
+      </li>
+      <li class="list-group-item">
+        <a href="/settings/packages" id="button-packages">
+          <span class="fa fa-file-zip-o" data-toggle="tooltip" title="Packages"></span>
+          <span class="list-group-item-value">Packages</span>
+
+        </a>
+      </li>
+      <li class="list-group-item">
+        <a href="/jobs" id="button-jobs">
+          <span class="fa fa-bolt" data-toggle="tooltip" title="Jobs"></span>
+          <span class="list-group-item-value">Jobs</span>
+        </a>
+      </li>
+      <li class="list-group-item ">
+        <a href="/settings/languages" id="button-languages">
+          <span class="fa fa-language" data-toggle="tooltip" title="Languages"></span>
+          <span class="list-group-item-value">Languages</span>
+        </a>
+      </li>
+      <li class="list-group-item">
+        <a href="/settings/translation-platforms" id="button-platforms">
+          <span class="fa fa-server" data-toggle="tooltip" title="Translation Platforms"></span>
+          <span class="list-group-item-value">Platforms</span>
+        </a>
+      </li>
+
+      {% if user.is_authenticated %}
+      <li class="list-group-item secondary-nav-item-pf mobile-nav-item-pf visible-xs-block">
+        <a href="#0" id="button-user-secondary">
+          <span class="pficon pficon-user" data-toggle="tooltip" title="" data-original-title="User"></span>
+          <span class="list-group-item-value">User</span>
+        </a>
+        <div class="nav-pf-secondary-nav">
+          <div class="nav-item-pf-header">
+            <a href="#0" class="secondary-collapse-toggle-pf" data-toggle="collapse-secondary-nav"></a>
+            <span>{{ user.email }}</span>
+          </div>
+
+          <ul class="list-group">
+            {% if user.is_staff %}
+            <li class="list-group-item">
+              <a href="{% url 'admin:index' %}">
+                <span class="list-group-item-value">Admin Panel</span>
+              </a>
+            </li>
+            {% endif %}
+            {% if user.auth_token %}
+              <li>
+                  <a href="#" data-toggle="modal" data-target="#authToken">
+                      <span class="glyphicon glyphicon-paperclip" aria-hidden="true"></span> Auth Token</a>
+              </li>
+            {% endif %}
+            <li>
+              {% if auth == 'fas' %}
+                  <a href="{% url 'oidc_authentication_init' %}">
+                  <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                  &nbsp;Fedora Login</a>
+              {% else %}
+                  <a href="{% url 'admin:login' %}">
+                  <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                  &nbsp;Admin Login</a>
+              {% endif %}
+            </li>
+          </ul>
+        </div>
+      </li>
+      {% else %}
+      <li class="list-group-item secondary-nav-item-pf mobile-nav-item-pf visible-xs-block">
+        <a href="{% url 'admin:login' %}" id="button-login-secondary">
+          <span class="pficon pficon-user" data-toggle="tooltip" title="" data-original-title="Login"></span>
+          <span class="list-group-item-value">Login</span>
+        </a>
+      </li>
+      {% endif %}
+      <li class="list-group-item secondary-nav-item-pf mobile-nav-item-pf visible-xs-block" data-target="#amet-secondary">
+        <a href="#0" id="button-help-secondary">
+          <span class="pficon pficon-help" data-toggle="tooltip" title="" data-original-title="Help"></span>
+          <span class="list-group-item-value">Help</span>
+        </a>
+        <div id="help-secondary" class="nav-pf-secondary-nav">
+          <div class="nav-item-pf-header">
+            <a href="#0" class="secondary-collapse-toggle-pf" data-toggle="collapse-secondary-nav"></a>
+            <span>Help</span>
+          </div>
+          <ul class="list-group">
+            <li class="list-group-item">
+              <a href="{% url 'howto' %}">
+                <span class="list-group-item-value">Help</span>
+              </a>
+            </li>
+            <li class="list-group-item">
+              <a href="http://docs.transtats.org">
+                <span class="list-group-item-value">Project Docs</span>
+              </a>
+            </li>
+            <li class="list-group-item">
+              <a id="button-about-secondary" data-toggle="modal" data-target="#about-modal">
+                <span class="list-group-item-value">About</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </div>
+  {% endblock %}
+
+  <div class="container-fluid container-cards-pf container-pf-nav-pf-vertical nav-pf-persistent-secondary">
+    {% block pagebanner %}{% endblock %} 
+    {% block navigation %}{% endblock %} 
+    {% block pagecontent %}{% endblock %}
+  </div>
+
+  <script>
+    $(document).ready(function () {
+      // Initialize the vertical navigation
+      $().setupVerticalNavigation(true);
+      // Workaround to make the modal work on mobile devices
+      $("#button-about-secondary").on("click",function(e){
+        e.preventDefault();
+        $('#about-modal').modal('show');
+      });
+    });
+  </script>
 
     {% block footer %}
         <hr/>
