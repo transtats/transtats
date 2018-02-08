@@ -304,7 +304,7 @@ class KojiResources(object):
             selective_tags.append(tag['name'])
         return sorted(selective_tags)[::-1]
 
-    def latest_build_info(self, hub_url, tag, pkg):
+    def build_info(self, hub_url, tag, pkg):
         return self._session(hub_url).getLatestBuilds(tag, package=pkg)
 
     def get_build(self, hub_url, build_id):

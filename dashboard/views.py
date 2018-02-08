@@ -14,7 +14,6 @@
 # under the License.
 
 import csv
-import time
 from datetime import datetime
 from pathlib import Path
 
@@ -601,9 +600,6 @@ def schedule_job(request):
                     message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
                 else:
                     message = "&nbsp;&nbsp;<span class='text-success'>Job ran successfully.</span>"
-                finally:
-                    time.sleep(3)
-                    downstream_manager.clean_workspace()
         elif job_type == TS_JOB_TYPES[4]:
             buildtags_sync_manager = BuildTagsSyncManager()
             job_uuid = buildtags_sync_manager.syncbuildtags_initiate_job()

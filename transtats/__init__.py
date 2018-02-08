@@ -2,9 +2,10 @@
 import os
 import sys
 
+__appname__ = "Transtats"
 __version__ = '0.1.5-rc.2'
 
-__all__ = ['__version__']
+__all__ = ['__appname__', '__version__']
 
 MODE = os.getenv('TS_APP_MODE', 'dev')
 

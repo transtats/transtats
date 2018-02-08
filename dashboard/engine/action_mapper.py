@@ -13,10 +13,235 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# Currently, it is implemented as...
+# Every command has its own class and task gets matched
+#   with most appropriate method therein
+# todo - make tasks more flexible like
+#   for filter, extension can be passed as param
+
+import os
+import difflib
+import requests
+import polib
+import tarfile
+from shlex import split
+from shutil import rmtree
+from pyrpm.spec import Spec
+from subprocess import Popen, PIPE, call
+from inspect import getmembers, isfunction
+# dashboard
+from dashboard.managers.base import BaseManager
+
 __all__ = ['ActionMapper']
 
 
-class ActionMapper(object):
+class JobCommandBase(BaseManager):
+
+    def __init__(self):
+
+        kwargs = {
+            'sandbox_path': 'dashboard/sandbox/',
+            'job_log_file': 'dashboard/sandbox/downstream.log'
+        }
+        super(JobCommandBase, self).__init__(**kwargs)
+
+    def _write_to_file(self, text_to_write):
+        with open(self.job_log_file, 'a+') as the_file:
+            the_file.write(text_to_write)
+
+
+class Get(JobCommandBase):
+    """
+    Handles all operations for GET Command
+    """
+    def latest_build_info(self, input):
+        """
+        Fetch latest build info from koji
+        """
+        builds = self.api_resources.build_info(
+            hub_url=input.get('hub_url'), tag=input.get('build_tag'),
+            pkg=input.get('package')
+        )
+        if len(builds) > 0:
+            self._write_to_file('\n<b>Latest Build Details</b> ...\n%s\n'
+                                % str(builds[0]))
+        else:
+            self._write_to_file('\n<b>Latest Build Details</b> ...\n%s\n'
+                                % 'No build details found.')
+        return {'builds': builds}
+
+
+class Download(JobCommandBase):
+
+    def _download_srpm(self, srpm_link):
+        req = requests.get(srpm_link)
+        srpm_path = self.sandbox_path + srpm_link.split('/')[-1]
+        try:
+            with open(srpm_path, 'wb') as f:
+                f.write(req.content)
+                return srpm_path
+        except:
+            return ''
+
+    def SRPM(self, input):
+        builds = input.get('builds')
+        if builds and len(builds) > 0 and 'hub_url' in input:
+            latest_build = builds[0]
+            build_id = latest_build.get('id', 0)
+            build_info = self.api_resources.get_build(hub_url=input['hub_url'], build_id=build_id)
+            rpms = self.api_resources.list_RPMs(hub_url=input['hub_url'], build_id=build_id)
+            src_rpm = [rpm for rpm in rpms if rpm.get('arch') == 'src'][0]
+            srpm_download_url = os.path.join(
+                self.api_resources.get_path_info(build=build_info),
+                self.api_resources.get_path_info(srpm=src_rpm)
+            ).replace('/mnt/koji', 'https://kojipkgs.fedoraproject.org')
+            srpm_downloaded_path = self._download_srpm(srpm_download_url)
+            if srpm_downloaded_path:
+                self._write_to_file(
+                    '\n<b>SRPM Successfully Downloaded from </b> ...\n%s\n'
+                    % srpm_download_url
+                )
+            return {'srpm_path': srpm_downloaded_path}
+
+
+class Unpack(JobCommandBase):
+
+    def SRPM(self, input):
+        """
+        SRPM is a headers + cpio file
+            - its extraction currently is dependent on cpio command
+        """
+        extract_dir = ''
+        try:
+            command = "rpm2cpio " + os.path.join(
+                input['base_dir'], input['srpm_path']
+            )
+            command = split(command)
+            rpm2cpio = Popen(command, stdout=PIPE)
+            extract_dir = os.path.join(self.sandbox_path, input['package'])
+            if not os.path.exists(extract_dir):
+                os.makedirs(extract_dir)
+            command = "cpio -idm -D %s" % extract_dir
+            command = split(command)
+            call(command, stdin=rpm2cpio.stdout)
+        except Exception as e:
+            self._write_to_file(
+                '\n<b>SRPM Extraction Failed</b> ...\n%s\n' % e
+            )
+        else:
+            self._write_to_file(
+                '\n<b>SRPM Extracted Successfully</b> ...\n%s\n'
+                % " \n".join(os.listdir(extract_dir))
+            )
+            return {'extract_dir': extract_dir}
+
+    def tarball(self, input):
+        """
+        Untar source tarball
+        """
+        try:
+            src_tar_dir = None
+            with tarfile.open(input['src_tar_file']) as tar_file:
+                tar_members = tar_file.getmembers()
+                if len(tar_members) > 0:
+                    src_tar_dir = os.path.join(
+                        input['extract_dir'], tar_members[0].get_info().get('name', '')
+                    )
+                tar_file.extractall(path=input['extract_dir'])
+        except Exception as e:
+            self._write_to_file(
+                '\n<b>Tarball Extraction Failed</b> ...\n%s\n' % e
+            )
+        else:
+            self._write_to_file(
+                '\n<b>Tarball Extracted Successfully</b> ...\n%s\n'
+                % " \n".join(os.listdir(src_tar_dir))
+            )
+            return {'src_tar_dir': src_tar_dir}
+
+
+class Load(JobCommandBase):
+
+    def spec_file(self, input):
+        """
+        locate and load spec file
+        """
+        try:
+            spec_file = None
+            src_tar_file = None
+            for root, dirs, files in os.walk(input['extract_dir']):
+                for file in files:
+                    if file.endswith('.spec'):
+                        spec_file = os.path.join(root, file)
+                    zip_ext = ('.tar', '.tar.gz', '.tar.bz2', '.tar.xz')
+                    if file.endswith(zip_ext):
+                        src_tar_file = os.path.join(root, file)
+            spec_obj = Spec.from_file(spec_file)
+        except Exception as e:
+            self._write_to_file(
+                '\n<b>Loading Spec file Failed</b> ...\n%s\n' % e
+            )
+        else:
+            self._write_to_file(
+                '\n<b>Spec file loaded, Sources</b> ...\n%s\n'
+                % " \n".join(spec_obj.sources)
+            )
+            return {
+                'spec_file': spec_file, 'src_tar_file': src_tar_file,
+                'spec_obj': spec_obj
+            }
+
+
+class Filter(JobCommandBase):
+
+    def po_files(self, input):
+        """
+        Filter PO files from tarball
+        """
+        try:
+            trans_files = []
+            for root, dirs, files in os.walk(input['src_tar_dir']):
+                    for file in files:
+                        if file.endswith('po'):
+                            trans_files.append(os.path.join(root, file))
+        except Exception as e:
+            self._write_to_file('\n<b>Something went wrong in filtering PO files</b> ...\n%s\n' % e)
+        else:
+            self._write_to_file(
+                '\n<b>%s PO files filtered</b> ...\n%s\n' % (len(trans_files), " \n".join(trans_files))
+            )
+            return {'trans_files': trans_files}
+
+
+class Calculate(JobCommandBase):
+
+    def stats(self, input):
+        """
+        Calculate stats from filtered translations
+        """
+        try:
+            trans_stats = {}
+            for po_file in input['trans_files']:
+                po = polib.pofile(po_file)
+                if po:
+                    temp_trans_stats = {}
+                    locale = po_file.split('/')[-1].split('.')[0]
+                    temp_trans_stats[locale] = {}
+                    temp_trans_stats[locale]['translated'] = len(po.translated_entries())
+                    temp_trans_stats[locale]['untranslated'] = len(po.untranslated_entries())
+                    temp_trans_stats[locale]['fuzzy'] = len(po.fuzzy_entries())
+                    temp_trans_stats[locale]['translated_percent'] = po.percent_translated()
+                    trans_stats.update(temp_trans_stats.copy())
+        except Exception as e:
+            self._write_to_file('\n<b>Something went wrong in calculating stats</b> ...\n%s\n' % e)
+        else:
+            self._write_to_file(
+                '\n<b>Calculated Stats</b> ...\n%s\n' % str(trans_stats)
+            )
+            return {'trans_stats': trans_stats}
+
+
+class ActionMapper(BaseManager):
     """
     YML Parsed Objects to Actions Mapper
     """
@@ -29,31 +254,84 @@ class ActionMapper(object):
         'CALCULATE'     # Apply some maths/formulae
     ]
 
-    def __init__(self, tasks_structure):
+    def __init__(self,
+                 tasks_structure,
+                 build_tag,
+                 package,
+                 server_url,
+                 job_base_dir):
+        super(ActionMapper, self).__init__()
         self.tasks = tasks_structure
+        self.tag = build_tag
+        self.pkg = package
+        self.hub = server_url
+        self.base_dir = job_base_dir
+        self.cleanup_resources = {}
+        self.__stats = None
 
-    @property
-    def actions(self):
-        actions = []
-        actions_dict = {
-            'get: latest build info': 'get_latest_build',
-            'download: SRPM': 'fetch_SRPM',
-            'unpack: SRPM': 'unpack_SRPM',
-            'load: Spec file': 'load_spec_file',
-            'unpack: tarball': 'untar_tarball',
-            'filter: PO files': 'filter_translations',
-            'calculate: Stats': 'calculate_stats'
-        }
+    def skip(self, abc, xyz):
+        pass
 
+    def set_actions(self):
         count = 0
         current_node = self.tasks.head
-
         while current_node is not None:
             count += 1
-            action = "%s: %s" % (current_node.command,
-                                 current_node.task)
-            executable = actions_dict.get(action)
-            if executable:
-                actions.append(executable)
+            cmd = current_node.command or ''
+            if cmd.upper() in self.COMMANDS:
+                current_node.set_namespace(cmd.title())
+            available_methods = [member[0] for member in getmembers(eval(cmd.title()))
+                                 if isfunction(member[1])]
+            probable_method = difflib.get_close_matches(
+                current_node.task, available_methods
+            )
+            if isinstance(probable_method, list) and len(probable_method) > 0:
+                current_node.set_method(probable_method[0])
             current_node = current_node.next
-        return actions
+
+    def execute_tasks(self):
+        count = 0
+        current_node = self.tasks.head
+        initials = {
+            'build_tag': self.tag, 'package': self.pkg,
+            'hub_url': self.hub, 'base_dir': self.base_dir
+        }
+
+        while current_node is not None:
+            if count == 0:
+                current_node.input = initials
+            elif current_node.previous.output:
+                current_node.input = {**initials, **current_node.previous.output}
+            count += 1
+            current_node.output = getattr(
+                eval(current_node.get_namespace()),
+                current_node.get_method(), self.skip
+            )(eval(current_node.get_namespace())(), current_node.input)
+
+            if current_node.output and 'srpm_path' in current_node.output:
+                d = {'srpm_path': current_node.output.get('srpm_path')}
+                initials.update(d)
+                self.cleanup_resources.update(d)
+            if current_node.output and 'extract_dir' in current_node.output:
+                d = {'extract_dir': current_node.output.get('extract_dir')}
+                initials.update(d)
+                self.cleanup_resources.update(d)
+            if current_node.output and 'trans_stats' in current_node.output:
+                self.__stats = current_node.output.get('trans_stats')
+            current_node = current_node.next
+
+    @property
+    def result(self):
+        return self.__stats
+
+    def clean_workspace(self):
+        """
+        Remove downloaded SRPM, and its stuffs
+        """
+        try:
+            if self.cleanup_resources.get('srpm_path'):
+                os.remove(self.cleanup_resources.get('srpm_path'))
+            if self.cleanup_resources.get('extract_dir'):
+                rmtree(self.cleanup_resources.get('extract_dir'), ignore_errors=True)
+        except OSError as e:
+            self.app_logger('ERROR', "Failed to clean sandbox! Due to %s" % e)

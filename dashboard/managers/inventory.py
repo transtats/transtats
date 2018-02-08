@@ -373,6 +373,17 @@ class PackagesManager(InventoryManager):
             return True
         return False
 
+    def update_package(self, package_name, fields):
+        """
+        Update a package with certain fields
+        """
+        try:
+            Packages.objects.filter(package_name=package_name).update(**fields)
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Package could not be updated, details: " + str(e)
+            )
+
     def get_relbranch_specific_pkgs(self, release_branch, fields=None):
         """
         fetch release branch specific packages from db

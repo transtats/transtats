@@ -158,6 +158,14 @@
               .val($(this).attr('data-value'));
           });
         });
+
+        $('#pkgName').click(function() {
+            $(this).val('');
+        });
+
+        $('#buildTag').click(function() {
+            $(this).val('');
+        });
     });
 </script>
 {% endblock %}

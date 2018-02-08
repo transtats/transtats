@@ -41,8 +41,16 @@ class TaskNode(object):
     def has_task(self, chk_task):
         return self.task == chk_task
 
-    def set_n_method(self, cls, action):
-        self.__namespace = cls
+    def set_namespace(self, n_space):
+        self.__namespace = n_space
+
+    def get_namespace(self):
+        return self.__namespace or ''
+
+    def get_method(self):
+        return self.__method or ''
+
+    def set_method(self, action):
         self.__method = action
 
     def set_result(self, res):
@@ -101,7 +109,6 @@ class TaskList(object):
             else:
                 self.tail.next = item
                 item.previous = self.tail
-                item.input = self.tail.output
                 self.tail = item
         elif isinstance(item, str):
             new_task = TaskNode(*item.split(":", 1))
