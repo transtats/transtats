@@ -1,3 +1,12 @@
+/* Transtats custom CSS */
+.cards-ts {
+    background: #f0f0f0;
+}
+.container-cards-pf {
+    margin-bottom: 20px;
+}
+
+/*
 body {
     padding-top: 50px;
     padding-bottom: 10px
@@ -27,3 +36,4 @@ body {
 .nounderline {
     text-decoration: none
 }
+*/
