@@ -216,18 +216,17 @@ class Packages(models.Model):
     details_json_lastupdated = models.DateTimeField(null=True)
     package_name_mapping = JSONField(null=True)
     release_branch_mapping = JSONField(null=True, blank=True)
-    mapping_lastupdated = models.DateTimeField(null=True)
-    transtats_lastupdated = models.DateTimeField(null=True)
-    upstream_latest_stats = JSONField(null=True)
-    upstream_lastupdated = models.DateTimeField(null=True)
-    downstream_latest_stats = JSONField(null=True)
-    downstream_lastupdated = models.DateTimeField(null=True)
+    mapping_lastupdated = models.DateTimeField(null=True, blank=True)
+    transtats_lastupdated = models.DateTimeField(null=True, blank=True)
+    upstream_latest_stats = JSONField(null=True, blank=True)
+    upstream_lastupdated = models.DateTimeField(null=True, blank=True)
+    downstream_lastupdated = models.DateTimeField(null=True, blank=True)
     translation_file_ext = models.CharField(
         max_length=10, null=True, blank=True, default='po',
         verbose_name="Translation Format (po)"
     )
     created_by = models.EmailField(null=True)
-    maintainers = JSONField(null=True)
+    maintainers = JSONField(null=True, blank=True)
 
     def __str__(self):
         return self.package_name

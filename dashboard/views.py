@@ -596,8 +596,10 @@ def schedule_job(request):
                     field: request.POST.dict().get(field) for field in fields})
                 try:
                     downstream_manager.execute_job()
-                except:
-                    message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+                except Exception as e:
+                    error_msg = str(e) if len(str(e)) < 50 else str(e)[:50] + '...'
+                    message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.<br/>" \
+                              "&nbsp;&nbsp;<small class='text-muted'>" + error_msg + " </small></span>"
                 else:
                     message = "&nbsp;&nbsp;<span class='text-success'>Job ran successfully.</span>"
         elif job_type == TS_JOB_TYPES[4]:

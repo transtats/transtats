@@ -24,6 +24,7 @@ except ImportError:
 from django.conf import settings
 from django.utils import timezone
 # dashboard
+from dashboard.constants import JOB_EXEC_TYPES
 from dashboard.engine.action_mapper import ActionMapper
 from dashboard.engine.ds import TaskList
 from dashboard.engine.parser import YMLPreProcessor, YMLJobParser
@@ -42,27 +43,37 @@ class DownstreamManager(BaseManager):
     job_log_file = sandbox_path + 'downstream.log'
 
     def _bootstrap(self, build_system):
-        self.package_manager = PackagesManager()
-        release_streams = \
-            self.package_manager.get_release_streams(built=build_system)
-        release_stream = release_streams.get()
-        if release_stream:
+        try:
+            self.package_manager = PackagesManager()
+            release_streams = \
+                self.package_manager.get_release_streams(built=build_system)
+            release_stream = release_streams.get()
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Release stream could not be found, details: " + str(e)
+            )
+            raise Exception('Build Server URL could NOT be located for %s.' % self.buildsys)
+        else:
             self.hub_url = release_stream.relstream_server
         # remove log file if exists
         if os.path.exists(self.job_log_file):
             os.remove(self.job_log_file)
 
     def _save_result_in_db(self, stats_dict):
-        pkg_new_fields = {
-            'downstream_latest_stats': stats_dict,
-            'downstream_lastupdated': timezone.now()
-        }
         try:
-            self.package_manager.update_package(self.package, pkg_new_fields)
+            self.package_manager.save_version_stats(
+                self.package, self.buildsys + ' - ' + self.tag, stats_dict
+            )
+            # If its for rawhide, update downstream sync time for the package
+            if self.tag == 'rawhide':
+                self.package_manager.update_package(self.package, {
+                    'downstream_lastupdated': timezone.now()
+                })
         except Exception as e:
             self.app_logger(
                 'ERROR', "Package could not be updated, details: " + str(e)
             )
+            raise Exception('Stats could NOT be saved in db.')
 
     def execute_job(self):
         """
@@ -83,12 +94,15 @@ class DownstreamManager(BaseManager):
             self.job_base_dir = os.path.dirname(settings.BASE_DIR)
             yml_job = YMLJobParser(yml_stream=io.StringIO(yml_preprocessed))
             self.package = yml_job.package
+            self.buildsys = yml_job.buildsys
             self.tag = yml_job.tags[0] if len(yml_job.tags) > 0 else None
-            self._bootstrap(yml_job.buildsys)
+            self._bootstrap(self.buildsys)
             # for sequential jobs, tasks should be pushed to linked list
             # and output of previous task should be input for next task
-            if yml_job.execution == 'sequential':
+            if JOB_EXEC_TYPES[0] in yml_job.execution:
                 self.tasks_ds = TaskList()
+            else:
+                raise Exception('%s exec type is NOT supported yet.' % yml_job.execution)
             if self.tag and self.package and self.hub_url and self.job_base_dir:
                 tasks = yml_job.tasks
                 for task in tasks:
@@ -96,7 +110,7 @@ class DownstreamManager(BaseManager):
 
                 action_mapper = ActionMapper(
                     self.tasks_ds, self.tag, self.package,
-                    self.hub_url, self.job_base_dir
+                    self.hub_url, self.job_base_dir, self.buildsys
                 )
                 action_mapper.set_actions()
                 action_mapper.execute_tasks()

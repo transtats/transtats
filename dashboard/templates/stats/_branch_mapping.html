@@ -1,3 +1,4 @@
+{% load get_item from custom_tags %}
 {% if branch_mapping %}
     <div class="panel panel-default">
       <div class="panel-heading" style="padding-bottom:20px">
@@ -21,8 +22,8 @@
             {% for branch, version in branch_mapping.items %}
             <tr>
                 <td>{{ branch }}</td>
-                <td>{{ version }}</td>
-                <td>&nbsp;&nbsp;</td>
+                <td>{{ version|get_item:mapping_keys.0 }}</td>
+                <td>{{ version|get_item:mapping_keys.1 }}</td>
             </tr>
             {% endfor %}
         </tbody>

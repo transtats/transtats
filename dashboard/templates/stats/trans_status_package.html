@@ -37,6 +37,7 @@
       <ul class="dropdown-menu">
         <li><a id="syncTransplatformLink"><input type="hidden" value="syncPlatform" id="syncPackageIdentifier"/>Translation Platform</a></li>
         <li><a href="{% url 'jobs' %}?package={{ package_name }}">Upstream Repository</a></li>
+        <li><a href="{% url 'jobs-yml-based' %}?package={{ package_name }}&tag=rawhide">Release Build System</a></li>
       </ul>
     </span>
     <a id="createBranchMapping" type="button" class="btn btn-default btn-small" data-toggle="tooltip" title="Rebuild Branch Mapping">

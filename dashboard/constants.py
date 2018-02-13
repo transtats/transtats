@@ -33,3 +33,9 @@ DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
 # Job Types
 TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream',
                 'syncdownstream', 'syncbuildtags')
+
+# Branch Mapping Keys
+BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys_tag', 'upstream_release')
+
+# YML Jobs Exceution Types
+JOB_EXEC_TYPES = ('sequential', 'parallel')

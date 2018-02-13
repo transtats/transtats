@@ -17,6 +17,7 @@ import os
 from collections import OrderedDict
 from django import template
 
+from dashboard.constants import BRANCH_MAPPING_KEYS
 from dashboard.managers.graphs import GraphManager, ReportsManager
 from dashboard.managers.inventory import PackagesManager
 
@@ -67,7 +68,8 @@ def tag_branch_mapping(package):
     else:
         return_value.update(
             {'branch_mapping': package_details.release_branch_mapping,
-             'mapping_lastupdated': package_details.mapping_lastupdated}
+             'mapping_lastupdated': package_details.mapping_lastupdated,
+             'mapping_keys': BRANCH_MAPPING_KEYS}
         )
     return return_value
 

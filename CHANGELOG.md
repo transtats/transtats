@@ -1,4 +1,5 @@
-##### Tue Feb 06 2018 Sundeep Anand <suanand@redhat.com>
+##### Tue Feb 13 2018 Sundeep Anand <suanand@redhat.com>
+* Add koji build system tags in package branch mapping
 * Add Koji API Resources and YAML based TS Jobs
 * Add Sync Build Tags Job to facilitate YAML based Jobs
 

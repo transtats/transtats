@@ -16,8 +16,8 @@
 # Currently, it is implemented as...
 # Every command has its own class and task gets matched
 #   with most appropriate method therein
-# todo - make tasks more flexible like
-#   for filter, extension can be passed as param
+# todo - make tasks more generic
+#   like: in filter cmd, extension can be passed as param
 
 import os
 import difflib
@@ -83,7 +83,7 @@ class Download(JobCommandBase):
         except:
             return ''
 
-    def SRPM(self, input):
+    def srpm(self, input):
         builds = input.get('builds')
         if builds and len(builds) > 0 and 'hub_url' in input:
             latest_build = builds[0]
@@ -106,7 +106,7 @@ class Download(JobCommandBase):
 
 class Unpack(JobCommandBase):
 
-    def SRPM(self, input):
+    def srpm(self, input):
         """
         SRPM is a headers + cpio file
             - its extraction currently is dependent on cpio command
@@ -221,17 +221,21 @@ class Calculate(JobCommandBase):
         """
         try:
             trans_stats = {}
+            trans_stats['id'] = input.get('build_system', '') + ' - ' + input.get('build_tag', '')
+            trans_stats['stats'] = []
             for po_file in input['trans_files']:
                 po = polib.pofile(po_file)
                 if po:
                     temp_trans_stats = {}
+                    temp_trans_stats['unit'] = "MESSAGE"
                     locale = po_file.split('/')[-1].split('.')[0]
-                    temp_trans_stats[locale] = {}
-                    temp_trans_stats[locale]['translated'] = len(po.translated_entries())
-                    temp_trans_stats[locale]['untranslated'] = len(po.untranslated_entries())
-                    temp_trans_stats[locale]['fuzzy'] = len(po.fuzzy_entries())
-                    temp_trans_stats[locale]['translated_percent'] = po.percent_translated()
-                    trans_stats.update(temp_trans_stats.copy())
+                    temp_trans_stats['locale'] = locale
+                    temp_trans_stats['translated'] = len(po.translated_entries())
+                    temp_trans_stats['untranslated'] = len(po.untranslated_entries())
+                    temp_trans_stats['fuzzy'] = len(po.fuzzy_entries())
+                    temp_trans_stats['total'] = len(po.translated_entries()) + \
+                        len(po.untranslated_entries()) + len(po.fuzzy_entries())
+                    trans_stats['stats'].append(temp_trans_stats.copy())
         except Exception as e:
             self._write_to_file('\n<b>Something went wrong in calculating stats</b> ...\n%s\n' % e)
         else:
@@ -259,13 +263,15 @@ class ActionMapper(BaseManager):
                  build_tag,
                  package,
                  server_url,
-                 job_base_dir):
+                 job_base_dir,
+                 build_system):
         super(ActionMapper, self).__init__()
         self.tasks = tasks_structure
         self.tag = build_tag
         self.pkg = package
         self.hub = server_url
         self.base_dir = job_base_dir
+        self.buildsys = build_system
         self.cleanup_resources = {}
         self.__stats = None
 
@@ -283,7 +289,7 @@ class ActionMapper(BaseManager):
             available_methods = [member[0] for member in getmembers(eval(cmd.title()))
                                  if isfunction(member[1])]
             probable_method = difflib.get_close_matches(
-                current_node.task, available_methods
+                current_node.task.lower(), available_methods
             )
             if isinstance(probable_method, list) and len(probable_method) > 0:
                 current_node.set_method(probable_method[0])
@@ -293,8 +299,8 @@ class ActionMapper(BaseManager):
         count = 0
         current_node = self.tasks.head
         initials = {
-            'build_tag': self.tag, 'package': self.pkg,
-            'hub_url': self.hub, 'base_dir': self.base_dir
+            'build_tag': self.tag, 'package': self.pkg, 'hub_url': self.hub,
+            'base_dir': self.base_dir, 'build_system': self.buildsys
         }
 
         while current_node is not None:

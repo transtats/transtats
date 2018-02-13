@@ -16,6 +16,8 @@
       {% for version, stats in stats_data.items %}
       {% if version|lower == 'upstream' %}
       <tr style="background-color:AliceBlue">
+      {% elif 'koji' in version|lower %}
+      <tr style="background-color:Ivory">
       {% else %}
       <tr>
       {% endif %}
