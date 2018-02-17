@@ -35,7 +35,10 @@ TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream',
                 'syncdownstream', 'syncbuildtags')
 
 # Branch Mapping Keys
-BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys_tag', 'upstream_release')
+BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys', 'buildsys_tag', 'upstream_release')
 
-# YML Jobs Exceution Types
+# Supported Build Systems
+BUILD_SYSTEMS = ('brew', 'koji')
+
+# YML Jobs Execution Types
 JOB_EXEC_TYPES = ('sequential', 'parallel')

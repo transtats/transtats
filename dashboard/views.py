@@ -31,6 +31,9 @@ from django.views.generic import (
 from django.urls import reverse
 
 # dashboard
+from dashboard.constants import (
+    APP_DESC, TS_JOB_TYPES, RELSTREAM_SLUGS
+)
 from dashboard.forms import (
     NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
 )
@@ -46,7 +49,6 @@ from dashboard.managers.graphs import (
 )
 from dashboard.managers.downstream import DownstreamManager
 from dashboard.managers.upstream import UpstreamManager
-from dashboard.constants import APP_DESC, TS_JOB_TYPES
 
 
 class ManagersMixin(object):
@@ -533,14 +535,16 @@ class JobsYMLBasedView(ManagersMixin, TemplateView):
         packages = self.packages_manager.get_package_name_tuple()
         if packages:
             context['packages'] = packages
-        # currently, it is limited to koji
-        # Enable it for brew, #todo
-        fedora_release_stream = \
-            self.packages_manager.get_release_streams(stream_slug='fedora')
-        if fedora_release_stream:
-            release_stream = fedora_release_stream.get()
-            if release_stream.relstream_built_tags:
-                context['build_tags'] = release_stream.relstream_built_tags
+        release_streams = \
+            self.packages_manager.get_release_streams(
+                only_active=True, fields=('relstream_built', )
+            )
+        available_build_systems = []
+        for relstream in release_streams:
+            available_build_systems.append(relstream.relstream_built)
+
+        if available_build_systems:
+            context['build_systems'] = available_build_systems
         return context
 
 
@@ -586,10 +590,10 @@ def schedule_job(request):
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
         elif job_type == TS_JOB_TYPES[3]:
-            fields = ['YML_FILE', 'PACKAGE_NAME', 'BUILD_TAG']
+            fields = ['YML_FILE', 'PACKAGE_NAME', 'BUILD_SYSTEM', 'BUILD_TAG']
             not_available = [field for field in fields if not request.POST.dict().get(field)]
             if len(not_available) > 0:
-                message = "&nbsp;&nbsp;<span class='text-warning'>Provide value for %s</span>" % not_available[0]
+                message = "&nbsp;&nbsp;<span class='text-danger'>Provide value for %s</span>" % not_available[0]
             else:
                 fields.append('DRY_RUN')
                 downstream_manager = DownstreamManager(**{
@@ -599,7 +603,7 @@ def schedule_job(request):
                 except Exception as e:
                     error_msg = str(e) if len(str(e)) < 50 else str(e)[:50] + '...'
                     message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.<br/>" \
-                              "&nbsp;&nbsp;<small class='text-muted'>" + error_msg + " </small></span>"
+                              "&nbsp;&nbsp;<small class='text-danger'>" + error_msg + " </small></span>"
                 else:
                     message = "&nbsp;&nbsp;<span class='text-success'>Job ran successfully.</span>"
         elif job_type == TS_JOB_TYPES[4]:
@@ -685,6 +689,31 @@ def refresh_package(request):
                     {% tag_branch_mapping package_name %}
                 """
                 return HttpResponse(Template(template_string).render(context))
+        elif task_type == "statsDiff" and post_params.get('package'):
+            graph_manager = GraphManager()
+            pkg = post_params['package']
+            package_stats = graph_manager.get_trans_stats_by_package(pkg)
+            ERR_MSG = "Make sure all mapped versions/tags are sync'd for stats."
+            package_branch_mapping = graph_manager.package_manager.get_pkg_branch_mapping(pkg)
+            if package_stats and package_branch_mapping:
+                try:
+                    graph_manager.package_manager.calculate_stats_diff(
+                        pkg, package_stats, package_branch_mapping
+                    )
+                except Exception as e:
+                    return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
+                else:
+                    context = Context(
+                        {'META': request.META,
+                         'package_name': post_params['package']}
+                    )
+                    template_string = """
+                                        {% load tag_stats_diff from custom_tags %}
+                                        {% tag_stats_diff package_name %}
+                                    """
+                    return HttpResponse(Template(template_string).render(context))
+            else:
+                return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
         elif task_type == "syncUpstream" and post_params.get('package'):
             input_package_name = post_params['package']
             package = package_manager.get_packages([input_package_name], ['package_name', 'upstream_url']).get()
@@ -815,4 +844,27 @@ def generate_reports(request):
                                     {% tag_packages_summary %}
                                 """
                 return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)
+
+
+def get_build_tags(request):
+    """
+    Get Build System Tags
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        build_system = post_params.get('buildsys', '')
+        inventory_manager = InventoryManager()
+        tags = inventory_manager.get_build_tags(build_system)
+        if tags:
+            context = Context(
+                {'META': request.META,
+                 'build_tags': tags,
+                 'buildsys': build_system}
+            )
+            template_string = """
+                                {% load tag_build_tags from custom_tags %}
+                                {% tag_build_tags buildsys %}
+                            """
+            return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)

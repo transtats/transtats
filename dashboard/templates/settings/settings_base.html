@@ -18,6 +18,12 @@
 </style>
 {% endblock %}
 
+{% block right-navigation %}
+    <a href="{% url 'trans-status-releases' %}" class="btn btn-default">Go to Releases</a>
+    <a href="{% url 'trans-status-packages' %}" class="btn btn-default">Go to Packages</a>
+    <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default">Go Back</a>
+{% endblock %}
+
 {% block pagecontent %}
     <ul class="nav nav-tabs">
       <li id="tab-languages" role="presentation"><a href="{% url 'settings-languages' %}">Languages</a></li>

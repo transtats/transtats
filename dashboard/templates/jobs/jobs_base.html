@@ -2,7 +2,7 @@
 
 {% block pagebanner %}
     <div style="padding-left:20px">
-      <h1>Jobs <small>&nbsp;Sync with translation platforms, upstream repositories or calendars ...</small></h1>
+      <h1>Jobs <small>&nbsp;Sync with platforms, build systems, source repositories or calendars ...</small></h1>
     </div>
 {% endblock %}
 
@@ -10,6 +10,12 @@
 <style type="text/css">
     img{display:block;max-width:50px;max-height:50px;width:auto;height:auto}
 </style>
+{% endblock %}
+
+{% block right-navigation %}
+    <a href="{% url 'trans-status-releases' %}" class="btn btn-default">Go to Releases</a>
+    <a href="{% url 'trans-status-packages' %}" class="btn btn-default">Go to Packages</a>
+    <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default">Go Back</a>
 {% endblock %}
 
 {% block pagecontent %}

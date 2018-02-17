@@ -560,7 +560,7 @@ class ReportsManager(GraphManager):
         Summarize Packages Status
         """
         all_packages = self.package_manager.get_packages(pkg_params=[
-            'package_name', 'release_streams', 'details_json_lastupdated',
+            'package_name', 'release_streams', 'details_json_lastupdated', 'stats_diff',
             'release_branch_mapping', 'transtats_lastupdated', 'upstream_lastupdated'
         ])
         pkg_tracking_for_RHEL = all_packages.filter(release_streams__icontains=RELSTREAM_SLUGS[0]).count()
@@ -573,17 +573,26 @@ class ReportsManager(GraphManager):
             upstream_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         relbranches = self.branch_manager.get_relbranch_name_slug_tuple()
         pkg_improper_branch_mapping = 0
+        pkg_having_stats_diff = 0
+        pkg_having_stats_diff_list = []
         if relbranches and len(relbranches) > 0:
             relbranch_slugs = sorted([slug for slug, name in relbranches], reverse=True)
             pkg_improper_branch_mapping = all_packages.filter(
                 release_branch_mapping__contains={relbranch_slugs[0]: ""}).count()
+            pkg_with_stats_diff = all_packages.filter(stats_diff__has_keys=relbranch_slugs)
+            for pkg_stats in pkg_with_stats_diff:
+                for branch in relbranches:
+                    if pkg_stats.stats_diff.get(branch[0]):
+                        pkg_having_stats_diff_list.append(pkg_stats)
+            pkg_having_stats_diff = len(set(pkg_having_stats_diff_list))
         package_report = {
             RELSTREAM_SLUGS[0]: pkg_tracking_for_RHEL or 0,
             RELSTREAM_SLUGS[1]: pkg_tracking_for_fedora or 0,
             'pkg_details_week_old': pkg_details_week_old or 0,
             'pkg_transtats_week_old': pkg_transtats_week_old or 0,
             'pkg_upstream_week_old': pkg_upstream_week_old or 0,
-            'pkg_improper_branch_mapping': pkg_improper_branch_mapping or 0
+            'pkg_improper_branch_mapping': pkg_improper_branch_mapping or 0,
+            'pkg_having_stats_diff': pkg_having_stats_diff or 0
         }
         if self.create_or_update_report(**{
             'subject': 'packages', 'report_json': package_report

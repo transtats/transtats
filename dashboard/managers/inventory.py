@@ -42,7 +42,7 @@ from dashboard.models import (
 )
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, ZANATA_SLUGS, DAMNEDLIES_SLUGS,
-    TRANSIFEX_SLUGS, RELSTREAM_SLUGS, BRANCH_MAPPING_KEYS
+    TRANSIFEX_SLUGS, RELSTREAM_SLUGS, BRANCH_MAPPING_KEYS,
 )
 from dashboard.managers.utilities import (
     parse_project_details_json, parse_ical_file
@@ -223,7 +223,8 @@ class InventoryManager(BaseManager):
         return tuple([(platform.platform_slug, platform.api_url)
                       for platform in active_platforms]) or ()
 
-    def get_release_streams(self, stream_slug=None, only_active=None, built=None):
+    def get_release_streams(self, stream_slug=None, only_active=None,
+                            built=None, fields=None):
         """
         Fetch all release streams from the db
         """
@@ -234,10 +235,10 @@ class InventoryManager(BaseManager):
             filter_kwargs.update(dict(relstream_slug=stream_slug))
         if built:
             filter_kwargs.update(dict(relstream_built=built))
-
+        filter_fields = fields if isinstance(fields, (tuple, list)) else ()
         relstreams = None
         try:
-            relstreams = ReleaseStream.objects.filter(**filter_kwargs) \
+            relstreams = ReleaseStream.objects.only(*filter_fields).filter(**filter_kwargs) \
                 .order_by('relstream_id')
         except Exception as e:
             self.app_logger(
@@ -263,26 +264,40 @@ class InventoryManager(BaseManager):
                 release_stream.relstream_built_tags or []
         return build_tags
 
+    def get_build_tags(self, buildsys):
+        release_stream = self.get_release_streams(built=buildsys)
+        if release_stream:
+            return release_stream.first().relstream_built_tags
+        return []
+
+    def get_relstream_buildsys(self, relstream):
+        release_stream = self.get_release_streams(stream_slug=relstream)
+        if release_stream:
+            return release_stream.first().relstream_built
+        return ''
+
 
 class SyncStatsManager(BaseManager):
     """
     Sync Translation Stats Manager
     """
 
-    def get_sync_stats(self, pkgs=None, fields=None, versions=None):
+    def get_sync_stats(self, pkgs=None, fields=None, versions=None, sources=None):
         """
         fetch sync translation stats from db
         :return: resultset
         """
         sync_stats = None
         required_params = fields if fields and isinstance(fields, (list, tuple)) \
-            else ('package_name', 'project_version', 'stats_raw_json')
+            else ('package_name', 'project_version', 'source', 'stats_raw_json')
         kwargs = {}
         kwargs.update(dict(sync_visibility=True))
         if pkgs:
             kwargs.update(dict(package_name__in=pkgs))
         if versions:
             kwargs.update(dict(project_version__in=versions))
+        if sources:
+            kwargs.update(dict(source__in=sources))
 
         try:
             sync_stats = SyncStats.objects.only(*required_params).filter(**kwargs).all()
@@ -506,7 +521,7 @@ class PackagesManager(InventoryManager):
                                 **dict(auth_user=platform.auth_login_id, auth_token=platform.auth_token_key)
                             )
                         if resp_dict:
-                            if self.save_version_stats(project, version, resp_dict):
+                            if self.save_version_stats(project, version, resp_dict, platform.engine_name):
                                 kwargs['transtats_lastupdated'] = timezone.now()
             if 'update_stats' in kwargs:
                 del kwargs['update_stats']
@@ -524,7 +539,7 @@ class PackagesManager(InventoryManager):
         else:
             return True
 
-    def save_version_stats(self, project, version, stats_json):
+    def save_version_stats(self, project, version, stats_json, stats_source):
         """
         Save version's translation stats in db
         :param project: transplatform project
@@ -541,6 +556,7 @@ class PackagesManager(InventoryManager):
                 params.update(dict(package_name=project))
                 params.update(dict(job_uuid=sync_uuid))
                 params.update(dict(project_version=version))
+                params.update(dict(source=stats_source))
                 params.update(dict(stats_raw_json=stats_json))
                 params.update(dict(sync_iter_count=1))
                 params.update(dict(sync_visibility=True))
@@ -649,7 +665,7 @@ class PackagesManager(InventoryManager):
                 return lang_id_name, trans_stats_dict, package_desc
             if package_details.package_details_json and package_details.package_details_json.get('description'):
                 package_desc = package_details.package_details_json['description']
-            pkg_stats_versions = self.syncstats_manager.get_sync_stats([package_name])
+            pkg_stats_versions = self.syncstats_manager.get_sync_stats(pkgs=[package_name])
             for pkg_stats_version in pkg_stats_versions:
                 trans_stats_list, missing_locales = \
                     self.syncstats_manager.filter_stats_for_required_locales(
@@ -755,7 +771,7 @@ class PackagesManager(InventoryManager):
                 )
             if proj_trans_stats_response_dict:
                 if self.save_version_stats(
-                        project, version, proj_trans_stats_response_dict
+                        project, version, proj_trans_stats_response_dict, package.transplatform_slug.engine_name
                 ):
                     Packages.objects.filter(transplatform_url=package.transplatform_url).update(
                         transtats_lastupdated=timezone.now())
@@ -764,6 +780,10 @@ class PackagesManager(InventoryManager):
         self.build_branch_mapping(package_name)
         return update_stats_status
 
+    @staticmethod
+    def get_pkg_branch_mapping(pkg):
+        return PackageBranchMapping(pkg).branch_mapping
+
     def build_branch_mapping(self, package_name):
         """
         Creates Branch mapping for the Package
@@ -771,7 +791,7 @@ class PackagesManager(InventoryManager):
         :return: boolean
         """
         kwargs = {}
-        branch_mapping_dict = PackageBranchMapping(package_name).branch_mapping
+        branch_mapping_dict = self.get_pkg_branch_mapping(package_name)
         kwargs['package_name_mapping'] = {package_name: ''}
         kwargs['release_branch_mapping'] = branch_mapping_dict
         kwargs['mapping_lastupdated'] = timezone.now()
@@ -802,6 +822,49 @@ class PackagesManager(InventoryManager):
         for method in steps:
             status.append(method(package_name))
         return True if [i for i in status if i] else False
+
+    def _formats_stats_diff(self, lang_sequence, stats_diff_dict):
+        lang_dict = {}
+        [lang_dict.update({index: lang}) for index, lang in lang_sequence]
+        formatted_stats_dict = OrderedDict()
+        for branch, stats_diff in stats_diff_dict.items():
+            formatted_stats_dict[branch] = {}
+            diff = list(stats_diff)
+            stats_group = OrderedDict()
+            for x in diff:
+                stats_group.setdefault(x[0], []).append(x[1])
+            for key, value in stats_group.items():
+                formatted_stats_dict[branch][lang_dict.get(key)] = \
+                    value[1] - value[0] if isinstance(value, list) and len(value) > 1 else 0
+        return formatted_stats_dict
+
+    def calculate_stats_diff(self, package, graph_ready_stats, pkg_branch_map):
+        """
+        Calculates and stores translation stats differences
+        :param package: str
+        :param graph_ready_stats: dict
+        :param pkg_branch_map: dict
+        :return: languages list and stats diff dict
+        """
+        stats_diff_dict = OrderedDict()
+        stats_data = graph_ready_stats.get('graph_data', {})
+        languages = graph_ready_stats.get('ticks', [])
+        for branch, mapping in pkg_branch_map.items():
+            platform_stats = stats_data.get(mapping[BRANCH_MAPPING_KEYS[0]], [])
+            buildsys_stats = stats_data.get(
+                mapping[BRANCH_MAPPING_KEYS[1]] + " - " + mapping[BRANCH_MAPPING_KEYS[2]], []
+            )
+            # Ignoring after-decimal differences for now
+            first_set = set(map(tuple, [(index, round(stat)) for index, stat in platform_stats]))
+            second_set = set(map(tuple, [(index, round(stat)) for index, stat in buildsys_stats]))
+            if first_set and second_set:
+                stats_diff_dict[branch] = first_set.symmetric_difference(second_set)
+            else:
+                raise Exception("Make sure all mapped versions/tags are sync'd for stats.")
+        polished_stats_diff = self._formats_stats_diff(languages, stats_diff_dict)
+        if package and polished_stats_diff:
+            self.update_package(package, {'stats_diff': polished_stats_diff})
+        return polished_stats_diff
 
 
 class ReleaseBranchManager(InventoryManager):
@@ -1009,7 +1072,10 @@ class PackageBranchMapping(object):
         else:
             pkg_stats = self.syncstats_manager.get_sync_stats(pkgs=[package_name], fields=('project_version',))
             self.original_versions = [pkg_stat.project_version for pkg_stat in pkg_stats]
-            self.transplatform_versions = [version.lower() for version in self.original_versions]
+            self.transplatform_versions = [
+                pkg_stat.project_version.lower() for pkg_stat in self.syncstats_manager.get_sync_stats(
+                    pkgs=[package_name], fields=('project_version',), sources=TRANSPLATFORM_ENGINES
+                ) if isinstance(pkg_stat.project_version, str)]
             self.release_branches_dict = self.relbranch_manager.get_branches_of_relstreams(self.package.release_streams)
             self.release_branches_list = []
             self.release_streams_list = []
@@ -1150,5 +1216,8 @@ class PackageBranchMapping(object):
                     branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]] = \
                         self.calculate_branch_mapping(branch, self.transplatform_versions)
                     branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[1]] = \
-                        self.calculate_branch_mapping(branch, self.release_build_tags_dict[stream])
+                        self.relbranch_manager.get_relstream_buildsys(stream)
+                    branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[2]] = \
+                        self.calculate_branch_mapping(branch, sorted(
+                            self.release_build_tags_dict[stream]))
         return branch_mapping_dict

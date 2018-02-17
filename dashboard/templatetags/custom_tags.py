@@ -30,6 +30,11 @@ def get_item(dict_object, key):
     return dict_object.get(key)
 
 
+@register.filter
+def join_by(sequence, delimiter):
+    return delimiter.join(sequence)
+
+
 @register.inclusion_tag(
     os.path.join("stats", "_package_details.html")
 )
@@ -67,9 +72,36 @@ def tag_branch_mapping(package):
         pass
     else:
         return_value.update(
-            {'branch_mapping': package_details.release_branch_mapping,
+            {'package_name': package_details.package_name,
+             'branch_mapping': package_details.release_branch_mapping,
              'mapping_lastupdated': package_details.mapping_lastupdated,
              'mapping_keys': BRANCH_MAPPING_KEYS}
+        )
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("stats", "_stats_diff.html")
+)
+def tag_stats_diff(package):
+    package_manager = PackagesManager()
+    return_value = OrderedDict()
+    try:
+        package_details = package_manager.get_packages([package]).get()
+    except:
+        # log event, passing for now
+        pass
+    else:
+        stats_diff = package_details.stats_diff or {}
+        langs_out_of_sync = {}
+        for branch, diff in stats_diff.items():
+            langs_out_of_sync[branch] = []
+            for lang, percent in diff.items():
+                langs_out_of_sync[branch].append(lang)
+
+        return_value.update(
+            {'package_name': package_details.package_name,
+             'stats_diff': langs_out_of_sync}
         )
     return return_value
 
@@ -155,5 +187,19 @@ def tag_packages_summary():
         return_value.update(dict(
             pkgsummary=packages_summary.get().report_json,
             last_updated=packages_summary.get().report_updated
+        ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("jobs", "_build_tags.html")
+)
+def tag_build_tags(buildsys):
+    return_value = OrderedDict()
+    package_manager = PackagesManager()
+    tags = package_manager.get_build_tags(buildsys=buildsys)
+    if tags:
+        return_value.update(dict(
+            build_tags=tags
         ))
     return return_value

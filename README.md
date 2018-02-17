@@ -55,12 +55,14 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 - Application should be available at `localhost:8080`. 
 
 
-#### Develop: Vagrant
+#### Hacking: Setup Development Environment
 
+
+##### Vagrant
 
 - Install Ansible, Docker and Vagrant.
 
-- This will setup devel environment and run container plus, `ssh` into it
+- This will setup devel environment, run container and `ssh` into it
   ```shell
   $ sudo vagrant plugin install vagrant-hostmanager
   $ git clone https://github.com/transtats/transtats.git
@@ -77,9 +79,35 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 
 - Hit `localhost:8080` in browser
 
-- Update db `make migrations`
+
+##### Virtualenv
+
+- Install py3.6, koji, cpio
+
+- This will create virtualenv and setup devel env
+  ```shell
+  $ git clone https://github.com/transtats/transtats.git
+  $ cd transtats
+  $ mkvirtualenv transtats --python=`which python3.6` --system-site-packages
+  $ echo `pwd` > /path/to/virtualenvs/transtats/.project
+  $ workon transtats; make devel; make migrate
+  ```
+
+- Run application
+  ```shell
+  $ make run
+  ```
+
+- Hit `localhost:8014` in browser
+
+
+##### Tasks
+
+- Update db schema `make migrations`
 
 - Run tests `make lint test`
+
+- Create static contents `make static`
 
 - Generate docs `make docs`
 

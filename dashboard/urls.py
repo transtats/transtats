@@ -28,7 +28,8 @@ from dashboard.views import (
     TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
     JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView,
     NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobsYMLBasedView, refresh_package,
-    release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs
+    release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
+    get_build_tags
 )
 
 
@@ -50,6 +51,7 @@ ajax_urls = [
     url(r'^release-graph$', release_graph, name="ajax-release-graph"),
     url(r'^generate-reports$', generate_reports, name="ajax-releases-report"),
     url(r'^read-file-logs$', read_file_logs, name="ajax-read-logs"),
+    url(r'^build-tags$', get_build_tags, name="ajax-build-tags"),
 ]
 
 app_jobs_urls = [

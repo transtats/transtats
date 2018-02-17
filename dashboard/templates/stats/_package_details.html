@@ -13,9 +13,9 @@
 {% endif %}
 </h5>
 <h5>
-    Release Streams:&nbsp;&nbsp;{{ package.release_streams|join:", " }}
+    Being tracked for Release Streams:&nbsp;&nbsp;<span class="text-info">{{ package.release_streams|join:", " }}</span>
     {% if package.downstream_lastupdated %}
-    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-muted">Last Sync:</span>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-muted">Last Sync with Build System:</span>
     {{ package.downstream_lastupdated|timesince }} <span class="text-muted">ago</span>.
     {% endif %}
     {% if package.created_by and user.is_authenticated %}

@@ -374,10 +374,18 @@ class BuildTagsSyncManager(BaseManager):
 
         for relstream in active_release_streams or []:
             hub_server_url = relstream.relstream_server
-            # for brew several configuration needs to be set
-            # before we access its hub for info, #todo
-            if relstream.relstream_built == 'koji':
+            # # for brew several configuration needs to be set
+            # # before we access its hub for info, #todo
+            # if relstream.relstream_built == 'koji':
+            try:
                 tags = self.api_resources.build_tags(hub_url=hub_server_url)
+            except Exception as e:
+                self.job_manager.log_json[SUBJECT].update(
+                    {str(datetime.now()): 'Failed to fetch build tags of %s. Details: %s' %
+                                          (relstream.relstream_built, str(e))}
+                )
+                self.job_manager.job_result = False
+            else:
                 if tags:
                     relbranch_update_result = ReleaseStream.objects.filter(
                         relstream_slug=relstream.relstream_slug

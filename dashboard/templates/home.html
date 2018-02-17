@@ -7,6 +7,10 @@
     </div>
 {% endblock %}
 
+{% block right-navigation %}
+    <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default">Go Back</a>
+{% endblock %}
+
 {% block pagecontent %}
     <ul class="nav nav-tabs nav-justified">
       <li id="tab-translation-status" role="presentation">

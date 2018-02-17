@@ -1,27 +1,31 @@
 {% if pkgsummary %}
-    <ul class="list-group" style="width:600px">
+    <ul class="list-group" style="width:800px">
       {% if pkgsummary.RHEL %}
       <li class="list-group-item">
-        <span class="badge">{{ pkgsummary.RHEL }}</span>
+        <span class="badge" style="font-size:medium">{{ pkgsummary.RHEL }}</span>
         Packages tracking for RHEL
       </li>
       {% endif %}
       {% if pkgsummary.fedora %}
       <li class="list-group-item">
-        <span class="badge">{{ pkgsummary.fedora }}</span>
+        <span class="badge" style="font-size:medium">{{ pkgsummary.fedora }}</span>
         Packages tracking for Fedora
       </li>
       {% endif %}
+      <li class="list-group-item {% if pkgsummary.pkg_having_stats_diff > 0 %}list-group-item-warning{% endif %}">
+        <span class="badge" style="font-size:medium">{{ pkgsummary.pkg_having_stats_diff }}</span>
+          Packages out of sync. <code>Latest translations may not be pulled and packaged</code>.
+      </li>
       <li class="list-group-item {% if pkgsummary.pkg_improper_branch_mapping > 0 %}list-group-item-warning{% endif %}">
-        <span class="badge">{{ pkgsummary.pkg_improper_branch_mapping }}</span>
+        <span class="badge" style="font-size:medium">{{ pkgsummary.pkg_improper_branch_mapping }}</span>
         Packages having improper branch mapping.
       </li>
       <li class="list-group-item {% if pkgsummary.pkg_transtats_week_old > 0 %}list-group-item-warning{% endif %}">
-        <span class="badge">{{ pkgsummary.pkg_transtats_week_old }}</span>
+        <span class="badge" style="font-size:medium">{{ pkgsummary.pkg_transtats_week_old }}</span>
         Packages sync&apos;d with translation platform more than a week ago.
       </li>
       <li class="list-group-item {% if pkgsummary.pkg_upstream_week_old > 0 %}list-group-item-warning{% endif %}">
-        <span class="badge">{{ pkgsummary.pkg_upstream_week_old }}</span>
+        <span class="badge" style="font-size:medium">{{ pkgsummary.pkg_upstream_week_old }}</span>
         Packages which were sync&apos;d with upstream repository more than a week back.
       </li>
     </ul>

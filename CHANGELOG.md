@@ -1,4 +1,6 @@
-##### Tue Feb 13 2018 Sundeep Anand <suanand@redhat.com>
+##### Tue Feb 20 2018 Sundeep Anand <suanand@redhat.com>
+* Update packages summary with out of sync packages
+* Extend downstream sync to brew and fix branch mapping
 * Add koji build system tags in package branch mapping
 * Add Koji API Resources and YAML based TS Jobs
 * Add Sync Build Tags Job to facilitate YAML based Jobs

@@ -55,14 +55,11 @@ class DownstreamManager(BaseManager):
             raise Exception('Build Server URL could NOT be located for %s.' % self.buildsys)
         else:
             self.hub_url = release_stream.relstream_server
-        # remove log file if exists
-        if os.path.exists(self.job_log_file):
-            os.remove(self.job_log_file)
 
     def _save_result_in_db(self, stats_dict):
         try:
             self.package_manager.save_version_stats(
-                self.package, self.buildsys + ' - ' + self.tag, stats_dict
+                self.package, self.buildsys + ' - ' + self.tag, stats_dict, self.buildsys
             )
             # If its for rawhide, update downstream sync time for the package
             if self.tag == 'rawhide':
@@ -85,9 +82,14 @@ class DownstreamManager(BaseManager):
         3. Discover namespace and method for each task and fill in TaskNode
         4. Perform actions (execute tasks) and return responses
         """
+        # remove log file if exists
+        if os.path.exists(self.job_log_file):
+            os.remove(self.job_log_file)
 
         yml_preprocessed = YMLPreProcessor(self.YML_FILE, **{
-            'PACKAGE_NAME': self.PACKAGE_NAME, 'BUILD_TAG': self.BUILD_TAG
+            'PACKAGE_NAME': self.PACKAGE_NAME,
+            'BUILD_SYSTEM': self.BUILD_SYSTEM,
+            'BUILD_TAG': self.BUILD_TAG
         }).output
 
         if yml_preprocessed:

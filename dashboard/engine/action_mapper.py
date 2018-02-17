@@ -30,6 +30,7 @@ from pyrpm.spec import Spec
 from subprocess import Popen, PIPE, call
 from inspect import getmembers, isfunction
 # dashboard
+from dashboard.constants import BUILD_SYSTEMS
 from dashboard.managers.base import BaseManager
 
 __all__ = ['ActionMapper']
@@ -85,6 +86,13 @@ class Download(JobCommandBase):
 
     def srpm(self, input):
         builds = input.get('builds')
+
+        pkgs_download_server_url = ''
+        if input.get('build_system', '') == BUILD_SYSTEMS[0]:
+            pkgs_download_server_url = 'http://download.eng.bos.redhat.com/brewroot'
+        elif input.get('build_system', '') == BUILD_SYSTEMS[1]:
+            pkgs_download_server_url = 'https://kojipkgs.fedoraproject.org'
+
         if builds and len(builds) > 0 and 'hub_url' in input:
             latest_build = builds[0]
             build_id = latest_build.get('id', 0)
@@ -94,11 +102,16 @@ class Download(JobCommandBase):
             srpm_download_url = os.path.join(
                 self.api_resources.get_path_info(build=build_info),
                 self.api_resources.get_path_info(srpm=src_rpm)
-            ).replace('/mnt/koji', 'https://kojipkgs.fedoraproject.org')
+            ).replace('/mnt/koji', pkgs_download_server_url)
             srpm_downloaded_path = self._download_srpm(srpm_download_url)
             if srpm_downloaded_path:
                 self._write_to_file(
                     '\n<b>SRPM Successfully Downloaded from </b> ...\n%s\n'
+                    % srpm_download_url
+                )
+            else:
+                self._write_to_file(
+                    '\n<b>SRPM could not be downloaded from </b> ...\n%s\n'
                     % srpm_download_url
                 )
             return {'srpm_path': srpm_downloaded_path}
@@ -202,7 +215,7 @@ class Filter(JobCommandBase):
             trans_files = []
             for root, dirs, files in os.walk(input['src_tar_dir']):
                     for file in files:
-                        if file.endswith('po'):
+                        if file.endswith('.po'):
                             trans_files.append(os.path.join(root, file))
         except Exception as e:
             self._write_to_file('\n<b>Something went wrong in filtering PO files</b> ...\n%s\n' % e)

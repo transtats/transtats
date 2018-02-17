@@ -22,9 +22,9 @@ except Exception as e:
     raise Exception("koji could not be imported, details: %s" % e)
 
 # dashboard
-from dashboard.constants import TRANSPLATFORM_ENGINES
-from dashboard.decorators import call_service
+from dashboard.constants import TRANSPLATFORM_ENGINES, BUILD_SYSTEMS
 from dashboard.converters.xml2dict import parse
+from dashboard.decorators import call_service
 
 
 __all__ = ['APIResources']
@@ -270,7 +270,14 @@ class KojiResources(object):
 
     @staticmethod
     def _session(hub):
-        return koji.ClientSession(hub)
+        krb_service = ''
+        if BUILD_SYSTEMS[0] in hub:
+            krb_service = 'brewhub'
+        elif BUILD_SYSTEMS[1] in hub:
+            krb_service = 'kojihub'
+        return koji.ClientSession(
+            hub, opts={'krbservice': krb_service, 'no_ssl_verify': True}
+        )
         # self.session.gssapi_login()
 
     def establish_kerberos_ticket(self):
@@ -290,19 +297,19 @@ class KojiResources(object):
         """
         Get build tags
         """
-        tags = self._session(hub_url).listTags()
-        selective_tags = []
-        for tag in tags:
-            if not tag.get('locked', True):
-                continue
-            if tag.get('name', '').startswith('dist'):
-                continue
-            if 'modul' in tag.get('name', ''):
-                continue
-            if 'olpc' in tag.get('name', ''):
-                continue
-            selective_tags.append(tag['name'])
-        return sorted(selective_tags)[::-1]
+        active_repos = self._session(hub_url).getActiveRepos()
+        tag_starts_with = 'rhel' if BUILD_SYSTEMS[0] in hub_url else ''
+        build_tags = [repo.get('tag_name') for repo in active_repos
+                      if repo.get('tag_name', '').startswith(tag_starts_with)]
+        if BUILD_SYSTEMS[1] in hub_url:
+            # fedora koji specific changes
+            pre_processed_tags = [tag[:-6] if tag.endswith('-build') else tag
+                                  for tag in list(set(build_tags))]
+            processed_tags = [tag for tag in pre_processed_tags
+                              if not tag.startswith('module-')]
+        else:
+            processed_tags = list(set(build_tags))
+        return sorted(processed_tags)[::-1]
 
     def build_info(self, hub_url, tag, pkg):
         return self._session(hub_url).getLatestBuilds(tag, package=pkg)

@@ -111,7 +111,7 @@
                         Help<span class="caret"></span>
                     </a>
                       <ul class="dropdown-menu">
-                        <li><a href="{% url 'howto' %}">
+                        <li><a href="{% url 'howto' %}" target="_blank">
                           <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
                           &nbsp;Quick Start</a></li>
                         <li><a href="http://docs.transtats.org/" target="_blank">
@@ -133,6 +133,9 @@
           <span class="btn-group btn-breadcrumb">
             {% block navigation %}{% endblock %}
           </span>
+          <span class="pull-right">
+            {% block right-navigation %}{% endblock %}
+          </span>
         </div>
         <div style="padding:10px" class="col-xs-12">
           {% block pagecontent %}{% endblock %}
@@ -144,7 +147,7 @@
         <footer>
             <div class="container">
                 <p>
-                  <span><a href="{% url 'home' %}">Dashboard</a> | <a href="{% url 'howto' %}">Get Started</a> |
+                  <span><a href="{% url 'home' %}">Dashboard</a> | <a href="{% url 'howto' %}" target="_blank">Get Started</a> |
                     <a href="{% url 'jobs' %}">Jobs</a> |
                     <a href="{% url 'settings' %}">Settings</a> |
                     <a href="http://transtats.org/terms.html" target="_blank">Terms of Use</a> |
