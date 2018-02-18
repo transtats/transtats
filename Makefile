@@ -38,6 +38,10 @@ migrate:
 run:
 	python3 manage.py runserver 0:8014
 
+.PHONY: login
+login:
+	python3 manage.py initlogin
+
 .PHONY: static
 static:
 	python3 manage.py collectstatic --noinput

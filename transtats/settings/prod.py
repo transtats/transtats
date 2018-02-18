@@ -28,7 +28,7 @@ EMAIL_PORT = 25
 EMAIL_USE_TLS = False
 
 # Allowed Hosts
-ALLOWED_HOSTS = ['app.transtats.org']
+ALLOWED_HOSTS = ['.transtats.org', '.fedoraproject.org']
 
 LOGGING = {
     'version': 1,
