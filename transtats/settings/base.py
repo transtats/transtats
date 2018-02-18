@@ -47,9 +47,6 @@ def app_config_vars(var):
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = app_config_vars('DJANGO_SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -108,24 +105,6 @@ SESSION_COOKIE_SECURE = False
 WSGI_APPLICATION = 'transtats.wsgi.application'
 
 LOGIN_REDIRECT_URL = '/'
-
-
-# Database
-# https://docs.djangoproject.com/en/1.9/ref/settings/#databases
-
-service_name = os.getenv('DATABASE_SERVICE_NAME', '').upper().replace('-', '_')
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': app_config_vars('DATABASE_NAME'),
-        'USER': app_config_vars('DATABASE_USER'),
-        'PASSWORD': app_config_vars('DATABASE_PASSWORD'),
-        'HOST': os.getenv('{}_SERVICE_HOST'.format(service_name)) or app_config_vars('DATABASE_HOST'),
-        'PORT': os.getenv('{}_SERVICE_PORT'.format(service_name)) or '',
-    }
-}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
