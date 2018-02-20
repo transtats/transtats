@@ -381,7 +381,7 @@ class PackageSettingsView(ManagersMixin, ListView):
     """
     Packages Settings View
     """
-    template_name = "settings/packages.html"
+    template_name = "packages/package_list.html"
     context_object_name = 'packages'
 
     def get_queryset(self):
