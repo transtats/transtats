@@ -392,7 +392,7 @@ class NewPackageView(ManagersMixin, FormView):
     """
     New Package Form View
     """
-    template_name = "settings/package_new.html"
+    template_name = "packages/package_new.html"
     success_url = "/settings/packages/new"
 
     def get_initial(self):
