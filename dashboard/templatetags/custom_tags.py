@@ -198,8 +198,7 @@ def tag_build_tags(buildsys):
     return_value = OrderedDict()
     package_manager = PackagesManager()
     tags = package_manager.get_build_tags(buildsys=buildsys)
-    if tags:
-        return_value.update(dict(
-            build_tags=tags
-        ))
+    return_value.update(dict(
+        build_tags=tags
+    ))
     return return_value

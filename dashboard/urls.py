@@ -14,6 +14,7 @@
 # under the License.
 
 # django
+from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -31,6 +32,8 @@ from dashboard.views import (
     release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
     get_build_tags
 )
+
+LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
 
 
 api_urls = [
@@ -71,15 +74,13 @@ app_setting_urls = [
             name="settings-stream-branches-new")
     ])),
     url(r'^products$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
-    url(r'^packages/new$', login_required(NewPackageView.as_view(),
-                                          login_url="oidc_authentication_init"),
+    url(r'^packages/new$', login_required(NewPackageView.as_view(), login_url=LOGIN_URL),
         name="settings-packages-new"),
     url(r'^packages/export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
     url(r'^packages$', PackageSettingsView.as_view(), name="settings-packages"),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
-    url(r'^graph-rules/new$', login_required(NewGraphRuleView.as_view(),
-                                             login_url="oidc_authentication_init"),
+    url(r'^graph-rules/new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
         name="settings-graph-rules-new"),
     url(r'^graph-rules$', GraphRulesSettingsView.as_view(), name="settings-graph-rules")
 ]

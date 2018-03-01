@@ -25,7 +25,7 @@ import requests
 import polib
 import tarfile
 from shlex import split
-from shutil import rmtree
+from shutil import copy2, rmtree
 from pyrpm.spec import Spec
 from subprocess import Popen, PIPE, call
 from inspect import getmembers, isfunction
@@ -124,7 +124,6 @@ class Unpack(JobCommandBase):
         SRPM is a headers + cpio file
             - its extraction currently is dependent on cpio command
         """
-        extract_dir = ''
         try:
             command = "rpm2cpio " + os.path.join(
                 input['base_dir'], input['srpm_path']
@@ -184,7 +183,7 @@ class Load(JobCommandBase):
             src_tar_file = None
             for root, dirs, files in os.walk(input['extract_dir']):
                 for file in files:
-                    if file.endswith('.spec'):
+                    if file.endswith('.spec') and not file.startswith('.'):
                         spec_file = os.path.join(root, file)
                     zip_ext = ('.tar', '.tar.gz', '.tar.bz2', '.tar.xz')
                     if file.endswith(zip_ext):
@@ -203,6 +202,42 @@ class Load(JobCommandBase):
                 'spec_file': spec_file, 'src_tar_file': src_tar_file,
                 'spec_obj': spec_obj
             }
+
+
+class Apply(JobCommandBase):
+
+    def patch(self, input):
+        try:
+            patches = []
+            for root, dirs, files in os.walk(input['extract_dir']):
+                    for file in files:
+                        if file.endswith('.patch'):
+                            patches.append(os.path.join(root, file))
+
+            current_dir = os.getcwd()
+            [copy2(patch, input['src_tar_dir']) for patch in patches]
+            os.chdir(input['src_tar_dir'])
+            for patch in patches:
+                err_msg = "Perhaps you used the wrong -p"
+                command_std_output = "Perhaps you used the wrong -p or --strip option?"
+                p_value = 0
+                p_value_limit = 5
+                while err_msg in command_std_output and p_value < p_value_limit:
+                    command = "patch -p" + str(p_value) + " -i " + patch.split('/')[-1]
+                    command = split(command)
+                    patch_output = Popen(command, stdout=PIPE)
+                    command_std_output = patch_output.stdout.read().decode("utf-8")
+                    patch_output.kill()
+                    p_value += 1
+
+            os.chdir(current_dir)
+        except Exception as e:
+            self._write_to_file('\n<b>Something went wrong in applying patches</b> ...\n%s\n' % e)
+        else:
+            self._write_to_file(
+                '\n<b>%s patches applied</b> ...\n%s\n' % (len(patches), " \n".join(patches))
+            )
+            return {'src_tar_dir': input['src_tar_dir']}
 
 
 class Filter(JobCommandBase):
@@ -268,7 +303,8 @@ class ActionMapper(BaseManager):
         'UNPACK',       # Extract an archive
         'LOAD',         # Load into python object
         'FILTER',       # Filter files recursively
-        'CALCULATE'     # Apply some maths/formulae
+        'APPLY',        # Apply patch on source tree
+        'CALCULATE'     # Do some maths/try formulae
     ]
 
     def __init__(self,

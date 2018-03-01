@@ -267,7 +267,7 @@ class InventoryManager(BaseManager):
     def get_build_tags(self, buildsys):
         release_stream = self.get_release_streams(built=buildsys)
         if release_stream:
-            return release_stream.first().relstream_built_tags
+            return release_stream.first().relstream_built_tags or [' ']
         return []
 
     def get_relstream_buildsys(self, relstream):

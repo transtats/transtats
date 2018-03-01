@@ -174,7 +174,7 @@ class StreamBranches(models.Model):
     scm_branch = models.CharField(max_length=100, null=True, blank=True, verbose_name="SCM Branch Name")
     created_on = models.DateTimeField()
     current_phase = models.CharField(max_length=200, null=True, verbose_name="Current Phase")
-    calendar_url = models.URLField(max_length=500, null=True, verbose_name="Calender iCal URL")
+    calendar_url = models.URLField(max_length=500, unique=True, null=True, verbose_name="Calender iCal URL")
     schedule_json = JSONField(null=True)
     sync_calendar = models.BooleanField(default=True, verbose_name="Sync Calender")
     notifications_flag = models.BooleanField(default=True, verbose_name="Notification")
