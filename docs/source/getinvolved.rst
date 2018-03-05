@@ -84,4 +84,4 @@ Contribution
 * The *master* branch corresponds to the latest stable release.
 * If you find any bug/issue or got an idea, open a `GitHub issue <https://github.com/transtats/transtats/issues/new>`_.
 * Feel free to submit feature requests and/or bug fixes on *devel* branch.
-* Transtats uses `travis <https://travis-ci.org/transtats/transtats>`_ for tests.
+* Transtats uses `CircleCI <https://circleci.com/gh/transtats/transtats>`_ for tests.

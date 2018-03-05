@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/transtats/transtats.svg?branch=devel)](https://travis-ci.org/transtats/transtats)
+[![CircleCI](https://circleci.com/gh/transtats/transtats.svg?style=svg)](https://circleci.com/gh/transtats/transtats)
 [![Documentation Status](https://readthedocs.org/projects/transtats/badge/?version=latest)](http://transtats.readthedocs.io/en/latest/?badge=latest)
 
 ## Transtats
@@ -118,9 +118,9 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 * Setup development environment as described above.
 * The *devel* branch is the release actively under development.
 * The *master* branch corresponds to the latest stable release.
-* If you find any bug/issue or got an idea, open a [github issue](https://github.com/transtats/transtats/issues/new).
+* If you find any bug/issue or got an idea, open a [GitHub Issue](https://github.com/transtats/transtats/issues/new).
 * Feel free to submit feature requests and/or bug fixes on *devel* branch.
-* Transtats uses [travis](https://travis-ci.org/transtats/transtats) for tests.
+* Transtats uses [Circle CI](https://circleci.com/gh/transtats/transtats) for tests.
 
 
 ### License
