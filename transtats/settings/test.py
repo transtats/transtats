@@ -41,26 +41,57 @@ LOGGING = {
     },
     'handlers': {
         'null': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'class': 'logging.NullHandler',
         },
-        'default': {
-            'level': 'DEBUG',
+        'console': {
+            'level': 'ERROR',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler'
+        },
+        'app': {
+            'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': 'transtats/logs/app.log',
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 5,
+            'formatter': 'standard',
+        },
+        'db': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'transtats/logs/db.log',
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 5,
+            'formatter': 'standard',
+        },
+        'django': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'transtats/logs/django.log',
             'maxBytes': 1024 * 1024 * 5,
             'backupCount': 5,
             'formatter': 'standard',
         }
     },
     'loggers': {
+        'django': {
+            'handlers': ['django'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.db': {
+            'handlers': ['db'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
         '': {
-            'handlers': ['default'],
-            'level': 'DEBUG',
+            'handlers': ['app'],
+            'level': 'ERROR',
             'propagate': True,
         },
         'django.request': {
-            'handlers': ['default'],
+            'handlers': ['app', 'console'],
             'level': 'ERROR',
             'propagate': False,
         },

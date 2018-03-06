@@ -594,6 +594,7 @@ def schedule_job(request):
             not_available = [field for field in fields if not request.POST.dict().get(field)]
             if len(not_available) > 0:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Provide value for %s</span>" % not_available[0]
+                return HttpResponse(message, status=500)
             else:
                 fields.append('DRY_RUN')
                 downstream_manager = DownstreamManager(**{
@@ -604,6 +605,7 @@ def schedule_job(request):
                     error_msg = str(e) if len(str(e)) < 50 else str(e)[:50] + '...'
                     message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.<br/>" \
                               "&nbsp;&nbsp;<small class='text-danger'>" + error_msg + " </small></span>"
+                    return HttpResponse(message, status=500)
                 else:
                     message = "&nbsp;&nbsp;<span class='text-success'>Job ran successfully.</span>"
         elif job_type == TS_JOB_TYPES[4]:
@@ -619,6 +621,7 @@ def schedule_job(request):
 
 
 def read_file_logs(request):
+    message = ''
     if request.is_ajax():
         downstream_manager = DownstreamManager()
         log_file = Path(downstream_manager.job_log_file)
@@ -627,8 +630,7 @@ def read_file_logs(request):
                 content = f.readlines()
                 content = [x.strip() for x in content]
                 message = "<br/>".join(content)
-                return HttpResponse(message)
-    return HttpResponse(status=204)
+    return HttpResponse(message)
 
 
 def tabular_data(request):

@@ -70,7 +70,7 @@ function ajax_yml_jobs() {
             clearTimeout(poll_timeout), $("#job-result").html(e), $("#span-job-progress").html("<span class='glyphicon glyphicon-ok-sign' style='color:green'></span>"), $("#div-reset-button").html("<a href='/jobs/yml-based' class='btn btn-default pull-right' type='button'>Reset</a>")
         },
         error: function(e, t, a) {
-            clearTimeout(poll_timeout), $("#job-result").html(e), $("#span-job-progress").html("<span class='glyphicon glyphicon-exclamation-sign' style='color:orange'></span>")
+            clearTimeout(poll_timeout), $("#job-result").html(e.responseText), $("#span-job-progress").html("<span class='glyphicon glyphicon-remove' style='color:red'></span>")
         }
     })
 }

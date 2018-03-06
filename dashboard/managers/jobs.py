@@ -298,7 +298,7 @@ class ReleaseScheduleSyncManager(BaseManager):
                 {str(datetime.now()): str(len(relbranches)) + ' release branches fetched from db.'}
             )
             for relbranch in relbranches:
-                ical_events = self.release_branch_manager.get_calender_events_dict(
+                ical_events = self.release_branch_manager.get_calendar_events_dict(
                     relbranch.calendar_url, relbranch.relstream_slug)
                 release_stream = self.release_branch_manager.get_release_streams(
                     stream_slug=relbranch.relstream_slug).get()

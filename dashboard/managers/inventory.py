@@ -943,10 +943,10 @@ class ReleaseBranchManager(InventoryManager):
                         )
         return branches_of_relstreams
 
-    def get_calender_events_dict(self, ical_url, relstream_slug):
+    def get_calendar_events_dict(self, ical_url, relstream_slug):
         """
         Fetches iCal contents over http and converts into dict
-        :param ical_url: caldendar url
+        :param ical_url: calendar url
         :return: events dict_list
         """
         try:
@@ -1007,7 +1007,7 @@ class ReleaseBranchManager(InventoryManager):
         ical_url = kwargs.get('calendar_url')
         relbranch_slug = slugify(kwargs.get('relbranch_name', ''))
         release_stream = self.get_release_streams(stream_slug=relstream).get()
-        ical_events = self.get_calender_events_dict(ical_url, release_stream.relstream_slug)
+        ical_events = self.get_calendar_events_dict(ical_url, release_stream.relstream_slug)
         required_events = release_stream.major_milestones
         return relbranch_slug, \
             self.parse_events_for_required_milestones(

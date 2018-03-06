@@ -68,7 +68,8 @@ class Get(JobCommandBase):
                                 % str(builds[0]))
         else:
             self._write_to_file('\n<b>Latest Build Details</b> ...\n%s\n'
-                                % 'No build details found.')
+                                % 'No build details found for %s.'
+                                % input.get('build_tag'))
         return {'builds': builds}
 
 
@@ -179,7 +180,7 @@ class Load(JobCommandBase):
         locate and load spec file
         """
         try:
-            spec_file = None
+            spec_file = ''
             src_tar_file = None
             for root, dirs, files in os.walk(input['extract_dir']):
                 for file in files:
@@ -214,7 +215,6 @@ class Apply(JobCommandBase):
                         if file.endswith('.patch'):
                             patches.append(os.path.join(root, file))
 
-            current_dir = os.getcwd()
             [copy2(patch, input['src_tar_dir']) for patch in patches]
             os.chdir(input['src_tar_dir'])
             for patch in patches:
@@ -229,14 +229,15 @@ class Apply(JobCommandBase):
                     command_std_output = patch_output.stdout.read().decode("utf-8")
                     patch_output.kill()
                     p_value += 1
-
-            os.chdir(current_dir)
         except Exception as e:
+            os.chdir(input['base_dir'])
             self._write_to_file('\n<b>Something went wrong in applying patches</b> ...\n%s\n' % e)
         else:
+            os.chdir(input['base_dir'])
             self._write_to_file(
                 '\n<b>%s patches applied</b> ...\n%s\n' % (len(patches), " \n".join(patches))
             )
+        finally:
             return {'src_tar_dir': input['src_tar_dir']}
 
 
@@ -363,6 +364,9 @@ class ActionMapper(BaseManager):
                 current_node.get_method(), self.skip
             )(eval(current_node.get_namespace())(), current_node.input)
 
+            if current_node.output and 'builds' in current_node.output:
+                if not current_node.output['builds']:
+                    break
             if current_node.output and 'srpm_path' in current_node.output:
                 d = {'srpm_path': current_node.output.get('srpm_path')}
                 initials.update(d)

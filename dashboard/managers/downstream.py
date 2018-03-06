@@ -15,6 +15,7 @@
 
 import io
 import os
+import shutil
 import time
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -72,6 +73,23 @@ class DownstreamManager(BaseManager):
             )
             raise Exception('Stats could NOT be saved in db.')
 
+    def _wipe_workspace(self):
+        """
+        This makes sandbox clean for a new job to run
+        """
+        # remove log file if exists
+        if os.path.exists(self.job_log_file):
+            os.remove(self.job_log_file)
+        for file in os.listdir(self.sandbox_path):
+            file_path = os.path.join(self.sandbox_path, file)
+            try:
+                if os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+                elif os.path.isfile(file_path) and not file_path.endswith('.py'):
+                    os.unlink(file_path)
+            except Exception as e:
+                pass
+
     def execute_job(self):
         """
         1. PreProcess YML and replace variables with input_values
@@ -82,9 +100,7 @@ class DownstreamManager(BaseManager):
         3. Discover namespace and method for each task and fill in TaskNode
         4. Perform actions (execute tasks) and return responses
         """
-        # remove log file if exists
-        if os.path.exists(self.job_log_file):
-            os.remove(self.job_log_file)
+        self._wipe_workspace()
 
         yml_preprocessed = YMLPreProcessor(self.YML_FILE, **{
             'PACKAGE_NAME': self.PACKAGE_NAME,
@@ -115,9 +131,13 @@ class DownstreamManager(BaseManager):
                     self.hub_url, self.job_base_dir, self.buildsys
                 )
                 action_mapper.set_actions()
-                action_mapper.execute_tasks()
-                time.sleep(3)
-                action_mapper.clean_workspace()
-
+                # lets execute collected tasks
+                try:
+                    action_mapper.execute_tasks()
+                except Exception as e:
+                    raise Exception(e)
+                finally:
+                    action_mapper.clean_workspace()
+                    time.sleep(2)
                 if action_mapper.result and not getattr(self, 'DRY_RUN', None):
                     self._save_result_in_db(action_mapper.result)
