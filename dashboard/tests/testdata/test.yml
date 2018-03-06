@@ -1,7 +1,7 @@
 job:
   name: downstream stats
   type: syncdownstream
-  buildsys: koji
+  buildsys: %BUILD_SYSTEM%
   exception: raise
   execution: sequential
   package: %PACKAGE_NAME%
@@ -14,5 +14,6 @@ job:
     - unpack: SRPM
     - load: Spec file
     - unpack: tarball
+    - apply: patch
     - filter: PO files
     - calculate: Stats

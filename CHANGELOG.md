@@ -1,4 +1,5 @@
-##### Thu Mar 01 2018 Sundeep Anand <suanand@redhat.com>
+##### Tue Mar 06 2018 Sundeep Anand <suanand@redhat.com>
+* Migrate from Travis CI to Circle CI, fix Docker files
 * Update packages summary with out of sync packages
 * Extend downstream sync to brew and fix branch mapping
 * Add koji build system tags in package branch mapping

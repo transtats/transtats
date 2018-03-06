@@ -1,4 +1,5 @@
-[![CircleCI](https://circleci.com/gh/transtats/transtats.svg?style=svg)](https://circleci.com/gh/transtats/transtats)
+[![Website](https://img.shields.io/badge/website-transtats.org-orange.svg)](http://transtats.org)
+[![CircleCI](https://circleci.com/gh/transtats/transtats/tree/devel.svg?style=svg)](https://circleci.com/gh/transtats/transtats/tree/devel)
 [![Documentation Status](https://readthedocs.org/projects/transtats/badge/?version=latest)](http://transtats.readthedocs.io/en/latest/?badge=latest)
 
 ## Transtats
