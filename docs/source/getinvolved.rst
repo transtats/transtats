@@ -1,7 +1,8 @@
 Get Involved
 ============
 
-**Try and test:**
+Try and test
+-------------
 
 - **Docker**
 
@@ -49,9 +50,10 @@ Get Involved
   - Application should be available at :code:`localhost:8080`.
 
 
-**Develop: Vagrant**
+Hack and Develop
+----------------
 
-- Install Ansible, Docker and Vagrant.
+- Install and run Ansible, Docker and Vagrant.
 
 - This will setup devel environment and run container plus, `ssh` into it
     .. code-block:: bash

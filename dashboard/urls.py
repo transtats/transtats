@@ -105,6 +105,6 @@ urlpatterns = [
     url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/'), name="home"),
     url(r'^translation-status/', include(trans_status_urls)),
     url(r'^translation-coverage/$', TransCoverageView.as_view(), name="custom-graph"),
-    url(r'^how-to$', TemplateView.as_view(template_name="howto.html"), name="howto"),
+    url(r'^quick-start$', TemplateView.as_view(template_name="howto.html"), name="howto"),
     url(r'^health$', RedirectView.as_view(permanent=False, url='/api/ping?format=json')),
 ]

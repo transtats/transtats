@@ -3,119 +3,11 @@
 
 {% block extrascript %}
 <style type="text/css">
-    .stepwizard-step p{margin-top:10px}.stepwizard-row{display:table-row}.stepwizard{display:table;width:50%;position:relative}.stepwizard-step button[disabled]{opacity:1!important;filter:alpha(opacity=100)!important}.stepwizard-row:before{top:14px;bottom:0;position:absolute;content:" ";width:100%;height:1px;background-color:#ccc;z-order:0}.stepwizard-step{display:table-cell;text-align:center;position:relative}.btn-circle{width:30px;height:30px;text-align:center;padding:6px 0;font-size:12px;line-height:1.428571429;border-radius:15px}
+    .stepwizard-step p{margin-top:10px}.stepwizard-row{display:table-row}.stepwizard{display:table;width:50%;position:relative}.stepwizard-step button[disabled]{opacity:1!important;filter:alpha(opacity=100)!important}.stepwizard-row:before{top:14px;bottom:0;position:absolute;content:" ";width:100%;height:1px;background-color:#ccc;z-order:0}.stepwizard-step{display:table-cell;text-align:center;position:relative}.btn-circle{width:30px;height:30px;text-align:center;padding:6px 0;font-size:12px;line-height:1.428571429;border-radius:15px}.scrollable-panel{height:600px;overflow-y:scroll;width:100%}
 </style>
 <script src="/static/js/csrf.js"></script>
 <script type="text/javascript">
-function csrfSafeMethod(e) {
-    return /^(GET|HEAD|OPTIONS|TRACE)$/.test(e)
-}
-
-function getUrlVars() {
-    for (var e, t = [], a = window.location.href.slice(window.location.href.indexOf("?") + 1).split("&"), n = 0; n < a.length; n++) e = a[n].split("="), t.push(e[0]), t[e[0]] = e[1];
-    return t
-}
-var poll_timeout;
-
-function ajax_read_logs() {
-    ! function e() {
-        poll_timeout = setTimeout(function() {
-            $.ajax({
-                beforeSend: function(e, t) {
-                    csrfSafeMethod(t.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}"))
-                },
-                type: "POST",
-                url: "{% url 'ajax-read-logs' %}",
-                success: function(e) {
-                    e && $("#div-job-output").html(e)
-                },
-                complete: e
-            })
-        }, 2e3)
-    }()
-}
-
-function ajax_build_tags() {
-    $.ajax({
-        beforeSend: function(e, t) {
-            csrfSafeMethod(t.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}"))
-        },
-        type: "POST",
-        url: "{% url 'ajax-build-tags' %}",
-        data: {
-            buildsys: $("#buildSystem").val()
-        },
-        success: function(e) {
-            e && $("#div-build-tags").html(e)
-        }
-    })
-}
-
-function ajax_yml_jobs() {
-    dryRun = "", $("#chkDryRun").is(":checked") && (dryRun = $("#chkDryRun").val()), $.ajax({
-        beforeSend: function(e, t) {
-            csrfSafeMethod(t.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), ajax_read_logs(), $("#span-job-progress").html("<img src='/static/img/spin.gif'></img>")
-        },
-        type: "POST",
-        url: "{% url 'ajax-schedule-job' %}",
-        data: {
-            job: $("#ymlBasedJobIdentifier").val(),
-            YML_FILE: $("#YMLfile").val(),
-            PACKAGE_NAME: $("#pkgName").val(),
-            BUILD_SYSTEM: $("#buildSystem").val(),
-            BUILD_TAG: $("#buildTag").val(),
-            DRY_RUN: dryRun
-        },
-        success: function(e) {
-            clearTimeout(poll_timeout), $("#job-result").html(e), $("#span-job-progress").html("<span class='glyphicon glyphicon-ok-sign' style='color:green'></span>"), $("#div-reset-button").html("<a href='/jobs/yml-based' class='btn btn-default pull-right' type='button'>Reset</a>")
-        },
-        error: function(e, t, a) {
-            clearTimeout(poll_timeout), $("#job-result").html(e.responseText), $("#span-job-progress").html("<span class='glyphicon glyphicon-remove' style='color:red'></span>")
-        }
-    })
-}
-
-$(document).ready(function() {
-    $("#tab-yml-based").addClass("active"), getUrlVars().package && $("#pkgName").val(getUrlVars().package), getUrlVars().buildsys && $("#buildSystem").val(getUrlVars().buildsys), getUrlVars().tag && $("#buildTag").val(getUrlVars().tag), $("#fireJobLink").click(function(e) {
-        return e.preventDefault(), ajax_yml_jobs(), !1
-    });
-
-    $("#buildSystem").change(function(e) {
-        return e.preventDefault(), ajax_build_tags(), !1
-    });
-
-    var e = $("div.setup-panel div a"),
-        t = $(".setup-content"),
-        a = $(".nextBtn"),
-        n = $(".prevBtn");
-
-    t.hide(), e.click(function(a) {
-        a.preventDefault();
-        var n = $($(this).attr("href")),
-            s = $(this);
-        s.hasClass("disabled") || (e.removeClass("btn-primary").addClass("btn-default"), s.addClass("btn-primary"), t.hide(), n.show(), n.find("input:eq(0)").focus())
-    }), n.click(function() {
-        var e = $(this).closest(".setup-content").attr("id");
-        $('div.setup-panel div a[href="#' + e + '"]').parent().prev().children("a").removeAttr("disabled").trigger("click")
-    }), a.click(function() {
-        var e = $(this).closest(".setup-content"),
-            t = e.attr("id"),
-            a = $('div.setup-panel div a[href="#' + t + '"]').parent().next().children("a"),
-            n = e.find("input[type='text'],input[type='url']"),
-            s = !0;
-        $(".form-group").removeClass("has-error");
-        for (var r = 0; r < n.length; r++) n[r].validity.valid || (s = !1, $(n[r]).closest(".form-group").addClass("has-error"));
-        s && a.removeAttr("disabled").trigger("click")
-    }), $("div.setup-panel div a.btn-primary").trigger("click"), $(function() {
-        $(".dropdown-menu a").click(function() {
-            console.log($(this).attr("data-value")), $(this).closest(".dropdown").find("input.options").val($(this).attr("data-value"))
-        })
-    }), $("#pkgName").click(function() {
-        $(this).val("")
-    }), $("#buildTag").click(function() {
-        $(this).val("")
-    });
-});
+    function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}function getUrlVars(){for(var e,t=[],a=window.location.href.slice(window.location.href.indexOf("?")+1).split("&"),s=0;s<a.length;s++)e=a[s].split("="),t.push(e[0]),t[e[0]]=e[1];return t}var poll_timeout;function ajax_read_logs(){!function e(){poll_timeout=setTimeout(function(){$.ajax({beforeSend:function(e,t){csrfSafeMethod(t.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-read-logs' %}",success:function(e){e&&$("#div-job-output").html(e)},complete:e})},2e3)}()}function ajax_build_tags(){$.ajax({beforeSend:function(e,t){csrfSafeMethod(t.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-build-tags' %}",data:{buildsys:$("#buildSystem").val()},success:function(e){e&&$("#div-build-tags").html(e)}})}function ajax_yml_jobs(){dryRun="",$("#chkDryRun").is(":checked")&&(dryRun=$("#chkDryRun").val()),$.ajax({beforeSend:function(e,t){csrfSafeMethod(t.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),ajax_read_logs(),$("#span-job-progress").html("<img src='/static/img/spin.gif'></img>")},type:"POST",url:"{% url 'ajax-schedule-job' %}",data:{job:$("#ymlBasedJobIdentifier").val(),YML_FILE:$("#YMLfile").val(),PACKAGE_NAME:$("#pkgName").val(),BUILD_SYSTEM:$("#buildSystem").val(),BUILD_TAG:$("#buildTag").val(),DRY_RUN:dryRun},success:function(e){clearTimeout(poll_timeout),$("#job-result").html(e),$("#span-job-progress").html("<span class='glyphicon glyphicon-ok-sign' style='color:green'></span>"),$("#div-reset-button").html("<a href='/jobs/yml-based' class='btn btn-default pull-right' type='button'>Reset</a>")},error:function(e,t,a){clearTimeout(poll_timeout),$("#job-result").html(e.responseText),$("#span-job-progress").html("<span class='glyphicon glyphicon-remove' style='color:red'></span>")}})}$(document).ready(function(){$("#tab-yml-based").addClass("active"),getUrlVars().package&&$("#pkgName").val(getUrlVars().package),getUrlVars().buildsys&&$("#buildSystem").val(getUrlVars().buildsys),getUrlVars().tag&&$("#buildTag").val(getUrlVars().tag),$("#fireJobLink").click(function(e){return e.preventDefault(),ajax_yml_jobs(),!1}),$("#buildSystem").change(function(e){return e.preventDefault(),ajax_build_tags(),!1});var e=$("div.setup-panel div a"),t=$(".setup-content"),a=$(".nextBtn"),s=$(".prevBtn");t.hide(),e.click(function(a){a.preventDefault();var s=$($(this).attr("href")),r=$(this);r.hasClass("disabled")||(e.removeClass("btn-primary").addClass("btn-default"),r.addClass("btn-primary"),t.hide(),s.show(),s.find("input:eq(0)").focus())}),s.click(function(){var e=$(this).closest(".setup-content").attr("id");$('div.setup-panel div a[href="#'+e+'"]').parent().prev().children("a").removeAttr("disabled").trigger("click")}),a.click(function(){var e=$(this).closest(".setup-content"),t=e.attr("id"),a=$('div.setup-panel div a[href="#'+t+'"]').parent().next().children("a"),s=e.find("input[type='text'],input[type='url']"),r=!0;$(".form-group").removeClass("has-error");for(var n=0;n<s.length;n++)s[n].validity.valid||(r=!1,$(s[n]).closest(".form-group").addClass("has-error"));r&&a.removeAttr("disabled").trigger("click")}),$("div.setup-panel div a.btn-primary").trigger("click"),$(function(){$(".dropdown-menu a").click(function(){console.log($(this).attr("data-value")),$(this).closest(".dropdown").find("input.options").val($(this).attr("data-value"))})}),$("#pkgName").click(function(){$(this).val("")}),$("#buildTag").click(function(){$(this).val("")})});
 </script>
 {% endblock %}
 
@@ -234,7 +126,7 @@ job:
                 <hr/>
                 <div class="row">
                     <div class="col-md-12 col-md-offset-0">
-                        <div id="div-job-output" class="panel panel-default text-primary" style="padding:20px;background:AliceBlue"></div>
+                        <div id="div-job-output" class="panel panel-default text-primary scrollable-panel" style="padding:20px;background:AliceBlue"></div>
                     </div>
                 </div>
             </div>
