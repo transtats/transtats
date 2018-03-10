@@ -623,10 +623,17 @@ def schedule_job(request):
 def read_file_logs(request):
     message = ''
     if request.is_ajax():
+        post_params = request.POST.dict()
         downstream_manager = DownstreamManager()
-        log_file = Path(downstream_manager.job_log_file)
+        suffix = downstream_manager.job_suffix(
+            post_params['PACKAGE_NAME'],
+            post_params['BUILD_SYSTEM'],
+            post_params['BUILD_TAG']
+        )
+        log_file_path = downstream_manager.job_log_file + "." + suffix
+        log_file = Path(log_file_path)
         if log_file.is_file():
-            with open(downstream_manager.job_log_file) as f:
+            with open(log_file_path) as f:
                 content = f.readlines()
                 content = [x.strip() for x in content]
                 message = "<br/>".join(content)

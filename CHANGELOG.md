@@ -1,4 +1,4 @@
-##### Thu Mar 08 2018 Sundeep Anand <suanand@redhat.com>
+##### Sat Mar 10 2018 Sundeep Anand <suanand@redhat.com>
 * Improve docs, Add Jobs section to `docs.transtats.org`
 * Migrate from Travis CI to Circle CI, fix Docker files
 * Update packages summary with out of sync packages

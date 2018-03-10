@@ -42,12 +42,11 @@ class JobCommandBase(BaseManager):
 
         kwargs = {
             'sandbox_path': 'dashboard/sandbox/',
-            'job_log_file': 'dashboard/sandbox/downstream.log'
         }
         super(JobCommandBase, self).__init__(**kwargs)
 
-    def _write_to_file(self, text_to_write):
-        with open(self.job_log_file, 'a+') as the_file:
+    def _write_to_file(self, log_f, text_to_write):
+        with open(log_f, 'a+') as the_file:
             the_file.write(text_to_write)
 
 
@@ -64,10 +63,12 @@ class Get(JobCommandBase):
             pkg=input.get('package')
         )
         if len(builds) > 0:
-            self._write_to_file('\n<b>Latest Build Details</b> ...\n%s\n'
+            self._write_to_file(input['log_f'],
+                                '\n<b>Latest Build Details</b> ...\n%s\n'
                                 % str(builds[0]))
         else:
-            self._write_to_file('\n<b>Latest Build Details</b> ...\n%s\n'
+            self._write_to_file(input['log_f'],
+                                '\n<b>Latest Build Details</b> ...\n%s\n'
                                 % 'No build details found for %s.'
                                 % input.get('build_tag'))
         return {'builds': builds}
@@ -107,11 +108,13 @@ class Download(JobCommandBase):
             srpm_downloaded_path = self._download_srpm(srpm_download_url)
             if srpm_downloaded_path:
                 self._write_to_file(
+                    input['log_f'],
                     '\n<b>SRPM Successfully Downloaded from </b> ...\n%s\n'
                     % srpm_download_url
                 )
             else:
                 self._write_to_file(
+                    input['log_f'],
                     '\n<b>SRPM could not be downloaded from </b> ...\n%s\n'
                     % srpm_download_url
                 )
@@ -139,10 +142,11 @@ class Unpack(JobCommandBase):
             call(command, stdin=rpm2cpio.stdout)
         except Exception as e:
             self._write_to_file(
-                '\n<b>SRPM Extraction Failed</b> ...\n%s\n' % e
+                input['log_f'], '\n<b>SRPM Extraction Failed</b> ...\n%s\n' % e
             )
         else:
             self._write_to_file(
+                input['log_f'],
                 '\n<b>SRPM Extracted Successfully</b> ...\n%s\n'
                 % " \n".join(os.listdir(extract_dir))
             )
@@ -163,10 +167,11 @@ class Unpack(JobCommandBase):
                 tar_file.extractall(path=input['extract_dir'])
         except Exception as e:
             self._write_to_file(
-                '\n<b>Tarball Extraction Failed</b> ...\n%s\n' % e
+                input['log_f'], '\n<b>Tarball Extraction Failed</b> ...\n%s\n' % e
             )
         else:
             self._write_to_file(
+                input['log_f'],
                 '\n<b>Tarball Extracted Successfully</b> ...\n%s\n'
                 % " \n".join(os.listdir(src_tar_dir))
             )
@@ -192,10 +197,11 @@ class Load(JobCommandBase):
             spec_obj = Spec.from_file(spec_file)
         except Exception as e:
             self._write_to_file(
-                '\n<b>Loading Spec file Failed</b> ...\n%s\n' % e
+                input['log_f'], '\n<b>Loading Spec file Failed</b> ...\n%s\n' % e
             )
         else:
             self._write_to_file(
+                input['log_f'],
                 '\n<b>Spec file loaded, Sources</b> ...\n%s\n'
                 % " \n".join(spec_obj.sources)
             )
@@ -208,12 +214,17 @@ class Load(JobCommandBase):
 class Apply(JobCommandBase):
 
     def patch(self, input):
+        tar_dir = {'src_tar_dir': input['src_tar_dir']}
         try:
             patches = []
             for root, dirs, files in os.walk(input['extract_dir']):
                     for file in files:
                         if file.endswith('.patch'):
                             patches.append(os.path.join(root, file))
+
+            if not patches:
+                self._write_to_file(input['log_f'], '\n<b>No patches found.</b>\n')
+                return tar_dir
 
             [copy2(patch, input['src_tar_dir']) for patch in patches]
             os.chdir(input['src_tar_dir'])
@@ -231,14 +242,16 @@ class Apply(JobCommandBase):
                     p_value += 1
         except Exception as e:
             os.chdir(input['base_dir'])
-            self._write_to_file('\n<b>Something went wrong in applying patches</b> ...\n%s\n' % e)
+            self._write_to_file(
+                input['log_f'], '\n<b>Something went wrong in applying patches</b> ...\n%s\n' % e
+            )
         else:
             os.chdir(input['base_dir'])
             self._write_to_file(
-                '\n<b>%s patches applied</b> ...\n%s\n' % (len(patches), " \n".join(patches))
+                input['log_f'], '\n<b>%s patches applied</b> ...\n%s\n' % (len(patches), " \n".join(patches))
             )
         finally:
-            return {'src_tar_dir': input['src_tar_dir']}
+            return tar_dir
 
 
 class Filter(JobCommandBase):
@@ -254,9 +267,12 @@ class Filter(JobCommandBase):
                         if file.endswith('.po'):
                             trans_files.append(os.path.join(root, file))
         except Exception as e:
-            self._write_to_file('\n<b>Something went wrong in filtering PO files</b> ...\n%s\n' % e)
+            self._write_to_file(
+                input['log_f'], '\n<b>Something went wrong in filtering PO files</b> ...\n%s\n' % e
+            )
         else:
             self._write_to_file(
+                input['log_f'],
                 '\n<b>%s PO files filtered</b> ...\n%s\n' % (len(trans_files), " \n".join(trans_files))
             )
             return {'trans_files': trans_files}
@@ -286,10 +302,12 @@ class Calculate(JobCommandBase):
                         len(po.untranslated_entries()) + len(po.fuzzy_entries())
                     trans_stats['stats'].append(temp_trans_stats.copy())
         except Exception as e:
-            self._write_to_file('\n<b>Something went wrong in calculating stats</b> ...\n%s\n' % e)
+            self._write_to_file(
+                input['log_f'], '\n<b>Something went wrong in calculating stats</b> ...\n%s\n' % e
+            )
         else:
             self._write_to_file(
-                '\n<b>Calculated Stats</b> ...\n%s\n' % str(trans_stats)
+                input['log_f'], '\n<b>Calculated Stats</b> ...\n%s\n' % str(trans_stats)
             )
             return {'trans_stats': trans_stats}
 
@@ -314,7 +332,8 @@ class ActionMapper(BaseManager):
                  package,
                  server_url,
                  job_base_dir,
-                 build_system):
+                 build_system,
+                 job_log_file):
         super(ActionMapper, self).__init__()
         self.tasks = tasks_structure
         self.tag = build_tag
@@ -322,6 +341,7 @@ class ActionMapper(BaseManager):
         self.hub = server_url
         self.base_dir = job_base_dir
         self.buildsys = build_system
+        self.log_f = job_log_file
         self.cleanup_resources = {}
         self.__stats = None
 
@@ -330,6 +350,7 @@ class ActionMapper(BaseManager):
 
     def set_actions(self):
         count = 0
+        self.tasks.status = False
         current_node = self.tasks.head
         while current_node is not None:
             count += 1
@@ -350,7 +371,7 @@ class ActionMapper(BaseManager):
         current_node = self.tasks.head
         initials = {
             'build_tag': self.tag, 'package': self.pkg, 'hub_url': self.hub,
-            'base_dir': self.base_dir, 'build_system': self.buildsys
+            'base_dir': self.base_dir, 'build_system': self.buildsys, 'log_f': self.log_f
         }
 
         while current_node is not None:
@@ -364,6 +385,7 @@ class ActionMapper(BaseManager):
                 current_node.get_method(), self.skip
             )(eval(current_node.get_namespace())(), current_node.input)
 
+            self.tasks.status = True if current_node.output else False
             if current_node.output and 'builds' in current_node.output:
                 if not current_node.output['builds']:
                     break
@@ -382,6 +404,10 @@ class ActionMapper(BaseManager):
     @property
     def result(self):
         return self.__stats
+
+    @property
+    def status(self):
+        return self.tasks.status
 
     def clean_workspace(self):
         """

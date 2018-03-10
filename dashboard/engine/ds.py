@@ -65,6 +65,7 @@ class TaskList(object):
 
         self.head = None
         self.tail = None
+        self.status = None
 
     @property
     def length(self):

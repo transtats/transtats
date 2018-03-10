@@ -43,9 +43,10 @@ class DownstreamManager(BaseManager):
     sandbox_path = 'dashboard/sandbox/'
     job_log_file = sandbox_path + 'downstream.log'
 
+    package_manager = PackagesManager()
+
     def _bootstrap(self, build_system):
         try:
-            self.package_manager = PackagesManager()
             release_streams = \
                 self.package_manager.get_release_streams(built=build_system)
             release_stream = release_streams.get()
@@ -58,6 +59,8 @@ class DownstreamManager(BaseManager):
             self.hub_url = release_stream.relstream_server
 
     def _save_result_in_db(self, stats_dict):
+        if not self.package_manager.is_package_exist(package_name=self.package):
+            raise Exception("Stats NOT saved. Package does not exist.")
         try:
             self.package_manager.save_version_stats(
                 self.package, self.buildsys + ' - ' + self.tag, stats_dict, self.buildsys
@@ -85,10 +88,15 @@ class DownstreamManager(BaseManager):
             try:
                 if os.path.isdir(file_path):
                     shutil.rmtree(file_path)
-                elif os.path.isfile(file_path) and not file_path.endswith('.py'):
+                elif os.path.isfile(file_path) and not file_path.endswith('.py') \
+                        and '.log.' not in file_path:
                     os.unlink(file_path)
             except Exception as e:
                 pass
+
+    @staticmethod
+    def job_suffix(*args):
+        return "-".join(args)
 
     def execute_job(self):
         """
@@ -114,6 +122,7 @@ class DownstreamManager(BaseManager):
             self.package = yml_job.package
             self.buildsys = yml_job.buildsys
             self.tag = yml_job.tags[0] if len(yml_job.tags) > 0 else None
+            suffix = self.job_suffix(self.package, self.buildsys, self.tag)
             self._bootstrap(self.buildsys)
             # for sequential jobs, tasks should be pushed to linked list
             # and output of previous task should be input for next task
@@ -125,10 +134,12 @@ class DownstreamManager(BaseManager):
                 tasks = yml_job.tasks
                 for task in tasks:
                     self.tasks_ds.add_task(task)
-
+                log_file = self.job_log_file + "." + suffix
+                if os.path.exists(log_file):
+                    os.unlink(log_file)
                 action_mapper = ActionMapper(
                     self.tasks_ds, self.tag, self.package,
-                    self.hub_url, self.job_base_dir, self.buildsys
+                    self.hub_url, self.job_base_dir, self.buildsys, log_file
                 )
                 action_mapper.set_actions()
                 # lets execute collected tasks
@@ -141,3 +152,5 @@ class DownstreamManager(BaseManager):
                     time.sleep(2)
                 if action_mapper.result and not getattr(self, 'DRY_RUN', None):
                     self._save_result_in_db(action_mapper.result)
+                if os.path.exists(log_file):
+                    os.unlink(log_file)
