@@ -14,6 +14,7 @@
 # under the License.
 
 # django
+from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -27,9 +28,12 @@ from dashboard.views import (
     TranStatusPackagesView, TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
     TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
     JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView,
-    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, refresh_package, release_graph,
-    schedule_job, graph_data, tabular_data, export_packages, generate_reports
+    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobsYMLBasedView, refresh_package,
+    release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
+    get_build_tags
 )
+
+LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
 
 
 api_urls = [
@@ -49,12 +53,15 @@ ajax_urls = [
     url(r'^refresh-package$', refresh_package, name="ajax-refresh-package"),
     url(r'^release-graph$', release_graph, name="ajax-release-graph"),
     url(r'^generate-reports$', generate_reports, name="ajax-releases-report"),
+    url(r'^read-file-logs$', read_file_logs, name="ajax-read-logs"),
+    url(r'^build-tags$', get_build_tags, name="ajax-build-tags"),
 ]
 
 app_jobs_urls = [
     url(r'^$', JobsView.as_view(), name="jobs"),
     url(r'^logs$', JobsLogsView.as_view(), name="jobs-logs"),
-    url(r'^archive$', JobsArchiveView.as_view(), name="jobs-archive")
+    url(r'^archive$', JobsArchiveView.as_view(), name="jobs-archive"),
+    url(r'^yml-based$', JobsYMLBasedView.as_view(), name="jobs-yml-based")
 ]
 
 app_setting_urls = [
@@ -67,15 +74,13 @@ app_setting_urls = [
             name="settings-stream-branches-new")
     ])),
     url(r'^products$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
-    url(r'^packages/new$', login_required(NewPackageView.as_view(),
-                                          login_url="oidc_authentication_init"),
+    url(r'^packages/new$', login_required(NewPackageView.as_view(), login_url=LOGIN_URL),
         name="settings-packages-new"),
     url(r'^packages/export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
     url(r'^packages$', PackageSettingsView.as_view(), name="settings-packages"),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
-    url(r'^graph-rules/new$', login_required(NewGraphRuleView.as_view(),
-                                             login_url="oidc_authentication_init"),
+    url(r'^graph-rules/new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
         name="settings-graph-rules-new"),
     url(r'^graph-rules$', GraphRulesSettingsView.as_view(), name="settings-graph-rules")
 ]
@@ -100,6 +105,6 @@ urlpatterns = [
     url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/'), name="home"),
     url(r'^translation-status/', include(trans_status_urls)),
     url(r'^translation-coverage/$', TransCoverageView.as_view(), name="custom-graph"),
-    url(r'^how-to$', TemplateView.as_view(template_name="howto.html"), name="howto"),
+    url(r'^quick-start$', TemplateView.as_view(template_name="howto.html"), name="howto"),
     url(r'^health$', RedirectView.as_view(permanent=False, url='/api/ping?format=json')),
 ]

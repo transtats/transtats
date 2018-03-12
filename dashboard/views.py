@@ -15,6 +15,7 @@
 
 import csv
 from datetime import datetime
+from pathlib import Path
 
 # django
 from django.contrib import messages
@@ -30,6 +31,9 @@ from django.views.generic import (
 from django.urls import reverse
 
 # dashboard
+from dashboard.constants import (
+    APP_DESC, TS_JOB_TYPES, RELSTREAM_SLUGS
+)
 from dashboard.forms import (
     NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
 )
@@ -38,13 +42,13 @@ from dashboard.managers.inventory import (
 )
 from dashboard.managers.jobs import (
     JobsLogManager, TransplatformSyncManager,
-    ReleaseScheduleSyncManager
+    ReleaseScheduleSyncManager, BuildTagsSyncManager
 )
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
+from dashboard.managers.downstream import DownstreamManager
 from dashboard.managers.upstream import UpstreamManager
-from dashboard.constants import APP_DESC, TS_JOB_TYPES
 
 
 class ManagersMixin(object):
@@ -520,6 +524,30 @@ class JobsArchiveView(ManagersMixin, ListView):
         return job_logs[15:]
 
 
+class JobsYMLBasedView(ManagersMixin, TemplateView):
+    """
+    YML Based Job View
+    """
+    template_name = "jobs/jobs_yml_based.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(TemplateView, self).get_context_data(**kwargs)
+        packages = self.packages_manager.get_package_name_tuple()
+        if packages:
+            context['packages'] = packages
+        release_streams = \
+            self.packages_manager.get_release_streams(
+                only_active=True, fields=('relstream_built', )
+            )
+        available_build_systems = []
+        for relstream in release_streams:
+            available_build_systems.append(relstream.relstream_built)
+
+        if available_build_systems:
+            context['build_systems'] = available_build_systems
+        return context
+
+
 def schedule_job(request):
     """
     Handles job schedule AJAX POST request
@@ -561,6 +589,54 @@ def schedule_job(request):
                 upstream_sync_manager.clean_workspace()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+        elif job_type == TS_JOB_TYPES[3]:
+            fields = ['YML_FILE', 'PACKAGE_NAME', 'BUILD_SYSTEM', 'BUILD_TAG']
+            not_available = [field for field in fields if not request.POST.dict().get(field)]
+            if len(not_available) > 0:
+                message = "&nbsp;&nbsp;<span class='text-danger'>Provide value for %s</span>" % not_available[0]
+                return HttpResponse(message, status=500)
+            else:
+                fields.append('DRY_RUN')
+                downstream_manager = DownstreamManager(**{
+                    field: request.POST.dict().get(field) for field in fields})
+                try:
+                    downstream_manager.execute_job()
+                except Exception as e:
+                    error_msg = str(e) if len(str(e)) < 50 else str(e)[:50] + '...'
+                    message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.<br/>" \
+                              "&nbsp;&nbsp;<small class='text-danger'>" + error_msg + " </small></span>"
+                    return HttpResponse(message, status=500)
+                else:
+                    message = "&nbsp;&nbsp;<span class='text-success'>Job ran successfully.</span>"
+        elif job_type == TS_JOB_TYPES[4]:
+            buildtags_sync_manager = BuildTagsSyncManager()
+            job_uuid = buildtags_sync_manager.syncbuildtags_initiate_job()
+            if job_uuid:
+                message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                          "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
+                buildtags_sync_manager.sync_build_tags()
+            else:
+                message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+    return HttpResponse(message)
+
+
+def read_file_logs(request):
+    message = ''
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        downstream_manager = DownstreamManager()
+        suffix = downstream_manager.job_suffix(
+            post_params['PACKAGE_NAME'],
+            post_params['BUILD_SYSTEM'],
+            post_params['BUILD_TAG']
+        )
+        log_file_path = downstream_manager.job_log_file + "." + suffix
+        log_file = Path(log_file_path)
+        if log_file.is_file():
+            with open(log_file_path) as f:
+                content = f.readlines()
+                content = [x.strip() for x in content]
+                message = "<br/>".join(content)
     return HttpResponse(message)
 
 
@@ -622,6 +698,31 @@ def refresh_package(request):
                     {% tag_branch_mapping package_name %}
                 """
                 return HttpResponse(Template(template_string).render(context))
+        elif task_type == "statsDiff" and post_params.get('package'):
+            graph_manager = GraphManager()
+            pkg = post_params['package']
+            package_stats = graph_manager.get_trans_stats_by_package(pkg)
+            ERR_MSG = "Make sure all mapped versions/tags are sync'd for stats."
+            package_branch_mapping = graph_manager.package_manager.get_pkg_branch_mapping(pkg)
+            if package_stats and package_branch_mapping:
+                try:
+                    graph_manager.package_manager.calculate_stats_diff(
+                        pkg, package_stats, package_branch_mapping
+                    )
+                except Exception as e:
+                    return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
+                else:
+                    context = Context(
+                        {'META': request.META,
+                         'package_name': post_params['package']}
+                    )
+                    template_string = """
+                                        {% load tag_stats_diff from custom_tags %}
+                                        {% tag_stats_diff package_name %}
+                                    """
+                    return HttpResponse(Template(template_string).render(context))
+            else:
+                return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
         elif task_type == "syncUpstream" and post_params.get('package'):
             input_package_name = post_params['package']
             package = package_manager.get_packages([input_package_name], ['package_name', 'upstream_url']).get()
@@ -752,4 +853,27 @@ def generate_reports(request):
                                     {% tag_packages_summary %}
                                 """
                 return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)
+
+
+def get_build_tags(request):
+    """
+    Get Build System Tags
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        build_system = post_params.get('buildsys', '')
+        inventory_manager = InventoryManager()
+        tags = inventory_manager.get_build_tags(build_system)
+        if tags:
+            context = Context(
+                {'META': request.META,
+                 'build_tags': tags,
+                 'buildsys': build_system}
+            )
+            template_string = """
+                                {% load tag_build_tags from custom_tags %}
+                                {% tag_build_tags buildsys %}
+                            """
+            return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)

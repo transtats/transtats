@@ -27,7 +27,7 @@
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
                     <h3 class="section-heading">Check Inventory</h3>
-                    <p style="font-size: medium;" class="text-justify">Graphs will be generated for enabled languages, aliases are used while syncing. One can create a language set, which can be associated with a release branch. Multiple instances of a translation platform can be added. RHEL and Fedora are release streams whereas RHEL 7.4 is a branch. A release branch should have a language set and a schedule. {{ app_name }} jobs sync at intervals to keep stats and schedule latest.</p>
+                    <p style="font-size: medium;" class="text-justify">Graphs will be generated for enabled languages, aliases are used while syncing. One can create a language set, which can be associated with a release branch. Multiple instances of a translation platform can be added. A release branch (for example - Fedora 28) should have a language set and a schedule. {{ app_name }} jobs sync with upstream repository, translation platform and build system to keep stats, build tags and schedule latest.</p>
                 </div>
                 <div class="col-lg-4 col-lg-offset-1 col-sm-5">
                     <hr class="section-heading-spacer">
@@ -46,7 +46,7 @@
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
                     <h3 class="section-heading">Add and Configure Packages</h3>
-                    <p style="font-size: medium;" class="text-justify">While adding a package, upstream URL is required. And package name is verified with selected translation platform. Translation of a package can be tracked for multiple release streams. Package can be sync'd with translation platform while adding itself. Once sync'd, branch mapping can be created. It maps {{ app_name }} release branches with most suitable project versions available at translation platform. Package can be sync'd with upstream repo as well (limited to git repo and PO files).</p>
+                    <p style="font-size: medium;" class="text-justify">While adding a package, upstream URL is required. And package name is verified with selected translation platform. Translation of a package can be tracked for multiple release streams. Package should be sync'd with translation platform and build system. Once sync'd, branch mapping can be created. It maps {{ app_name }} release branches with most suitable project versions available at translation platform and with appropriate build tags. Package can be sync'd with upstream repo as well.</p>
                 </div>
                 <div class="col-lg-5 col-sm-pull-6  col-sm-5">
                     <hr class="section-heading-spacer">
@@ -63,12 +63,12 @@
                 <div class="col-lg-4 col-sm-5">
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
-                    <h3 class="section-heading">Add Graph Rule</h3>
-                    <p style="font-size: medium;" class="text-justify">Slug form of rule name would be saved. This should be specific for a release branch. Packages having branch mapping created can only be included here. Languages could be picked from language set associated with the release branch or from enabled ones. Somehow if a package is not tracked for a release stream and selected for inclusion {{ app_name }} would show an error.</p>
+                    <h3 class="section-heading">Generate Diff</h3>
+                    <p style="font-size: medium;" class="text-justify">Once we have all versions / tags mentioned in branch mapping of a package sync'd with either translation platform or build system, differences can be created and observed. This answers - for a package - latest translations are packaged or not? If not, is some patch applied at the last moment? Which languages need attention?</p>
                 </div>
                 <div class="col-lg-5 col-lg-offset-1 col-sm-5">
                     <hr class="section-heading-spacer">
-                    <img class="img-responsive" src="/static/img/graphrule.png" alt="">
+                    <img class="img-responsive" src="/static/img/diff.png" alt="">
                 </div>
             </div>
         </div>
@@ -81,10 +81,27 @@
                 <div class="col-lg-5 col-lg-offset-1 col-sm-push-4  col-sm-5">
                     <hr class="section-heading-spacer">
                     <div class="clearfix"></div>
-                    <h3 class="section-heading">Experience</h3>
-                    <p style="font-size: medium;" class="text-justify">{{ app_name }} has two graph views: specific to a package in all languages for all branches and another specific to a release branch in chosen languages for selected packages. Latter is a graph rule representation and its accuracy depends on branch mapping of packages. A sync'd package can appear in former view whereas branch mapping is necessary for latter. Even translation workload could be estimated for a release branch. This has three views: combined, detailed and per languages.</p>
+                    <h3 class="section-heading">Add Graph Rule</h3>
+                    <p style="font-size: medium;" class="text-justify">Translation coverages (translation status of a group of packages in a set of languages to a given release) are based on rules. Slug form of rule name would be saved. This should be specific for a release branch. Packages having branch mapping created can only be included here. Languages could be picked from language set associated with the release branch or from enabled ones. Somehow if a package is not tracked for a release stream and selected for inclusion {{ app_name }} would show an error.</p>
                 </div>
                 <div class="col-lg-5 col-sm-pull-6  col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <img class="img-responsive" src="/static/img/graphrule.png" alt="">
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </div>
+    <div class="content-section-a">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-sm-5">
+                    <hr class="section-heading-spacer">
+                    <div class="clearfix"></div>
+                    <h3 class="section-heading">Experience</h3>
+                    <p style="font-size: medium;" class="text-justify">{{ app_name }} has two traversal options: releases and packages. One can see high level summary and can pick any one release or a package for details. Summary can tell you - packages which are out of sync, translation workload estimate for each language per release, and much more. Detailed views contain language wise stats, translation position etc. Another form is coverage, which depends on graph rules and branch mapping.</p>
+                </div>
+                <div class="col-lg-5 col-lg-offset-1 col-sm-5">
                     <hr class="section-heading-spacer">
                     <img class="img-responsive" src="/static/img/graph.png" alt="">
                 </div>
@@ -97,18 +114,18 @@
         <h3 class="text-primary">FAQs</h3><br/>
         <h4>Is {{ app_name }} project opensource? Where we have docs written?</h4>
         <span class="text-muted">Yes. Source is available at <a href="https://github.com/transtats" target="_blank">GitHub</a></span>. Projects website is <a href="http://transtats.org/" target="_blank">transtats.org</a> and point your browser to <a href="http://docs.transtats.org/" target="_blank">docs.transtats.org</a> for docs.
-        <h4>While working with {{ app_name }} I got an issue, where should I file it?</h4>
-        <span class="text-muted">You're welcome! Please follow <a href="https://github.com/transtats/transtats/issues/new" target="_blank">Report Issue</a> link below.</span>
-        <h4>Where to find what features will be available in coming {{ app_name }} release?</h4>
-        <span class="text-muted">Docs should contain this info.</span>
+        <h4>While working with {{ app_name }} I got an issue, how should I report it?</h4>
+        <span class="text-muted">You're welcome! Please create a <a href="https://github.com/transtats/transtats/issues/new" target="_blank">GitHub Issue</a> or join #transtats channel at IRC freenode.</span>
         <h4>I like the idea and want to contribute, how should I start?</h4>
-        <span class="text-muted">Docs should contain this info.</span>
-        <h4>Some of the buttons/navigation are not working or are disabled. Is there a specific reason?</h4>
-        <span class="text-muted">Actually, these features are under development and will be available soon.</span>
-        <h4>Which translation platforms are currently supported? Are there some plans to support more?</h4>
-        <span class="text-muted">{{ app_name }} supports <a href="http://zanata.org" target="_blank">Zanata</a>. For GNOME packges, integration with Damned Lies is planned.</span>
-        <h4>Translation progress can be tracked for RHEL and Fedora, as of now. How about others?</h4>
-        <span class="text-muted">Plans are! May be in coming releases {{ app_name }} start tracking for others also like JBoss, Ansible, etc.</span>
+        <span class="text-muted">Please look out for <a href="https://github.com/transtats/transtats/blob/devel/CONTRIBUTING.md" target="_blank">contributing guide</a> to get you started.</span>
+        <h4>Which translation platforms and build systems are currently supported?</h4>
+        <span class="text-muted">{{ app_name }} supports <a href="https://l10n.gnome.org/" target="_blank">DamnedLies</a> and <a href="http://zanata.org" target="_blank">Zanata</a>. {{ app_name }} can talk to <a href="https://koji.fedoraproject.org/koji/" target="_blank">koji</a> build system.</span>
+        <h4>What is branch mapping? And why is it important?</h4>
+        <span class="text-muted">Every package has its branch mapping. This establishes mapping between: {{ app_name }} release_branch : translation platform project_version : build system build_tag. On the basis of this, translation differences/gaps can be calculated/located.</span>
+        <h4>Why YAML based jobs are introduced?</h4>
+        <span class="text-muted">YAML based jobs add great level of flexibility by broadening capabilities to interact with build systems and/or translation platforms.</span>
+        <h4>Where to find what features will be available in coming {{ app_name }} release?</h4>
+        <span class="text-muted">Please see <a href="http://docs.transtats.org/en/latest/roadmap.html" target="_blank">Roadmap</a> section in docs. You may also like going through <a href="https://github.com/transtats/transtats/blob/devel/CHANGELOG.md" target="_blank">changelog</a>.</span>
     </div>
 </div>
 {% endblock %}

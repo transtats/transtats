@@ -1,0 +1,19 @@
+job:
+  name: downstream stats
+  type: syncdownstream
+  buildsys: %BUILD_SYSTEM%
+  exception: raise
+  execution: sequential
+  package: %PACKAGE_NAME%
+  return_type: json
+  tags:
+    - %BUILD_TAG%
+  tasks:
+    - get: latest build info
+    - download: SRPM
+    - unpack: SRPM
+    - load: Spec file
+    - unpack: tarball
+    - apply: patch
+    - filter: PO files
+    - calculate: Stats

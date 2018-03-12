@@ -15,10 +15,16 @@
 
 # Process and cache REST resource's responses here.
 
+from subprocess import Popen, PIPE
+try:
+    import koji
+except Exception as e:
+    raise Exception("koji could not be imported, details: %s" % e)
+
 # dashboard
-from dashboard.constants import TRANSPLATFORM_ENGINES
+from dashboard.constants import TRANSPLATFORM_ENGINES, BUILD_SYSTEMS
+from dashboard.converters.xml2dict import parse
 from dashboard.decorators import call_service
-from dashboard.utilities.xmltodict import parse
 
 
 __all__ = ['APIResources']
@@ -257,7 +263,73 @@ class TransplatformResources(object):
         return self._execute_method(selected_config, *args, **kwargs)
 
 
-class APIResources(TransplatformResources):
+class KojiResources(object):
+    """
+    Koji Resources
+    """
+
+    @staticmethod
+    def _session(hub):
+        krb_service = ''
+        if BUILD_SYSTEMS[0] in hub:
+            krb_service = 'brewhub'
+        elif BUILD_SYSTEMS[1] in hub:
+            krb_service = 'kojihub'
+        return koji.ClientSession(
+            hub, opts={'krbservice': krb_service, 'no_ssl_verify': True}
+        )
+        # self.session.gssapi_login()
+
+    def establish_kerberos_ticket(self):
+        """
+        Get kerberos ticket in-place
+        """
+        userid = "transtats"
+        realm = "FEDORAPROJECT.ORG"
+
+        kinit = '/usr/bin/kinit'
+        kinit_args = [kinit, '%s@%s' % (userid, realm)]
+        kinit = Popen(kinit_args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        kinit.stdin.write(b'secret')
+        kinit.wait()
+
+    def build_tags(self, hub_url):
+        """
+        Get build tags
+        """
+        active_repos = self._session(hub_url).getActiveRepos()
+        tag_starts_with = 'rhel' if BUILD_SYSTEMS[0] in hub_url else ''
+        build_tags = [repo.get('tag_name') for repo in active_repos
+                      if repo.get('tag_name', '').startswith(tag_starts_with)]
+        if BUILD_SYSTEMS[1] in hub_url:
+            # fedora koji specific changes
+            pre_processed_tags = [tag[:-6] if tag.endswith('-build') else tag
+                                  for tag in list(set(build_tags))]
+            processed_tags = [tag for tag in pre_processed_tags
+                              if not tag.startswith('module-')]
+        else:
+            processed_tags = list(set(build_tags))
+        return sorted(processed_tags)[::-1]
+
+    def build_info(self, hub_url, tag, pkg):
+        return self._session(hub_url).getLatestBuilds(tag, package=pkg)
+
+    def get_build(self, hub_url, build_id):
+        return self._session(hub_url).getBuild(build_id)
+
+    def list_RPMs(self, hub_url, build_id):
+        return self._session(hub_url).listRPMs(buildID=build_id)
+
+    def get_path_info(self, build=None, srpm=None):
+        if build and not srpm:
+            path = koji.pathinfo.build(build)
+            return path[0] if isinstance(path, list) and len(path) > 0 else path
+        elif srpm and not build:
+            return koji.pathinfo.rpm(srpm)
+
+
+class APIResources(KojiResources,
+                   TransplatformResources):
     """
     Single Entry Point to
      REST Communications

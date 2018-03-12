@@ -7,9 +7,11 @@ djangorestframework
 gunicorn
 mozilla-django-oidc
 polib
-psycopg2
+psycopg2-binary
+python-rpm-spec
 python-slugify
 pytz
+pyyaml
 requests
 six
 smmap2

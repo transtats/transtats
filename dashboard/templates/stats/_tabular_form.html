@@ -3,6 +3,8 @@
     $("#packagedesc").html("{{ pkg_desc }}"); $("#graphdisclaimer").html(a);
 </script>
 {% if stats_data %}
+<div style="padding:10px;background-color:azure;"><span style='padding-left:20px;padding-right:10px;' class='glyphicon glyphicon-info-sign' aria-hidden='true'></span>
+    <span class='text-info'>Stats coming from Upstream has AliceBlue background color whereas Downstream has Ivory color. And its default for Translation Platforms.</span></div>
 <table class="table table-bordered table-hover">
     <thead>
       <tr>
@@ -16,6 +18,8 @@
       {% for version, stats in stats_data.items %}
       {% if version|lower == 'upstream' %}
       <tr style="background-color:AliceBlue">
+      {% elif 'brew' in version|lower or 'koji' in version|lower%}
+      <tr style="background-color:Ivory">
       {% else %}
       <tr>
       {% endif %}

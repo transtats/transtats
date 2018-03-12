@@ -44,5 +44,5 @@ INSERT INTO ts_transplatforms (engine_name, subject, api_url, platform_slug, ser
 --
 
 INSERT INTO ts_relstreams (relstream_name, relstream_slug, relstream_server, relstream_built, srcpkg_format, top_url, web_url, krb_service, auth_type, amqp_server, msgbus_exchange, major_milestones, relstream_phases, relstream_status)
-VALUES ('Fedora', 'fedora', 'http://koji.fedoraproject.org/kojihub', 'koji', 'srpm', 'https://kojipkgs.fedoraproject.org', 'https://koji.fedoraproject.org/koji/', NULL, 'FAS', NULL, 'fedmsg',
+VALUES ('Fedora', 'fedora', 'https://koji.fedoraproject.org/kojihub', 'koji', 'srpm', 'https://kojipkgs.fedoraproject.org', 'https://koji.fedoraproject.org/koji/', NULL, 'FAS', NULL, 'fedmsg',
 ARRAY['Testing Phase', 'Alpha Release', 'String Freeze', 'Translation Deadline', 'Beta Release', 'Launch Phase', 'GA'], ARRAY['Planning', 'Development', 'Freeze', 'Release', 'Maintenance', 'Unsupported'], TRUE);
