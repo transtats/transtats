@@ -149,7 +149,7 @@ class DownstreamManager(BaseManager):
                     raise Exception(e)
                 finally:
                     action_mapper.clean_workspace()
-                    time.sleep(2)
+                    time.sleep(4)
                 if action_mapper.result and not getattr(self, 'DRY_RUN', None):
                     self._save_result_in_db(action_mapper.result)
                 if os.path.exists(log_file):

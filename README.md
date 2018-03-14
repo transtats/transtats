@@ -4,7 +4,7 @@
 
 ## Transtats
 
-Transtats helps making packages ship-ready with translation completeness.
+Transtats helps making packages ready to ship with translation completeness.
 
 Use Cases
  - Tracking translation progress across packages for downstream releases with respect to current development.

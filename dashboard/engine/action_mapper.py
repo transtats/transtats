@@ -152,6 +152,13 @@ class Unpack(JobCommandBase):
             )
             return {'extract_dir': extract_dir}
 
+    def _determine_tar_dir(self, params):
+        for root, dirs, files in os.walk(params['extract_dir']):
+            for directory in dirs:
+                if directory == params['package']:
+                    return os.path.join(root, directory)
+            return root
+
     def tarball(self, input):
         """
         Untar source tarball
@@ -170,6 +177,8 @@ class Unpack(JobCommandBase):
                 input['log_f'], '\n<b>Tarball Extraction Failed</b> ...\n%s\n' % e
             )
         else:
+            if not os.path.isdir(src_tar_dir):
+                src_tar_dir = self._determine_tar_dir(input)
             self._write_to_file(
                 input['log_f'],
                 '\n<b>Tarball Extracted Successfully</b> ...\n%s\n'
