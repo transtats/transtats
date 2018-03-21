@@ -2,8 +2,20 @@
 .cards-ts {
     background: #f0f0f0;
 }
+.cursor-pointer-ts {
+    cursor: pointer;
+}
 .container-cards-pf {
     margin-bottom: 20px;
+}
+.label-lang-set-ts {
+    display:inline-block;
+    padding-top: 0.3em;
+    margin-top: 0.25em;
+}
+.icon-disabled-ts:before{
+    color: #363636;
+    font-size: 1.168em;
 }
 
 /*
