@@ -215,7 +215,7 @@ class LanguagesSettingsView(ManagersMixin, ListView):
     """
     Languages Settings View
     """
-    template_name = "settings/languages.html"
+    template_name = "languages/language_list.html"
     context_object_name = 'locales'
 
     def get_queryset(self):
