@@ -8,6 +8,7 @@
 <script src="/static/dist/js/patternfly.dataTables.pfFilter.js"></script>
 <script src="/static/dist/js/patternfly.dataTables.pfPagination.js"></script>
 <script src="/static/dist/js/patternfly.dataTables.pfEmpty.js"></script>
+<script src="/static/js/csrf.js"></script>
 {% endblock %}
 {% block pagecontent %}
 
@@ -220,7 +221,7 @@
             <span hidden>{{ lang_set }}</span>&nbsp;
             {% endfor %}
           </td>
-          <td align="center">
+          <td align="center" id="td-status-{{ lang.locale_id }}">
             {% if lang.lang_status %}
             <span class="pficon pficon-ok fa-2x" data-toggle="tooltip" title="Enabled"></span>
             <span hidden>Enabled</span>
@@ -241,11 +242,11 @@
                 <li>
                   <a href="#">Edit</a>
                 </li>
-                <li>
+                <li id="li-status-change-{{ lang.locale_id }}">
                   {% if lang.lang_status %}
-                  <a href="#">Disable</a>
+                  <a href="#" onclick="changeLangStatus('{{ lang.locale_id }}', 'disable')">Disable</a>
                   {% else %}
-                  <a href="#">Enable</a>
+                  <a href="#" onclick="changeLangStatus('{{ lang.locale_id }}', 'enable')">Enable</a>
                   {% endif %}
                 </li>
                 <!-- TODO: implement delete resource method
@@ -337,6 +338,7 @@
     </div>
   </div>
 </div>
+<div class="spinner spinner-lg" style="display:none"></div>
 
 <script>
   $(document).ready(function () {
@@ -427,5 +429,44 @@
       value: filterValue
     });
   }
+
+  {% if user.is_staff %}
+  function csrfSafeMethod(e) {
+    return /^(GET|HEAD|OPTIONS|TRACE)$/.test(e)
+  }
+  function changeLangStatus(langLocale, langStatus) {
+    $(".spinner").show()
+    $.ajax({
+      beforeSend: function(e, a) {
+        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}"))
+      },
+      type: "POST",
+      url: "{% url 'ajax-change-lang-status' %}",
+      data:{
+        language: langLocale,
+        status: langStatus
+      },
+      success: function(e) {
+        $(".spinner").hide()
+        console.log(e)
+        // TODO: make bootstrap alerts disappear after certain amount of time
+        $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>' + langLocale + ':</strong> ' + e + ' </div>')
+        if (langStatus === "enable") {
+          $("#td-status-" + langLocale).html('<span class="pficon pficon-ok fa-2x" data-toggle="tooltip" title="Enabled"></span><span hidden>Enabled</span><span hidden>On</span>')
+          $("#li-status-change-" + langLocale).html('<a href="#" onclick="changeLangStatus(\'' + langLocale + '\', \'disable\')">Disable</a>')
+        }
+        else {
+          $("#td-status-" + langLocale).html('<span class="pficon pficon-error-circle-o fa-2x icon-grey-ts" data-toggle="tooltip" title="Disabled"></span><span hidden>Disabled</span><span hidden>Off</span>')
+          $("#li-status-change-" + langLocale).html('<a href="#" onclick="changeLangStatus(\'' + langLocale + '\', \'enable\')">Enable</a>')
+        }
+      },
+      error: function(e) {
+        $(".spinner").hide()
+        console.error(e.status, e.responseText)
+        $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>' + langLocale + ':</strong> update failed! ' + e.responseText + ' </div>')
+      }
+    })
+  }
+  {% endif %}
 </script>
 {% endblock %}
