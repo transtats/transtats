@@ -27,7 +27,12 @@ from dashboard.views import (
     TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView, JobsView,
     JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView, get_build_tags,
     NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobDetailView, refresh_package, job_template,
-    release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs
+    release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
+    TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
+    JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView,
+    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobsYMLBasedView, refresh_package,
+    release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
+    get_build_tags, change_lang_status
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -43,6 +48,8 @@ ajax_urls = [
     url(r'^read-file-logs$', read_file_logs, name="ajax-read-logs"),
     url(r'^build-tags$', get_build_tags, name="ajax-build-tags"),
     url(r'^job-template$', job_template, name="ajax-job-template"),
+    url(r'^change-lang-status$', login_required(change_lang_status, login_url=LOGIN_URL),
+        name="ajax-change-lang-status"),
 ]
 
 app_jobs_urls = [
