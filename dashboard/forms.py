@@ -25,6 +25,9 @@ from crispy_forms.bootstrap import (
 # django
 from django import forms
 
+# dashboard
+from dashboard.models import (Languages, LanguageSet)
+from dashboard.managers.inventory import InventoryManager
 
 __all__ = ['NewPackageForm', 'NewReleaseBranchForm', 'NewGraphRuleForm']
 
@@ -235,3 +238,101 @@ class NewGraphRuleForm(forms.Form):
 
     def is_valid(self):
         return False if len(self.errors) >= 1 else True
+
+
+class NewLanguageForm(forms.ModelForm):
+    """
+    Add new language form
+    """
+    def __init__(self, *args, **kwargs):
+        super(NewLanguageForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Languages
+        fields = '__all__'
+
+    locale_id = forms.SlugField(label='Locale ID')
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('lang_name', css_class='form-control'),
+            Field('locale_id', css_class='form-control'),
+            Field('locale_alias', css_class='form-control'),
+            Field('lang_status', css_class='bootstrap-switch'),
+            FormActions(
+                Submit('addLanguage', 'Add Language'), Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+
+class UpdateLanguageForm(forms.ModelForm):
+    """
+    Update language form
+    """
+    def __init__(self, *args, **kwargs):
+        super(UpdateLanguageForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Languages
+        fields = '__all__'
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('locale_id', css_class='form-control', readonly=True),
+            Field('lang_name', css_class='form-control'),
+            Field('locale_alias', css_class='form-control'),
+            Field('lang_status', css_class='bootstrap-switch'),
+            FormActions(
+                Submit('updateLanguage', 'Update Language'), Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+    def clean_locale_id(self):
+        """
+        Set the original value of locale_id even if POST has new value. Retrieves value from instance of Languages
+        being updated. If it's None, then returns the value entered by user.
+        """
+        locale_id = getattr(self.instance, 'locale_id', None)
+        if locale_id:
+            return locale_id
+        else:
+            return self.cleaned_data.get('locale_id', None)
+
+
+class LanguageSetForm(forms.ModelForm):
+    """
+    Language set form, for new language set and update language set
+    """
+    class Meta:
+        model = LanguageSet
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(LanguageSetForm, self).__init__(*args, **kwargs)
+        inventory_manager = InventoryManager()
+        self.fields['locale_ids'].choices = tuple([(locale.locale_id, locale.lang_name)
+                                                   for locale in inventory_manager.get_locales()])
+
+    lang_set_slug = forms.SlugField(label='Language Set SLUG')
+    locale_ids = TextArrayField(label='Locale IDs', widget=forms.SelectMultiple,)
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('lang_set_name', css_class='form-control'),
+            Field('lang_set_slug', css_class='form-control'),
+            Field('lang_set_color', css_class='form-control'),
+            Field('locale_ids', css_class='selectpicker'),
+            FormActions(
+                Submit('addLanguageSet', 'Add Language Set'), Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )

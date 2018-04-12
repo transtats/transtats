@@ -30,9 +30,9 @@ from dashboard.views import (
     release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
     TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
     JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView,
-    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobsYMLBasedView, refresh_package,
-    release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
-    get_build_tags, change_lang_status
+    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobsYMLBasedView, NewLanguageView,
+    UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, refresh_package, release_graph, schedule_job,
+    graph_data, tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -63,7 +63,7 @@ app_jobs_urls = [
 
 app_setting_urls = [
     url(r'^$', RedirectView.as_view(permanent=False, url='/settings/languages'), name="settings"),
-    url(r'^languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
+    url(r'^languages$', RedirectView.as_view(permanent=True, url='/languages')),
     url(r'^translation-platforms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
     url(r'^product/(?P<stream_slug>\w+)/', include([
         url(r'^releases$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches"),
@@ -93,6 +93,17 @@ trans_status_urls = [
         name="trans-status-release")
 ]
 
+languages_urls = [
+    url(r'^new$', login_required(NewLanguageView.as_view(), login_url=LOGIN_URL),
+        name="language-new"),
+    url(r'^edit/(?P<pk>\w+)$', login_required(UpdateLanguageView.as_view(), login_url=LOGIN_URL),
+        name="language-update"),
+    url(r'^set/new$', login_required(NewLanguageSetView.as_view(), login_url=LOGIN_URL),
+        name="language-set-new"),
+    url(r'^set/edit/(?P<slug>[\w-]+)$', login_required(UpdateLanguageSetView.as_view(), login_url=LOGIN_URL),
+        name="language-set-update"),
+]
+
 urlpatterns = [
     url(r'^api/', include(api_urls)),
     url(r'^ajax/', include(ajax_urls)),
@@ -104,4 +115,7 @@ urlpatterns = [
     url(r'^translation-coverage/$', TransCoverageView.as_view(), name="custom-graph"),
     url(r'^quick-start$', TemplateView.as_view(template_name="howto.html"), name="howto"),
     url(r'^health$', RedirectView.as_view(permanent=False, url='/api/ping?format=json')),
+    # languages section urls
+    url(r'^languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
+    url(r'^languages/', include(languages_urls)),
 ]

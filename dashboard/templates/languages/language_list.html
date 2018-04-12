@@ -58,8 +58,10 @@
     <div class="panel panel-default" id="panel-language-set">
       <div class="panel-heading">
         <h3 class="panel-title">Language Sets
-            <button class="pull-right btn btn-default btn-xs" id="button-add-language-set" type="button">
-              <span class="pficon pficon-add-circle-o"></span> Add language set</button>
+            {% if user.is_staff %}
+            <a class="pull-right btn btn-default btn-xs" id="button-add-language-set" type="button" href="{% url 'language-set-new' %}">
+              <span class="pficon pficon-add-circle-o"></span> Add language set</a>
+            {% endif %}
         </h3>
       </div>
       <div class="panel-body">
@@ -75,7 +77,7 @@
             {% if user.is_staff %}
             <li role="separator" class="divider"></li>
             <li>
-              <a href="#">Edit language set</a>
+              <a href="{% url 'language-set-update' langset.lang_set_slug %}">Edit language set</a>
             </li>
             {% endif %}
           </ul>
@@ -96,7 +98,7 @@
             <a href="#">on the documentation</a>.
           </p>
           <div class="blank-slate-pf-main-action">
-            <a class="btn btn-primary btn-lg" href="#">
+            <a class="btn btn-primary btn-lg" href="{% url 'language-set-new' %}">
               <i class="pficon pficon-add-circle-o"></i> Add language set</a>
           </div>
         </div>
@@ -143,10 +145,12 @@
               <input type="text" class="form-control" placeholder="Filter By Language..." autocomplete="off" id="filterInput">
             </div>
           </div>
+          {% if user.is_staff %}
           <div class="form-group">
-            <a class="btn btn-default" type="button" id="button-add-language" href="#">
+            <a class="btn btn-default" type="button" id="button-add-language" href="{% url 'language-new' %}">
               <i class="pficon pficon-add-circle-o"></i> Add language</a>
           </div>
+          {% endif %}
           <div class="toolbar-pf-action-right">
             <div class="form-group toolbar-pf-find">
               <button class="btn btn-link btn-find" type="button">
@@ -240,7 +244,7 @@
               </button>
               <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight">
                 <li>
-                  <a href="#">Edit</a>
+                  <a href="{% url 'language-update' lang.locale_id %}">Edit</a>
                 </li>
                 <li id="li-status-change-{{ lang.locale_id }}">
                   {% if lang.lang_status %}
@@ -332,7 +336,7 @@
         <a href="#">on the documentation</a>.
       </p>
       <div class="blank-slate-pf-main-action">
-        <a class="btn btn-primary btn-lg" href="#">
+        <a class="btn btn-primary btn-lg" href="{% url 'language-new' %}">
           <i class="pficon pficon-add-circle-o"></i> Add language </a>
       </div>
     </div>
