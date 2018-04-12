@@ -19,6 +19,7 @@ from pathlib import Path
 
 # django
 from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 from django.forms.utils import ErrorList
 from django.http import (
     HttpResponse, HttpResponseRedirect, JsonResponse, Http404
@@ -28,6 +29,7 @@ from django.template import Context, Template
 from django.views.generic import (
     TemplateView, ListView, FormView
 )
+from django.views.generic.edit import (CreateView, UpdateView)
 from django.urls import reverse
 
 # dashboard
@@ -35,7 +37,7 @@ from dashboard.constants import (
     APP_DESC, TS_JOB_TYPES, RELSTREAM_SLUGS
 )
 from dashboard.forms import (
-    NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
+    NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm, NewLanguageForm, UpdateLanguageForm, LanguageSetForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager
@@ -50,7 +52,7 @@ from dashboard.managers.graphs import (
 )
 from dashboard.managers.downstream import DownstreamManager
 from dashboard.managers.upstream import UpstreamManager
-from dashboard.models import Visitor
+from dashboard.models import (Languages, LanguageSet, Visitor)
 
 
 class ManagersMixin(object):
@@ -578,6 +580,57 @@ class JobsYMLBasedView(ManagersMixin, TemplateView):
         if available_build_systems:
             context['build_systems'] = available_build_systems
         return context
+
+
+class NewLanguageView(SuccessMessageMixin, CreateView):
+    """
+    New language view
+    """
+    template_name = "languages/language_new.html"
+    form_class = NewLanguageForm
+    success_message = '%(lang_name)s was added successfully!'
+
+    def get_success_url(self):
+        return reverse('language-new')
+
+
+class UpdateLanguageView(SuccessMessageMixin, UpdateView):
+    """
+    Update language view
+    """
+    template_name = 'languages/language_update.html'
+    model = Languages
+    form_class = UpdateLanguageForm
+    success_message = '%(lang_name)s was updated successfully!'
+
+    def get_success_url(self):
+        return reverse('language-update', args=[self.object.locale_id])
+
+
+class NewLanguageSetView(SuccessMessageMixin, CreateView):
+    """
+    New language set view
+    """
+    template_name = "languages/language_set_new.html"
+    form_class = LanguageSetForm
+    success_message = '%(lang_set_name)s was added successfully!'
+
+    def get_success_url(self):
+        return reverse('language-set-new')
+
+
+class UpdateLanguageSetView(SuccessMessageMixin, UpdateView):
+    """
+    Update language set view
+    """
+    template_name = "languages/language_set_update.html"
+    model = LanguageSet
+    form_class = LanguageSetForm
+    slug_field = 'lang_set_slug'
+    success_message = '%(lang_set_name)s was updated successfully!'
+
+    def get_success_url(self):
+        return reverse('language-set-update', args=[self.object.lang_set_slug])
 
 
 def schedule_job(request):
