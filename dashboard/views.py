@@ -19,6 +19,7 @@ from pathlib import Path
 
 # django
 from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 from django.forms.utils import ErrorList
 from django.http import (
     HttpResponse, HttpResponseRedirect, JsonResponse, Http404
@@ -28,6 +29,7 @@ from django.template import Context, Template
 from django.views.generic import (
     TemplateView, ListView, FormView
 )
+from django.views.generic.edit import (CreateView, UpdateView)
 from django.urls import reverse
 
 # dashboard
@@ -35,7 +37,7 @@ from dashboard.constants import (
     APP_DESC, TS_JOB_TYPES, RELSTREAM_SLUGS
 )
 from dashboard.forms import (
-    NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
+    NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm, NewLanguageForm, UpdateLanguageForm, LanguageSetForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, PackagesManager, ReleaseBranchManager
@@ -49,6 +51,7 @@ from dashboard.managers.graphs import (
 )
 from dashboard.managers.downstream import DownstreamManager
 from dashboard.managers.upstream import UpstreamManager
+from dashboard.models import (Languages, LanguageSet)
 
 
 class ManagersMixin(object):
@@ -183,7 +186,7 @@ class LanguagesSettingsView(ManagersMixin, ListView):
     """
     Languages Settings View
     """
-    template_name = "settings/languages.html"
+    template_name = "languages/language_list.html"
     context_object_name = 'locales'
 
     def get_queryset(self):
@@ -548,6 +551,57 @@ class JobsYMLBasedView(ManagersMixin, TemplateView):
         return context
 
 
+class NewLanguageView(SuccessMessageMixin, CreateView):
+    """
+    New language view
+    """
+    template_name = "languages/language_new.html"
+    form_class = NewLanguageForm
+    success_message = '%(lang_name)s was added successfully!'
+
+    def get_success_url(self):
+        return reverse('language-new')
+
+
+class UpdateLanguageView(SuccessMessageMixin, UpdateView):
+    """
+    Update language view
+    """
+    template_name = 'languages/language_update.html'
+    model = Languages
+    form_class = UpdateLanguageForm
+    success_message = '%(lang_name)s was updated successfully!'
+
+    def get_success_url(self):
+        return reverse('language-update', args=[self.object.locale_id])
+
+
+class NewLanguageSetView(SuccessMessageMixin, CreateView):
+    """
+    New language set view
+    """
+    template_name = "languages/language_set_new.html"
+    form_class = LanguageSetForm
+    success_message = '%(lang_set_name)s was added successfully!'
+
+    def get_success_url(self):
+        return reverse('language-set-new')
+
+
+class UpdateLanguageSetView(SuccessMessageMixin, UpdateView):
+    """
+    Update language set view
+    """
+    template_name = "languages/language_set_update.html"
+    model = LanguageSet
+    form_class = LanguageSetForm
+    slug_field = 'lang_set_slug'
+    success_message = '%(lang_set_name)s was updated successfully!'
+
+    def get_success_url(self):
+        return reverse('language-set-update', args=[self.object.lang_set_slug])
+
+
 def schedule_job(request):
     """
     Handles job schedule AJAX POST request
@@ -877,3 +931,36 @@ def get_build_tags(request):
                             """
             return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)
+
+
+def change_lang_status(request):
+    """
+    Enable or disable language. Checks the given parameters, if all parameters are correct then changes status
+    of the language. The request should be an ajax call having data in following format,
+    {'language': <locale_id>, 'status': <'enable'/'disable'>}
+    :param request: Request object
+    :returns: HttpResponse object
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        language = post_params.get('language', '')
+        new_lang_status = post_params.get('status', '')
+        inventory_manager = InventoryManager()
+        available_languages = [language.locale_id for language in inventory_manager.get_locales()]
+        if language and new_lang_status:
+            if language not in available_languages:
+                return HttpResponse('Language not available', status=422)
+            if new_lang_status not in ['enable', 'disable']:
+                return HttpResponse("Status should be 'enable' or 'disable'", status=422)
+            try:
+                language_object = Languages.objects.get(locale_id=language)
+                language_object.lang_status = True if new_lang_status == 'enable' else False
+                language_object.save()
+            except Exception as status_change_error:
+                return HttpResponse(str(status_change_error), status=500)
+            else:
+                return HttpResponse("language {0}d successfully!".format(new_lang_status), status=202)
+        else:
+            return HttpResponse("Parameters missing", status=422)
+    else:
+        return HttpResponse("Not an ajax call", status=400)
