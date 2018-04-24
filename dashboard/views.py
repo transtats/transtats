@@ -34,10 +34,11 @@ from django.urls import reverse
 
 # dashboard
 from dashboard.constants import (
-    APP_DESC, TS_JOB_TYPES, RELSTREAM_SLUGS
+    APP_DESC, TS_JOB_TYPES, RELSTREAM_SLUGS, TRANSPLATFORM_ENGINES
 )
 from dashboard.forms import (
-    NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm, NewLanguageForm, UpdateLanguageForm, LanguageSetForm
+    NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm, NewLanguageForm, UpdateLanguageForm, LanguageSetForm,
+    NewTransPlatformForm, UpdateTransPlatformForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, PackagesManager, ReleaseBranchManager
@@ -51,7 +52,7 @@ from dashboard.managers.graphs import (
 )
 from dashboard.managers.downstream import DownstreamManager
 from dashboard.managers.upstream import UpstreamManager
-from dashboard.models import (Languages, LanguageSet)
+from dashboard.models import (Languages, LanguageSet, TransPlatform)
 
 
 class ManagersMixin(object):
@@ -215,7 +216,7 @@ class TransPlatformSettingsView(ManagersMixin, ListView):
     """
     Translation Platform Settings View
     """
-    template_name = "settings/transplatforms.html"
+    template_name = "platforms/platform_list.html"
     context_object_name = 'platforms'
 
     def get_queryset(self):
@@ -223,11 +224,13 @@ class TransPlatformSettingsView(ManagersMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(TransPlatformSettingsView, self).get_context_data(**kwargs)
-        platforms_set = self.inventory_manager.get_translation_platforms()
+        platforms_set = self.inventory_manager.get_transplatforms_set()
         if isinstance(platforms_set, tuple):
             active_platforms, inactive_platforms = platforms_set
             context['active_platforms_len'] = len(active_platforms)
             context['inactive_platforms_len'] = len(inactive_platforms)
+        # Join supported platform names with ',' and make it titlecase
+        context['transplatform_engines'] = ', '.join(TRANSPLATFORM_ENGINES).title()
         return context
 
 
@@ -600,6 +603,32 @@ class UpdateLanguageSetView(SuccessMessageMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('language-set-update', args=[self.object.lang_set_slug])
+
+
+class NewTransPlatformView(SuccessMessageMixin, CreateView):
+    """
+    New TransPlatform view
+    """
+    template_name = "platforms/platform_new.html"
+    form_class = NewTransPlatformForm
+    success_message = '%(platform_slug)s was added successfully!'
+
+    def get_success_url(self):
+        return reverse('transplatform-new')
+
+
+class UpdateTransPlatformView(SuccessMessageMixin, UpdateView):
+    """
+    Update TransPlatform view
+    """
+    template_name = "platforms/platform_update.html"
+    form_class = UpdateTransPlatformForm
+    success_message = '%(platform_slug)s was updated successfully!'
+    model = TransPlatform
+    slug_field = 'platform_slug'
+
+    def get_success_url(self):
+        return reverse('transplatform-update', args=[self.object.platform_slug])
 
 
 def schedule_job(request):
