@@ -47,8 +47,14 @@
     overflow-x: hidden;
 }
 
+.navbar-pf-vertical {
+    background-image: url('/static/img/navbar.png');
+    background-color: #007a87;
+    background-position: right;
+    background-repeat: no-repeat;
+}
+
 /*
->>>>>>> [UI] Modify base.html to use PatternFly
 body {
     padding-top: 50px;
     padding-bottom: 10px
@@ -80,4 +86,3 @@ body {
 }
 
 */
->>>>>>> [UI] Modify base.html to use PatternFly
