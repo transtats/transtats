@@ -27,6 +27,13 @@
     z-index: 1000;
 }
 
+.navbar-pf-vertical {
+    background-image: url('/static/img/navbar.png');
+    background-color: #007a87;
+    background-position: right;
+    background-repeat: no-repeat;
+}
+
 /*
 body {
     padding-top: 50px;
