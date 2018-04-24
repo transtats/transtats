@@ -26,10 +26,23 @@ from crispy_forms.bootstrap import (
 from django import forms
 
 # dashboard
-from dashboard.models import (Languages, LanguageSet)
+from dashboard.models import (Languages, LanguageSet, TransPlatform)
 from dashboard.managers.inventory import InventoryManager
+from dashboard.constants import (
+    TRANSPLATFORM_ENGINES,
+    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS
+)
 
 __all__ = ['NewPackageForm', 'NewReleaseBranchForm', 'NewGraphRuleForm']
+
+ENGINE_CHOICES = tuple([(engine, engine.upper())
+                        for engine in TRANSPLATFORM_ENGINES])
+
+all_platform_slugs = []
+all_platform_slugs.extend(TRANSIFEX_SLUGS)
+all_platform_slugs.extend(ZANATA_SLUGS)
+all_platform_slugs.extend(DAMNEDLIES_SLUGS)
+SLUG_CHOICES = tuple([(slug, slug) for slug in all_platform_slugs])
 
 
 class TextArrayField(forms.MultipleChoiceField):
@@ -336,3 +349,94 @@ class LanguageSetForm(forms.ModelForm):
             )
         )
     )
+
+
+class NewTransPlatformForm(forms.ModelForm):
+    """
+    Add new TransPlatform form
+    """
+    def __init__(self, *args, **kwargs):
+        super(NewTransPlatformForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = TransPlatform
+        fields = ['engine_name', 'subject', 'api_url', 'platform_slug', 'server_status', 'server_status',
+                  'auth_login_id', 'auth_token_key']
+
+    engine_name = forms.ChoiceField(
+        choices=ENGINE_CHOICES, label="Platform Engine",
+        help_text="Platform engine helps system to determine specific API/tasks."
+    )
+    platform_slug = forms.ChoiceField(
+        choices=SLUG_CHOICES, label="Platform SLUG",
+        help_text="Please identify SLUG carefully. Example: ZNTAPUB should be for zanata public instance.",
+    )
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('engine_name', css_class='form-control'),
+            Field('subject', css_class='form-control'),
+            Field('api_url', css_class='form-control'),
+            Field('platform_slug', css_class='form-control'),
+            Field('server_status', css_class='bootstrap-switch'),
+            Field('auth_login_id', css_class='form-control'),
+            Field('auth_token_key', css_class='form-control'),
+            FormActions(
+                Submit('addTransPlatform', 'Add Translation Platform'), Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+
+class UpdateTransPlatformForm(forms.ModelForm):
+    """
+    Update TransPlatform form
+    """
+    def __init__(self, *args, **kwargs):
+        super(UpdateTransPlatformForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = TransPlatform
+        fields = ['engine_name', 'subject', 'api_url', 'platform_slug', 'server_status',
+                  'auth_login_id', 'auth_token_key']
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('engine_name', css_class='form-control', readonly=True),
+            Field('subject', css_class='form-control'),
+            Field('api_url', css_class='form-control'),
+            Field('platform_slug', css_class='form-control', readonly=True),
+            Field('server_status', css_class='bootstrap-switch'),
+            Field('auth_login_id', css_class='form-control'),
+            Field('auth_token_key', css_class='form-control'),
+            FormActions(
+                Submit('updateTransPlatform', 'Update Translation Platform'),
+                Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+    def clean_engine_name(self):
+        """
+        Don't allow to override the value of 'engine_name' as it is readonly field
+        """
+        engine_name = getattr(self.instance, 'engine_name', None)
+        if engine_name:
+            return engine_name
+        else:
+            return self.cleaned_data.get('engine_name', None)
+
+    def clean_platform_slug(self):
+        """
+        Don't allow to override the value of 'platform_slug' as it is readonly field
+        """
+        platform_slug = getattr(self.instance, 'platform_slug', None)
+        if platform_slug:
+            return platform_slug
+        else:
+            return self.cleaned_data.get('platform_slug', None)
