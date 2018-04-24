@@ -460,7 +460,7 @@
           $("#li-status-change-" + langLocale).html('<a href="#" onclick="changeLangStatus(\'' + langLocale + '\', \'disable\')">Disable</a>')
         }
         else {
-          $("#td-status-" + langLocale).html('<span class="pficon pficon-error-circle-o fa-2x icon-grey-ts" data-toggle="tooltip" title="Disabled"></span><span hidden>Disabled</span><span hidden>Off</span>')
+          $("#td-status-" + langLocale).html('<span class="fa fa-ban fa-2x icon-disabled-ts" data-toggle="tooltip" title="Disabled"></span><span hidden>Disabled</span><span hidden>Off</span>')
           $("#li-status-change-" + langLocale).html('<a href="#" onclick="changeLangStatus(\'' + langLocale + '\', \'enable\')">Enable</a>')
         }
       },
