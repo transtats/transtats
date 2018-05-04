@@ -47,7 +47,7 @@ function getUrlVars(){for(var t,e=[],s=window.location.href.slice(window.locatio
         <button type="submit" data-loading-text="Syncing..." class="btn btn-default">
             <span class="glyphicon glyphicon-play-circle"></span> Trigger Now</button>
         {% else %}
-            <span>No package configured. Add <a href="{% url 'settings-packages-new' %}">one</a> now.</span>
+            <span>No package configured. Add <a href="{% url 'package-new' %}">one</a> now.</span>
         {% endif %}
         <span id="syncUpstreamMsg"></span>
     </form>
