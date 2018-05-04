@@ -7,7 +7,7 @@ FROM registry.fedoraproject.org/fedora:latest
 LABEL maintainer="suanand@redhat.com"
 
 RUN dnf -y update && \
-    dnf -y install gcc cpio koji findutils git python python3-pip python3-devel redhat-rpm-config \
+    dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel redhat-rpm-config \
     sudo postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel patch && \
     dnf clean all
 

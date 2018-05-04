@@ -1139,9 +1139,10 @@ class PackageBranchMapping(object):
             return True, expected_version[0]
         return False, ''
 
-    def _return_origin_version(self, matched_version, from_branches):
-        return self.original_versions[self.transplatform_versions.index(matched_version)] \
-            if from_branches == self.transplatform_versions else matched_version
+    def _return_original_version(self, matched_version):
+        required_version = [version for version in self.original_versions
+                            if version.lower() == matched_version]
+        return required_version[0] if len(required_version) == 1 else matched_version
 
     def calculate_branch_mapping(self, branch, from_branches):
         """
@@ -1159,21 +1160,22 @@ class PackageBranchMapping(object):
         if len(match1) >= 1:
             match_found = self._check_release_version(branch, match1)
             if len(match_found) >= 1:
-                return self._return_origin_version(match_found[0], from_branches)
+                return self._return_original_version(match_found[0])
 
         status1, match2 = self._sort_and_match_version_nm(branch, from_branches)
         if status1:
-            return self._return_origin_version(match2, from_branches)
+            return self._return_original_version(match2)
 
         status2, match3 = self._compare_with_short_names(branch, from_branches)
         if status2:
-            return self._return_origin_version(match3, from_branches)
+            return self._return_original_version(match3)
 
-        probable_branches = ['master', 'rawhide', 'default', 'head', 'devel', 'core']
+        probable_branches = ['default', 'master', 'head', 'rawhide',
+                             'devel', 'core', self.package_name]
 
         for branch in probable_branches:
             if branch in from_branches:
-                return self._return_origin_version(branch, from_branches)
+                return self._return_original_version(branch)
         return ''
 
     def branch_stats(self, release_branch):
@@ -1223,4 +1225,31 @@ class PackageBranchMapping(object):
                     branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[2]] = \
                         self.calculate_branch_mapping(branch, sorted(
                             self.release_build_tags_dict[stream]))
+
+                    if not branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]] \
+                            and self.package.transplatform_slug_id in DAMNEDLIES_SLUGS:
+                        release_stream = self.relbranch_manager.get_release_streams(
+                            built=branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[1]],
+                            fields=('relstream_server',))
+                        if release_stream:
+                            release_stream_hub_url = release_stream.get().relstream_server or ''
+                            build_info = self.relbranch_manager.api_resources.build_info(
+                                hub_url=release_stream_hub_url,
+                                tag=branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[2]],
+                                pkg=self.package_name
+                            )
+                            if build_info and isinstance(build_info, list) and len(build_info) > 0:
+                                version_from_latest_build = build_info[0].get('version')
+                                seek_version = "-".join(version_from_latest_build.split('.')[0:2])
+                                for version in self.transplatform_versions:
+                                    if seek_version in version:
+                                        branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]] = version
+                                # seek next (rounded) version
+                                if not branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]]:
+                                    version_x, version_y = version_from_latest_build.split('.')[0:2]
+                                    version_y = str(int(5 * round(float(version_y) / 5)))
+                                    seek_version = "-".join((version_x, version_y))
+                                    for version in self.transplatform_versions:
+                                        if seek_version in version:
+                                            branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]] = version
         return branch_mapping_dict
