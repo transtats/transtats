@@ -72,10 +72,7 @@ app_setting_urls = [
             name="settings-stream-branches-new")
     ])),
     url(r'^products$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
-    url(r'^packages/new$', login_required(NewPackageView.as_view(), login_url=LOGIN_URL),
-        name="settings-packages-new"),
-    url(r'^packages/export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
-    url(r'^packages$', PackageSettingsView.as_view(), name="settings-packages"),
+    url(r'^packages$', RedirectView.as_view(permanent=True, url='/packages')),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
     url(r'^graph-rules/new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
@@ -87,14 +84,20 @@ trans_status_urls = [
     url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/releases'),
         name="trans-status"),
     url(r'^packages$', TranStatusPackagesView.as_view(), name="trans-status-packages"),
-    url(r'^package/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(),
-        name="trans-status-package"),
     url(r'^releases$', TranStatusReleasesView.as_view(), name="trans-status-releases"),
     url(r'^release/(?P<release_branch>[\w\-\+]+)$', TranStatusReleaseView.as_view(),
         name="trans-status-release")
 ]
 
+packages_urls = [
+    url(r'^$', PackageSettingsView.as_view(), name="settings-packages"),
+    url(r'^new$', login_required(NewPackageView.as_view(), login_url=LOGIN_URL), name="package-new"),
+    url(r'^view/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(), name="package-view"),
+    url(r'^export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
+]
+
 languages_urls = [
+    url(r'^$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^new$', login_required(NewLanguageView.as_view(), login_url=LOGIN_URL),
         name="language-new"),
     url(r'^edit/(?P<pk>\w+)$', login_required(UpdateLanguageView.as_view(), login_url=LOGIN_URL),
@@ -106,6 +109,7 @@ languages_urls = [
 ]
 
 transplatforms_urls = [
+    url(r'^$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
     url(r'^new$', login_required(NewTransPlatformView.as_view(), login_url=LOGIN_URL), name="transplatform-new"),
     url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdateTransPlatformView.as_view(), login_url=LOGIN_URL),
         name="transplatform-update"),
@@ -122,10 +126,10 @@ urlpatterns = [
     url(r'^translation-coverage/$', TransCoverageView.as_view(), name="custom-graph"),
     url(r'^quick-start$', TemplateView.as_view(template_name="howto.html"), name="howto"),
     url(r'^health$', RedirectView.as_view(permanent=False, url='/api/ping?format=json')),
+    # packages section urls
+    url(r'^packages/', include(packages_urls)),
     # languages section urls
-    url(r'^languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^languages/', include(languages_urls)),
     # trans platforms section urls
-    url(r'^translation-platforms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
     url(r'^translation-platforms/', include(transplatforms_urls)),
 ]

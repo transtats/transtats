@@ -18,7 +18,7 @@
     <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
     <a href="{% url 'trans-status' %}" class="btn btn-default">Translation Status</a>
     <a href="{% url 'trans-status-packages' %}" class="btn btn-default">Packages</a>
-    <a href="{% url 'trans-status-package' package_name %}" class="btn btn-default">{{ package_name }}</a>
+    <a href="{% url 'package-view' package_name %}" class="btn btn-default">{{ package_name }}</a>
 {% endblock %}
 
 {% block right-navigation %}
