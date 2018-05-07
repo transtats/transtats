@@ -1,4 +1,5 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
+{% load custom_tags %}
 {% block pre-pf-script %}
 <script src="/static/node_modules/datatables.net/js/jquery.dataTables.js"></script> 
 {% endblock %} 
@@ -8,188 +9,17 @@
 <script src="/static/dist/js/patternfly.dataTables.pfFilter.js"></script>
 <script src="/static/dist/js/patternfly.dataTables.pfPagination.js"></script>
 <script src="/static/dist/js/patternfly.dataTables.pfResize.min.js"></script>
-<!-- c3 and d3 for graphs and cards -->
 <script src="/static/node_modules/d3/d3.js"></script>
 <script src="/static/node_modules/c3/c3.js"></script>
+<script src="/static/js/csrf.js"></script>
 {% endblock %} 
 {% block pagecontent %}
 
-<div class="row row-cards-pf">
-  <div class="col-xs-12">
-    <div class="card-pf card-pf-utilization" id="card-packages-summary">
-      <div class="card-pf-heading">
-        <p class="card-pf-heading-details">{{ packages|length }} Packages</p>
-        <h2 class="card-pf-title">
-          Summary
-        </h2>
-      </div>
-      <div class="card-pf-body">
-        <div class="row">
-          <div class="col-xs-12 col-sm-4 col-md-4">
-            <h3 class="card-pf-subtitle">Improper branch mapping</h3>
-            <p class="card-pf-utilization-details">
-              <span class="card-pf-utilization-card-details-count">32</span>
-              <span class="card-pf-utilization-card-details-description">
-                <span class="card-pf-utilization-card-details-line-1">Not affected</span>
-                <span class="card-pf-utilization-card-details-line-2">of {{ packages|length }}</span>
-              </span>
-            </p>
-            <div id="chart-donut-packages-1"></div>
-            <div class="chart-pf-sparkline" id="chart-sparkline-packages-1"></div>
-            <script>
-              var donutConfig = $().c3ChartDefaults().getDefaultDonutConfig('A');
-              donutConfig.bindto = '#chart-donut-packages-1';
-              donutConfig.color = {
-                pattern: ["#CC0000", "#D1D1D1"]
-              };
-              donutConfig.data = {
-                type: "donut",
-                columns: [
-                  ["affected", 2],
-                  ["not affected", 32]
-                ],
-                groups: [
-                  ["affected", "notaffected"]
-                ],
-                order: null
-              };
-              donutConfig.tooltip = {
-                contents: function (d) {
-                  return '<span class="donut-tooltip-pf" style="white-space: nowrap;">' +
-                    Math.round(d[0].ratio * 100) + '%' + ' Packages ' + d[0].name +
-                    '</span>';
-                }
-              };
-
-              var chart1 = c3.generate(donutConfig);
-              var donutChartTitle = d3.select("#chart-donut-packages-1").select('text.c3-chart-arcs-title');
-              donutChartTitle.text("");
-              donutChartTitle.insert('tspan').text("2").classed('donut-title-big-pf', true).attr('dy', 0).attr('x', 0);
-              donutChartTitle.insert('tspan').text("Affected").classed('donut-title-small-pf', true).attr('dy', 23).attr('x', 0);
-
-              var sparklineConfig = $().c3ChartDefaults().getDefaultSparklineConfig();
-              sparklineConfig.bindto = '#chart-sparkline-packages-1';
-              sparklineConfig.data = {
-                columns: [
-                  ['%', 10, 50, 28, 20, 31, 27, 60, 36, 0, 55, 62, 68, 69, 88, 74, 88, 0],
-                ],
-                type: 'area'
-              };
-              var chart2 = c3.generate(sparklineConfig);
-            </script>
-          </div>
-          <div class="col-xs-12 col-sm-4 col-md-4">
-            <h3 class="card-pf-subtitle">Latest translations not pulled</h3>
-            <p class="card-pf-utilization-details">
-              <span class="card-pf-utilization-card-details-count">14</span>
-              <span class="card-pf-utilization-card-details-description">
-                <span class="card-pf-utilization-card-details-line-1">Not affected</span>
-                <span class="card-pf-utilization-card-details-line-2">of {{ packages|length }}</span>
-              </span>
-            </p>
-            <div id="chart-donut-packages-2"></div>
-            <div class="chart-pf-sparkline" id="chart-sparkline-packages-2"></div>
-            <script>
-              var donutConfig = $().c3ChartDefaults().getDefaultDonutConfig('A');
-              donutConfig.bindto = '#chart-donut-packages-2';
-              donutConfig.color = {
-                pattern: ["#3f9c35", "#D1D1D1"]
-              };
-              donutConfig.data = {
-                type: "donut",
-                columns: [
-                  ["affected", 20],
-                  ["not affected", 14]
-                ],
-                groups: [
-                  ["affected", "notaffected"]
-                ],
-                order: null
-              };
-              donutConfig.tooltip = {
-                contents: function (d) {
-                  return '<span class="donut-tooltip-pf" style="white-space: nowrap;">' +
-                    Math.round(d[0].ratio * 100) + '%' + ' Packages ' + d[0].name +
-                    '</span>';
-                }
-              };
-
-              var chart3 = c3.generate(donutConfig);
-              var donutChartTitle = d3.select("#chart-donut-packages-2").select('text.c3-chart-arcs-title');
-              donutChartTitle.text("");
-              donutChartTitle.insert('tspan').text("20").classed('donut-title-big-pf', true).attr('dy', 0).attr('x', 0);
-              donutChartTitle.insert('tspan').text("Affected").classed('donut-title-small-pf', true).attr('dy', 23).attr('x', 0);
-
-              var sparklineConfig = $().c3ChartDefaults().getDefaultSparklineConfig();
-              sparklineConfig.bindto = '#chart-sparkline-packages-2';
-              sparklineConfig.data = {
-                columns: [
-                  ['%', 10, 13, 32, 14, 5, 36, 38, 40, 20, 10, 12, 11, 9, 6, 2, 13, 3],
-                ],
-                type: 'area'
-              };
-              var chart4 = c3.generate(sparklineConfig);
-            </script>
-          </div>
-          <div class="col-xs-12 col-sm-4 col-md-4">
-            <h3 class="card-pf-subtitle">Translations not packaged</h3>
-            <p class="card-pf-utilization-details">
-              <span class="card-pf-utilization-card-details-count">34</span>
-              <span class="card-pf-utilization-card-details-description">
-                <span class="card-pf-utilization-card-details-line-1">Not affected</span>
-                <span class="card-pf-utilization-card-details-line-2">of {{ packages|length }}</span>
-              </span>
-            </p>
-            <div id="chart-donut-packages-3"></div>
-            <div class="chart-pf-sparkline" id="chart-sparkline-packages-3"></div>
-            <script>
-              var donutConfig = $().c3ChartDefaults().getDefaultDonutConfig('A');
-              donutConfig.bindto = '#chart-donut-packages-3';
-              donutConfig.color = {
-                pattern: ["#EC7A08", "#D1D1D1"]
-              };
-              donutConfig.data = {
-                type: "donut",
-                columns: [
-                  ["affected", 0],
-                  ["not affected", 34]
-                ],
-                groups: [
-                  ["affected", "notaffected"]
-                ],
-                order: null
-              };
-              donutConfig.tooltip = {
-                contents: function (d) {
-                  return '<span class="donut-tooltip-pf" style="white-space: nowrap;">' +
-                    Math.round(d[0].ratio * 100) + '%' + ' Packages ' + d[0].name +
-                    '</span>';
-                }
-              };
-
-              var chart5 = c3.generate(donutConfig);
-              var donutChartTitle = d3.select("#chart-donut-packages-3").select('text.c3-chart-arcs-title');
-              donutChartTitle.text("");
-              donutChartTitle.insert('tspan').text("0").classed('donut-title-big-pf', true).attr('dy', 0).attr('x', 0);
-              donutChartTitle.insert('tspan').text("Affected").classed('donut-title-small-pf', true).attr('dy', 23).attr('x', 0);
-
-              var sparklineConfig = $().c3ChartDefaults().getDefaultSparklineConfig();
-              sparklineConfig.bindto = '#chart-sparkline-packages-3';
-              sparklineConfig.data = {
-                columns: [
-                  ['%', 60, 55, 70, 44, 31, 67, 54, 46, 58, 75, 62, 68, 69, 88, 74, 88, 85],
-                ],
-                type: 'area'
-              };
-              var chart6 = c3.generate(sparklineConfig);
-            </script>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div><!-- /row -->
+{% if packages %}
+<div id="div-packages-summary">
+  {% tag_packages_summary %}
+</div>
+{% endif %}
 
 <!-- Toolbar -->
 <div class="row toolbar-pf table-view-pf-toolbar" id="toolbar-packages-table">
@@ -294,7 +124,6 @@
       <th>Products</th>
       {% if user.is_staff %}
       <th colspan="2">Health</th>
-      <!-- <th>Actions</th> -->
       {% else %}
       <th>Health</th>
       {% endif %}
@@ -419,17 +248,13 @@
     <a class="btn btn-primary btn-lg" href="{% url 'package-new' %}">
       <i class="pficon pficon-add-circle-o"></i> Add package </a>
   </div>
-  <div class="blank-slate-pf-secondary-action">
-    <button class="btn btn-default">Secondary Action</button>
-    <button class="btn btn-default">Secondary Action</button>
-  </div>
 </div>
+<div class="spinner spinner-lg" style="display:none"></div>
 
 <script>
   $(document).ready(function () {
-
     // DataTable Config
-    $("#table-packages").DataTable({
+    var packagesTable = $("#table-packages").DataTable({
       columns: [
         { data: "package" },
         { data: "upstream" },
@@ -451,7 +276,6 @@
         zeroRecords: "No records found"
       },
       order: [[0, 'asc']],
-      // responsive: true,
       pfConfig: {
         pageSize: 10,
         emptyStateSelector: "#empty-state-packages-table",
@@ -480,10 +304,7 @@
         colvisMenuSelector: '.table-view-pf-colvis-menu'
       },
     });
-    /**
-     * Utility to find items in Table View
-     * TODO: improve this by passing the config object
-     */
+
     var findTableViewUtil = function (config) {
       // Upon clicking the find button, show the find dropdown content
       $(".btn-find").click(function () {
@@ -492,23 +313,41 @@
       // workaround for search function
       // TODO: improve this, make the default pf method work
       $('#find').on('keyup', function () {
-        $('#table-packages').DataTable().search(this.value).draw();
+        packagesTable.search(this.value).draw();
       });
       // Upon clicking the find close button, hide the find dropdown content
       $(".btn-find-close").click(function () {
         $(".find-pf-dropdown-container").hide();
       });
     };
-
     // Initialize find util
     new findTableViewUtil();
-    // $('#table-packages').DataTable().table().pfResize.resize();
   });
+
+  function csrfSafeMethod(e) {
+    return /^(GET|HEAD|OPTIONS|TRACE)$/.test(e)
+  }
+  function refresh_packages_summary() {
+    $(".spinner").show()
+    $.ajax({
+      beforeSend: function (e, a) {
+        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}"))
+      },
+      type: "POST",
+      url: "{% url 'ajax-releases-report' %}",
+      data: {
+        subject: "packages"
+      },
+      success: function (e) {
+        $(".spinner").hide()
+        $("#div-packages-summary").html(e)
+      },
+      error: function (e) {
+        $(".spinner").hide()
+        console.error(e.status, e.responseText)
+        $("#div-update-packages-summary-error").html("Some unexpected error occurred.")
+      }
+    })
+  }
 </script>
-<script>
-  // Initialize Datatables
-  $(document).ready(function () {
-    $('.datatable').dataTable();
-  });
-</script> 
 {% endblock %}

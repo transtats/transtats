@@ -48,6 +48,10 @@
     background-size: 250px, 100px;
 }
 
+.blank-state-ts {
+    background-color: inherit;
+    border: none;
+}
 /*
 body {
     padding-top: 50px;

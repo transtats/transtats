@@ -186,16 +186,18 @@ def tag_releases_summary():
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_packages_summary.html")
+    os.path.join("packages", "_packages_summary.html")
 )
 def tag_packages_summary():
     return_value = OrderedDict()
+    package_manager = PackagesManager()
     reports_manager = ReportsManager()
     packages_summary = reports_manager.get_reports('packages')
     if packages_summary:
         return_value.update(dict(
             pkgsummary=packages_summary.get().report_json,
-            last_updated=packages_summary.get().report_updated
+            last_updated=packages_summary.get().report_updated,
+            package_count=package_manager.count_packages(),
         ))
     return return_value
 
