@@ -547,9 +547,12 @@ class PackagesManager(InventoryManager):
         :param stats_json: translation stats dict
         :return: boolean
         """
+
+        filter_kwargs = dict(package_name=project,
+                             project_version=version,
+                             source=stats_source)
         try:
-            existing_sync_stat = SyncStats.objects.filter(package_name=project,
-                                                          project_version=version).first()
+            existing_sync_stat = SyncStats.objects.filter(**filter_kwargs).first()
             sync_uuid = uuid4()
             if not existing_sync_stat:
                 params = {}
@@ -563,7 +566,7 @@ class PackagesManager(InventoryManager):
                 new_sync_stats = SyncStats(**params)
                 new_sync_stats.save()
             else:
-                SyncStats.objects.filter(package_name=project, project_version=version).update(
+                SyncStats.objects.filter(**filter_kwargs).update(
                     job_uuid=sync_uuid, stats_raw_json=stats_json,
                     sync_iter_count=existing_sync_stat.sync_iter_count + 1
                 )
