@@ -688,16 +688,20 @@ def refresh_package(request):
         package_manager = PackagesManager()
         task_type = post_params.get('task', '')
         if task_type == "mapBranches" and post_params.get('package'):
-            if package_manager.build_branch_mapping(post_params['package']):
-                context = Context(
-                    {'META': request.META,
-                     'package_name': post_params['package']}
-                )
-                template_string = """
-                    {% load tag_branch_mapping from custom_tags %}
-                    {% tag_branch_mapping package_name %}
-                """
-                return HttpResponse(Template(template_string).render(context))
+            ERR_MSG = "Something unexpected happened while mapping branches."
+            try:
+                if package_manager.build_branch_mapping(post_params['package']):
+                    context = Context(
+                        {'META': request.META,
+                         'package_name': post_params['package']}
+                    )
+                    template_string = """
+                        {% load tag_branch_mapping from custom_tags %}
+                        {% tag_branch_mapping package_name %}
+                    """
+                    return HttpResponse(Template(template_string).render(context))
+            except Exception as e:
+                return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
         elif task_type == "statsDiff" and post_params.get('package'):
             graph_manager = GraphManager()
             pkg = post_params['package']

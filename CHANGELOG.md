@@ -1,4 +1,5 @@
-##### Sat Mar 10 2018 Sundeep Anand <suanand@redhat.com>
+##### Thu May 10 2018 Sundeep Anand <suanand@redhat.com>
+* Fix branch mapping for GNOME Packages (as per buildsys)
 * Improve docs, Add Jobs section to `docs.transtats.org`
 * Migrate from Travis CI to Circle CI, fix Docker files
 * Update packages summary with out of sync packages

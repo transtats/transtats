@@ -16,7 +16,6 @@
 # Stats Graphs
 
 # python
-from datetime import timedelta
 import functools
 from operator import itemgetter
 from collections import OrderedDict

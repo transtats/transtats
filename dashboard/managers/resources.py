@@ -16,6 +16,7 @@
 # Process and cache REST resource's responses here.
 
 from subprocess import Popen, PIPE
+from collections import OrderedDict
 try:
     import koji
 except Exception as e:
@@ -100,6 +101,23 @@ class TransplatformResources(object):
         return response.get('json_content')
 
     @staticmethod
+    def _locate_damnedlies_stats(module_stat):
+        translated, fuzzy, untranslated, total = 0, 0, 0, 0
+        if isinstance(module_stat.get('domain'), list):
+            for domain in module_stat.get('domain'):
+                if domain.get('@id') == 'po':
+                    translated = int(domain.get('translated'))
+                    fuzzy = int(domain.get('fuzzy'))
+                    untranslated = int(domain.get('untranslated'))
+                    total = translated + fuzzy + untranslated
+        elif isinstance(module_stat.get('domain'), dict):
+            translated = int(module_stat.get('domain').get('translated'))
+            fuzzy = int(module_stat.get('domain').get('fuzzy'))
+            untranslated = int(module_stat.get('domain').get('untranslated'))
+            total = translated + fuzzy + untranslated
+        return translated, fuzzy, untranslated, total
+
+    @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
     def _fetch_damnedlies_locale_release_stats(base_url, resource, *url_params, **kwargs):
         locale_stat_dict = {}
@@ -110,26 +128,22 @@ class TransplatformResources(object):
             json_content = parse(response['content'])
             gnome_module_categories = json_content['stats']['category'] or []
             for category in gnome_module_categories:
+                stats_tuple = ()
                 modules = category.get('module')
-                for module in modules:
-                    if module.get('@id') == kwargs.get('package_name', ''):
-                        translated, fuzzy, untranslated, total = 0, 0, 0, 0
-                        if isinstance(module.get('domain'), list):
-                            for domain in module.get('domain'):
-                                if domain.get('@id') == 'po':
-                                    translated = int(domain.get('translated'))
-                                    fuzzy = int(domain.get('fuzzy'))
-                                    untranslated = int(domain.get('untranslated'))
-                                    total = translated + fuzzy + untranslated
-                        elif isinstance(module.get('domain'), dict):
-                            translated = int(module.get('domain').get('translated'))
-                            fuzzy = int(module.get('domain').get('fuzzy'))
-                            untranslated = int(module.get('domain').get('untranslated'))
-                            total = translated + fuzzy + untranslated
-                        locale_stat_dict["translated"] = translated
-                        locale_stat_dict["untranslated"] = untranslated
-                        locale_stat_dict["fuzzy"] = fuzzy
-                        locale_stat_dict["total"] = total
+                if isinstance(modules, list):
+                    for module in modules:
+                        if module.get('@id') == kwargs.get('package_name', ''):
+                            stats_tuple = \
+                                TransplatformResources._locate_damnedlies_stats(module)
+                elif isinstance(modules, OrderedDict):
+                    if modules.get('@id') == kwargs.get('package_name', ''):
+                        stats_tuple = \
+                            TransplatformResources._locate_damnedlies_stats(modules)
+                if stats_tuple:
+                    locale_stat_dict["translated"] = stats_tuple[0]
+                    locale_stat_dict["untranslated"] = stats_tuple[1]
+                    locale_stat_dict["fuzzy"] = stats_tuple[2]
+                    locale_stat_dict["total"] = stats_tuple[3]
         return locale_stat_dict
 
     @staticmethod
