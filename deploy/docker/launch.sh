@@ -31,4 +31,5 @@ make migrate
 su - postgres -c "psql -d $DATABASE_NAME -a -f /workspace/deploy/docker/data/initial.sql"
 
 # setup app
-python3 manage.py initlogin && make static && make demo
+python3 manage.py initlogin && make static
+gunicorn transtats.wsgi:application --workers 3 --bind 0.0.0.0:8015 --timeout 300
