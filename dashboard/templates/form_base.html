@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block pagecontent %}
+<div class="col-md-2"></div>
+<div class="col-md-8">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">{% block formtitle %}{% endblock %}
+        <a class="pull-right" data-toggle="tooltip" title="Close and return" href="{% block formreturnurl %}{% endblock %}">
+          <i class="pficon-close"></i>
+        </a>
+      </h3>
+    </div>
+    <div class="panel-body">
+      {% for message in messages %}
+      {% if 'success' in message.tags %}
+      <div class="alert alert-success alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+          <span class="pficon pficon-close"></span>
+        </button>
+        <span class="pficon pficon-ok"></span>
+        {{ message }}
+      </div>
+      {% endif %}
+      {% if 'error' in message.tags %}
+      <div class="alert alert-danger alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+          <span class="pficon pficon-close"></span>
+        </button>
+        <span class="pficon pficon-error-circle-o"></span>
+        {{ message }}
+      </div>
+      {% endif %}
+      {% endfor %}
+      <div style="padding-left:0.5em; padding-right:0.5em">
+        {% crispy form %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block formscript %}{% endblock %}
+{% endblock %}
