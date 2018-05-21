@@ -249,7 +249,6 @@
       <i class="pficon pficon-add-circle-o"></i> Add package </a>
   </div>
 </div>
-<div class="spinner spinner-lg" style="display:none"></div>
 
 <script>
   $(document).ready(function () {
@@ -328,7 +327,7 @@
     return /^(GET|HEAD|OPTIONS|TRACE)$/.test(e)
   }
   function refresh_packages_summary() {
-    $(".spinner").show()
+    waitSpinner.show()
     $.ajax({
       beforeSend: function (e, a) {
         csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}"))
@@ -339,11 +338,11 @@
         subject: "packages"
       },
       success: function (e) {
-        $(".spinner").hide()
+        waitSpinner.hide()
         $("#div-packages-summary").html(e)
       },
       error: function (e) {
-        $(".spinner").hide()
+        waitSpinner.hide()
         console.error(e.status, e.responseText)
         $("#div-update-packages-summary-error").html("Some unexpected error occurred.")
       }
