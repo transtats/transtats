@@ -227,9 +227,11 @@
     {% block pagebanner %}{% endblock %} 
     {% block navigation %}{% endblock %} 
     {% block pagecontent %}{% endblock %}
+    <div class="spinner spinner-lg spinner-wait-ts" style="display:none"></div>
   </div>
 
   <script>
+    var waitSpinner = null
     $(document).ready(function () {
       // Initialize the vertical navigation
       $().setupVerticalNavigation(true);
@@ -238,6 +240,7 @@
         e.preventDefault();
         $('#about-modal').modal('show');
       });
+      waitSpinner = $('.spinner-wait-ts')
     });
   </script>
 

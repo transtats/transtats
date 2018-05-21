@@ -17,7 +17,7 @@
     color: #363636;
     font-size: 1.168em;
 }
-.spinner{
+.spinner-wait-ts {
     position: fixed;
     top:0;
     bottom: 0;
