@@ -36,7 +36,7 @@ def join_by(sequence, delimiter):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_package_details.html")
+    os.path.join("packages", "_package_details.html")
 )
 def tag_package_details(package_name, user):
     package_manager = PackagesManager()
@@ -60,7 +60,7 @@ def tag_package_details(package_name, user):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_branch_mapping.html")
+    os.path.join("packages", "_branch_mapping.html")
 )
 def tag_branch_mapping(package):
     package_manager = PackagesManager()
@@ -81,7 +81,7 @@ def tag_branch_mapping(package):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_stats_diff.html")
+    os.path.join("packages", "_stats_diff.html")
 )
 def tag_stats_diff(package):
     package_manager = PackagesManager()
@@ -106,7 +106,7 @@ def tag_stats_diff(package):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_tabular_form.html")
+    os.path.join("packages", "_tabular_form.html")
 )
 def tag_tabular_form(package):
     return_value = OrderedDict()

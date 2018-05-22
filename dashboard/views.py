@@ -143,7 +143,7 @@ class TranStatusPackageView(TranStatusPackagesView):
     """
     Translation Status Package View
     """
-    template_name = "stats/trans_status_package.html"
+    template_name = "packages/package_view.html"
 
     def get(self, request, *args, **kwargs):
         response = super(TranStatusPackageView, self).get(

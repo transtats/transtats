@@ -52,6 +52,21 @@
     background-color: inherit;
     border: none;
 }
+
+.graph-area-ts {
+    width:100%;
+    min-height:600px
+}
+
+.panel-border-ts {
+    overflow-x: auto;
+    border-color: #39a5dc;
+}
+
+.panel-footer {
+    overflow: auto
+}
+
 /*
 body {
     padding-top: 50px;
