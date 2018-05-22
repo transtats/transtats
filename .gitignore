@@ -67,7 +67,7 @@ target/
 # db related
 *.sqlite3
 alembic.ini
-initial-data.sql
+initial-data-*.sql
 
 # Project related
 keys.json

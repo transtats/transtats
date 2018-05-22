@@ -29,9 +29,8 @@ from django.utils import timezone
 # dashboard
 from dashboard.constants import RELSTREAM_SLUGS
 from dashboard.managers.base import BaseManager
-from dashboard.managers.inventory import (
-    PackagesManager, ReleaseBranchManager, PackageBranchMapping
-)
+from dashboard.managers.inventory import ReleaseBranchManager
+from dashboard.managers.packages import (PackagesManager, PackageBranchMapping)
 from dashboard.models import GraphRules, Reports
 
 

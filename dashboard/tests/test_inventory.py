@@ -17,7 +17,8 @@ from mock import patch
 from fixture import DjangoFixture
 from fixture.style import NamedDataStyle
 from fixture.django_testcase import FixtureTestCase
-from dashboard.managers.inventory import InventoryManager, PackagesManager
+from dashboard.managers.inventory import InventoryManager
+from dashboard.managers.packages import PackagesManager
 from dashboard.models import ReleaseStream
 from dashboard.tests.testdata.db_fixtures import (
     LanguagesData, LanguageSetData, TransPlatformData, ReleaseStreamData,

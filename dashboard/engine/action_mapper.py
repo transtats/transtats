@@ -298,8 +298,13 @@ class Calculate(JobCommandBase):
             trans_stats['id'] = input.get('build_system', '') + ' - ' + input.get('build_tag', '')
             trans_stats['stats'] = []
             for po_file in input['trans_files']:
-                po = polib.pofile(po_file)
-                if po:
+                try:
+                    po = polib.pofile(po_file)
+                except Exception as e:
+                    self._write_to_file(
+                        input['log_f'], '\n<b>Something went wrong in parsing PO</b> ...\n%s\n' % e
+                    )
+                else:
                     temp_trans_stats = {}
                     temp_trans_stats['unit'] = "MESSAGE"
                     locale = po_file.split('/')[-1].split('.')[0]

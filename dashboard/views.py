@@ -38,8 +38,9 @@ from dashboard.forms import (
     NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
 )
 from dashboard.managers.inventory import (
-    InventoryManager, PackagesManager, ReleaseBranchManager
+    InventoryManager, ReleaseBranchManager
 )
+from dashboard.managers.packages import PackagesManager
 from dashboard.managers.jobs import (
     JobsLogManager, TransplatformSyncManager,
     ReleaseScheduleSyncManager, BuildTagsSyncManager

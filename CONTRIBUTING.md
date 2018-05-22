@@ -115,7 +115,7 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
   $ git clone https://github.com/transtats/transtats.git; cd transtats
   $ mkvirtualenv transtats --python=`which python3.6` --system-site-packages
   $ echo `pwd` > /path/to/virtualenvs/transtats/.project
-  $ workon transtats; make devel; make migrate
+  $ workon transtats; make devel; make migrate; make cache
   ```
 
 - Run application

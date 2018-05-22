@@ -24,6 +24,7 @@ fi
 
 make static
 make migrate
+make cache
 python3 manage.py loaddata data.json
 python3 manage.py initlogin 
 python3 manage.py runserver 0:8080 --settings=transtats.settings.test

@@ -30,7 +30,7 @@ from dashboard.engine.action_mapper import ActionMapper
 from dashboard.engine.ds import TaskList
 from dashboard.engine.parser import YMLPreProcessor, YMLJobParser
 from dashboard.managers.base import BaseManager
-from dashboard.managers.inventory import PackagesManager
+from dashboard.managers.packages import PackagesManager
 
 __all__ = ['DownstreamManager']
 
@@ -62,7 +62,7 @@ class DownstreamManager(BaseManager):
         if not self.package_manager.is_package_exist(package_name=self.package):
             raise Exception("Stats NOT saved. Package does not exist.")
         try:
-            self.package_manager.save_version_stats(
+            self.package_manager.syncstats_manager.save_version_stats(
                 self.package, self.buildsys + ' - ' + self.tag, stats_dict, self.buildsys
             )
             # If its for rawhide, update downstream sync time for the package

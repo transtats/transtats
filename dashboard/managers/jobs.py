@@ -27,6 +27,7 @@ from django.utils import timezone
 from dashboard.constants import TS_JOB_TYPES
 from dashboard.managers.base import BaseManager
 from dashboard.managers.inventory import ReleaseBranchManager
+# look if we can call methods from inventory and abstract models
 from dashboard.models import (
     TransPlatform, Packages, Jobs, ReleaseStream, StreamBranches
 )

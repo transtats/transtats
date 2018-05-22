@@ -97,3 +97,14 @@ LOGGING = {
         },
     }
 }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'ts_cache_table',
+        'TIMEOUT': 3600
+    }
+}
+
+CACHE_MIDDLEWARE_SECONDS = 1200
+CACHE_MIDDLEWARE_KEY_PREFIX = "ts"
