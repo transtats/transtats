@@ -50,6 +50,7 @@ from dashboard.managers.graphs import (
 )
 from dashboard.managers.downstream import DownstreamManager
 from dashboard.managers.upstream import UpstreamManager
+from dashboard.models import Visitor
 
 
 class ManagersMixin(object):
@@ -69,7 +70,7 @@ class ManagersMixin(object):
         locales_set = self.inventory_manager.get_locales_set()
         summary = {}
         summary['locales_len'] = len(locales_set[0]) \
-            if isinstance(locales_set, tuple) else 0
+            if isinstance(locales_set, tuple) and len(locales_set) > 0 else 0
         platforms = self.inventory_manager.get_transplatform_slug_url()
         summary['platforms_len'] = len(platforms) if platforms else 0
         relstreams = self.inventory_manager.get_relstream_slug_name()
@@ -83,6 +84,31 @@ class ManagersMixin(object):
         graph_rules = self.graph_manager.get_graph_rules(only_active=True)
         summary['graph_rules_len'] = graph_rules.count() if graph_rules else 0
         return summary
+
+    @staticmethod
+    def log_visitor(http_meta):
+        """
+        log visitors
+        """
+        x_forwarded_for = http_meta.get('HTTP_X_FORWARDED_FOR')
+        ip = x_forwarded_for.split(',')[-1].strip() \
+            if x_forwarded_for else http_meta.get('REMOTE_ADDR')
+        http_params = {}
+        match_params = {
+            'visitor_ip': ip,
+            'visitor_user_agent': http_meta.get('HTTP_USER_AGENT')
+        }
+        http_params.update(match_params)
+        http_params['visitor_accept'] = http_meta.get('HTTP_ACCEPT')
+        http_params['visitor_encoding'] = http_meta.get('HTTP_ACCEPT_ENCODING')
+        http_params['visitor_language'] = http_meta.get('HTTP_ACCEPT_LANGUAGE')
+        http_params['visitor_host'] = http_meta.get('REMOTE_HOST')
+        try:
+            Visitor.objects.update_or_create(
+                **match_params, defaults=http_params
+            )
+        except Exception as e:
+            pass
 
 
 class TranStatusPackagesView(ManagersMixin, TemplateView):
@@ -127,6 +153,11 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
     Translation Status Releases View
     """
     template_name = "stats/status_releases.html"
+
+    def get(self, request, *args, **kwargs):
+        http_meta = self.request.META.copy()
+        self.log_visitor(http_meta)
+        return super(TranStatusReleasesView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         """
@@ -198,7 +229,7 @@ class LanguagesSettingsView(ManagersMixin, ListView):
         for langset in language_sets:
             langset_color_dict.update({langset.lang_set_slug: langset.lang_set_color})
         locale_groups = self.inventory_manager.get_all_locales_groups()
-        if isinstance(locales_set, tuple):
+        if isinstance(locales_set, tuple) and len(locales_set) >= 3:
             active_locales, inactive_locales, aliases = locales_set
             context['active_locales_len'] = len(active_locales)
             context['inactive_locales_len'] = len(inactive_locales)

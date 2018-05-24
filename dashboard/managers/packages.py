@@ -45,6 +45,7 @@ class PackagesManager(InventoryManager):
     Packages Manager
     """
 
+    PROCESS_STATS = True
     syncstats_manager = SyncStatsManager()
 
     def get_packages(self, pkgs=None, pkg_params=None):
@@ -100,6 +101,35 @@ class PackagesManager(InventoryManager):
                           release_branch + " release branch, details: " + str(e))
             )
         return packages
+
+    def get_release_specific_package_stats(self, release_branch):
+        """
+        Fetch processed stats for all packages of a release
+        :param release_branch:
+        :return:
+        """
+        packages_stats = {}
+        release_packages = self.get_relbranch_specific_pkgs(
+            release_branch, fields=['package_name', 'release_branch_mapping']
+        )
+        branch_locales = self.get_relbranch_locales(release_branch)
+        locales_count_match = True \
+            if len(branch_locales) == self.get_active_locales_count() else False
+        for package in release_packages:
+            version = package.release_branch_mapping[release_branch][BRANCH_MAPPING_KEYS[0]]
+            package_stats = self.syncstats_manager.get_sync_stats(
+                pkgs=[package.package_name],
+                fields=['stats_raw_json', 'stats_processed_json'],
+                versions=[version]
+            ).first()
+            if package_stats:
+                package_processed_stats = package_stats.stats_processed_json \
+                    if package_stats.stats_processed_json else \
+                    self._process_response_stats_json(package_stats.stats_raw_json['stats'])
+                packages_stats[package.package_name] = package_processed_stats \
+                    if locales_count_match else {locale: package_processed_stats[locale]
+                                                 for locale in branch_locales}
+        return packages_stats
 
     def count_packages(self):
         """
@@ -198,8 +228,12 @@ class PackagesManager(InventoryManager):
                                 **dict(auth_user=platform.auth_login_id, auth_token=platform.auth_token_key)
                             )
                         if resp_dict:
+                            p_stats = {}
+                            # Process and Update locale-wise stats
+                            if self.PROCESS_STATS and 'stats' in resp_dict:
+                                p_stats = self._process_response_stats_json(resp_dict['stats'])
                             if self.syncstats_manager.save_version_stats(
-                                    project, version, resp_dict, platform.engine_name):
+                                    project, version, resp_dict, platform.engine_name, p_stats=p_stats):
                                 kwargs['transtats_lastupdated'] = timezone.now()
             if 'update_stats' in kwargs:
                 del kwargs['update_stats']
@@ -277,7 +311,7 @@ class PackagesManager(InventoryManager):
         else:
             return False
 
-    def _get_lang_id_name_dict(self, release_branch=None):
+    def get_lang_id_name_dict(self, release_branch=None):
         """
         Generates {(locale, alias): language_name} dict
         """
@@ -293,14 +327,15 @@ class PackagesManager(InventoryManager):
         fetch stats of a package for all enabled languages
         :param package_name: str
         :param apply_branch_mapping: boolean
+        :param specify_branch: release branch name
         :return: dict {project_version: stats_dict}
         """
         trans_stats_dict = OrderedDict()
         package_desc = ''
         # 1st, get active locales for which stats are to be shown
         #      or, choose release branch specific locales
-        lang_id_name = self._get_lang_id_name_dict(specify_branch) \
-            if apply_branch_mapping and specify_branch else self._get_lang_id_name_dict()
+        lang_id_name = self.get_lang_id_name_dict(specify_branch) \
+            if apply_branch_mapping and specify_branch else self.get_lang_id_name_dict()
         # 2nd, filter stats json for required locales
         if self.is_package_exist(package_name):
             package_details = self.get_packages([package_name]).get()
@@ -334,7 +369,7 @@ class PackagesManager(InventoryManager):
         upstream_trans_stats = []
         if not package:
             return upstream_trans_stats
-        lang_id_name = self._get_lang_id_name_dict()
+        lang_id_name = self.get_lang_id_name_dict()
         package_details = self.get_packages([package], ['upstream_latest_stats']).get()
         upstream_stats = package_details.upstream_latest_stats if package_details else {}
         if upstream_stats:
@@ -413,8 +448,15 @@ class PackagesManager(InventoryManager):
                            auth_token=package.transplatform_slug.auth_token_key)
                 )
             if proj_trans_stats_response_dict:
+                processed_stats = {}
+                # Process and Update locale-wise stats
+                if self.PROCESS_STATS and 'stats' in proj_trans_stats_response_dict:
+                    processed_stats = self._process_response_stats_json(
+                        proj_trans_stats_response_dict['stats'])
+
                 if self.syncstats_manager.save_version_stats(
-                        project, version, proj_trans_stats_response_dict, package.transplatform_slug.engine_name
+                        project, version, proj_trans_stats_response_dict,
+                        package.transplatform_slug.engine_name, p_stats=processed_stats
                 ):
                     Packages.objects.filter(transplatform_url=package.transplatform_url).update(
                         transtats_lastupdated=timezone.now())
@@ -446,6 +488,34 @@ class PackagesManager(InventoryManager):
         else:
             return True
         return False
+
+    def _process_response_stats_json(self, stats_json):
+        lang_id_name = self.get_lang_id_name_dict() or []
+        processed_stats_json = {}
+        for locale, alias in dict(list(lang_id_name.keys())).items():
+            try:
+                filter_stat = list(filter(
+                    lambda x: x['locale'] == locale or x['locale'].replace('-', '_') == locale or
+                    x['locale'] == alias or x['locale'].replace('-', '_') == alias, stats_json
+                ))
+            except Exception as e:
+                self.app_logger(
+                    'ERROR', "Error while filtering stats, details: " + str(e))
+            else:
+                filter_stat = filter_stat[0] \
+                    if isinstance(filter_stat, list) and len(filter_stat) > 0 else {}
+            processed_stats_json[locale] = {}
+            processed_stats_json[locale]['Total'] = filter_stat.get('total', 0)
+            processed_stats_json[locale]['Translated'] = filter_stat.get('translated', 0)
+            processed_stats_json[locale]['Untranslated'] = filter_stat.get('untranslated', 0)
+            remaining = 0
+            try:
+                remaining = (filter_stat.get('untranslated', 0.0) / filter_stat.get('total', 0.0)) * 100
+            except ZeroDivisionError:
+                # log error, pass for now
+                pass
+            processed_stats_json[locale]['Remaining'] = remaining
+        return processed_stats_json
 
     def refresh_package(self, package_name):
         """
@@ -643,23 +713,6 @@ class PackageBranchMapping(object):
             if branch in from_branches:
                 return self._return_original_version(branch)
         return ''
-
-    def branch_stats(self, release_branch):
-        """
-        Generates stats for a specific release branch
-        :param release_branch: release branch slug
-        :return: dict
-        """
-        if not release_branch:
-            return {}
-        transplatform_version = self.branch_mapping.get(
-            release_branch, {}).get(BRANCH_MAPPING_KEYS[0])
-        pkg_stats_query_set = self.syncstats_manager.get_sync_stats(
-            pkgs=[self.package_name], versions=[transplatform_version]
-        )
-        pkg_stats_json = pkg_stats_query_set.first().stats_raw_json \
-            if pkg_stats_query_set else {}
-        return pkg_stats_json
 
     @property
     def versions(self):

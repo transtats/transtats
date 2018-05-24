@@ -20,7 +20,7 @@
         <div class="row" style="padding-bottom:20px">
             <div class="col-xs-12">
                 {% if packages %}
-                <select id="packageName" class="selectpicker" data-live-search="true">
+                <select id="packageName" class="selectpicker" data-live-search="true" data-size="15">
                     <option selected disabled>Select Package</option>
                     {% for package_name, upstream_name in packages %}
                         <option>{{ package_name }}</option>

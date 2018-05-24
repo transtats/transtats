@@ -168,8 +168,12 @@ def tag_releases_summary():
     reports_manager = ReportsManager()
     releases_summary = reports_manager.get_reports('releases')
     if releases_summary:
+        release_report_json = releases_summary.get().report_json
+        for release, summary in release_report_json.items():
+            release_report_json[release]['languages'] = \
+                OrderedDict(sorted(summary['languages'].items()))
         return_value.update(dict(
-            relsummary=releases_summary.get().report_json,
+            relsummary=release_report_json,
             last_updated=releases_summary.get().report_updated
         ))
     return return_value

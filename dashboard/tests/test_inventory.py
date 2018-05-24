@@ -45,6 +45,13 @@ class InventoryManagerTest(FixtureTestCase):
         self.assertEqual(japanese_locale[0].lang_name, 'Japanese')
         self.assertEqual(japanese_locale[0].locale_alias, 'ja')
 
+    def test_get_active_locales_count(self):
+        """
+        Test get_active_locales_count
+        """
+        active_locales = self.inventory_manager.get_active_locales_count()
+        self.assertEqual(active_locales, 3)
+
     def test_get_locale_alias(self):
         """
         Test get_locale_alias
@@ -174,6 +181,14 @@ class InventoryManagerTest(FixtureTestCase):
         relstream_slug_name_tuple = self.inventory_manager.get_relstream_slug_name()
         self.assertEqual(len(relstream_slug_name_tuple), 1)
         self.assertTupleEqual(relstream_slug_name_tuple[0], ('fedora', 'Fedora'))
+
+    def test_get_relstream_build_tags(self):
+        """
+        Test get_relstream_build_tags
+        """
+        tags = self.inventory_manager.get_relstream_build_tags(stream_slug='fedora')
+        self.assertIsInstance(tags, dict)
+        self.assertDictEqual(tags, {'fedora': ['f28', 'f29', 'rawhide']})
 
 
 class PackagesManagerTest(FixtureTestCase):

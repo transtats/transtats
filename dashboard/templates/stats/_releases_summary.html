@@ -16,9 +16,7 @@
                     <tbody>
                     {% for lang, untranslated in summary.languages.items %}
                     <tr>
-                        {% if untranslated > 0 %}
-                            <td>{{ lang }}</td><td align="right" class="text-info">{{ untranslated }}</td>
-                        {% endif %}
+                        <td>{{ lang }}</td><td align="right" class="text-info">{{ untranslated }}</td>
                     </tr>
                     {% endfor %}
                     </tbody>

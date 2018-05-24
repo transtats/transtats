@@ -71,6 +71,18 @@ class InventoryManager(BaseManager):
             )
         return locales
 
+    def get_active_locales_count(self):
+        """
+        Return count of active locales
+        """
+        try:
+            return Languages.objects.filter(lang_status=True).count()
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "locales count could not be fetched, details: " + str(e)
+            )
+            return 0
+
     def get_locale_alias(self, locale):
         """
         Fetch alias of a locale
@@ -308,7 +320,7 @@ class SyncStatsManager(BaseManager):
         :return: stats list, missing locales tuple
         """
         trans_stats = []
-        locales_found = []
+        missing_locales = []
 
         if transplatform_slug in ZANATA_SLUGS or transplatform_slug in DAMNEDLIES_SLUGS:
             if not stats_json.get('stats'):
@@ -320,18 +332,18 @@ class SyncStatsManager(BaseManager):
                             (stats_param_locale.replace('-', '_') in locale_tuple):
                         trans_stats.append(stats_param)
                     else:
-                        locales_found.append(locale_tuple)
+                        missing_locales.append(locale_tuple)
 
         elif transplatform_slug in TRANSIFEX_SLUGS:
             for locale_tuple in locales:
                 if stats_json.get(locale_tuple[0]):
                     trans_stats.append({locale_tuple[0]: stats_json[locale_tuple[0]]})
-                    locales_found.append(locale_tuple)
+                    missing_locales.append(locale_tuple)
                 elif stats_json.get(locale_tuple[1]):
                     trans_stats.append({locale_tuple[1]: stats_json[locale_tuple[1]]})
-                    locales_found.append(locale_tuple)
+                    missing_locales.append(locale_tuple)
 
-        return trans_stats, tuple(set(locales) - set(locales_found))
+        return trans_stats, tuple(set(locales) - set(missing_locales))
 
     def extract_locale_translated(self, transplatform_slug, stats_dict_list):
         """
@@ -354,13 +366,14 @@ class SyncStatsManager(BaseManager):
                 locale_translated.append([stats_dict.get('locale', ''), translation_percent])
         return locale_translated
 
-    def save_version_stats(self, project, version, stats_json, stats_source):
+    def save_version_stats(self, project, version, stats_json, stats_source, p_stats=None):
         """
         Save version's translation stats in db
         :param project: transplatform project
         :param version: transplatform project's version
         :param stats_json: translation stats dict
         :param stats_source: platform engine or build system
+        :param p_stats: processed stats dict
         :return: boolean
         """
 
@@ -377,6 +390,8 @@ class SyncStatsManager(BaseManager):
                 params.update(dict(project_version=version))
                 params.update(dict(source=stats_source))
                 params.update(dict(stats_raw_json=stats_json))
+                if isinstance(p_stats, dict):
+                    params.update(dict(stats_processed_json=p_stats))
                 params.update(dict(sync_iter_count=1))
                 params.update(dict(sync_visibility=True))
                 new_sync_stats = SyncStats(**params)
@@ -384,6 +399,7 @@ class SyncStatsManager(BaseManager):
             else:
                 SyncStats.objects.filter(**filter_kwargs).update(
                     job_uuid=sync_uuid, stats_raw_json=stats_json,
+                    stats_processed_json=p_stats if isinstance(p_stats, dict) else {},
                     sync_iter_count=existing_sync_stat.sync_iter_count + 1
                 )
         except Exception as e:

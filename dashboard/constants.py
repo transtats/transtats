@@ -42,3 +42,6 @@ BUILD_SYSTEMS = ('brew', 'koji')
 
 # YML Jobs Execution Types
 JOB_EXEC_TYPES = ('sequential', 'parallel')
+
+# Translation Workload Table Headers
+WORKLOAD_HEADERS = ('Total', 'Translated', 'Untranslated', 'Remaining')
