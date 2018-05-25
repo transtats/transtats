@@ -1,4 +1,5 @@
-##### Thu May 10 2018 Sundeep Anand <suanand@redhat.com>
+##### Fri May 25 2018 Sundeep Anand <suanand@redhat.com>
+* Add cache, optimise code and a few bug fixes in graphs
 * Fix branch mapping for GNOME Packages (as per buildsys)
 * Improve docs, Add Jobs section to `docs.transtats.org`
 * Migrate from Travis CI to Circle CI, fix Docker files

@@ -19,6 +19,7 @@ from uuid import uuid4
 # django
 from django.contrib.postgres.fields import JSONField, ArrayField
 from django.db import models
+from django.utils import timezone
 
 
 TABLE_PREFIX = 'ts_'
@@ -269,6 +270,7 @@ class SyncStats(models.Model):
     project_version = models.CharField(max_length=500, null=True)
     source = models.CharField(max_length=500, null=True)
     stats_raw_json = JSONField(null=True)
+    stats_processed_json = JSONField(null=True)
     sync_iter_count = models.IntegerField()
     sync_visibility = models.BooleanField()
 
@@ -331,3 +333,31 @@ class Reports(models.Model):
     class Meta:
         db_table = TABLE_PREFIX + 'reports'
         verbose_name = "Reports"
+
+
+class Visitor(models.Model):
+    """
+    Visitors Model
+    """
+    visitor_id = models.AutoField(primary_key=True)
+    visitor_ip = models.GenericIPAddressField()
+    visitor_user_agent = models.CharField(max_length=500)
+    visitor_accept = models.CharField(max_length=500, null=True, blank=True)
+    visitor_encoding = models.CharField(max_length=500, null=True, blank=True)
+    visitor_language = models.CharField(max_length=500, null=True, blank=True)
+    visitor_host = models.CharField(max_length=500, null=True, blank=True)
+    first_visit_time = models.DateTimeField()
+    last_visit_time = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        if not self.visitor_id:
+            self.first_visit_time = timezone.now()
+        self.last_visit_time = timezone.now()
+        return super(Visitor, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return "%s: %s" % (str(self.visitor_ip), self.visitor_user_agent)
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'visitors'
+        verbose_name = "Visitors"

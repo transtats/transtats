@@ -38,7 +38,7 @@ function getUrlVars(){for(var t,e=[],s=window.location.href.slice(window.locatio
     <form method="post" id ="syncUpstreamForm" class="form-horizontal">{% csrf_token %}
         <input type="hidden" value="syncupstream" id="syncUpstreamIdentifier"/>
         {% if packages %}
-        <select id="packageName" class="selectpicker" data-live-search="true">
+        <select id="packageName" class="selectpicker" data-live-search="true" data-size="15">
             <option selected disabled>Select Package</option>
             {% for package_name, upstream_name in packages %}
                 <option>{{ package_name }}</option>

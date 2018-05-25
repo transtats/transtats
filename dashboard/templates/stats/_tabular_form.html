@@ -3,40 +3,46 @@
     $("#packagedesc").html("{{ pkg_desc }}"); $("#graphdisclaimer").html(a);
 </script>
 {% if stats_data %}
-<div style="padding:10px;background-color:azure;"><span style='padding-left:20px;padding-right:10px;' class='glyphicon glyphicon-info-sign' aria-hidden='true'></span>
-    <span class='text-info'>Stats coming from Upstream has AliceBlue background color whereas Downstream has Ivory color. And its default for Translation Platforms.</span></div>
-<table class="table table-bordered table-hover">
-    <thead>
-      <tr>
-        <th>&nbsp;</th>
-        {% for lang in headers %}
-            <th>{{ lang }}</th>
-        {% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for version, stats in stats_data.items %}
-      {% if version|lower == 'upstream' %}
-      <tr style="background-color:AliceBlue">
-      {% elif 'brew' in version|lower or 'koji' in version|lower%}
-      <tr style="background-color:Ivory">
-      {% else %}
-      <tr>
-      {% endif %}
-        <td width="10%"><span class="text-info">{{ version }}</span></td>
-        {% for index, stat in stats %}
-            <td>
-                {% if stat and stat == 100 %}
-                    <span class="text-success">{{ stat }}%</span>
-                {% elif stat %}
-                    {{ stat }}%
-                {% else %}
-                    <span class="text-muted">N/A</span>
-                {% endif %}
-            </td>
-        {% endfor %}
-      </tr>
-      {% endfor %}
-    </tbody>
-</table>
+<div style="padding:5px;background-color:azure">
+    <span style='padding-left:20px;padding-right:10px;' class='glyphicon glyphicon-info-sign' aria-hidden='true'></span>
+    <span class='text-info'>Stats coming from Upstream has AliceBlue background color whereas Downstream has Ivory color. And its default for Translation Platforms.</span>
+</div>
+<div id="table-scroll" class="table-scroll">
+  <div class="table-wrap">
+    <table class="main-table table table-bordered table-hover">
+        <thead>
+          <tr>
+            <th class="fixed-side">&nbsp;</th>
+            {% for lang in headers %}
+                <th>{{ lang }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for version, stats in stats_data.items %}
+          {% if version|lower == 'upstream' %}
+          <tr style="background-color:AliceBlue">
+          {% elif 'brew' in version|lower or 'koji' in version|lower%}
+          <tr style="background-color:Ivory">
+          {% else %}
+          <tr>
+          {% endif %}
+            <td style="white-space:nowrap;width:10%" class="fixed-side"><span class="text-info">{{ version }}</span></td>
+            {% for index, stat in stats %}
+                <td>
+                    {% if stat and stat == 100 %}
+                        <span class="text-success">{{ stat }}%</span>
+                    {% elif stat %}
+                        {{ stat }}%
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+  </div>
+</div>
 {% endif %}

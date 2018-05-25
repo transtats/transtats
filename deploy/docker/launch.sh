@@ -27,7 +27,7 @@ fi
 
 sudo -u postgres psql -c "ALTER USER $DATABASE_USER WITH PASSWORD '$DATABASE_PASSWORD';"
 sudo -u postgres psql -c "CREATE DATABASE $DATABASE_NAME ENCODING = 'UTF-8' LC_CTYPE = 'en_US.utf8' LC_COLLATE = 'en_US.utf8' template = template0;"
-make migrate
+make migrate && make cache
 su - postgres -c "psql -d $DATABASE_NAME -a -f /workspace/deploy/docker/data/initial.sql"
 
 # setup app

@@ -76,6 +76,8 @@ Hack and Develop
 
 - Run tests :code:`make lint test`
 
+- Create cache :code:`make cache`
+
 - Generate docs :code:`make docs`
 
 

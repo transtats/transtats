@@ -1,4 +1,8 @@
 
+.PHONY: cache
+cache:
+	python3 manage.py createcachetable --settings=transtats.settings.test
+
 .PHONY: clean-pyc
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +

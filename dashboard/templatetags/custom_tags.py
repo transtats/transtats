@@ -19,7 +19,7 @@ from django import template
 
 from dashboard.constants import BRANCH_MAPPING_KEYS
 from dashboard.managers.graphs import GraphManager, ReportsManager
-from dashboard.managers.inventory import PackagesManager
+from dashboard.managers.packages import PackagesManager
 
 
 register = template.Library()
@@ -95,10 +95,9 @@ def tag_stats_diff(package):
         stats_diff = package_details.stats_diff or {}
         langs_out_of_sync = {}
         for branch, diff in stats_diff.items():
-            langs_out_of_sync[branch] = []
-            for lang, percent in diff.items():
-                langs_out_of_sync[branch].append(lang)
-
+            langs_out_of_sync[branch] = {}
+            for lang, diff_percent in diff.items():
+                langs_out_of_sync[branch][lang] = diff_percent
         return_value.update(
             {'package_name': package_details.package_name,
              'stats_diff': langs_out_of_sync}
@@ -169,8 +168,12 @@ def tag_releases_summary():
     reports_manager = ReportsManager()
     releases_summary = reports_manager.get_reports('releases')
     if releases_summary:
+        release_report_json = releases_summary.get().report_json
+        for release, summary in release_report_json.items():
+            release_report_json[release]['languages'] = \
+                OrderedDict(sorted(summary['languages'].items()))
         return_value.update(dict(
-            relsummary=releases_summary.get().report_json,
+            relsummary=release_report_json,
             last_updated=releases_summary.get().report_updated
         ))
     return return_value
