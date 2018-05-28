@@ -11,7 +11,7 @@ Use Cases
  - Finding translation gaps by syncing with source repositories, translation platforms and build systems.
  - Estimates translation update volume at an early stage of a release cycle. 
 
-To learn more about using Transtats, please point your browser to [Transtats docs site](http://docs.transtats.org).
+To learn more about using Transtats, please point your browser to [docs](http://docs.transtats.org).
 
 ### Quick Start
 
