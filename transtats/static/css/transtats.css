@@ -60,6 +60,14 @@
     right: 15px;
 }
 
+.about-modal-pf {
+    background-color: #003d44;
+    background-image: url(/static/img/bg-modal-about.png), url(/static/img/bg-modal-about-upper.png);
+    background-position: right bottom, left top;
+    background-repeat: no-repeat, no-repeat;
+    background-size: 250px, 100px;
+}
+
 /*
 body {
     padding-top: 50px;
