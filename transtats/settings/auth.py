@@ -14,6 +14,8 @@ ADMINS = (
     ('transtats', 'transtats@example.com'),
 )
 
+ADMIN_INITIAL_PASSWORD = app_config_vars('ADMIN_PASSWORD')
+
 # OpenID Connect
 # NOTE: This client ID only works on localhost:8080.
 INSTALLED_APPS += ('mozilla_django_oidc', )
