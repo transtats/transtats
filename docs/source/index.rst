@@ -21,6 +21,7 @@ Transtats Server is a simple django application with PostgreSQL backend. Has one
     :maxdepth: 2
 
     server
+    api
     client
     gettingstarted
     getinvolved

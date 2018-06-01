@@ -212,3 +212,28 @@ class ReleaseStatusDetail(ReleaseStatus):
             else:
                 response_text = {release: "Release not found"}
         return Response(response_text)
+
+
+class ReleaseStatusLocale(ReleaseStatus):
+    """
+    Release Status Locale API View
+    """
+
+    def get(self, request, **kwargs):
+        """
+        GET response
+        :param request: Request object
+        :param kwargs: Keyword Arguments
+        :return: Custom JSON
+        """
+        response_text = {}
+        if kwargs.get('release_stream') and kwargs.get('locale'):
+            release = kwargs['release_stream']
+            locale = kwargs['locale']
+            estimate = self.graph_manager.get_workload_estimate(release, locale=locale)
+            if isinstance(estimate, tuple) and len(estimate) > 1:
+                response_text = {release: self._process_stats_data(estimate[1])} \
+                    if estimate[1] else {release: "Release not found"}
+            else:
+                response_text = {release: "Release status could not be determined."}
+        return Response(response_text)

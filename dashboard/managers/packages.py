@@ -553,6 +553,8 @@ class PackagesManager(InventoryManager):
     def calculate_stats_diff(self, package, graph_ready_stats, pkg_branch_map):
         """
         Calculates and stores translation stats differences
+         - first look for 100% in the build system
+            - if not, then look for anything to pull from translation platform
         :param package: str
         :param graph_ready_stats: dict
         :param pkg_branch_map: dict
@@ -763,12 +765,20 @@ class PackageBranchMapping(object):
                                 for version in self.transplatform_versions:
                                     if seek_version in version:
                                         branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]] = version
-                                # seek next (rounded) version
+                                # seek next (nearest) version
                                 if not branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]]:
                                     version_x, version_y = version_from_latest_build.split('.')[0:2]
-                                    version_y = str(int(5 * round(float(version_y) / 5)))
-                                    seek_version = "-".join((version_x, version_y))
-                                    for version in self.transplatform_versions:
-                                        if seek_version in version:
-                                            branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]] = version
+                                    first_place_matched_versions = \
+                                        [version for version in self.transplatform_versions
+                                         if version_x in version]
+                                    if first_place_matched_versions and len(first_place_matched_versions) > 0:
+                                        probable_versions = [int(version.split('-')[0:3][2])
+                                                             for version in first_place_matched_versions]
+                                        version_y = int(version_y)
+                                        located_version = min(probable_versions, key=lambda x: abs(x - version_y))
+                                        if located_version:
+                                            required_version = [ver for ver in first_place_matched_versions
+                                                                if str(located_version) in ver]
+                                            if required_version and len(required_version) > 0:
+                                                branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]] = required_version[0]
         return branch_mapping_dict
