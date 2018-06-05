@@ -396,8 +396,9 @@ class GraphManager(BaseManager):
             required_stats_dict = self._process_workload_combined_view(pkg_stats, headers)
         elif isinstance(locale, str):
             for pkg, locale_stat in pkg_stats.items():
-                required_stats_dict[pkg] = locale_stat.get(locale, {})
-
+                required_stats_dict[pkg] = locale_stat.get(locale, {
+                    header: 0 for header in headers
+                })
         return headers, OrderedDict(sorted(
             required_stats_dict.items(), key=lambda x: x[1]['Remaining'], reverse=True
         ))
