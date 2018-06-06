@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 cd /workspace
-export PYTHONPATH=/workspace;$PYTHONPATH
+export PYTHONPATH=/workspace:$PYTHONPATH
 
 # setup db
 su - postgres -c "pg_ctl -D /var/lib/pgsql/data -l logfile start" && sleep 5
