@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Route
+metadata:
+  name: transtats-web
+  labels:
+    app: transtats
+spec:
+  #host: transtats.stg.tshost.com
+  port:
+    targetPort: web
+  to:
+    kind: Service
+    name: transtats-web
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

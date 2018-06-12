@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: transtats-web
+  labels:
+    app: transtats
+spec:
+  selector:
+    app: transtats
+    service: web
+  ports:
+  - name: web
+    port: 8080
+    targetPort: 8080

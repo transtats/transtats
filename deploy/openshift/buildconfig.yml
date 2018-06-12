@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: "transtats-build"
+  labels:
+    environment: "transtats"
+spec:
+  runPolicy: Serial
+  source:
+    dockerfile: |-
+      FROM registry.fedoraproject.org/fedora:latest
+      USER root
+      RUN useradd -ms /bin/bash tsuser
+      RUN dnf -y update && \
+          dnf -y install git make cpio koji patch && \
+          dnf clean all
+      RUN mkdir /workspace
+      ENV PYTHONUNBUFFERED 1
+      WORKDIR /workspace
+      RUN git clone -b os-devel https://github.com/bhavin192/transtats.git .
+      RUN pip3 install -r /workspace/requirements/base.txt
+      RUN cp deploy/docker-compose/transtats/launch.sh /usr/bin/transtats.sh
+      RUN cp deploy/docker-compose/transtats/wait-for-it.sh /usr/bin/wait-for-it.sh
+      RUN mkdir staticfiles
+      RUN chmod g+w transtats/logs dashboard/sandbox staticfiles
+      RUN chown -R tsuser /workspace
+      EXPOSE 8080
+      USER tsuser
+      ENTRYPOINT ["/usr/bin/transtats.sh"]
+    type: Dockerfile
+  strategy:
+    dockerStrategy:
+      env:
+      - name: UPGRADE_PIP_TO_LATEST
+        value: "true"
+      - name: PIP_INDEX_URL
+      - name: TS_AUTH_SYSTEM
+        value: fedora
+      - name: OIDC_RP_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: transtats-secret
+            key: oidc-client-secret
+      - name: DJANGO_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: transtats-secret
+            key: django-secret-key
+    type: Docker
+  output:
+    to:
+      kind: ImageStreamTag
+      name: transtats:latest
