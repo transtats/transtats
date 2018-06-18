@@ -121,7 +121,10 @@ class DownstreamManager(BaseManager):
             yml_job = YMLJobParser(yml_stream=io.StringIO(yml_preprocessed))
             self.package = yml_job.package
             self.buildsys = yml_job.buildsys
-            self.tag = yml_job.tags[0] if len(yml_job.tags) > 0 else None
+            if isinstance(yml_job.tags, list) and len(yml_job.tags) > 0:
+                self.tag = yml_job.tags[0]
+            elif isinstance(yml_job.tags, str):
+                self.tag = yml_job.tags
             suffix = self.job_suffix(self.package, self.buildsys, self.tag)
             self._bootstrap(self.buildsys)
             # for sequential jobs, tasks should be pushed to linked list

@@ -2,8 +2,36 @@
 
 {% block extrascript %}
 <script type="text/javascript">
+    var activateAccordion = function (id) {
+        // Get the parents
+        var parents = $('a[href="#' + id + '"]').parents('.panel-group').children('.panel');
+
+        // Go through each of the parents
+        $.each(parents, function (idx, obj) {
+            // Check if the child exists
+            var find = $(obj).find('a[href="#' + id + '"]'),
+                children = $(obj).children('.panel-collapse');
+
+            if (find.length > 0) {
+                // Show the selected child
+                children.removeClass('collapse');
+                children.addClass('in');
+            } else {
+                // Hide the others
+                children.removeClass('in');
+                children.addClass('collapse');
+            }
+        });
+    };
+
+    function getUrlVars() {
+        for (var e, t = [], a = window.location.href.slice(window.location.href.indexOf("?") + 1).split("&"), s = 0; s < a.length; s++) e = a[s].split("="), t.push(e[0]), t[e[0]] = e[1];
+        return t
+    };
+
     $(document).ready(function() {
         $('#tab-logs').addClass('active');
+        getUrlVars().id && activateAccordion(getUrlVars().id);
     })
 </script>
 {% endblock %}

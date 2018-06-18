@@ -27,14 +27,37 @@ from django.utils import timezone
 from dashboard.constants import TS_JOB_TYPES
 from dashboard.managers.base import BaseManager
 from dashboard.managers.inventory import ReleaseBranchManager
-# look if we can call methods from inventory and abstract models
 from dashboard.models import (
-    TransPlatform, Packages, Jobs, ReleaseStream, StreamBranches
+    TransPlatform, Packages, ReleaseStream, StreamBranches,
+    JobTemplates, Jobs
 )
 
 
-__all__ = ['JobManager', 'JobsLogManager', 'TransplatformSyncManager',
-           'ReleaseScheduleSyncManager', 'BuildTagsSyncManager']
+__all__ = ['JobTemplateManager', 'JobManager', 'JobsLogManager',
+           'TransplatformSyncManager', 'ReleaseScheduleSyncManager',
+           'BuildTagsSyncManager']
+
+
+class JobTemplateManager(BaseManager):
+    """
+    Job Templates Manager
+    """
+    def get_job_templates(self, *fields, **filters):
+        """
+        Get Job Templates from db
+        :param fields: template fields to fetch
+        :param filters: Any filters to apply
+        :return: Query sets
+        """
+        job_templates = []
+        try:
+            job_templates = JobTemplates.objects.only(*fields).filter(**filters)
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Job templates could not be fetched for " +
+                         str(filters) + " filters, details: " + str(e)
+            )
+        return job_templates
 
 
 class JobManager(object):

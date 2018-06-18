@@ -541,7 +541,7 @@ class JobsLogsView(ManagersMixin, ListView):
 
     def get_queryset(self):
         job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[:15]
+        return job_logs[:20]
 
 
 class JobsArchiveView(ManagersMixin, ListView):
@@ -553,7 +553,7 @@ class JobsArchiveView(ManagersMixin, ListView):
 
     def get_queryset(self):
         job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[15:]
+        return job_logs[20:]
 
 
 class JobsYMLBasedView(ManagersMixin, TemplateView):
@@ -915,4 +915,23 @@ def get_build_tags(request):
                                 {% tag_build_tags buildsys %}
                             """
             return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)
+
+
+def job_template(request):
+    """
+    Select Job Template
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        selected_template = post_params.get('template', '')
+        context = Context(
+            {'META': request.META,
+             'job_template': selected_template}
+        )
+        template_string = """
+                            {% load tag_job_form from custom_tags %}
+                            {% tag_job_form job_template %}
+                        """
+        return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)
