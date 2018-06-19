@@ -25,11 +25,12 @@ except ImportError:
 from django.conf import settings
 from django.utils import timezone
 # dashboard
-from dashboard.constants import JOB_EXEC_TYPES
+from dashboard.constants import TS_JOB_TYPES, JOB_EXEC_TYPES
 from dashboard.engine.action_mapper import ActionMapper
 from dashboard.engine.ds import TaskList
 from dashboard.engine.parser import YMLPreProcessor, YMLJobParser
 from dashboard.managers.base import BaseManager
+from dashboard.managers.jobs import JobManager
 from dashboard.managers.packages import PackagesManager
 
 __all__ = ['DownstreamManager']
@@ -134,6 +135,12 @@ class DownstreamManager(BaseManager):
             else:
                 raise Exception('%s exec type is NOT supported yet.' % yml_job.execution)
             if self.tag and self.package and self.hub_url and self.job_base_dir:
+                # lets create a job
+                job_manager = JobManager(TS_JOB_TYPES[3])
+                if job_manager.create_job():
+                    self.job_id = job_manager.uuid
+                    job_manager.job_remarks = self.package
+                # and set tasks
                 tasks = yml_job.tasks
                 for task in tasks:
                     self.tasks_ds.add_task(task)
@@ -141,19 +148,27 @@ class DownstreamManager(BaseManager):
                 if os.path.exists(log_file):
                     os.unlink(log_file)
                 action_mapper = ActionMapper(
-                    self.tasks_ds, self.tag, self.package,
-                    self.hub_url, self.job_base_dir, self.buildsys, log_file
+                    self.tasks_ds, self.tag, self.package, self.hub_url,
+                    self.job_base_dir, self.buildsys, log_file
                 )
                 action_mapper.set_actions()
                 # lets execute collected tasks
                 try:
                     action_mapper.execute_tasks()
                 except Exception as e:
+                    job_manager.job_result = False
                     raise Exception(e)
+                else:
+                    job_manager.output_json = action_mapper.result
+                    job_manager.job_result = True
                 finally:
+                    job_manager.log_json.update(action_mapper.log)
                     action_mapper.clean_workspace()
+                    job_manager.mark_job_finish()
                     time.sleep(4)
+                # if not a dry run, save results is db
                 if action_mapper.result and not getattr(self, 'DRY_RUN', None):
                     self._save_result_in_db(action_mapper.result)
                 if os.path.exists(log_file):
                     os.unlink(log_file)
+        return self.job_id

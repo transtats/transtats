@@ -541,7 +541,7 @@ class JobsLogsView(ManagersMixin, ListView):
 
     def get_queryset(self):
         job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[:20]
+        return job_logs[:15]
 
 
 class JobsArchiveView(ManagersMixin, ListView):
@@ -553,7 +553,7 @@ class JobsArchiveView(ManagersMixin, ListView):
 
     def get_queryset(self):
         job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[20:]
+        return job_logs[15:]
 
 
 class JobsYMLBasedView(ManagersMixin, TemplateView):
@@ -632,14 +632,17 @@ def schedule_job(request):
                 downstream_manager = DownstreamManager(**{
                     field: request.POST.dict().get(field) for field in fields})
                 try:
-                    downstream_manager.execute_job()
+                    job_uuid = downstream_manager.execute_job()
                 except Exception as e:
                     error_msg = str(e) if len(str(e)) < 50 else str(e)[:50] + '...'
                     message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.<br/>" \
                               "&nbsp;&nbsp;<small class='text-danger'>" + error_msg + " </small></span>"
                     return HttpResponse(message, status=500)
                 else:
-                    message = "&nbsp;&nbsp;<span class='text-success'>Job ran successfully.</span>"
+                    message = "&nbsp;&nbsp;<span class='text-success'>Success. Job URL: " \
+                              "<a href='/jobs/logs?id=" + str(job_uuid) + \
+                              "'data-toggle='tooltip' title='Copy this link to share! (id works for archive jobs too)'>" + \
+                              str(job_uuid) + "</a></span>"
         elif job_type == TS_JOB_TYPES[4]:
             buildtags_sync_manager = BuildTagsSyncManager()
             job_uuid = buildtags_sync_manager.syncbuildtags_initiate_job()

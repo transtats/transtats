@@ -80,18 +80,22 @@ class JobManager(object):
         self.log_json = OrderedDict()
         self.job_result = False
         self.job_remarks = None
+        self.output_json = {}
         self.job_type = job_type
         self.uuid = self._new_job_id()
         self.start_time = timezone.now()
 
     def create_job(self):
+        match_params = {}
+        match_params.update(dict(job_uuid=self.uuid))
         kwargs = {}
-        kwargs.update(dict(job_uuid=self.uuid))
+        kwargs.update(match_params)
         kwargs.update(dict(job_type=self.job_type))
         kwargs.update(dict(job_start_time=self.start_time))
         try:
-            new_job = Jobs(**kwargs)
-            new_job.save()
+            Jobs.objects.update_or_create(
+                **match_params, defaults=kwargs
+            )
         except:
             # log event, pass for now
             return False
@@ -107,7 +111,8 @@ class JobManager(object):
                 job_end_time=timezone.now(),
                 job_log_json=self.log_json,
                 job_result=self.job_result,
-                job_remarks=self.job_remarks
+                job_remarks=self.job_remarks,
+                job_output_json=self.output_json
             )
         except:
             return False
