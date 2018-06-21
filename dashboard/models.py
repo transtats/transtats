@@ -272,6 +272,7 @@ class Jobs(models.Model):
     job_type = models.CharField(max_length=200)
     job_start_time = models.DateTimeField()
     job_end_time = models.DateTimeField(null=True)
+    job_yml_text = models.CharField(max_length=2000, null=True, blank=True)
     job_log_json = JSONField(null=True)
     job_result = models.NullBooleanField()
     job_remarks = models.CharField(max_length=200, null=True)

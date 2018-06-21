@@ -93,6 +93,10 @@ class JobManager(object):
         self.job_type = job_type
         self.uuid = self._new_job_id()
         self.start_time = timezone.now()
+        self.job_params = {}
+        self.job_yml = None
+        self.job_template = None
+        self.visible_on_url = False
 
     def create_job(self):
         match_params = {}
@@ -121,7 +125,11 @@ class JobManager(object):
                 job_log_json=self.log_json,
                 job_result=self.job_result,
                 job_remarks=self.job_remarks,
-                job_output_json=self.output_json
+                job_output_json=self.output_json,
+                job_template=self.job_template,
+                job_yml_text=self.job_yml,
+                job_params_json=self.job_params,
+                job_visible_on_url=self.visible_on_url
             )
         except:
             return False
@@ -621,9 +629,21 @@ class YMLBasedJobManager(BaseManager):
             raise Exception(e)
         else:
             job_manager.output_json = action_mapper.result
+            job_manager.job_params.update(
+                {param: getattr(self, param, '') for param in self.params}
+            )
+            job_template_manager = JobTemplateManager()
+            templates = job_template_manager.get_job_templates(**{
+                'job_template_type': self.type
+            })
+            if templates and len(templates) > 0:
+                template_obj = templates.first()
+                job_manager.job_template = template_obj
+            job_manager.visible_on_url = True
             job_manager.job_result = True
         finally:
-            job_manager.log_json.update(action_mapper.log)
+            job_manager.job_yml = yml_preprocessed
+            job_manager.log_json = action_mapper.log
             action_mapper.clean_workspace()
             job_manager.mark_job_finish()
             time.sleep(4)

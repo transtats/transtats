@@ -27,7 +27,7 @@ from django.http import (
 from django.shortcuts import render
 from django.template import Context, Template
 from django.views.generic import (
-    TemplateView, ListView, FormView
+    TemplateView, ListView, FormView, DetailView
 )
 from django.urls import reverse
 
@@ -47,7 +47,7 @@ from dashboard.managers.jobs import (
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
-from dashboard.models import Visitor
+from dashboard.models import Jobs, Visitor
 
 
 class ManagersMixin(object):
@@ -553,6 +553,17 @@ class JobsArchiveView(ManagersMixin, ListView):
         return job_logs[15:]
 
 
+class JobDetailView(ManagersMixin, DetailView):
+    """
+    Job Log Detail View
+    """
+    template_name = "jobs/log_detail.html"
+    context_object_name = 'log'
+    model = Jobs
+    slug_field = 'job_uuid'
+    slug_url_kwarg = 'job_id'
+
+
 def schedule_job(request):
     """
     Handles job schedule AJAX POST request
@@ -604,8 +615,8 @@ def schedule_job(request):
                     return HttpResponse(message, status=500)
                 else:
                     message = "&nbsp;&nbsp;<span class='text-success'>Success. Job URL: " \
-                              "<a href='/jobs/logs?id=" + str(job_uuid) + \
-                              "'data-toggle='tooltip' title='Copy this link to share! (id works for archive jobs too)'>" + \
+                              "<a href='/jobs/log/" + str(job_uuid) + "/detail'" \
+                              " data-toggle='tooltip' title='Copy this link to share!'>" + \
                               str(job_uuid) + "</a></span>"
         elif job_type == TS_JOB_TYPES[4]:
             buildtags_sync_manager = BuildTagsSyncManager()

@@ -26,9 +26,9 @@ from dashboard.services.expose.views import (
 )
 from dashboard.views import (
     TranStatusPackagesView, TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
-    TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
-    JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView,
-    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, refresh_package, get_build_tags, job_template,
+    TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView, JobsView,
+    JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView, get_build_tags,
+    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobDetailView, refresh_package, job_template,
     release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs
 )
 
@@ -64,7 +64,8 @@ app_jobs_urls = [
     url(r'^logs$', JobsLogsView.as_view(), name="jobs-logs"),
     url(r'^archive$', JobsArchiveView.as_view(), name="jobs-archive"),
     url(r'^yml-based$', TemplateView.as_view(template_name="jobs/jobs_yml_based.html"),
-        name="jobs-yml-based")
+        name="jobs-yml-based"),
+    url(r'^log/(?P<job_id>[0-9a-f-]+)/detail$', JobDetailView.as_view(), name="log-detail")
 ]
 
 app_setting_urls = [
