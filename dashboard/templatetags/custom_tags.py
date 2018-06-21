@@ -226,6 +226,9 @@ def tag_job_form(template_type):
         available_build_systems.append(relstream.relstream_built)
     if available_build_systems:
         return_value['build_systems'] = available_build_systems
+    packages = package_manager.get_package_name_tuple()
+    if packages:
+        return_value['packages'] = packages
     return return_value
 
 

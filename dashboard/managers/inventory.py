@@ -16,7 +16,8 @@
 # Application inventories:
 #       Languages,
 #       Translation Platforms,
-#       Release Streams, and Branches
+#       Release Streams are Products,
+#       Release Branches are Releases
 
 # python
 import io

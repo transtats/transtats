@@ -26,6 +26,7 @@ import polib
 import tarfile
 from collections import OrderedDict
 from datetime import datetime
+from git import Repo
 from shlex import split
 from shutil import copy2, rmtree
 from pyrpm.spec import Spec
@@ -140,6 +141,39 @@ class Download(JobCommandBase):
                     'SRPM could not be downloaded from %s' % srpm_download_url
                 ))
             return {'srpm_path': srpm_downloaded_path}, {task_subject: task_log}
+
+
+class Clone(JobCommandBase):
+
+    def git_repository(self, input):
+        """
+        Clone GIT repository
+        """
+        task_subject = "Clone Repository"
+        task_log = OrderedDict()
+
+        src_tar_dir = os.path.join(self.sandbox_path, input['package'])
+
+        try:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Start cloning %s repository.' % input['upstream_repo_url']
+            ))
+            clone_result = Repo.clone_from(
+                input['upstream_repo_url'], src_tar_dir,
+                config='http.sslVerify=false'
+            )
+        except Exception as e:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, 'Cloning failed. Details: %s' % str(e)
+            ))
+        else:
+            if vars(clone_result).get('git_dir'):
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject, os.listdir(src_tar_dir),
+                    text_prefix='Cloning git repo completed.'
+                ))
+            return {'src_tar_dir': src_tar_dir}, {task_subject: task_log}
 
 
 class Unpack(JobCommandBase):
@@ -341,7 +375,10 @@ class Calculate(JobCommandBase):
 
         try:
             trans_stats = {}
-            trans_stats['id'] = input.get('build_system', '') + ' - ' + input.get('build_tag', '')
+            if input.get('build_system') and input.get('build_tag'):
+                trans_stats['id'] = input['build_system'] + ' - ' + input['build_tag']
+            elif input.get('upstream_repo_url'):
+                trans_stats['id'] = 'Upstream'
             trans_stats['stats'] = []
             for po_file in input['trans_files']:
                 try:
@@ -385,16 +422,19 @@ class ActionMapper(BaseManager):
         'LOAD',         # Load into python object
         'FILTER',       # Filter files recursively
         'APPLY',        # Apply patch on source tree
-        'CALCULATE'     # Do some maths/try formulae
+        'CALCULATE',    # Do some maths/try formulae
+        'CLONE'         # Clone source repository
     ]
 
     def __init__(self,
                  tasks_structure,
+                 job_base_dir,
                  build_tag,
                  package,
                  server_url,
-                 job_base_dir,
                  build_system,
+                 upstream_url,
+                 trans_file_ext,
                  job_log_file):
         super(ActionMapper, self).__init__()
         self.tasks = tasks_structure
@@ -403,6 +443,8 @@ class ActionMapper(BaseManager):
         self.hub = server_url
         self.base_dir = job_base_dir
         self.buildsys = build_system
+        self.upstream_url = upstream_url
+        self.trans_file_ext = trans_file_ext
         self.log_f = job_log_file
         self.cleanup_resources = {}
         self.__stats = None
@@ -434,7 +476,8 @@ class ActionMapper(BaseManager):
         current_node = self.tasks.head
         initials = {
             'build_tag': self.tag, 'package': self.pkg, 'hub_url': self.hub,
-            'base_dir': self.base_dir, 'build_system': self.buildsys, 'log_f': self.log_f
+            'base_dir': self.base_dir, 'build_system': self.buildsys, 'log_f': self.log_f,
+            'upstream_repo_url': self.upstream_url, 'trans_file_ext': self.trans_file_ext
         }
 
         while current_node is not None:
@@ -457,6 +500,10 @@ class ActionMapper(BaseManager):
                     break
             if current_node.output and 'srpm_path' in current_node.output:
                 d = {'srpm_path': current_node.output.get('srpm_path')}
+                initials.update(d)
+                self.cleanup_resources.update(d)
+            if current_node.output and 'src_tar_dir' in current_node.output:
+                d = {'src_tar_dir': current_node.output.get('src_tar_dir')}
                 initials.update(d)
                 self.cleanup_resources.update(d)
             if current_node.output and 'extract_dir' in current_node.output:
@@ -486,6 +533,8 @@ class ActionMapper(BaseManager):
         try:
             if self.cleanup_resources.get('srpm_path'):
                 os.remove(self.cleanup_resources.get('srpm_path'))
+            if self.cleanup_resources.get('src_tar_dir'):
+                rmtree(self.cleanup_resources.get('src_tar_dir'), ignore_errors=True)
             if self.cleanup_resources.get('extract_dir'):
                 rmtree(self.cleanup_resources.get('extract_dir'), ignore_errors=True)
         except OSError as e:
