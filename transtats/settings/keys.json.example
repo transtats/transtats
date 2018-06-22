@@ -1,9 +1,10 @@
 {
   "FILENAME": "keys.json",
   "DJANGO_SECRET_KEY": "secret-key",
+  "ADMIN_PASSWORD": "transtats",
   "DATABASE_NAME": "transtats",
   "DATABASE_USER": "postgres",
-  "DATABASE_PASSWORD": "postgres" ,
+  "DATABASE_PASSWORD": "postgres",
   "DATABASE_HOST": "localhost",
   "TS_AUTH_SYSTEM": "default",
   "OIDC_RP_CLIENT_SECRET": "oidc-secret-key"

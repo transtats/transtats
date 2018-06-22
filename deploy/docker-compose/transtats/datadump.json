@@ -244,7 +244,7 @@
   "fields": {
     "relstream_name": "Fedora",
     "relstream_slug": "fedora",
-    "relstream_server": "http://koji.fedoraproject.org/kojihub",
+    "relstream_server": "https://koji.fedoraproject.org/kojihub",
     "relstream_built": "koji",
     "srcpkg_format": "srpm",
     "top_url": "https://kojipkgs.fedoraproject.org",

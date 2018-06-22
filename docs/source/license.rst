@@ -3,7 +3,7 @@ License and Credits
 
 Transtats is licensed under `Apache License <http://www.apache.org/licenses/LICENSE-2.0>`_, Version 2.0
 
-**List of contributors**
+**Contributors**
 
 - `transtats <https://github.com/transtats/transtats/graphs/contributors>`_
 

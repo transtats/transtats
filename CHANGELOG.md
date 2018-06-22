@@ -1,3 +1,15 @@
+##### Fri Jun 22 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.5
+* Add files for OpenShift deployment ([bhavin192](https://github.com/bhavin192))
+* Optimise code and a few bug fixes in graphs, diff ui
+* Fix branch mapping for GNOME Packages (as per buildsys)
+* Improve docs, Add Jobs section to `docs.transtats.org`
+* Migrate from Travis CI to Circle CI, fix Docker files
+* Update packages summary with out of sync packages
+* Extend downstream sync to brew and fix branch mapping
+* Add koji build system tags in package branch mapping
+* Add Koji API Resources and YAML based TS Jobs
+* Add Sync Build Tags Job to facilitate YAML based Jobs
+
 ##### Wed Jan 24 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.5-rc.1
 * Add docker-compose setup for easy deployment ([bhavin192](https://github.com/bhavin192))
 * Making ready for openshift deployment, fix static files

@@ -15,7 +15,7 @@
 
 from django.conf import settings
 
-from transtats import __version__
+from transtats import __appname__, __version__
 
 
 def app_info(request):
@@ -23,7 +23,7 @@ def app_info(request):
     Application Info
     """
     return {
-        "app_name": "Transtats",
+        "app_name": __appname__,
         "app_version": __version__,
         "auth": "fas" if settings.FAS_AUTH else "default"
     }

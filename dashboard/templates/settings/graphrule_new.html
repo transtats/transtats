@@ -4,7 +4,7 @@
 {% block extrascript %}
 <script src="/static/js/jquery-1.12.3.js"></script>
 <script type="text/javascript">
-    function slugify(a){return a.toString().toLowerCase().replace(/\s+/g,"-").replace(/\./g,"-").replace(/[^\w\-]+/g,"").replace(/\-\-+/g,"-").replace(/^-+/,"").replace(/-+$/,"")}function showRuleSlug(){document.getElementById("show_rule_slug").innerHTML="Graph Rule: <b>"+slugify(document.getElementById("id_rule_name").value)+"</b>"}$(document).ready(function(){$("#tab-graph-rules").addClass("active"),"pick"==$('input[name="lang_selection"]:checked').val()&&$("#div_id_rule_langs").hide(),$("#lang_selection_id").on("change",function(){var a=$('input[name="lang_selection"]:checked').val();"pick"==a?$("#div_id_rule_langs").hide():"select"==a&&$("#div_id_rule_langs").show()})});
+    function slugify(e){return e.toString().toLowerCase().replace(/\s+/g,"-").replace(/\./g,"-").replace(/[^\w\-]+/g,"").replace(/\-\-+/g,"-").replace(/^-+/,"").replace(/-+$/,"")}function showRuleSlug(){document.getElementById("show_rule_slug").innerHTML="Graph Rule: <b>"+slugify(document.getElementById("id_rule_name").value)+"</b>"}$(document).ready(function(){$("#tab-graph-rules").addClass("active"),"pick"==$('input[name="lang_selection"]:checked').val()&&$("#div_id_rule_langs").hide(),$("#lang_selection_id").on("change",function(){var e=$('input[name="lang_selection"]:checked').val();"pick"==e?$("#div_id_rule_langs").hide():"select"==e&&$("#div_id_rule_langs").show()})});
 </script>
 {% endblock %}
 

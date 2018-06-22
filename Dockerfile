@@ -19,8 +19,8 @@ ENV DATABASE_NAME=transtats \
 RUN echo 'root:root' | chpasswd
 
 RUN dnf -y update && \
-    dnf -y install gcc findutils git python python3-pip python3-devel redhat-rpm-config \
-    sudo koji postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel && \
+    dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel redhat-rpm-config \
+    sudo postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel patch && \
     dnf clean all
 
 RUN /usr/bin/ssh-keygen -A

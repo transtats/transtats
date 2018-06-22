@@ -15,6 +15,7 @@
 
 import csv
 from datetime import datetime
+from pathlib import Path
 
 # django
 from django.contrib import messages
@@ -30,21 +31,26 @@ from django.views.generic import (
 from django.urls import reverse
 
 # dashboard
+from dashboard.constants import (
+    APP_DESC, TS_JOB_TYPES, RELSTREAM_SLUGS
+)
 from dashboard.forms import (
     NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
 )
 from dashboard.managers.inventory import (
-    InventoryManager, PackagesManager, ReleaseBranchManager
+    InventoryManager, ReleaseBranchManager
 )
+from dashboard.managers.packages import PackagesManager
 from dashboard.managers.jobs import (
     JobsLogManager, TransplatformSyncManager,
-    ReleaseScheduleSyncManager
+    ReleaseScheduleSyncManager, BuildTagsSyncManager
 )
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
+from dashboard.managers.downstream import DownstreamManager
 from dashboard.managers.upstream import UpstreamManager
-from dashboard.constants import APP_DESC, TS_JOB_TYPES
+from dashboard.models import Visitor
 
 
 class ManagersMixin(object):
@@ -64,7 +70,7 @@ class ManagersMixin(object):
         locales_set = self.inventory_manager.get_locales_set()
         summary = {}
         summary['locales_len'] = len(locales_set[0]) \
-            if isinstance(locales_set, tuple) else 0
+            if isinstance(locales_set, tuple) and len(locales_set) > 0 else 0
         platforms = self.inventory_manager.get_transplatform_slug_url()
         summary['platforms_len'] = len(platforms) if platforms else 0
         relstreams = self.inventory_manager.get_relstream_slug_name()
@@ -78,6 +84,31 @@ class ManagersMixin(object):
         graph_rules = self.graph_manager.get_graph_rules(only_active=True)
         summary['graph_rules_len'] = graph_rules.count() if graph_rules else 0
         return summary
+
+    @staticmethod
+    def log_visitor(http_meta):
+        """
+        log visitors
+        """
+        x_forwarded_for = http_meta.get('HTTP_X_FORWARDED_FOR')
+        ip = x_forwarded_for.split(',')[-1].strip() \
+            if x_forwarded_for else http_meta.get('REMOTE_ADDR')
+        http_params = {}
+        match_params = {
+            'visitor_ip': ip,
+            'visitor_user_agent': http_meta.get('HTTP_USER_AGENT')
+        }
+        http_params.update(match_params)
+        http_params['visitor_accept'] = http_meta.get('HTTP_ACCEPT')
+        http_params['visitor_encoding'] = http_meta.get('HTTP_ACCEPT_ENCODING')
+        http_params['visitor_language'] = http_meta.get('HTTP_ACCEPT_LANGUAGE')
+        http_params['visitor_host'] = http_meta.get('REMOTE_HOST')
+        try:
+            Visitor.objects.update_or_create(
+                **match_params, defaults=http_params
+            )
+        except Exception as e:
+            pass
 
 
 class TranStatusPackagesView(ManagersMixin, TemplateView):
@@ -122,6 +153,11 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
     Translation Status Releases View
     """
     template_name = "stats/status_releases.html"
+
+    def get(self, request, *args, **kwargs):
+        http_meta = self.request.META.copy()
+        self.log_visitor(http_meta)
+        return super(TranStatusReleasesView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         """
@@ -193,7 +229,7 @@ class LanguagesSettingsView(ManagersMixin, ListView):
         for langset in language_sets:
             langset_color_dict.update({langset.lang_set_slug: langset.lang_set_color})
         locale_groups = self.inventory_manager.get_all_locales_groups()
-        if isinstance(locales_set, tuple):
+        if isinstance(locales_set, tuple) and len(locales_set) >= 3:
             active_locales, inactive_locales, aliases = locales_set
             context['active_locales_len'] = len(active_locales)
             context['inactive_locales_len'] = len(inactive_locales)
@@ -520,6 +556,30 @@ class JobsArchiveView(ManagersMixin, ListView):
         return job_logs[15:]
 
 
+class JobsYMLBasedView(ManagersMixin, TemplateView):
+    """
+    YML Based Job View
+    """
+    template_name = "jobs/jobs_yml_based.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(TemplateView, self).get_context_data(**kwargs)
+        packages = self.packages_manager.get_package_name_tuple()
+        if packages:
+            context['packages'] = packages
+        release_streams = \
+            self.packages_manager.get_release_streams(
+                only_active=True, fields=('relstream_built', )
+            )
+        available_build_systems = []
+        for relstream in release_streams:
+            available_build_systems.append(relstream.relstream_built)
+
+        if available_build_systems:
+            context['build_systems'] = available_build_systems
+        return context
+
+
 def schedule_job(request):
     """
     Handles job schedule AJAX POST request
@@ -561,6 +621,54 @@ def schedule_job(request):
                 upstream_sync_manager.clean_workspace()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+        elif job_type == TS_JOB_TYPES[3]:
+            fields = ['YML_FILE', 'PACKAGE_NAME', 'BUILD_SYSTEM', 'BUILD_TAG']
+            not_available = [field for field in fields if not request.POST.dict().get(field)]
+            if len(not_available) > 0:
+                message = "&nbsp;&nbsp;<span class='text-danger'>Provide value for %s</span>" % not_available[0]
+                return HttpResponse(message, status=500)
+            else:
+                fields.append('DRY_RUN')
+                downstream_manager = DownstreamManager(**{
+                    field: request.POST.dict().get(field) for field in fields})
+                try:
+                    downstream_manager.execute_job()
+                except Exception as e:
+                    error_msg = str(e) if len(str(e)) < 50 else str(e)[:50] + '...'
+                    message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.<br/>" \
+                              "&nbsp;&nbsp;<small class='text-danger'>" + error_msg + " </small></span>"
+                    return HttpResponse(message, status=500)
+                else:
+                    message = "&nbsp;&nbsp;<span class='text-success'>Job ran successfully.</span>"
+        elif job_type == TS_JOB_TYPES[4]:
+            buildtags_sync_manager = BuildTagsSyncManager()
+            job_uuid = buildtags_sync_manager.syncbuildtags_initiate_job()
+            if job_uuid:
+                message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                          "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
+                buildtags_sync_manager.sync_build_tags()
+            else:
+                message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+    return HttpResponse(message)
+
+
+def read_file_logs(request):
+    message = ''
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        downstream_manager = DownstreamManager()
+        suffix = downstream_manager.job_suffix(
+            post_params['PACKAGE_NAME'],
+            post_params['BUILD_SYSTEM'],
+            post_params['BUILD_TAG']
+        )
+        log_file_path = downstream_manager.job_log_file + "." + suffix
+        log_file = Path(log_file_path)
+        if log_file.is_file():
+            with open(log_file_path) as f:
+                content = f.readlines()
+                content = [x.strip() for x in content]
+                message = "<br/>".join(content)
     return HttpResponse(message)
 
 
@@ -612,16 +720,45 @@ def refresh_package(request):
         package_manager = PackagesManager()
         task_type = post_params.get('task', '')
         if task_type == "mapBranches" and post_params.get('package'):
-            if package_manager.build_branch_mapping(post_params['package']):
-                context = Context(
-                    {'META': request.META,
-                     'package_name': post_params['package']}
-                )
-                template_string = """
-                    {% load tag_branch_mapping from custom_tags %}
-                    {% tag_branch_mapping package_name %}
-                """
-                return HttpResponse(Template(template_string).render(context))
+            ERR_MSG = "Something unexpected happened while mapping branches."
+            try:
+                if package_manager.build_branch_mapping(post_params['package']):
+                    context = Context(
+                        {'META': request.META,
+                         'package_name': post_params['package']}
+                    )
+                    template_string = """
+                        {% load tag_branch_mapping from custom_tags %}
+                        {% tag_branch_mapping package_name %}
+                    """
+                    return HttpResponse(Template(template_string).render(context))
+            except Exception as e:
+                return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
+        elif task_type == "statsDiff" and post_params.get('package'):
+            graph_manager = GraphManager()
+            pkg = post_params['package']
+            package_stats = graph_manager.get_trans_stats_by_package(pkg)
+            ERR_MSG = "Make sure all mapped versions/tags are sync'd for stats."
+            package_branch_mapping = graph_manager.package_manager.get_pkg_branch_mapping(pkg)
+            if package_stats and package_branch_mapping:
+                try:
+                    graph_manager.package_manager.calculate_stats_diff(
+                        pkg, package_stats, package_branch_mapping
+                    )
+                except Exception as e:
+                    return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
+                else:
+                    context = Context(
+                        {'META': request.META,
+                         'package_name': post_params['package']}
+                    )
+                    template_string = """
+                                        {% load tag_stats_diff from custom_tags %}
+                                        {% tag_stats_diff package_name %}
+                                    """
+                    return HttpResponse(Template(template_string).render(context))
+            else:
+                return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
         elif task_type == "syncUpstream" and post_params.get('package'):
             input_package_name = post_params['package']
             package = package_manager.get_packages([input_package_name], ['package_name', 'upstream_url']).get()
@@ -727,7 +864,10 @@ def generate_reports(request):
         report_subject = post_params.get('subject', '')
         reports_manager = ReportsManager()
         if report_subject == 'releases':
-            releases_summary = reports_manager.analyse_releases_status()
+            try:
+                releases_summary = reports_manager.analyse_releases_status()
+            except Exception as e:
+                return HttpResponse(status=500)
             if releases_summary:
                 context = Context(
                     {'META': request.META,
@@ -752,4 +892,27 @@ def generate_reports(request):
                                     {% tag_packages_summary %}
                                 """
                 return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)
+
+
+def get_build_tags(request):
+    """
+    Get Build System Tags
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        build_system = post_params.get('buildsys', '')
+        inventory_manager = InventoryManager()
+        tags = inventory_manager.get_build_tags(build_system)
+        if tags:
+            context = Context(
+                {'META': request.META,
+                 'build_tags': tags,
+                 'buildsys': build_system}
+            )
+            template_string = """
+                                {% load tag_build_tags from custom_tags %}
+                                {% tag_build_tags buildsys %}
+                            """
+            return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)

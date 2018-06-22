@@ -26,7 +26,7 @@ from django.utils import timezone
 from dashboard.constants import TS_JOB_TYPES
 from dashboard.managers.base import BaseManager
 from dashboard.managers.jobs import JobManager
-from dashboard.models import Packages
+from dashboard.managers.packages import PackagesManager
 
 
 __all__ = ['UpstreamManager']
@@ -58,6 +58,7 @@ class UpstreamManager(BaseManager):
         }
         super(UpstreamManager, self).__init__(**kwargs)
         self.job_manager = JobManager(TS_JOB_TYPES[2])
+        self.package_manager = PackagesManager()
         self.job_manager.job_remarks = self.package_name
         self.task_data = {}
         self.trans_stats = {}
@@ -140,8 +141,14 @@ class UpstreamManager(BaseManager):
         )
 
         for po_file in trans_files:
-            po = polib.pofile(po_file)
-            if po:
+            try:
+                po = polib.pofile(po_file)
+            except Exception as e:
+                self.job_manager.log_json[SUBJECT].update(
+                    {str(datetime.now()): "Exception: " + str(e)}
+                )
+                self.job_manager.job_result = False
+            else:
                 temp_trans_stats = {}
                 locale = po_file.split('/')[-1].split('.')[0]
                 temp_trans_stats[locale] = {}
@@ -163,12 +170,12 @@ class UpstreamManager(BaseManager):
         """
         SUBJECT = "Save in DB"
         self.job_manager.log_json[SUBJECT] = OrderedDict()
-
+        pkg_new_fields = {
+            'upstream_latest_stats': self.trans_stats,
+            'upstream_lastupdated': timezone.now()
+        }
         try:
-            Packages.objects.filter(package_name=self.package_name).update(
-                upstream_latest_stats=self.trans_stats,
-                upstream_lastupdated=timezone.now()
-            )
+            self.package_manager.update_package(self.package_name, pkg_new_fields)
         except Exception as e:
             self.job_manager.job_result = False
             err_msg = "Package update failed, details: " + str(e)

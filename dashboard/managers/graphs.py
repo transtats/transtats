@@ -16,10 +16,9 @@
 # Stats Graphs
 
 # python
-from datetime import timedelta
 import functools
 from operator import itemgetter
-from collections import OrderedDict
+from collections import Counter, OrderedDict
 
 # third-party
 from slugify import slugify
@@ -28,11 +27,10 @@ from slugify import slugify
 from django.utils import timezone
 
 # dashboard
-from dashboard.constants import RELSTREAM_SLUGS
+from dashboard.constants import RELSTREAM_SLUGS, WORKLOAD_HEADERS
 from dashboard.managers.base import BaseManager
-from dashboard.managers.inventory import (
-    PackagesManager, ReleaseBranchManager, PackageBranchMapping
-)
+from dashboard.managers.inventory import ReleaseBranchManager
+from dashboard.managers.packages import PackagesManager, PackageBranchMapping
 from dashboard.models import GraphRules, Reports
 
 
@@ -363,72 +361,49 @@ class GraphManager(BaseManager):
         )
         return self._format_data_for_pie_chart(consolidated_stats, locale_lang_tuple)
 
-    def _process_workload_combined_view(self, packages, stats_dict, fields):
-        """
-        Process packages stats to sum-up all locales and find avg
-        """
+    def _process_workload_combined_view(self, packages_stats_dict, headers):
         stats_summary_dict = OrderedDict()
-        fields_dict = OrderedDict([(field, 0) for field in fields])
-        [stats_summary_dict.update({package: fields_dict.copy()}) for package in packages]
-        if not isinstance(stats_dict, dict):
-            return {}
-        forloop_counter = 0
-        for __, stat_dict in stats_dict.items():
-            forloop_counter += 1
-            for pkg, detail_stat in stat_dict.items():
-                for field in fields:
-                    stats_summary_dict[pkg][field] += detail_stat.get(field, 0)
-        for package, detail_stats_dict in stats_summary_dict.items():
+        for package, locale_stats in packages_stats_dict.items():
+            reduced_stats = {}
             try:
-                stats_summary_dict[package][fields[3]] = \
-                    (detail_stats_dict.get('Untranslated', 0) /
-                     detail_stats_dict.get('Total', 0) * 100)
+                reduced_stats = functools.reduce(
+                    lambda x, y: dict(Counter(x) + Counter(y)), list(locale_stats.values())
+                )
+            except Exception as e:
+                # log error, pass for now
+                pass
+            if not reduced_stats:
+                for field in headers:
+                    reduced_stats[field] = 0
+            try:
+                if not reduced_stats.get('Untranslated'):
+                    reduced_stats['Untranslated'] = 0
+                reduced_stats[headers[3]] = \
+                    (reduced_stats['Untranslated'] /
+                     reduced_stats.get('Total', 0) * 100)
             except ZeroDivisionError:
                 # log error, pass for now
                 pass
+            stats_summary_dict[package] = reduced_stats
         return stats_summary_dict
 
     def get_workload_estimate(self, release_branch, locale=None):
         """
         Build list of packages with translation workload for a given branch
         """
-        specific_locale_present = True if locale else False
-        relbranch_pkgs_stats_dict = self._get_branch_specific_pkgs_stats(release_branch)
-        relbranch_pkgs = sorted(list(relbranch_pkgs_stats_dict.keys()))
+        headers = WORKLOAD_HEADERS
+        pkg_stats = self.package_manager.get_release_specific_package_stats(
+            release_branch=release_branch)
 
-        locales = self.package_manager.get_relbranch_locales(release_branch) \
-            if not specific_locale_present else [locale]
-        required_stats = OrderedDict()
-
-        HEADERS = ('Total', 'Translated', 'Untranslated', 'Remaining')
-
-        for locale in locales:
-            required_stats[locale] = OrderedDict()
-            locale_alias = self.package_manager.get_locale_alias(locale)
-            for package in relbranch_pkgs:
-                pkg_branch_stats = PackageBranchMapping(package).branch_stats(release_branch)
-                for stat in pkg_branch_stats.get('stats', []):
-                    locale_found = stat.get('locale')
-                    if (locale_found in locale or locale_found in locale_alias or
-                            locale_found.replace('-', '_') in locale or
-                            locale_found.replace('-', '_') in locale_alias):
-                        temp_stat_field = OrderedDict()
-                        temp_stat_field['Total'] = stat.get('total', 0)
-                        temp_stat_field['Translated'] = stat.get('translated', 0)
-                        temp_stat_field['Untranslated'] = stat.get('untranslated', 0)
-                        remaining = 0
-                        try:
-                            remaining = (stat.get('untranslated') / stat.get('total')) * 100
-                        except ZeroDivisionError:
-                            # log error, pass for now
-                            pass
-                        temp_stat_field['Remaining'] = remaining
-                        required_stats[locale][package] = temp_stat_field
-
-        required_stats_dict = required_stats.get(locale, {}) \
-            if specific_locale_present else \
-            self._process_workload_combined_view(relbranch_pkgs, required_stats, HEADERS)
-        return HEADERS, OrderedDict(sorted(
+        required_stats_dict = {}
+        if not locale:
+            required_stats_dict = self._process_workload_combined_view(pkg_stats, headers)
+        elif isinstance(locale, str):
+            for pkg, locale_stat in pkg_stats.items():
+                required_stats_dict[pkg] = locale_stat.get(locale, {
+                    header: 0 for header in headers
+                })
+        return headers, OrderedDict(sorted(
             required_stats_dict.items(), key=lambda x: x[1]['Remaining'], reverse=True
         ))
 
@@ -560,7 +535,7 @@ class ReportsManager(GraphManager):
         Summarize Packages Status
         """
         all_packages = self.package_manager.get_packages(pkg_params=[
-            'package_name', 'release_streams', 'details_json_lastupdated',
+            'package_name', 'release_streams', 'details_json_lastupdated', 'stats_diff',
             'release_branch_mapping', 'transtats_lastupdated', 'upstream_lastupdated'
         ])
         pkg_tracking_for_RHEL = all_packages.filter(release_streams__icontains=RELSTREAM_SLUGS[0]).count()
@@ -573,17 +548,26 @@ class ReportsManager(GraphManager):
             upstream_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         relbranches = self.branch_manager.get_relbranch_name_slug_tuple()
         pkg_improper_branch_mapping = 0
+        pkg_having_stats_diff = 0
+        pkg_having_stats_diff_list = []
         if relbranches and len(relbranches) > 0:
             relbranch_slugs = sorted([slug for slug, name in relbranches], reverse=True)
             pkg_improper_branch_mapping = all_packages.filter(
                 release_branch_mapping__contains={relbranch_slugs[0]: ""}).count()
+            pkg_with_stats_diff = all_packages.filter(stats_diff__has_keys=relbranch_slugs)
+            for pkg_stats in pkg_with_stats_diff:
+                for branch in relbranches:
+                    if pkg_stats.stats_diff.get(branch[0]):
+                        pkg_having_stats_diff_list.append(pkg_stats)
+            pkg_having_stats_diff = len(set(pkg_having_stats_diff_list))
         package_report = {
             RELSTREAM_SLUGS[0]: pkg_tracking_for_RHEL or 0,
             RELSTREAM_SLUGS[1]: pkg_tracking_for_fedora or 0,
             'pkg_details_week_old': pkg_details_week_old or 0,
             'pkg_transtats_week_old': pkg_transtats_week_old or 0,
             'pkg_upstream_week_old': pkg_upstream_week_old or 0,
-            'pkg_improper_branch_mapping': pkg_improper_branch_mapping or 0
+            'pkg_improper_branch_mapping': pkg_improper_branch_mapping or 0,
+            'pkg_having_stats_diff': pkg_having_stats_diff or 0
         }
         if self.create_or_update_report(**{
             'subject': 'packages', 'report_json': package_report

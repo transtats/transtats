@@ -1,99 +1,40 @@
-[![Build Status](https://travis-ci.org/transtats/transtats.svg?branch=devel)](https://travis-ci.org/transtats/transtats)
+[![Website](https://img.shields.io/badge/website-transtats.org-orange.svg)](http://transtats.org)
+[![CircleCI](https://circleci.com/gh/transtats/transtats/tree/devel.svg?style=svg)](https://circleci.com/gh/transtats/transtats/tree/devel)
 [![Documentation Status](https://readthedocs.org/projects/transtats/badge/?version=latest)](http://transtats.readthedocs.io/en/latest/?badge=latest)
 
 ## Transtats
 
-Track translation progress across packages for downstream releases with respect to current development.
+Transtats helps making packages ready to ship with translation completeness.
 
+Use Cases
+ - Tracking translation progress across packages for downstream releases with respect to current development.
+ - Finding translation gaps by syncing with source repositories, translation platforms and build systems.
+ - Estimates translation update volume at an early stage of a release cycle. 
 
-### Get Involved
+To learn more about using Transtats, please point your browser to [docs](http://docs.transtats.org).
 
+### Quick Start
 
-#### Try and test
-
-##### Docker
-
-Get docker daemon running. Build or pull `transtats` image *([docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
-
-- Build the image *(optional)*
-
-  - Clone the repo and build the image 
-    ```shell
-    $ git clone https://github.com/transtats/transtats.git
-    $ cd transtats
-    $ sudo docker build -t transtats/transtats deploy/docker
-    ```
+Get docker daemon running. Pull `transtats` image *([docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
 
 - Pull the image *(No need to pull, if you have built the image)*
   ```shell
   $ sudo docker pull docker.io/transtats/transtats
-  ``` 
+  ```
 
 - Run the image
   ```shell
   $ sudo docker run -d --name container_name -p 8080:8015 transtats/transtats
   ```
-  or you can specify custom database credentials using environment variables 
-  ```shell
-  $ sudo docker run -d --name container_name -p 8080:8015 -e DATABASE_NAME=db_name \
-       -e DATABASE_USER=db_user -e DATABASE_PASSWORD=db_passwd transtats/transtats
-  ```
-  
-- Application should be available at `localhost:8080`.
 
-##### docker-compose
-
-- Install [docker-compose](https://docs.docker.com/compose) 
-
-- This will clone the repo and start transtats server
-  ```shell
-  $ git clone https://github.com/transtats/transtats.git
-  $ cd transtats/deploy/docker-compose
-  $ sudo docker-compose up 
-  ```
-
-- Application should be available at `localhost:8080`. 
+- Application should be accessible at `localhost:8080`.
 
 
-#### Develop: Vagrant
+### Get Involved
 
-
-- Install Ansible, Docker and Vagrant.
-
-- This will setup devel environment and run container plus, `ssh` into it
-  ```shell
-  $ sudo vagrant plugin install vagrant-hostmanager
-  $ git clone https://github.com/transtats/transtats.git
-  $ cd transtats
-  $ sudo vagrant up
-  $ sudo vagrant ssh
-  ```
-
-- Run application
-  ```shell
-  $ cd /workspace
-  $ make run
-  ```
-
-- Hit `localhost:8080` in browser
-
-- Update db `make migrations`
-
-- Run tests `make lint test`
-
-- Generate docs `make docs`
-
-
-#### Contribution
-
-* Fork [transtats repo](https://github.com/transtats/transtats) to your username and clone repository locally.
-* Setup development environment as described above.
-* The *devel* branch is the release actively under development.
-* The *master* branch corresponds to the latest stable release.
-* If you find any bug/issue or got an idea, open a [github issue](https://github.com/transtats/transtats/issues/new).
-* Feel free to submit feature requests and/or bug fixes on *devel* branch.
-* Transtats uses [travis](https://travis-ci.org/transtats/transtats) for tests.
-
+- Follow [contributing guide](./CONTRIBUTING.md) to get started developing, testing, and building Transtats Server.
+- Join the `#transtats` channel on chat.freenode.net
+- Open an [Issue](https://github.com/transtats/transtats/issues) to discuss new feature or a bug fix!
 
 ### License
 

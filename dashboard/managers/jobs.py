@@ -24,17 +24,17 @@ from uuid import uuid4
 from django.utils import timezone
 
 # dashboard
-from dashboard.constants import TRANSPLATFORM_ENGINES, TS_JOB_TYPES
+from dashboard.constants import TS_JOB_TYPES
 from dashboard.managers.base import BaseManager
 from dashboard.managers.inventory import ReleaseBranchManager
-from dashboard.managers.utilities import parse_project_details_json
+# look if we can call methods from inventory and abstract models
 from dashboard.models import (
-    TransPlatform, Packages, Jobs, SyncStats, StreamBranches
+    TransPlatform, Packages, Jobs, ReleaseStream, StreamBranches
 )
 
 
 __all__ = ['JobManager', 'JobsLogManager', 'TransplatformSyncManager',
-           'ReleaseScheduleSyncManager']
+           'ReleaseScheduleSyncManager', 'BuildTagsSyncManager']
 
 
 class JobManager(object):
@@ -299,7 +299,7 @@ class ReleaseScheduleSyncManager(BaseManager):
                 {str(datetime.now()): str(len(relbranches)) + ' release branches fetched from db.'}
             )
             for relbranch in relbranches:
-                ical_events = self.release_branch_manager.get_calender_events_dict(
+                ical_events = self.release_branch_manager.get_calendar_events_dict(
                     relbranch.calendar_url, relbranch.relstream_slug)
                 release_stream = self.release_branch_manager.get_release_streams(
                     stream_slug=relbranch.relstream_slug).get()
@@ -324,4 +324,78 @@ class ReleaseScheduleSyncManager(BaseManager):
                                               ' failed to get saved in db.'}
                     )
                     self.job_manager.job_result = False
+        return self.job_manager.job_result
+
+
+class BuildTagsSyncManager(BaseManager):
+    """
+    Build Tags Sync Manager
+    """
+
+    def __init__(self):
+        """
+        entry point
+        """
+        super(BuildTagsSyncManager, self).__init__()
+        self.job_manager = JobManager(TS_JOB_TYPES[4])
+        self.release_branch_manager = ReleaseBranchManager()
+
+    def syncbuildtags_initiate_job(self):
+        """
+        Creates a Sync Job
+        """
+        if self.job_manager.create_job():
+            return self.job_manager.uuid
+        return None
+
+    def sync_build_tags(self):
+        """
+        Run Sync process in sequential steps
+        """
+        stages = (
+            self.update_build_system_tags,
+            self.job_manager.mark_job_finish,
+        )
+
+        [method() for method in stages]
+
+    def update_build_system_tags(self):
+        """
+        Update build system tags
+        """
+        SUBJECT = 'Build System Tags'
+        self.job_manager.log_json[SUBJECT] = OrderedDict()
+
+        active_release_streams = \
+            self.release_branch_manager.get_release_streams(only_active=True)
+
+        self.job_manager.log_json[SUBJECT].update(
+            {str(datetime.now()): str(len(active_release_streams)) + ' releases fetched from db.'}
+        )
+
+        for relstream in active_release_streams or []:
+            hub_server_url = relstream.relstream_server
+            # # for brew several configuration needs to be set
+            # # before we access its hub for info, #todo
+            # if relstream.relstream_built == 'koji':
+            try:
+                tags = self.api_resources.build_tags(hub_url=hub_server_url)
+            except Exception as e:
+                self.job_manager.log_json[SUBJECT].update(
+                    {str(datetime.now()): 'Failed to fetch build tags of %s. Details: %s' %
+                                          (relstream.relstream_built, str(e))}
+                )
+                self.job_manager.job_result = False
+            else:
+                if tags:
+                    relbranch_update_result = ReleaseStream.objects.filter(
+                        relstream_slug=relstream.relstream_slug
+                    ).update(relstream_built_tags=tags,
+                             relstream_built_tags_lastupdated=timezone.now())
+                    if relbranch_update_result:
+                        self.job_manager.log_json[SUBJECT].update(
+                            {str(datetime.now()): '%s build tags of %s saved in db.' %
+                                                  (str(len(tags)), relstream.relstream_built)}
+                        )
+                        self.job_manager.job_result = True
         return self.job_manager.job_result

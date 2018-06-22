@@ -41,7 +41,7 @@ def get_secret(config_var):
 
 
 def app_config_vars(var):
-    return os.getenv(var, get_secret(var))
+    return os.environ[var] if os.environ.get(var) else get_secret(var)
 
 
 # SECURITY WARNING: keep the secret key used in production secret!

@@ -19,6 +19,7 @@ from uuid import uuid4
 # django
 from django.contrib.postgres.fields import JSONField, ArrayField
 from django.db import models
+from django.utils import timezone
 
 
 TABLE_PREFIX = 'ts_'
@@ -124,6 +125,11 @@ class ReleaseStream(models.Model):
     relstream_built = models.CharField(
         max_length=200, null=True, verbose_name="Release Build System"
     )
+    relstream_built_tags = ArrayField(
+        models.CharField(max_length=200, blank=True),
+        default=list, null=True, verbose_name="Release Build Tags"
+    )
+    relstream_built_tags_lastupdated = models.DateTimeField(null=True)
     srcpkg_format = models.CharField(
         max_length=50, null=True, verbose_name="Source Package Format"
     )
@@ -169,7 +175,7 @@ class StreamBranches(models.Model):
     scm_branch = models.CharField(max_length=100, null=True, blank=True, verbose_name="SCM Branch Name")
     created_on = models.DateTimeField()
     current_phase = models.CharField(max_length=200, null=True, verbose_name="Current Phase")
-    calendar_url = models.URLField(max_length=500, null=True, verbose_name="Calender iCal URL")
+    calendar_url = models.URLField(max_length=500, unique=True, null=True, verbose_name="Calender iCal URL")
     schedule_json = JSONField(null=True)
     sync_calendar = models.BooleanField(default=True, verbose_name="Sync Calender")
     notifications_flag = models.BooleanField(default=True, verbose_name="Notification")
@@ -211,16 +217,18 @@ class Packages(models.Model):
     details_json_lastupdated = models.DateTimeField(null=True)
     package_name_mapping = JSONField(null=True)
     release_branch_mapping = JSONField(null=True, blank=True)
-    mapping_lastupdated = models.DateTimeField(null=True)
-    transtats_lastupdated = models.DateTimeField(null=True)
-    upstream_latest_stats = JSONField(null=True)
+    mapping_lastupdated = models.DateTimeField(null=True, blank=True)
+    stats_diff = JSONField(null=True, blank=True)
+    transtats_lastupdated = models.DateTimeField(null=True, blank=True)
+    upstream_latest_stats = JSONField(null=True, blank=True)
+    upstream_lastupdated = models.DateTimeField(null=True, blank=True)
+    downstream_lastupdated = models.DateTimeField(null=True, blank=True)
     translation_file_ext = models.CharField(
         max_length=10, null=True, blank=True, default='po',
         verbose_name="Translation Format (po)"
     )
-    upstream_lastupdated = models.DateTimeField(null=True)
     created_by = models.EmailField(null=True)
-    maintainers = JSONField(null=True)
+    maintainers = JSONField(null=True, blank=True)
 
     def __str__(self):
         return self.package_name
@@ -260,7 +268,9 @@ class SyncStats(models.Model):
     package_name = models.CharField(max_length=500)
     job_uuid = models.UUIDField()
     project_version = models.CharField(max_length=500, null=True)
+    source = models.CharField(max_length=500, null=True)
     stats_raw_json = JSONField(null=True)
+    stats_processed_json = JSONField(null=True)
     sync_iter_count = models.IntegerField()
     sync_visibility = models.BooleanField()
 
@@ -323,3 +333,31 @@ class Reports(models.Model):
     class Meta:
         db_table = TABLE_PREFIX + 'reports'
         verbose_name = "Reports"
+
+
+class Visitor(models.Model):
+    """
+    Visitors Model
+    """
+    visitor_id = models.AutoField(primary_key=True)
+    visitor_ip = models.GenericIPAddressField()
+    visitor_user_agent = models.CharField(max_length=500)
+    visitor_accept = models.CharField(max_length=500, null=True, blank=True)
+    visitor_encoding = models.CharField(max_length=500, null=True, blank=True)
+    visitor_language = models.CharField(max_length=500, null=True, blank=True)
+    visitor_host = models.CharField(max_length=500, null=True, blank=True)
+    first_visit_time = models.DateTimeField()
+    last_visit_time = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        if not self.visitor_id:
+            self.first_visit_time = timezone.now()
+        self.last_visit_time = timezone.now()
+        return super(Visitor, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return "%s: %s" % (str(self.visitor_ip), self.visitor_user_agent)
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'visitors'
+        verbose_name = "Visitors"

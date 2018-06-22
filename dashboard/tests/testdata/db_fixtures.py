@@ -91,15 +91,17 @@ class ReleaseStreamData(DataSet):
     class relstream_fedora:
         relstream_name = 'Fedora'
         relstream_slug = RELSTREAM_SLUGS[1]
-        relstream_server = 'http://koji.fedoraproject.org/kojihub'
+        relstream_server = 'https://koji.fedoraproject.org/kojihub'
         top_url = 'https://kojipkgs.fedoraproject.org'
+        relstream_built_tags = ['f28', 'f29', 'rawhide']
         relstream_status = True
 
     class relstream_rhel:
         relstream_name = 'RHEL'
         relstream_slug = RELSTREAM_SLUGS[0]
-        relstream_server = 'http://companyserver.net/tool'
+        relstream_server = 'https://companyserver.net/tool'
         top_url = 'http://companyserver.net/topdir'
+        relstream_built_tags = ['tag1', 'tag2']
         relstream_status = False
 
 
