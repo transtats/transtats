@@ -5,8 +5,3 @@ metadata:
 spec:
   tags:
   - name: latest
----
-apiVersion: v1
-kind: ImageStream
-metadata:
-  name: transtats

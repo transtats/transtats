@@ -1,18 +1,18 @@
 ## Deploying Transtats on OpenShift
 
-This directory contains files required to deploy Transtats on OpenShift cluster.
+This directory contains files required to deploy Transtats on [OpenShift](https://www.openshift.org/) cluster.
 
 ## How to run it locally?
 
-- You must have PostgreSQL installed somewhere which is accessible from your machine
+- Install PostgreSQL Server and make it accessible over FQDN.
 - Install [minishift](https://github.com/minishift/minishift)
-- Modify the `database-host` from `secret.yml` to point to your PostgreSQL instance
-- Run the following commands once you login to your cluster from terminal
+- Modify the `database-host` in `secret.yml` which should point to PostgreSQL host.
+- Run the following commands after you login to your cluster on terminal
 
   ```sh
   $ oc new-project transtats-deployment
   $ oc create -f deploy/openshift
   $ oc start-build transtats-build
   ```
-Once this finishes you will be able to access the application.
 
+Once build/deploy finishes, application shall be accessible.

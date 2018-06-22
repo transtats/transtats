@@ -1,4 +1,5 @@
-##### Tue May 29 2018 Sundeep Anand <suanand@redhat.com>
+##### Fri Jun 22 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.5
+* Add files for OpenShift deployment ([bhavin192](https://github.com/bhavin192))
 * Optimise code and a few bug fixes in graphs, diff ui
 * Fix branch mapping for GNOME Packages (as per buildsys)
 * Improve docs, Add Jobs section to `docs.transtats.org`

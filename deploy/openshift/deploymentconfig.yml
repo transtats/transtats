@@ -26,7 +26,10 @@ spec:
         - name: DATABASE_ENGINE
           value: postgresql
         - name: DATABASE_NAME
-          value: transtats
+          valueFrom:
+            secretKeyRef:
+              name: transtats-secret
+              key: database-name
         - name: DATABASE_HOST
           valueFrom:
             secretKeyRef:

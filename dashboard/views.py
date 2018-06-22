@@ -864,7 +864,10 @@ def generate_reports(request):
         report_subject = post_params.get('subject', '')
         reports_manager = ReportsManager()
         if report_subject == 'releases':
-            releases_summary = reports_manager.analyse_releases_status()
+            try:
+                releases_summary = reports_manager.analyse_releases_status()
+            except Exception as e:
+                return HttpResponse(status=500)
             if releases_summary:
                 context = Context(
                     {'META': request.META,

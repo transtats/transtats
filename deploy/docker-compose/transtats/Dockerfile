@@ -13,7 +13,7 @@ RUN dnf -y update && \
 RUN mkdir /workspace
 ENV PYTHONUNBUFFERED 1
 WORKDIR /workspace
-RUN git clone -b os-devel https://github.com/bhavin192/transtats.git .
+RUN git clone -b master https://github.com/transtats/transtats.git .
 RUN pip3 install -r /workspace/requirements/base.txt
 RUN cp deploy/docker-compose/transtats/launch.sh /usr/bin/transtats.sh
 RUN cp deploy/docker-compose/transtats/wait-for-it.sh /usr/bin/wait-for-it.sh

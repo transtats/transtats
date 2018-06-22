@@ -5,7 +5,7 @@ metadata:
   labels:
     app: transtats
 spec:
-  #host: transtats.stg.tshost.com
+  #host: app.stg.transtats.org
   port:
     targetPort: web
   to:

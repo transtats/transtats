@@ -170,8 +170,9 @@ def tag_releases_summary():
     if releases_summary:
         release_report_json = releases_summary.get().report_json
         for release, summary in release_report_json.items():
-            release_report_json[release]['languages'] = \
-                OrderedDict(sorted(summary['languages'].items()))
+            if summary.get('languages'):
+                release_report_json[release]['languages'] = \
+                    OrderedDict(sorted(summary['languages'].items()))
         return_value.update(dict(
             relsummary=release_report_json,
             last_updated=releases_summary.get().report_updated

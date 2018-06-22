@@ -364,11 +364,15 @@ class GraphManager(BaseManager):
     def _process_workload_combined_view(self, packages_stats_dict, headers):
         stats_summary_dict = OrderedDict()
         for package, locale_stats in packages_stats_dict.items():
-            reduced_stats = functools.reduce(
-                lambda x, y: dict(Counter(x) + Counter(y)), list(locale_stats.values())
-            )
+            reduced_stats = {}
+            try:
+                reduced_stats = functools.reduce(
+                    lambda x, y: dict(Counter(x) + Counter(y)), list(locale_stats.values())
+                )
+            except Exception as e:
+                # log error, pass for now
+                pass
             if not reduced_stats:
-                reduced_stats = {}
                 for field in headers:
                     reduced_stats[field] = 0
             try:
