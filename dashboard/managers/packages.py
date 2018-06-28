@@ -472,9 +472,12 @@ class PackagesManager(InventoryManager):
         for locale, alias in dict(list(lang_id_name.keys())).items():
             try:
                 filter_stat = list(filter(
-                    lambda x: x['locale'] == locale or x['locale'].replace('-', '_') == locale or
-                    x['locale'] == alias or x['locale'].replace('-', '_') == alias, stats_json
+                    lambda x: x['locale'] == locale or x['locale'].replace('-', '_') == locale, stats_json
                 ))
+                if not filter_stat:
+                    filter_stat = list(filter(
+                        lambda x: x['locale'] == alias or x['locale'].replace('-', '_') == alias, stats_json
+                    ))
             except Exception as e:
                 self.app_logger(
                     'ERROR', "Error while filtering stats, details: " + str(e))

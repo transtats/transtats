@@ -98,13 +98,15 @@ class JobManager(object):
         self.job_template = None
         self.visible_on_url = False
 
-    def create_job(self):
+    def create_job(self, user_email=None):
         match_params = {}
         match_params.update(dict(job_uuid=self.uuid))
         kwargs = {}
         kwargs.update(match_params)
         kwargs.update(dict(job_type=self.job_type))
         kwargs.update(dict(job_start_time=self.start_time))
+        if user_email:
+            kwargs.update(dict(triggered_by=user_email))
         try:
             Jobs.objects.update_or_create(
                 **match_params, defaults=kwargs
@@ -154,6 +156,22 @@ class JobsLogManager(BaseManager):
             pass
         return job_logs
 
+    def get_job_detail(self, job_id):
+        """
+        Fetch just one job
+        :param job_id: Job ID: uuid
+        :return: Job object
+        """
+        job_log = None
+        if not job_id:
+            return job_log
+        try:
+            job_log = Jobs.objects.filter(job_uuid=job_id).first()
+        except:
+            # log event, passing for now
+            pass
+        return job_log
+
     def get_joblog_stats(self):
         """
         Stats about jobs log
@@ -174,18 +192,18 @@ class TransplatformSyncManager(BaseManager):
     Translation Platform Sync Manager
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """
         entry point
         """
-        super(TransplatformSyncManager, self).__init__()
+        super(TransplatformSyncManager, self).__init__(self, *args, **kwargs)
         self.job_manager = JobManager(TS_JOB_TYPES[0])
 
     def syncstats_initiate_job(self):
         """
         Creates a Sync Job
         """
-        if self.job_manager.create_job():
+        if self.job_manager.create_job(user_email=self.active_user_email):
             return self.job_manager.uuid
         return None
 
@@ -297,11 +315,11 @@ class ReleaseScheduleSyncManager(BaseManager):
     Release Schedule Sync Manager
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """
         entry point
         """
-        super(ReleaseScheduleSyncManager, self).__init__()
+        super(ReleaseScheduleSyncManager, self).__init__(self, *args, **kwargs)
         self.job_manager = JobManager(TS_JOB_TYPES[1])
         self.release_branch_manager = ReleaseBranchManager()
 
@@ -309,7 +327,7 @@ class ReleaseScheduleSyncManager(BaseManager):
         """
         Creates a Sync Job
         """
-        if self.job_manager.create_job():
+        if self.job_manager.create_job(user_email=self.active_user_email):
             return self.job_manager.uuid
         return None
 
@@ -377,11 +395,11 @@ class BuildTagsSyncManager(BaseManager):
     Build Tags Sync Manager
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """
         entry point
         """
-        super(BuildTagsSyncManager, self).__init__()
+        super(BuildTagsSyncManager, self).__init__(self, *args, **kwargs)
         self.job_manager = JobManager(TS_JOB_TYPES[4])
         self.release_branch_manager = ReleaseBranchManager()
 
@@ -389,7 +407,7 @@ class BuildTagsSyncManager(BaseManager):
         """
         Creates a Sync Job
         """
-        if self.job_manager.create_job():
+        if self.job_manager.create_job(user_email=self.active_user_email):
             return self.job_manager.uuid
         return None
 
@@ -599,7 +617,7 @@ class YMLBasedJobManager(BaseManager):
 
         # lets create a job
         job_manager = JobManager(self.type)
-        if job_manager.create_job():
+        if job_manager.create_job(user_email=self.active_user_email):
             self.job_id = job_manager.uuid
             job_manager.job_remarks = self.package
         # and set tasks

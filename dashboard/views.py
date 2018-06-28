@@ -571,8 +571,11 @@ def schedule_job(request):
     message = "&nbsp;&nbsp;<span class='text-warning'>Request could not be processed.</span>"
     if request.is_ajax():
         job_type = request.POST.dict().get('job')
+        active_user = getattr(request, 'user', None)
+        active_user_email = active_user.email \
+            if active_user and not active_user.is_anonymous else 'anonymous'
         if job_type == TS_JOB_TYPES[0]:
-            transplatform_sync_manager = TransplatformSyncManager()
+            transplatform_sync_manager = TransplatformSyncManager(**{'active_user_email': active_user_email})
             job_uuid = transplatform_sync_manager.syncstats_initiate_job()
             if job_uuid:
                 message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
@@ -581,7 +584,7 @@ def schedule_job(request):
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
         elif job_type == TS_JOB_TYPES[1]:
-            relschedule_sync_manager = ReleaseScheduleSyncManager()
+            relschedule_sync_manager = ReleaseScheduleSyncManager(**{'active_user_email': active_user_email})
             job_uuid = relschedule_sync_manager.syncschedule_initiate_job()
             if job_uuid:
                 message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
@@ -604,7 +607,8 @@ def schedule_job(request):
                 fields.append('DRY_RUN')
                 job_manager = YMLBasedJobManager(
                     **{field: request.POST.dict().get(field) for field in fields},
-                    **{'params': req_params, 'type': job_type}
+                    **{'params': req_params, 'type': job_type},
+                    **{'active_user_email': active_user_email}
                 )
                 try:
                     job_uuid = job_manager.execute_job()
@@ -619,7 +623,7 @@ def schedule_job(request):
                               " data-toggle='tooltip' title='Copy this link to share!'>" + \
                               str(job_uuid) + "</a></span>"
         elif job_type == TS_JOB_TYPES[4]:
-            buildtags_sync_manager = BuildTagsSyncManager()
+            buildtags_sync_manager = BuildTagsSyncManager(**{'active_user_email': active_user_email})
             job_uuid = buildtags_sync_manager.syncbuildtags_initiate_job()
             if job_uuid:
                 message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \

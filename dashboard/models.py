@@ -17,9 +17,15 @@
 from uuid import uuid4
 
 # django
+from django.conf import settings
 from django.contrib.postgres.fields import JSONField, ArrayField
+from django.db.models.signals import post_save
 from django.db import models
+from django.dispatch import receiver
 from django.utils import timezone
+
+# third party
+from rest_framework.authtoken.models import Token
 
 
 TABLE_PREFIX = 'ts_'
@@ -280,6 +286,7 @@ class Jobs(models.Model):
                                      verbose_name="Job Template", null=True)
     job_params_json = JSONField(null=True)
     job_output_json = JSONField(null=True)
+    triggered_by = models.EmailField(null=True)
     job_visible_on_url = models.BooleanField(default=False)
 
     @property
@@ -393,3 +400,9 @@ class Visitor(models.Model):
     class Meta:
         db_table = TABLE_PREFIX + 'visitors'
         verbose_name = "Visitors"
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)

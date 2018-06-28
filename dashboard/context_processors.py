@@ -25,5 +25,6 @@ def app_info(request):
     return {
         "app_name": __appname__,
         "app_version": __version__,
-        "auth": "fas" if settings.FAS_AUTH else "default"
+        "auth": "fas" if settings.FAS_AUTH else "default",
+        "client_config_file": "transtats.conf"
     }

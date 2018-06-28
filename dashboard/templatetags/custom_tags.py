@@ -14,7 +14,6 @@
 # under the License.
 
 import os
-import json
 import yaml
 from collections import OrderedDict
 from django import template

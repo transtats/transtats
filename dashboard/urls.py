@@ -21,9 +21,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.views.generic.base import TemplateView, RedirectView
 
 # dashboard
-from dashboard.services.expose.views import (
-    PingServer, PackageStatus, GraphRuleCoverage, ReleaseStatus, ReleaseStatusDetail, ReleaseStatusLocale
-)
+from dashboard.services.urls import api_urls
 from dashboard.views import (
     TranStatusPackagesView, TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
     TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView, JobsView,
@@ -34,18 +32,6 @@ from dashboard.views import (
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
 
-
-api_urls = [
-    url(r'^ping$', PingServer.as_view(), name='api_ping_server'),
-    url(r'^package/(?P<package_name>[\w-]+)/$', PackageStatus.as_view(), name='api_package_status'),
-    url(r'^coverage/(?P<graph_rule>[\w-]+)/$', GraphRuleCoverage.as_view(), name='api_custom_graph'),
-    url(r'^release/(?P<release_stream>[\w-]+)/$', ReleaseStatus.as_view(),
-        name='api_release_status'),
-    url(r'^release/(?P<release_stream>[\w-]+)/detail$', ReleaseStatusDetail.as_view(),
-        name='api_release_status_detail'),
-    url(r'^release/(?P<release_stream>[\w-]+)/locale/(?P<locale>[\w_]+)$',
-        ReleaseStatusLocale.as_view(), name='api_release_status_locale'),
-]
 
 ajax_urls = [
     url(r'^schedule-job$', schedule_job, name="ajax-schedule-job"),
