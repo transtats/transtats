@@ -79,16 +79,16 @@ class ManagersMixin(object):
             if isinstance(locales_set, tuple) and len(locales_set) > 0 else 0
         platforms = self.inventory_manager.get_transplatform_slug_url()
         summary['platforms_len'] = len(platforms) if platforms else 0
-        relstreams = self.inventory_manager.get_relstream_slug_name()
-        summary['products_len'] = len(relstreams) if relstreams else 0
-        relbranches = self.release_branch_manager.get_release_branches()
-        summary['releases_len'] = relbranches.count() if relbranches else 0
+        # relstreams = self.inventory_manager.get_relstream_slug_name()
+        # summary['products_len'] = len(relstreams) if relstreams else 0
+        # relbranches = self.release_branch_manager.get_release_branches()
+        # summary['releases_len'] = relbranches.count() if relbranches else 0
         summary['packages_len'] = self.packages_manager.count_packages()
         jobs_count, last_ran_on, last_ran_type = \
             self.jobs_log_manager.get_joblog_stats()
         summary['jobs_len'] = jobs_count
-        graph_rules = self.graph_manager.get_graph_rules(only_active=True)
-        summary['graph_rules_len'] = graph_rules.count() if graph_rules else 0
+        # graph_rules = self.graph_manager.get_graph_rules(only_active=True)
+        # summary['graph_rules_len'] = graph_rules.count() if graph_rules else 0
         return summary
 
     @staticmethod
@@ -157,8 +157,9 @@ class TranStatusPackageView(TranStatusPackagesView):
 class TranStatusReleasesView(ManagersMixin, TemplateView):
     """
     Translation Status Releases View
+    This view is for current landing page.
     """
-    template_name = "stats/status_releases.html"
+    template_name = "releases/release_list.html"
 
     def get(self, request, *args, **kwargs):
         http_meta = self.request.META.copy()
@@ -170,27 +171,33 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         Build the Context Data
         """
         context = super(TemplateView, self).get_context_data(**kwargs)
-        context['description'] = APP_DESC
+        # context['description'] = APP_DESC
         relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
-        langs = self.inventory_manager.get_locale_lang_tuple()
+        # langs = self.inventory_manager.get_locale_lang_tuple()
         context['releases'] = relbranches
-        if langs:
-            context['languages'] = sorted(langs, key=lambda x: x[1])
+        # if langs:
+        #     context['languages'] = sorted(langs, key=lambda x: x[1])
+        context['relstreams'] = self.inventory_manager.get_release_streams()
         context.update(self.get_summary())
         return context
 
 
-class TranStatusReleaseView(TranStatusReleasesView):
+class TranStatusReleaseView(ManagersMixin, TemplateView):
     """
     Translation Status Release View
     """
-    template_name = "stats/trans_status_release.html"
+    template_name = "releases/release_view.html"
 
     def get_context_data(self, **kwargs):
         context = super(TranStatusReleaseView, self).get_context_data(**kwargs)
         if not self.release_branch_manager.is_relbranch_exist(
                 kwargs.get('release_branch', '')):
             raise Http404("Release does not exist.")
+        langs = self.inventory_manager.get_locale_lang_tuple()
+        if langs:
+            context['languages'] = sorted(langs, key=lambda x: x[1])
+        relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
+        context['releases'] = relbranches
         release_stream = self.release_branch_manager.get_release_branches(
             relbranch=kwargs.get('release_branch'), fields=['relstream_slug']).get()
         if release_stream:
@@ -270,6 +277,7 @@ class TransPlatformSettingsView(ManagersMixin, ListView):
 
 class ReleaseStreamSettingsView(ManagersMixin, ListView):
     """
+    Marked for removal
     Release Streams Settings View
     """
     template_name = "settings/release_streams.html"
@@ -1017,7 +1025,9 @@ def change_lang_status(request):
     """
     Enable or disable language. Checks the given parameters, if all parameters are correct then changes status
     of the language. The request should be an ajax call having data in following format,
-    {'language': <locale_id>, 'status': <'enable'/'disable'>}
+
+        {'language': <locale_id>, 'status': <'enable'/'disable'>}
+
     :param request: Request object
     :returns: HttpResponse object
     """

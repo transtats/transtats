@@ -163,7 +163,7 @@ def tag_workload_detailed(relbranch):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_releases_summary.html")
+    os.path.join("releases", "_releases_summary.html")
 )
 def tag_releases_summary():
     return_value = OrderedDict()

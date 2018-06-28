@@ -1,0 +1,66 @@
+{% if relsummary %}
+<div class="panel-body">
+  <div class="row row-cards-pf">
+    {% for release, summary in relsummary.items %}
+    <div class="col-xs-12 col-sm-6 col-md-4">
+      <div class="card-pf card-pf-utilization card-pf-accented card-releases-ts">
+        <h2 class="card-pf-title">
+          {{ release }}
+        </h2>
+        <div class="card-pf-body">
+          <p class="card-pf-utilization-details">
+            <span class="text-info">
+              {% if summary.packages_need_attention %}{{ summary.packages_need_attention }}{% else %}0{% endif %}
+            </span>
+            packages need attention.
+            <br/> In total we have
+            <span class="text-info">
+              {% if summary.total_untranslated_msgs %}{{ summary.total_untranslated_msgs }}{% else %}0{% endif %}
+            </span>
+            untranslated messages across
+            <span class="text-info">
+              {{ summary.languages|length }}
+            </span>
+            languages!
+          </p>
+          <table class="table table-bordered table-striped">
+            <tbody>
+              {% for lang, untranslated in summary.languages.items %}
+              <tr>
+                <td>{{ lang }}</td>
+                <td align="right" class="text-info">{{ untranslated }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<div class="panel-footer">
+  <span class="pull-right text-muted">Updated {{ last_updated|timesince }} ago</span>
+</div>
+{% else %}
+<div class="panel-body">
+  <div class="blank-slate-pf blank-state-ts" id="blank-slate-releases-summary">
+    <div class="blank-slate-pf-icon">
+      <span class="fa fa-refresh"></span>
+    </div>
+    <h1>
+      Releases summary never generated
+    </h1>
+    <p>
+      Release&apos;s reports are not generated!
+    </p>
+    <p>
+      Learn more about this
+      <a href="#">on the documentation</a>.
+    </p>
+    <div class="blank-slate-pf-main-action">
+      <button class="btn btn-primary btn-lg" id="blank-state-button-update-summary" onclick="refresh_releases_summary();"> Update the reports </button>
+    </div>
+  </div>
+</div>
+{% endif %}
