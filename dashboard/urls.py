@@ -62,13 +62,8 @@ app_setting_urls = [
     url(r'^$', RedirectView.as_view(permanent=False, url='/settings/languages'), name="settings"),
     url(r'^languages$', RedirectView.as_view(permanent=True, url='/languages')),
     url(r'^translation-platforms$', RedirectView.as_view(permanent=True, url='/translation-platforms')),
-    url(r'^product/(?P<stream_slug>\w+)/', include([
-        url(r'^releases$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches"),
-        url(r'^releases/new$', staff_member_required(NewReleaseBranchView.as_view()),
-            name="settings-stream-branches-new")
-    ])),
-    url(r'^products$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
     url(r'^packages$', RedirectView.as_view(permanent=True, url='/packages')),
+    url(r'^products$', RedirectView.as_view(permanent=True, url='/products')),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
     url(r'^graph-rules/new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
@@ -77,12 +72,24 @@ app_setting_urls = [
 ]
 
 trans_status_urls = [
-    url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/releases'),
+    url(r'^$', RedirectView.as_view(permanent=False, url='/releases'),
         name="trans-status"),
     url(r'^packages$', TranStatusPackagesView.as_view(), name="trans-status-packages"),
-    url(r'^releases$', TranStatusReleasesView.as_view(), name="trans-status-releases"),
-    url(r'^release/(?P<release_branch>[\w\-\+]+)$', TranStatusReleaseView.as_view(),
-        name="trans-status-release")
+    url(r'^releases$', RedirectView.as_view(permanent=True, url='/releases')),
+]
+
+releases_urls = [
+    url(r'^$', TranStatusReleasesView.as_view(), name="trans-status-releases"),
+    url(r'^view/(?P<release_branch>[\w\-\+]+)$', TranStatusReleaseView.as_view(), name="trans-status-release"),
+]
+
+products_urls = [
+    url(r'^$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
+    url(r'^(?P<stream_slug>\w+)/', include([
+        url(r'^releases$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches"),
+        url(r'^releases/new$', staff_member_required(NewReleaseBranchView.as_view()),
+            name="settings-stream-branches-new"),
+    ])),
 ]
 
 packages_urls = [
@@ -130,4 +137,7 @@ urlpatterns = [
     url(r'^languages/', include(languages_urls)),
     # trans platforms section urls
     url(r'^translation-platforms/', include(transplatforms_urls)),
+    # dashboard section urls
+    url(r'^releases/', include(releases_urls)),
+    url(r'^products/', include(products_urls)),
 ]

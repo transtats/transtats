@@ -182,7 +182,7 @@
   }
   $(document).ready(function() {
     $("#relBranch").change(function(e) {
-      window.location.replace("/translation-status/release/" + $(this).val())
+      window.location.replace("/releases/view/" + $(this).val())
     }), $("#refresh-releases-summary").on("click", function(e) {
       return e.preventDefault(), refresh_releases_summary(), !1
     })
