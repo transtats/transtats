@@ -280,7 +280,7 @@ class ReleaseStreamSettingsView(ManagersMixin, ListView):
     Marked for removal
     Release Streams Settings View
     """
-    template_name = "settings/release_streams.html"
+    template_name = "products/product_list.html"
     context_object_name = 'relstreams'
 
     def get_queryset(self):
@@ -291,7 +291,7 @@ class StreamBranchesSettingsView(ManagersMixin, TemplateView):
     """
     Stream Branches Settings View
     """
-    template_name = "settings/stream_branches.html"
+    template_name = "products/product_release_list.html"
 
     def get_context_data(self, **kwargs):
         context = super(StreamBranchesSettingsView, self).get_context_data(**kwargs)
@@ -312,7 +312,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
     """
     New Release Branch View
     """
-    template_name = "settings/relbranch_new.html"
+    template_name = "products/product_release_new.html"
 
     def _get_relstream(self):
         try:
