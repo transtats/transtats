@@ -12,26 +12,17 @@
     min-height: 600px;
     padding-top: 50px
   }
-
-  .table-area {
-    width: 100%;
-    min-height: 400px
-  }
-
   .graph-sub-area {
     width: 90%;
     min-height: 500px
   }
 </style>
-<script type="text/javascript">
-  var langWiseFlag = !1; function getUrlVars() { for (var e, a = [], n = window.location.href.slice(window.location.href.indexOf("?") + 1).split("&"), t = 0; t < n.length; t++)e = n[t].split("="), a.push(e[0]), a[e[0]] = e[1]; return a } function csrfSafeMethod(e) { return /^(GET|HEAD|OPTIONS|TRACE)$/.test(e) } function ajax_combined() { return $.ajax({ beforeSend: function (e, a) { csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), waitingDialog.show() }, type: "POST", url: "{% url 'ajax-release-graph' %}", data: { relbranch: $("#relBranch").val(), combine: !0 }, success: function (e) { waitingDialog.hide(), $("#releasegraph").html(e), $("#graphdisclaimer").html("<span class='pull-right text-muted'>Percentage is calculated on messages. Accuracy largely depends upon branch mapping.") } }) } function ajax_detailed() { return $.ajax({ beforeSend: function (e, a) { csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), waitingDialog.show() }, type: "POST", url: "{% url 'ajax-release-graph' %}", data: { relbranch: $("#relBranch").val(), detail: !0 }, success: function (e) { waitingDialog.hide(), $("#releasegraph").html(e), $("#graphdisclaimer").html("<span class='pull-right text-muted'>Percentage is calculated on messages. Accuracy largely depends upon *branch mapping."), $("#legends").html('<span class="text-primary">1-50%</span>&nbsp;&nbsp;&nbsp;<span class="text-warning">51-80%</span>&nbsp;&nbsp;&nbsp;<span class="text-danger">81-100%</span>') } }) } function labelFormatter(e, a) { return "<div>" + Math.round(a.percent) + "%</div>" } function ajax_lang_wise() { var r = $("#relBranch").val(); return $.ajax({ beforeSend: function (e, a) { csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), $("#showPercentage").html(""), $("#hideLocaleGraph").hide(), $("#langName").selectpicker("hide"), $("#langName").empty().append("<option selected disabled>Select Language</option>").selectpicker("val", "Select Language"), waitingDialog.show() }, type: "POST", url: "{% url 'ajax-release-graph' %}", data: { relbranch: r }, success: function (e) { waitingDialog.hide(); var a = e.graph_data, n = e.select_options, t = { series: { pie: { show: !0, label: { show: !0, formatter: labelFormatter } } }, legend: { show: !0, noColumns: 2 }, grid: { hoverable: !0, clickable: !0 } }; $("#localegraph").hide(), $("#hideLocaleGraph").hide(), $("#grapharea").show(), $.plot("#graphsubarea", a, t), $("#graphsubarea").bind("plothover", function (e, a, n) { if (n) { percent = parseFloat(n.series.percent).toFixed(2); var t = []; t.push("<hr/>&nbsp;&nbsp;", n.series.label, " - ", percent, "%&nbsp;&nbsp;<hr/>"), $("#showPercentage").html(t.join("")) } }), $.each(n, function (e, a) { $("#langName").append($("<option>", { value: a.value, text: a.text })) }), $("#langName").selectpicker("refresh"), $("#langName").selectpicker("show"), $("#graphdisclaimer").html("<span class='pull-right text-muted'>Consolidated graph of all packages being tracked for " + r + " branch."), langWiseFlag = !0 } }) } function ajax_one_lang() { var e = $("#relBranch").val(), a = $("#langName").val(); return $.ajax({ beforeSend: function (e, a) { csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), $("#showPercentage").html(""), waitingDialog.show() }, type: "POST", url: "{% url 'ajax-release-graph' %}", data: { relbranch: e, lang: a }, success: function (e) { waitingDialog.hide(), $("#grapharea").hide(), $("#localegraph").show(), $("#hideLocaleGraph").show(), $("#localegraph").html(e), $("#graphdisclaimer").html("<span class='pull-right text-muted'>Percentage is calculated on messages. Accuracy largely depends upon branch mapping.</span>") } }) } $(document).ready(function () { $("#tab-translation-status").addClass("active"), $("#tab-trans-status-releases").addClass("active"), $("#btn-combined").addClass("active"), $("#localegraph").hide(), $("#grapharea").hide(), $("#hideLocaleGraph").hide(), $("#langName").selectpicker("hide"), $("#relBranch").val("{{ release_branch }}"), getUrlVars().locale && $("#langName").selectpicker("show") && $("#langName").val(getUrlVars().locale) && $("#langName").selectpicker("refresh") && $("#btn-combined").removeClass("active") && $("#btn-detailed").removeClass("active") && $("#btn-lang-wise").addClass("active") && $("#releasegraph").hide() && ajax_one_lang(), $("#relBranch").change(function (e) { window.location.replace("/releases/view/" + $(this).val()) }), $("#langName").change(function (e) { ajax_one_lang() }), $("#hideLocaleGraph").click(function (e) { return e.preventDefault(), $("#localegraph").hide(), $("#langName").selectpicker("val", "Select Language"), $("#grapharea").show(), $("#graphdisclaimer").html("<span class='pull-right text-muted'>Consolidated graph of all packages being tracked for " + $("#relBranch").val() + " branch. Accuracy largely depends upon branch mapping.</span>"), !langWiseFlag && ajax_lang_wise(), $(this).hide() }), $("#btn-combined").click(function () { $("#btn-detailed").removeClass("active"), $("#btn-lang-wise").removeClass("active"), $("#btn-combined").addClass("active"), $("#localegraph").hide(), $("#grapharea").hide(), $("#hideLocaleGraph").hide(), $("#langName").selectpicker("hide"), $("#releasegraph").show(), ajax_combined() }), $("#btn-detailed").click(function () { $("#btn-combined").removeClass("active"), $("#btn-lang-wise").removeClass("active"), $("#btn-detailed").addClass("active"), $("#localegraph").hide(), $("#grapharea").hide(), $("#hideLocaleGraph").hide(), $("#langName").selectpicker("hide"), $("#releasegraph").show(), ajax_detailed() }), $("#btn-lang-wise").click(function () { $("#btn-combined").removeClass("active"), $("#btn-detailed").removeClass("active"), $("#btn-lang-wise").addClass("active"), $("#releasegraph").hide(), ajax_lang_wise() }), ajax_combined() });
-</script>
 {% endblock %}
 {% block pagecontent %}
-<div class="panel panel-default">
+<div class="panel panel-default" id="panel-release">
   <div class="panel-heading">
     {% if releases %}
-    <select id="relBranch" class="selectpicker" data-live-search="true">
+    <select id="select-release-branch" class="selectpicker" data-live-search="true">
       <option selected disabled>Select Release</option>
       {% for release in releases %}
       <option value="{{ release.0 }}">{{ release.1 }}</option>
@@ -43,42 +34,188 @@
       <a href="{% url 'settings-release-streams' %}">one</a> now.</p>
     {% endif %}
     {% if languages %}
-    <select id="langName" class="selectpicker" data-live-search="true">
+    <select id="select-lang-name" class="selectpicker" data-live-search="true">
       <option selected disabled>Select Language</option>
       {% for locale, lang in languages %}
       <option value="{{ locale }}">{{ lang }}</option>
       {% endfor %}
     </select>
-    <a id="hideLocaleGraph" type="button" class="btn btn-default btn-small">
+    <a id="button-hide-locale-graph" type="button" class="btn btn-default btn-small">
       <span class="fa fa-eye-slash" aria-hidden="true"></span>
     </a>
     {% endif %}
-
     <span class="pull-right">
       <span class="btn-group" role="group" aria-label="...">
-        <button type="button" id="btn-combined" class="btn btn-default">Combined</button>
-        <button type="button" id="btn-detailed" class="btn btn-default">Detailed</button>
-        <button type="button" id="btn-lang-wise" class="btn btn-default">Language Wise</button>
+        <button type="button" id="button-combined" class="btn btn-default">Combined</button>
+        <button type="button" id="button-detailed" class="btn btn-default">Detailed</button>
+        <button type="button" id="button-lang-wise" class="btn btn-default">Language Wise</button>
       </span>
-      <a class="btn btn-default btn-small" href="{% url 'settings-stream-branches' release_stream %}" data-toggle="tooltip" title="{{ release_branch }} Settings">
+      <a class="btn btn-default btn-small" id="button-release-settings" href="{% url 'settings-stream-branches' release_stream %}" data-toggle="tooltip" title="{{ release_branch }} Settings">
         <span class="fa fa-cog" aria-hidden="true"></span>
       </a>
     </span>
   </div>
-
   <div class="panel-body">
-    <div id="releasegraph" class="panel panel-info table-area table-responsive"></div>
+    <div id="releasegraph" class="panel panel-default table-responsive panel-border-ts"></div>
     <center>
-      <div id="localegraph" class="panel panel-info table-area"></div>
-      <div id="grapharea" class="panel panel-info graph-area">
+      <div id="localegraph" class="panel panel-default panel-border-ts"></div>
+      <div id="grapharea" class="panel panel-default graph-area panel-border-ts">
         <span id="showPercentage" class="text-info pull-left"></span>
         <div id="graphsubarea" class="graph-sub-area"></div>
       </div>
     </center>
-
   </div>
   <div class="panel-footer">
-    <p id="graphdisclaimer"></p>
+    <span id="span-legends"></span>
+    <span class="pull-right text-muted" id="span-graph-disclaimer" ></span>
   </div>
 </div>
+
+<script>
+  var langWiseFlag = !1;
+
+  function getUrlVars() {
+    for (var e, a = [], n = window.location.href.slice(window.location.href.indexOf("?") + 1).split("&"), t = 0; t < n.length; t++) e = n[t].split("="), a.push(e[0]), a[e[0]] = e[1];
+    return a
+  }
+
+  function csrfSafeMethod(e) {
+    return /^(GET|HEAD|OPTIONS|TRACE)$/.test(e)
+  }
+
+  function ajax_combined() {
+    return $.ajax({
+      beforeSend: function (e, a) {
+        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), waitingDialog.show()
+      },
+      type: "POST",
+      url: "{% url 'ajax-release-graph' %}",
+      data: {
+        relbranch: $("#select-release-branch").val(),
+        combine: !0
+      },
+      success: function (e) {
+        waitingDialog.hide()
+        $("#releasegraph").html(e)
+        $("#span-graph-disclaimer").html("Percentage is calculated on messages. Accuracy largely depends upon branch mapping")
+        $("#span-legends").html("")
+      }
+    })
+  }
+
+  function ajax_detailed() {
+    return $.ajax({
+      beforeSend: function (e, a) {
+        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), waitingDialog.show()
+      },
+      type: "POST",
+      url: "{% url 'ajax-release-graph' %}",
+      data: {
+        relbranch: $("#select-release-branch").val(),
+        detail: !0
+      },
+      success: function (e) {
+        waitingDialog.hide()
+        $("#releasegraph").html(e)
+        $("#span-graph-disclaimer").html("Percentage is calculated on messages. Accuracy largely depends upon *branch mapping")
+        $("#span-legends").html('<span class="text-danger">0-30%</span> | <span class="text-warning">31-60% </span> | <span class="text-primary">61-90%</span> | <span class="text-success">91-100%</span>')
+      }
+    })
+  }
+
+  function labelFormatter(e, a) {
+    return "<div>" + Math.round(a.percent) + "%</div>"
+  }
+
+  function ajax_lang_wise() {
+    var r = $("#select-release-branch").val();
+    return $.ajax({
+      beforeSend: function (e, a) {
+        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), $("#showPercentage").html(""), $("#button-hide-locale-graph").hide(), $("#select-lang-name").selectpicker("hide"), $("#select-lang-name").empty().append("<option selected disabled>Select Language</option>").selectpicker("val", "Select Language"), waitingDialog.show()
+      },
+      type: "POST",
+      url: "{% url 'ajax-release-graph' %}",
+      data: {
+        relbranch: r
+      },
+      success: function (e) {
+        waitingDialog.hide();
+        var a = e.graph_data,
+          n = e.select_options,
+          t = {
+            series: {
+              pie: {
+                show: !0,
+                label: {
+                  show: !0,
+                  formatter: labelFormatter
+                }
+              }
+            },
+            legend: {
+              show: !0,
+              noColumns: 2
+            },
+            grid: {
+              margin: 10,
+              hoverable: !0,
+              clickable: !0
+            }
+          };
+        $("#localegraph").hide(), $("#button-hide-locale-graph").hide(), $("#grapharea").show(), $.plot("#graphsubarea", a, t), $("#graphsubarea").bind("plothover", function (e, a, n) {
+          if (n) {
+            percent = parseFloat(n.series.percent).toFixed(2);
+            var t = [];
+            t.push("<hr/>&nbsp;&nbsp;", n.series.label, " - ", percent, "%&nbsp;&nbsp;<hr/>"), $("#showPercentage").html(t.join(""))
+          }
+        }), $.each(n, function (e, a) {
+          $("#select-lang-name").append($("<option>", {
+            value: a.value,
+            text: a.text
+          }))
+        }), $("#select-lang-name").selectpicker("refresh"), $("#select-lang-name").selectpicker("show"), $("#span-graph-disclaimer").html("Consolidated graph of all packages being tracked for " + r + " branch"), $("#span-legends").html(""), langWiseFlag = !0
+      }
+    })
+  }
+
+  function ajax_one_lang() {
+    var e = $("#select-release-branch").val(),
+      a = $("#select-lang-name").val();
+    return $.ajax({
+      beforeSend: function (e, a) {
+        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), $("#showPercentage").html(""), waitingDialog.show()
+      },
+      type: "POST",
+      url: "{% url 'ajax-release-graph' %}",
+      data: {
+        relbranch: e,
+        lang: a
+      },
+      success: function (e) {
+        waitingDialog.hide()
+        $("#grapharea").hide()
+        $("#localegraph").show()
+        $("#button-hide-locale-graph").show()
+        $("#localegraph").html(e)
+        $("#span-graph-disclaimer").html("Percentage is calculated on messages. Accuracy largely depends upon branch mapping")
+        $("#span-legends").html("")
+      }
+    })
+  }
+  $(document).ready(function () {
+    $("#button-combined").addClass("active"), $("#localegraph").hide(), $("#grapharea").hide(), $("#button-hide-locale-graph").hide(), $("#select-lang-name").selectpicker("hide"), $("#select-release-branch").val("{{ release_branch }}"), getUrlVars().locale && $("#select-lang-name").selectpicker("show") && $("#select-lang-name").val(getUrlVars().locale) && $("#select-lang-name").selectpicker("refresh") && $("#button-combined").removeClass("active") && $("#button-detailed").removeClass("active") && $("#button-lang-wise").addClass("active") && $("#releasegraph").hide() && ajax_one_lang(), $("#select-release-branch").change(function (e) {
+      window.location.replace("/releases/view/" + $(this).val())
+    }), $("#select-lang-name").change(function (e) {
+      ajax_one_lang()
+    }), $("#button-hide-locale-graph").on("click", function (e) {
+      return e.preventDefault(), $("#localegraph").hide(), $("#select-lang-name").selectpicker("val", "Select Language"), $("#grapharea").show(), $("#span-graph-disclaimer").html("Consolidated graph of all packages being tracked for " + $("#select-release-branch").val() + " branch. Accuracy largely depends upon branch mapping"), !langWiseFlag && ajax_lang_wise(), $(this).hide()
+    }), $("#button-combined").on("click", function () {
+      $("#button-detailed").removeClass("active"), $("#button-lang-wise").removeClass("active"), $("#button-combined").addClass("active"), $("#localegraph").hide(), $("#grapharea").hide(), $("#button-hide-locale-graph").hide(), $("#select-lang-name").selectpicker("hide"), $("#releasegraph").show(), ajax_combined()
+    }), $("#button-detailed").on("click", function () {
+      $("#button-combined").removeClass("active"), $("#button-lang-wise").removeClass("active"), $("#button-detailed").addClass("active"), $("#localegraph").hide(), $("#grapharea").hide(), $("#button-hide-locale-graph").hide(), $("#select-lang-name").selectpicker("hide"), $("#releasegraph").show(), ajax_detailed()
+    }), $("#button-lang-wise").on("click", function () {
+      $("#button-combined").removeClass("active"), $("#button-detailed").removeClass("active"), $("#button-lang-wise").addClass("active"), $("#releasegraph").hide(), ajax_lang_wise()
+    }), ajax_combined()
+  });
+</script>
 {% endblock %}
