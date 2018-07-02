@@ -21,6 +21,11 @@
     <a href="{% url 'trans-status-package' package_name %}" class="btn btn-default">{{ package_name }}</a>
 {% endblock %}
 
+{% block right-navigation %}
+    <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default">Go Back</a>
+{% endblock %}
+
+
 {% block dataviews %}
 <span class="text-info pull-right" >
     <span class="btn-group" role="group" aria-label="...">

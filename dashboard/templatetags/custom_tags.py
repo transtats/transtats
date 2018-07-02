@@ -171,13 +171,16 @@ def tag_releases_summary():
     releases_summary = reports_manager.get_reports('releases')
     if releases_summary:
         release_report_json = releases_summary.get().report_json
+        pkg_manager = PackagesManager()
+        lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
         for release, summary in release_report_json.items():
             if summary.get('languages'):
                 release_report_json[release]['languages'] = \
                     OrderedDict(sorted(summary['languages'].items()))
         return_value.update(dict(
             relsummary=release_report_json,
-            last_updated=releases_summary.get().report_updated
+            last_updated=releases_summary.get().report_updated,
+            lang_locale=lang_locale_dict
         ))
     return return_value
 

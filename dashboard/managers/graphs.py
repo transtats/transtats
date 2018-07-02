@@ -504,6 +504,7 @@ class ReportsManager(GraphManager):
         relbranch_report = {}
         for branch_slug, branch_name in relbranches:
             relbranch_report[branch_name] = {}
+            relbranch_report[branch_name]['slug'] = branch_slug
             stats_estimate = self.get_workload_estimate(branch_slug)
             untranslated_messages = \
                 [stats.get('Untranslated') for pkg, stats in stats_estimate[1].items()]

@@ -21,6 +21,10 @@
     <a href="{% url 'trans-status-release' release_branch %}" class="btn btn-default">{{ release_branch }}</a>
 {% endblock %}
 
+{% block right-navigation %}
+    <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default">Go Back</a>
+{% endblock %}
+
 {% block dataviews %}
 <span class="pull-right">
     <span class="btn-group" role="group" aria-label="...">

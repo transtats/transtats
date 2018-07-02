@@ -42,7 +42,7 @@ class Languages(models.Model):
         max_length=400, unique=True, verbose_name="Language Name"
     )
     locale_alias = models.CharField(
-        max_length=50, null=True, blank=True, verbose_name="Locale Alias"
+        max_length=50, unique=True, null=True, blank=True, verbose_name="Locale Alias"
     )
     locale_script = models.CharField(
         max_length=100, null=True, blank=True, verbose_name="Locale Script"

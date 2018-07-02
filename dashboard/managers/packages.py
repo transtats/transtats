@@ -127,7 +127,7 @@ class PackagesManager(InventoryManager):
                     if package_stats.stats_processed_json else \
                     self._process_response_stats_json(package_stats.stats_raw_json['stats'])
                 packages_stats[package.package_name] = package_processed_stats \
-                    if locales_count_match else {locale: package_processed_stats[locale]
+                    if locales_count_match else {locale: package_processed_stats.get(locale, {})
                                                  for locale in branch_locales}
         return packages_stats
 
