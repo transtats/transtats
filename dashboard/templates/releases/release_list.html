@@ -4,6 +4,7 @@
 <script src="/static/js/waiting.dialog.js"></script>
 <script src="/static/js/csrf.js"></script>
 <script src="/static/node_modules/bootstrap-select/dist/js/bootstrap-select.js"></script>
+<script src="/static/node_modules/jquery-match-height/dist/jquery.matchHeight.js"></script>
 {% endblock %}
 {% block pagebanner %}
 {% include 'summary.html' %}
@@ -186,6 +187,10 @@
     }), $("#refresh-releases-summary").on("click", function(e) {
       return e.preventDefault(), refresh_releases_summary(), !1
     })
+    $(".row-cards-pf > [class*='col'] > .card-pf .card-pf-title").matchHeight();
+    $(".row-cards-pf > [class*='col'] > .card-pf > .card-pf-body").matchHeight();
+    $(".row-cards-pf > [class*='col'] > .card-pf > .card-pf-footer").matchHeight();
+    $(".row-cards-pf > [class*='col'] > .card-pf").matchHeight();
   });
 </script>
 {% endblock %}
