@@ -24,8 +24,8 @@ fi
 
 if [ -z "$ADMIN_PASSWORD" ]
 then
-    echo "ADMIN_PASSWORD is not set. Using 'transtats' as default value."
-    export ADMIN_PASSWORD="transtats"
+    echo "ADMIN_PASSWORD is not set. Using '321@transtats' as default value."
+    export ADMIN_PASSWORD="321@transtats"
 fi
 
 if [ -z "$DATABASE_HOST" ]

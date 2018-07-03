@@ -50,7 +50,7 @@ Transtats APIs
 
             GET /api/release/fedora-29/locale/ja_JP HTTP/1.1
 
-5. **Job Details** : :code:`<transtats_server>GET /api/job/<job-id>/log`
+5. **Job Details** : :code:`<transtats_server>/api/job/<job-id>/log`
 
     Returns job log against given job id, for example :code:`2a6d4b23-6a6b-4d0e-b617-a0ece01d790f`.
 

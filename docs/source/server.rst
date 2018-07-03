@@ -29,22 +29,28 @@ Configuration
 Jobs
 ----
 
-1. Sync Jobs
-    Functions which are planned to be automated like
-     - sync with translation platform for translation stats
-     - sync with upstream repositories for translation resources
+1. Predefined Jobs
+    Functions which are basis to fetch some essential data
+     - sync with translation platform for projects
      - sync with release schedule to update calendar
      - sync with build system for build tags
         *required for branch mapping (this is one of the first steps)*
 
     Logs are kept.
 
-2. YAML Based Jobs
-    Currently, this is to talk with build system. The YAML template can be used as-is.
+2. YML Based Jobs
+    Currently, two YML templates are to choose from. They can be used as-is.
 
-    This requires three values:
+    `syncupstream` and `syncdownstream`
+
+    One is to look into package source repository & another help talking to build system.
+
+    Requires three values:
      - Package Name (*derived stats can be saved only if this is added already*)
      - Build System (*build system associated with added release stream*)
      - Build Tag (*To fill dropdown with build tags, run sync job for build tags*)
 
-    Once started it locates latest build, get SRPM and extract, apply patches, filter translation resources and calculates stats. Job could be run for any tag. Dry runs are also supported.
+    **SyncDownstream**
+    locates latest build info, download SRPM and extract, untar tarball, apply patches, filter translation resources and calculates stats. Could be run for any tag.
+
+    Dry runs are also supported. Each YML job has unique URL to inspect details.

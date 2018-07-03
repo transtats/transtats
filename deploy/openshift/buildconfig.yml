@@ -39,6 +39,11 @@ spec:
           secretKeyRef:
             name: transtats-secret
             key: ts-auth-system
+      - name: ADMIN_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: transtats-secret
+            key: admin-password
       - name: OIDC_RP_CLIENT_SECRET
         valueFrom:
           secretKeyRef:

@@ -1,4 +1,4 @@
-##### Mon Jul 02 2018 Sundeep Anand <suanand@redhat.com>
+##### Tue Jul 03 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6-rc.1
 * Language shortcuts in release summary page
 * YML Job trigger through API. API Authentication
 * Job Templates, Log Unique URL, Job details page
