@@ -24,11 +24,15 @@ import difflib
 import requests
 import polib
 import tarfile
+from collections import OrderedDict
+from datetime import datetime
+from git import Repo
 from shlex import split
 from shutil import copy2, rmtree
 from pyrpm.spec import Spec
 from subprocess import Popen, PIPE, call
 from inspect import getmembers, isfunction
+
 # dashboard
 from dashboard.constants import BUILD_SYSTEMS
 from dashboard.managers.base import BaseManager
@@ -45,9 +49,23 @@ class JobCommandBase(BaseManager):
         }
         super(JobCommandBase, self).__init__(**kwargs)
 
-    def _write_to_file(self, log_f, text_to_write):
+    def _format_log_text(self, delimiter, text, text_prefix):
+        log_text = ''
+        if isinstance(text, str):
+            log_text = text
+        if isinstance(text, (list, tuple)):
+            log_text = delimiter.join(text)
+        if text_prefix:
+            log_text = " :: " + text_prefix + delimiter + log_text
+        return log_text
+
+    def _log_task(self, log_f, subject, text, text_prefix=None):
         with open(log_f, 'a+') as the_file:
+            text_to_write = \
+                '\n<b>' + subject + '</b> ...\n%s\n' % \
+                                    self._format_log_text(" \n ", text, text_prefix)
             the_file.write(text_to_write)
+        return {str(datetime.now()): '%s' % self._format_log_text(", ", text, text_prefix)}
 
 
 class Get(JobCommandBase):
@@ -58,20 +76,22 @@ class Get(JobCommandBase):
         """
         Fetch latest build info from koji
         """
+        task_subject = "Latest Build Details"
+        task_log = OrderedDict()
+
         builds = self.api_resources.build_info(
             hub_url=input.get('hub_url'), tag=input.get('build_tag'),
             pkg=input.get('package')
         )
         if len(builds) > 0:
-            self._write_to_file(input['log_f'],
-                                '\n<b>Latest Build Details</b> ...\n%s\n'
-                                % str(builds[0]))
+            task_log.update(self._log_task(input['log_f'], task_subject, str(builds[0])))
         else:
-            self._write_to_file(input['log_f'],
-                                '\n<b>Latest Build Details</b> ...\n%s\n'
-                                % 'No build details found for %s.'
-                                % input.get('build_tag'))
-        return {'builds': builds}
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'No build details found for %s.' % input.get('build_tag')
+            ))
+
+        return {'builds': builds}, {task_subject: task_log}
 
 
 class Download(JobCommandBase):
@@ -87,6 +107,10 @@ class Download(JobCommandBase):
             return ''
 
     def srpm(self, input):
+
+        task_subject = "Download SRPM"
+        task_log = OrderedDict()
+
         builds = input.get('builds')
 
         pkgs_download_server_url = ''
@@ -107,18 +131,49 @@ class Download(JobCommandBase):
             ).replace('/mnt/koji', pkgs_download_server_url)
             srpm_downloaded_path = self._download_srpm(srpm_download_url)
             if srpm_downloaded_path:
-                self._write_to_file(
-                    input['log_f'],
-                    '\n<b>SRPM Successfully Downloaded from </b> ...\n%s\n'
-                    % srpm_download_url
-                )
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject,
+                    'Successfully downloaded from %s' % srpm_download_url
+                ))
             else:
-                self._write_to_file(
-                    input['log_f'],
-                    '\n<b>SRPM could not be downloaded from </b> ...\n%s\n'
-                    % srpm_download_url
-                )
-            return {'srpm_path': srpm_downloaded_path}
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject,
+                    'SRPM could not be downloaded from %s' % srpm_download_url
+                ))
+            return {'srpm_path': srpm_downloaded_path}, {task_subject: task_log}
+
+
+class Clone(JobCommandBase):
+
+    def git_repository(self, input):
+        """
+        Clone GIT repository
+        """
+        task_subject = "Clone Repository"
+        task_log = OrderedDict()
+
+        src_tar_dir = os.path.join(self.sandbox_path, input['package'])
+
+        try:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Start cloning %s repository.' % input['upstream_repo_url']
+            ))
+            clone_result = Repo.clone_from(
+                input['upstream_repo_url'], src_tar_dir,
+                config='http.sslVerify=false'
+            )
+        except Exception as e:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, 'Cloning failed. Details: %s' % str(e)
+            ))
+        else:
+            if vars(clone_result).get('git_dir'):
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject, os.listdir(src_tar_dir),
+                    text_prefix='Cloning git repo completed.'
+                ))
+            return {'src_tar_dir': src_tar_dir}, {task_subject: task_log}
 
 
 class Unpack(JobCommandBase):
@@ -128,6 +183,10 @@ class Unpack(JobCommandBase):
         SRPM is a headers + cpio file
             - its extraction currently is dependent on cpio command
         """
+
+        task_subject = "Unpack SRPM"
+        task_log = OrderedDict()
+
         try:
             command = "rpm2cpio " + os.path.join(
                 input['base_dir'], input['srpm_path']
@@ -141,16 +200,16 @@ class Unpack(JobCommandBase):
             command = split(command)
             call(command, stdin=rpm2cpio.stdout)
         except Exception as e:
-            self._write_to_file(
-                input['log_f'], '\n<b>SRPM Extraction Failed</b> ...\n%s\n' % e
-            )
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'SRPM Extraction Failed %s' % str(e)
+            ))
         else:
-            self._write_to_file(
-                input['log_f'],
-                '\n<b>SRPM Extracted Successfully</b> ...\n%s\n'
-                % " \n".join(os.listdir(extract_dir))
-            )
-            return {'extract_dir': extract_dir}
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, os.listdir(extract_dir),
+                text_prefix='SRPM Extracted Successfully'
+            ))
+            return {'extract_dir': extract_dir}, {task_subject: task_log}
 
     def _determine_tar_dir(self, params):
         for root, dirs, files in os.walk(params['extract_dir']):
@@ -163,6 +222,10 @@ class Unpack(JobCommandBase):
         """
         Untar source tarball
         """
+
+        task_subject = "Unpack tarball"
+        task_log = OrderedDict()
+
         try:
             src_tar_dir = None
             with tarfile.open(input['src_tar_file']) as tar_file:
@@ -173,18 +236,18 @@ class Unpack(JobCommandBase):
                     )
                 tar_file.extractall(path=input['extract_dir'])
         except Exception as e:
-            self._write_to_file(
-                input['log_f'], '\n<b>Tarball Extraction Failed</b> ...\n%s\n' % e
-            )
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Tarball Extraction Failed %s' % str(e)
+            ))
         else:
             if not os.path.isdir(src_tar_dir):
                 src_tar_dir = self._determine_tar_dir(input)
-            self._write_to_file(
-                input['log_f'],
-                '\n<b>Tarball Extracted Successfully</b> ...\n%s\n'
-                % " \n".join(os.listdir(src_tar_dir))
-            )
-            return {'src_tar_dir': src_tar_dir}
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, os.listdir(src_tar_dir),
+                text_prefix='Tarball Extracted Successfully'
+            ))
+            return {'src_tar_dir': src_tar_dir}, {task_subject: task_log}
 
 
 class Load(JobCommandBase):
@@ -193,6 +256,9 @@ class Load(JobCommandBase):
         """
         locate and load spec file
         """
+        task_subject = "Load Spec file"
+        task_log = OrderedDict()
+
         try:
             spec_file = ''
             src_tar_file = None
@@ -205,24 +271,28 @@ class Load(JobCommandBase):
                         src_tar_file = os.path.join(root, file)
             spec_obj = Spec.from_file(spec_file)
         except Exception as e:
-            self._write_to_file(
-                input['log_f'], '\n<b>Loading Spec file Failed</b> ...\n%s\n' % e
-            )
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Loading Spec file failed %s' % str(e)
+            ))
         else:
-            self._write_to_file(
-                input['log_f'],
-                '\n<b>Spec file loaded, Sources</b> ...\n%s\n'
-                % " \n".join(spec_obj.sources)
-            )
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, spec_obj.sources,
+                text_prefix='Spec file loaded, Sources'
+            ))
             return {
                 'spec_file': spec_file, 'src_tar_file': src_tar_file,
                 'spec_obj': spec_obj
-            }
+            }, {task_subject: task_log}
 
 
 class Apply(JobCommandBase):
 
     def patch(self, input):
+
+        task_subject = "Apply Patches"
+        task_log = OrderedDict()
+
         tar_dir = {'src_tar_dir': input['src_tar_dir']}
         try:
             patches = []
@@ -232,7 +302,7 @@ class Apply(JobCommandBase):
                             patches.append(os.path.join(root, file))
 
             if not patches:
-                self._write_to_file(input['log_f'], '\n<b>No patches found.</b>\n')
+                task_log.update(self._log_task(input['log_f'], task_subject, 'No patches found.'))
                 return tar_dir
 
             [copy2(patch, input['src_tar_dir']) for patch in patches]
@@ -251,16 +321,18 @@ class Apply(JobCommandBase):
                     p_value += 1
         except Exception as e:
             os.chdir(input['base_dir'])
-            self._write_to_file(
-                input['log_f'], '\n<b>Something went wrong in applying patches</b> ...\n%s\n' % e
-            )
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Something went wrong in applying patches: %s' % str(e)
+            ))
         else:
             os.chdir(input['base_dir'])
-            self._write_to_file(
-                input['log_f'], '\n<b>%s patches applied</b> ...\n%s\n' % (len(patches), " \n".join(patches))
-            )
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, patches,
+                text_prefix='%s patches applied' % len(patches)
+            ))
         finally:
-            return tar_dir
+            return tar_dir, {task_subject: task_log}
 
 
 class Filter(JobCommandBase):
@@ -269,6 +341,9 @@ class Filter(JobCommandBase):
         """
         Filter PO files from tarball
         """
+        task_subject = "Filter PO files"
+        task_log = OrderedDict()
+
         try:
             trans_files = []
             for root, dirs, files in os.walk(input['src_tar_dir']):
@@ -276,15 +351,16 @@ class Filter(JobCommandBase):
                         if file.endswith('.po'):
                             trans_files.append(os.path.join(root, file))
         except Exception as e:
-            self._write_to_file(
-                input['log_f'], '\n<b>Something went wrong in filtering PO files</b> ...\n%s\n' % e
-            )
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Something went wrong in filtering PO files: %s' % str(e)
+            ))
         else:
-            self._write_to_file(
-                input['log_f'],
-                '\n<b>%s PO files filtered</b> ...\n%s\n' % (len(trans_files), " \n".join(trans_files))
-            )
-            return {'trans_files': trans_files}
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, trans_files,
+                text_prefix='%s PO files filtered' % len(trans_files)
+            ))
+            return {'trans_files': trans_files}, {task_subject: task_log}
 
 
 class Calculate(JobCommandBase):
@@ -293,17 +369,25 @@ class Calculate(JobCommandBase):
         """
         Calculate stats from filtered translations
         """
+
+        task_subject = "Calculate Translation Stats"
+        task_log = OrderedDict()
+
         try:
             trans_stats = {}
-            trans_stats['id'] = input.get('build_system', '') + ' - ' + input.get('build_tag', '')
+            if input.get('build_system') and input.get('build_tag'):
+                trans_stats['id'] = input['build_system'] + ' - ' + input['build_tag']
+            elif input.get('upstream_repo_url'):
+                trans_stats['id'] = 'Upstream'
             trans_stats['stats'] = []
             for po_file in input['trans_files']:
                 try:
                     po = polib.pofile(po_file)
                 except Exception as e:
-                    self._write_to_file(
-                        input['log_f'], '\n<b>Something went wrong in parsing PO</b> ...\n%s\n' % e
-                    )
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject,
+                        'Something went wrong in parsing PO: %s' % str(e)
+                    ))
                 else:
                     temp_trans_stats = {}
                     temp_trans_stats['unit'] = "MESSAGE"
@@ -316,14 +400,15 @@ class Calculate(JobCommandBase):
                         len(po.untranslated_entries()) + len(po.fuzzy_entries())
                     trans_stats['stats'].append(temp_trans_stats.copy())
         except Exception as e:
-            self._write_to_file(
-                input['log_f'], '\n<b>Something went wrong in calculating stats</b> ...\n%s\n' % e
-            )
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Something went wrong in calculating stats: %s' % str(e)
+            ))
         else:
-            self._write_to_file(
-                input['log_f'], '\n<b>Calculated Stats</b> ...\n%s\n' % str(trans_stats)
-            )
-            return {'trans_stats': trans_stats}
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, str(trans_stats), text_prefix='Calculated Stats'
+            ))
+            return {'trans_stats': trans_stats}, {task_subject: task_log}
 
 
 class ActionMapper(BaseManager):
@@ -337,16 +422,19 @@ class ActionMapper(BaseManager):
         'LOAD',         # Load into python object
         'FILTER',       # Filter files recursively
         'APPLY',        # Apply patch on source tree
-        'CALCULATE'     # Do some maths/try formulae
+        'CALCULATE',    # Do some maths/try formulae
+        'CLONE'         # Clone source repository
     ]
 
     def __init__(self,
                  tasks_structure,
+                 job_base_dir,
                  build_tag,
                  package,
                  server_url,
-                 job_base_dir,
                  build_system,
+                 upstream_url,
+                 trans_file_ext,
                  job_log_file):
         super(ActionMapper, self).__init__()
         self.tasks = tasks_structure
@@ -355,9 +443,12 @@ class ActionMapper(BaseManager):
         self.hub = server_url
         self.base_dir = job_base_dir
         self.buildsys = build_system
+        self.upstream_url = upstream_url
+        self.trans_file_ext = trans_file_ext
         self.log_f = job_log_file
         self.cleanup_resources = {}
         self.__stats = None
+        self.__log = OrderedDict()
 
     def skip(self, abc, xyz):
         pass
@@ -385,7 +476,8 @@ class ActionMapper(BaseManager):
         current_node = self.tasks.head
         initials = {
             'build_tag': self.tag, 'package': self.pkg, 'hub_url': self.hub,
-            'base_dir': self.base_dir, 'build_system': self.buildsys, 'log_f': self.log_f
+            'base_dir': self.base_dir, 'build_system': self.buildsys, 'log_f': self.log_f,
+            'upstream_repo_url': self.upstream_url, 'trans_file_ext': self.trans_file_ext
         }
 
         while current_node is not None:
@@ -394,10 +486,13 @@ class ActionMapper(BaseManager):
             elif current_node.previous.output:
                 current_node.input = {**initials, **current_node.previous.output}
             count += 1
-            current_node.output = getattr(
+            current_node.output, current_node.log = getattr(
                 eval(current_node.get_namespace()),
                 current_node.get_method(), self.skip
             )(eval(current_node.get_namespace())(), current_node.input)
+
+            if current_node.log:
+                self.__log.update(current_node.log)
 
             self.tasks.status = True if current_node.output else False
             if current_node.output and 'builds' in current_node.output:
@@ -405,6 +500,10 @@ class ActionMapper(BaseManager):
                     break
             if current_node.output and 'srpm_path' in current_node.output:
                 d = {'srpm_path': current_node.output.get('srpm_path')}
+                initials.update(d)
+                self.cleanup_resources.update(d)
+            if current_node.output and 'src_tar_dir' in current_node.output:
+                d = {'src_tar_dir': current_node.output.get('src_tar_dir')}
                 initials.update(d)
                 self.cleanup_resources.update(d)
             if current_node.output and 'extract_dir' in current_node.output:
@@ -420,6 +519,10 @@ class ActionMapper(BaseManager):
         return self.__stats
 
     @property
+    def log(self):
+        return self.__log
+
+    @property
     def status(self):
         return self.tasks.status
 
@@ -430,6 +533,8 @@ class ActionMapper(BaseManager):
         try:
             if self.cleanup_resources.get('srpm_path'):
                 os.remove(self.cleanup_resources.get('srpm_path'))
+            if self.cleanup_resources.get('src_tar_dir'):
+                rmtree(self.cleanup_resources.get('src_tar_dir'), ignore_errors=True)
             if self.cleanup_resources.get('extract_dir'):
                 rmtree(self.cleanup_resources.get('extract_dir'), ignore_errors=True)
         except OSError as e:

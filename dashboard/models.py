@@ -17,9 +17,15 @@
 from uuid import uuid4
 
 # django
+from django.conf import settings
 from django.contrib.postgres.fields import JSONField, ArrayField
+from django.db.models.signals import post_save
 from django.db import models
+from django.dispatch import receiver
 from django.utils import timezone
+
+# third party
+from rest_framework.authtoken.models import Token
 
 
 TABLE_PREFIX = 'ts_'
@@ -36,7 +42,10 @@ class Languages(models.Model):
         max_length=400, unique=True, verbose_name="Language Name"
     )
     locale_alias = models.CharField(
-        max_length=50, null=True, verbose_name="Locale Alias"
+        max_length=50, unique=True, null=True, blank=True, verbose_name="Locale Alias"
+    )
+    locale_script = models.CharField(
+        max_length=100, null=True, blank=True, verbose_name="Locale Script"
     )
     lang_status = models.BooleanField(verbose_name="Enable/Disable")
 
@@ -238,6 +247,28 @@ class Packages(models.Model):
         verbose_name = "Package"
 
 
+class JobTemplates(models.Model):
+    """
+    Job Templates Model
+    """
+    job_template_id = models.AutoField(primary_key=True)
+    job_template_type = models.CharField(max_length=100)
+    job_template_name = models.CharField(max_length=500)
+    job_template_desc = models.CharField(max_length=1000, blank=True, null=True)
+    job_template_params = ArrayField(
+        models.CharField(max_length=1000, blank=True), default=list
+    )
+    job_template_json = JSONField(null=True)
+    job_template_last_accessed = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return self.job_template_name
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'jobtemplates'
+        verbose_name = "Job Templates"
+
+
 class Jobs(models.Model):
     """
     Jobs Model
@@ -247,9 +278,16 @@ class Jobs(models.Model):
     job_type = models.CharField(max_length=200)
     job_start_time = models.DateTimeField()
     job_end_time = models.DateTimeField(null=True)
+    job_yml_text = models.CharField(max_length=2000, null=True, blank=True)
     job_log_json = JSONField(null=True)
     job_result = models.NullBooleanField()
     job_remarks = models.CharField(max_length=200, null=True)
+    job_template = models.ForeignKey(JobTemplates, on_delete=models.PROTECT,
+                                     verbose_name="Job Template", null=True)
+    job_params_json = JSONField(null=True)
+    job_output_json = JSONField(null=True)
+    triggered_by = models.EmailField(null=True)
+    job_visible_on_url = models.BooleanField(default=False)
 
     @property
     def duration(self):
@@ -292,7 +330,8 @@ class GraphRules(models.Model):
     )
     rule_relbranch = models.CharField(max_length=500)
     created_on = models.DateTimeField()
-    rule_status = models.BooleanField()
+    rule_status = models.BooleanField(default=True)
+    rule_visibility_public = models.BooleanField(default=False)
     created_by = models.EmailField(null=True)
 
     class Meta:
@@ -361,3 +400,9 @@ class Visitor(models.Model):
     class Meta:
         db_table = TABLE_PREFIX + 'visitors'
         verbose_name = "Visitors"
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)

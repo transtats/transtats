@@ -13,28 +13,45 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# python
+import yaml
+
 # django
+from django.urls import reverse
 from django.http import HttpResponse
 
 # django third party
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 # application
 from transtats import __version__
 from dashboard.managers.graphs import GraphManager
+from dashboard.managers.jobs import (
+    JobTemplateManager, JobsLogManager, YMLBasedJobManager
+)
 
 
-class APIMixin(object):
+class GraphManagerMixin(object):
     """
-    Required Managers
+    Required Manager
     """
     graph_manager = GraphManager()
 
 
+class JobManagerMixin(object):
+    """
+    Required Managers
+    """
+    job_log_manager = JobsLogManager()
+    job_template_manager = JobTemplateManager()
+
+
 class PingServer(APIView):
     """
-    Ping Server API View
+    Ping Server API
     """
 
     def get(self, request):
@@ -50,9 +67,9 @@ class PingServer(APIView):
         return Response(response_text)
 
 
-class PackageStatus(APIMixin, APIView):
+class PackageStatus(GraphManagerMixin, APIView):
     """
-    Package Translation Status API View
+    Package Translation Status API
     """
 
     def _process_stats_data(self, trans_stats_data):
@@ -98,9 +115,9 @@ class PackageStatus(APIMixin, APIView):
         return Response(response_text)
 
 
-class GraphRuleCoverage(APIMixin, APIView):
+class GraphRuleCoverage(GraphManagerMixin, APIView):
     """
-    Graph Rule Coverage API View
+    Graph Rule Coverage API
     """
 
     def _process_stats_data(self, graph_rule, trans_stats_data):
@@ -148,9 +165,9 @@ class GraphRuleCoverage(APIMixin, APIView):
         return Response(response_text)
 
 
-class ReleaseStatus(APIMixin, APIView):
+class ReleaseStatus(GraphManagerMixin, APIView):
     """
-    Release Status API View
+    Release Status API
     """
 
     def _process_stats_data(self, trans_stats_data):
@@ -187,7 +204,7 @@ class ReleaseStatus(APIMixin, APIView):
 
 class ReleaseStatusDetail(ReleaseStatus):
     """
-    Release Status Detail API View
+    Release Status Detail API
     """
 
     def get(self, request, **kwargs):
@@ -234,6 +251,106 @@ class ReleaseStatusLocale(ReleaseStatus):
             if isinstance(estimate, tuple) and len(estimate) > 1:
                 response_text = {release: self._process_stats_data(estimate[1])} \
                     if estimate[1] else {release: "Release not found"}
+                response_text[release]['locale'] = locale
             else:
                 response_text = {release: "Release status could not be determined."}
+        return Response(response_text)
+
+
+class RunJob(JobManagerMixin, APIView):
+    """
+    Run YML Job API
+    """
+
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request, **kwargs):
+        """
+        POST response
+        :param request: Request object
+        :param kwargs: Keyword Arguments
+        :return: Custom JSON
+        """
+        data_received = self.request.data.copy()
+        active_user = getattr(request, 'user', None)
+        active_user_email = active_user.email \
+            if active_user and not active_user.is_anonymous else 'anonymous'
+        if not data_received:
+            data_received = self.request.POST.copy()
+        query_params = self.request.query_params.copy()
+        if data_received and data_received.get('job_type'):
+            job_templates = self.job_template_manager.get_job_templates(
+                job_template_type=data_received['job_type']
+            )
+            job_template = job_templates.first() \
+                if job_templates and len(job_templates) > 0 else {}
+            if job_template:
+                job_params = [param for param in job_template.job_template_params]
+                unavailable_params = [param for param in job_params if not data_received.get(param)]
+                if not unavailable_params:
+                    fields = [param.upper() for param in job_params] + ['YML_FILE']
+                    job_data = {param.upper(): data_received.get(param) for param in job_params}
+                    job_data.update({
+                        'YML_FILE': yaml.dump(job_template.job_template_json,
+                                              default_flow_style=False).replace("\'", "")
+                    })
+                    if query_params and query_params.get('DRY_RUN'):
+                        job_data.update({'DRY_RUN': query_params['DRY_RUN']})
+                        fields.append('DRY_RUN')
+                    job_params = [param.upper() for param in job_params]
+                    job_manager = YMLBasedJobManager(
+                        **{field: job_data.get(field) for field in fields},
+                        **{'params': job_params, 'type': data_received['job_type']},
+                        **{'active_user_email': active_user_email}
+                    )
+                    try:
+                        job_uuid = job_manager.execute_job()
+                    except Exception as e:
+                        return Response({
+                            "Exception": "Something went wrong. Details: %s" % str(e)
+                        })
+                    else:
+                        response_text = {
+                            "Success": "Job created and logged. URL: %s" %
+                                       self.request.get_raw_uri().replace(
+                                           self.request.get_full_path(), reverse(
+                                               'log-detail', kwargs={'job_id': str(job_uuid)}))}
+                        response_text.update(dict(job_id=str(job_uuid)))
+                else:
+                    response_text = {"job_params": "Required params: %s not found" % ", ".join(unavailable_params)}
+            else:
+                response_text = {"job_type": "Job template for %s not found" % data_received['job_type']}
+        else:
+            response_text = {"job_type": "Empty job type"}
+
+        return Response(response_text)
+
+
+class JobLog(JobManagerMixin, APIView):
+    """
+    Job Log API
+    """
+
+    def get(self, request, **kwargs):
+        """
+        GET response
+        :param request: Request object
+        :param kwargs: Keyword Arguments
+        :return: Custom JSON
+        """
+        response_text = {}
+        if kwargs.get('job_id'):
+            job = self.job_log_manager.get_job_detail(kwargs['job_id'])
+            if job and job.job_visible_on_url:
+                response_text['id'] = str(job.job_uuid)
+                response_text['type'] = job.job_type
+                response_text['start_time'] = job.job_start_time.strftime("%Y-%m-%d %H:%M:%S")
+                response_text['end_time'] = job.job_end_time.strftime("%Y-%m-%d %H:%M:%S")
+                response_text['result'] = job.job_result
+                response_text['remarks'] = job.job_remarks
+                response_text['YML_input'] = job.job_yml_text
+                response_text['log_ouput'] = job.job_log_json
+            else:
+                response_text = {kwargs['job_id']: "Job not found"}
         return Response(response_text)

@@ -180,9 +180,6 @@ class GraphManager(BaseManager):
         if not package:
             return {}
         lang_id_name, stats_dict, pkg_desc = self.package_manager.get_trans_stats(package)
-        upstream_stats = self.package_manager.get_upstream_stats(package)
-        if upstream_stats:
-            stats_dict['Upstream'] = upstream_stats
         # format trans_stats_list for graphs
         return self._format_stats_for_default_graphs(lang_id_name, stats_dict, pkg_desc)
 
@@ -507,6 +504,7 @@ class ReportsManager(GraphManager):
         relbranch_report = {}
         for branch_slug, branch_name in relbranches:
             relbranch_report[branch_name] = {}
+            relbranch_report[branch_name]['slug'] = branch_slug
             stats_estimate = self.get_workload_estimate(branch_slug)
             untranslated_messages = \
                 [stats.get('Untranslated') for pkg, stats in stats_estimate[1].items()]

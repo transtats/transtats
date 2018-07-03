@@ -76,6 +76,12 @@
                         <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
                           Admin Panel</a></li>
                       {% endif %}
+                      {% if user.auth_token %}
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#authToken">
+                                <span class="glyphicon glyphicon-paperclip" aria-hidden="true"></span> Auth Token</a>
+                        </li>
+                      {% endif %}
                       <li>
                         {% if auth == 'fas' %}
                             <form id="logout" action="{% url 'oidc_logout' %}" method="post">{% csrf_token %}
@@ -161,5 +167,7 @@
         </footer>
     {% endblock %}
     {% block extrafooter %}{% endblock %}
+
+    {% include '_auth_token.html' %}
   </body>
 </html>

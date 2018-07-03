@@ -14,11 +14,13 @@
 # under the License.
 
 import os
+import yaml
 from collections import OrderedDict
 from django import template
 
-from dashboard.constants import BRANCH_MAPPING_KEYS
+from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
 from dashboard.managers.graphs import GraphManager, ReportsManager
+from dashboard.managers.jobs import JobTemplateManager
 from dashboard.managers.packages import PackagesManager
 
 
@@ -169,13 +171,16 @@ def tag_releases_summary():
     releases_summary = reports_manager.get_reports('releases')
     if releases_summary:
         release_report_json = releases_summary.get().report_json
+        pkg_manager = PackagesManager()
+        lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
         for release, summary in release_report_json.items():
             if summary.get('languages'):
                 release_report_json[release]['languages'] = \
                     OrderedDict(sorted(summary['languages'].items()))
         return_value.update(dict(
             relsummary=release_report_json,
-            last_updated=releases_summary.get().report_updated
+            last_updated=releases_summary.get().report_updated,
+            lang_locale=lang_locale_dict
         ))
     return return_value
 
@@ -192,6 +197,40 @@ def tag_packages_summary():
             pkgsummary=packages_summary.get().report_json,
             last_updated=packages_summary.get().report_updated
         ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("jobs", "_job_form.html")
+)
+def tag_job_form(template_type):
+    return_value = OrderedDict()
+    job_template_manager = JobTemplateManager()
+    filter_kwargs = {}
+    if template_type in TS_JOB_TYPES:
+        filter_kwargs['job_template_type'] = template_type
+    templates = job_template_manager.get_job_templates(**filter_kwargs)
+    if templates and len(templates) > 0:
+        if len(templates) == 1:
+            return_value['job_template'] = templates[0]
+            return_value['yml_file'] = yaml.dump(
+                templates[0].job_template_json, default_flow_style=False
+            ).replace("\'", "")
+            return_value['job_params'] = templates[0].job_template_params
+        return_value['job_templates'] = templates.values()
+    package_manager = PackagesManager()
+    release_streams = \
+        package_manager.get_release_streams(
+            only_active=True, fields=('relstream_built',)
+        )
+    available_build_systems = []
+    for relstream in release_streams:
+        available_build_systems.append(relstream.relstream_built)
+    if available_build_systems:
+        return_value['build_systems'] = available_build_systems
+    packages = package_manager.get_package_name_tuple()
+    if packages:
+        return_value['packages'] = packages
     return return_value
 
 

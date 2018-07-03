@@ -2,9 +2,7 @@
 
 {% block extrascript %}
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('#tab-archive').addClass('active');
-    })
+    var activateAccordion=function(l){var a=$('a[href="#'+l+'"]').parents(".panel-group").children(".panel");$.each(a,function(a,e){var n=$(e).find('a[href="#'+l+'"]'),r=$(e).children(".panel-collapse");0<n.length?(r.removeClass("collapse"),r.addClass("in")):(r.removeClass("in"),r.addClass("collapse"))})};function getUrlVars(){for(var a,e=[],n=window.location.href.slice(window.location.href.indexOf("?")+1).split("&"),r=0;r<n.length;r++)a=n[r].split("="),e.push(a[0]),e[a[0]]=a[1];return e}$(document).ready(function(){$("#tab-archive").addClass("active"),getUrlVars().id&&activateAccordion(getUrlVars().id)});
 </script>
 {% endblock %}
 

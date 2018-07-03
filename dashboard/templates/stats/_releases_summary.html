@@ -1,3 +1,5 @@
+{% load get_item from custom_tags %}
+
 {% if relsummary %}
     <div class="row">
     {% for release, summary in relsummary.items %}
@@ -16,7 +18,8 @@
                     <tbody>
                     {% for lang, untranslated in summary.languages.items %}
                     <tr>
-                        <td>{{ lang }}</td><td align="right" class="text-info">{{ untranslated }}</td>
+                        <td><a href="{% url 'trans-status-release' summary.slug %}?locale={{ lang_locale|get_item:lang }}">
+                            {{ lang }}</a></td><td align="right" class="text-info">{{ untranslated }}</td>
                     </tr>
                     {% endfor %}
                     </tbody>

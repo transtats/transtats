@@ -28,7 +28,7 @@
                     {{ version|get_item:mapping_keys.2 }}&nbsp;
                     {%if version|get_item:mapping_keys.1 and version|get_item:mapping_keys.2 %}
                         <a type="button" class="btn btn-small pull-right"  data-toggle="tooltip" title="Sync with {{ version|get_item:mapping_keys.1 }}"
-                           href="{% url 'jobs-yml-based' %}?package={{ package_name }}&buildsys={{ version|get_item:mapping_keys.1 }}&tag={{ version|get_item:mapping_keys.2 }}">
+                           href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package_name }}&buildsys={{ version|get_item:mapping_keys.1 }}&tag={{ version|get_item:mapping_keys.2 }}">
                             <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
                     {% endif %}
                 </td>

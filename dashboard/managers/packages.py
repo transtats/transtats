@@ -127,7 +127,7 @@ class PackagesManager(InventoryManager):
                     if package_stats.stats_processed_json else \
                     self._process_response_stats_json(package_stats.stats_raw_json['stats'])
                 packages_stats[package.package_name] = package_processed_stats \
-                    if locales_count_match else {locale: package_processed_stats[locale]
+                    if locales_count_match else {locale: package_processed_stats.get(locale, {})
                                                  for locale in branch_locales}
         return packages_stats
 
@@ -360,29 +360,6 @@ class PackagesManager(InventoryManager):
                     trans_stats_dict[relbranch] = trans_stats_dict.get(branch_mapping.get(BRANCH_MAPPING_KEYS[0]), [])
         return lang_id_name, trans_stats_dict, package_desc
 
-    def get_upstream_stats(self, package):
-        """
-        fetch upstream stats of a package for all enabled locales
-        :param package: str
-        :return:upstream_trans_stats: list
-        """
-        upstream_trans_stats = []
-        if not package:
-            return upstream_trans_stats
-        lang_id_name = self.get_lang_id_name_dict()
-        package_details = self.get_packages([package], ['upstream_latest_stats']).get()
-        upstream_stats = package_details.upstream_latest_stats if package_details else {}
-        if upstream_stats:
-            selected_locales = []
-            for locale in list(upstream_stats.keys()):
-                selected_locales.extend([locale for locale_tuple in list(lang_id_name.keys())
-                                         if locale in locale_tuple])
-            for s_locale in selected_locales:
-                upstream_trans_stats.append(
-                    [s_locale, upstream_stats.get(s_locale, {}).get('translated_percent')]
-                )
-        return upstream_trans_stats
-
     def _get_pkg_and_ext(self, package_name):
         package = self.get_packages([package_name]).get()
         # extension for Transifex should be true, otherwise false
@@ -495,9 +472,12 @@ class PackagesManager(InventoryManager):
         for locale, alias in dict(list(lang_id_name.keys())).items():
             try:
                 filter_stat = list(filter(
-                    lambda x: x['locale'] == locale or x['locale'].replace('-', '_') == locale or
-                    x['locale'] == alias or x['locale'].replace('-', '_') == alias, stats_json
+                    lambda x: x['locale'] == locale or x['locale'].replace('-', '_') == locale, stats_json
                 ))
+                if not filter_stat:
+                    filter_stat = list(filter(
+                        lambda x: x['locale'] == alias or x['locale'].replace('-', '_') == alias, stats_json
+                    ))
             except Exception as e:
                 self.app_logger(
                     'ERROR', "Error while filtering stats, details: " + str(e))

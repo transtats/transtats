@@ -24,8 +24,8 @@ fi
 
 if [ -z "$ADMIN_PASSWORD" ]
 then
-    echo "ADMIN_PASSWORD is not set. Using 'transtats' as default value."
-    export ADMIN_PASSWORD="transtats"
+    echo "ADMIN_PASSWORD is not set. Using '321@transtats' as default value."
+    export ADMIN_PASSWORD="321@transtats"
 fi
 
 if [ -z "$DATABASE_HOST" ]
@@ -60,11 +60,11 @@ fi
 
 make static
 make migrate
-if [ -z "$DATABASE_JSON_FILE_PATH" ]
+if [ -z "$INITIAL_DATA_FILE_PATH" ]
 then
-    echo "Skipping 'loadata' as DATABASE_JSON_FILE_PATH is not specified."
+    echo "Skipping 'loaddata' as INITIAL_DATA_FILE_PATH is not specified."
 else
-    python3 manage.py loaddata $DATABASE_JSON_FILE_PATH
+    python3 manage.py loaddata $INITIAL_DATA_FILE_PATH
 fi
 python3 manage.py initlogin
 gunicorn transtats.wsgi:application

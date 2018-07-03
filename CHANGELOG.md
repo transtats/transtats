@@ -1,3 +1,8 @@
+##### Tue Jul 03 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6-rc.1
+* Language shortcuts in release summary page
+* YML Job trigger through API. API Authentication
+* Job Templates, Log Unique URL, Job details page
+
 ##### Fri Jun 22 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.5
 * Add files for OpenShift deployment ([bhavin192](https://github.com/bhavin192))
 * Optimise code and a few bug fixes in graphs, diff ui

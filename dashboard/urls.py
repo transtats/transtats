@@ -21,32 +21,17 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.views.generic.base import TemplateView, RedirectView
 
 # dashboard
-from dashboard.services.expose.views import (
-    PingServer, PackageStatus, GraphRuleCoverage, ReleaseStatus, ReleaseStatusDetail, ReleaseStatusLocale
-)
+from dashboard.services.urls import api_urls
 from dashboard.views import (
     TranStatusPackagesView, TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
-    TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
-    JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView,
-    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobsYMLBasedView, refresh_package,
-    release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
-    get_build_tags
+    TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView, JobsView,
+    JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView, get_build_tags,
+    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobDetailView, refresh_package, job_template,
+    release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
 
-
-api_urls = [
-    url(r'^ping$', PingServer.as_view(), name='api_ping_server'),
-    url(r'^package/(?P<package_name>[\w-]+)/$', PackageStatus.as_view(), name='api_package_status'),
-    url(r'^coverage/(?P<graph_rule>[\w-]+)/$', GraphRuleCoverage.as_view(), name='api_custom_graph'),
-    url(r'^release/(?P<release_stream>[\w-]+)/$', ReleaseStatus.as_view(),
-        name='api_release_status'),
-    url(r'^release/(?P<release_stream>[\w-]+)/detail$', ReleaseStatusDetail.as_view(),
-        name='api_release_status_detail'),
-    url(r'^release/(?P<release_stream>[\w-]+)/locale/(?P<locale>[\w_]+)$',
-        ReleaseStatusLocale.as_view(), name='api_release_status_locale'),
-]
 
 ajax_urls = [
     url(r'^schedule-job$', schedule_job, name="ajax-schedule-job"),
@@ -57,13 +42,16 @@ ajax_urls = [
     url(r'^generate-reports$', generate_reports, name="ajax-releases-report"),
     url(r'^read-file-logs$', read_file_logs, name="ajax-read-logs"),
     url(r'^build-tags$', get_build_tags, name="ajax-build-tags"),
+    url(r'^job-template$', job_template, name="ajax-job-template"),
 ]
 
 app_jobs_urls = [
     url(r'^$', JobsView.as_view(), name="jobs"),
     url(r'^logs$', JobsLogsView.as_view(), name="jobs-logs"),
     url(r'^archive$', JobsArchiveView.as_view(), name="jobs-archive"),
-    url(r'^yml-based$', JobsYMLBasedView.as_view(), name="jobs-yml-based")
+    url(r'^yml-based$', TemplateView.as_view(template_name="jobs/jobs_yml_based.html"),
+        name="jobs-yml-based"),
+    url(r'^log/(?P<job_id>[0-9a-f-]+)/detail$', JobDetailView.as_view(), name="log-detail")
 ]
 
 app_setting_urls = [
