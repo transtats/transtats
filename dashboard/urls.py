@@ -30,16 +30,16 @@ from dashboard.views import (
     # StreamBranchesSettingsView, get_build_tags, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView,
     # JobDetailView, refresh_package, job_template, release_graph, schedule_job, graph_data, tabular_data,
     # export_packages, generate_reports, read_file_logs
-    TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView, JobsView,
-    JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView, get_build_tags,
-    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobDetailView, refresh_package, job_template,
-    release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
+    # TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView, JobsView,
+    # JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView, get_build_tags,
+    # NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobDetailView, refresh_package, job_template,
+    # release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
     TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
     JobsView, JobsLogsView, JobsArchiveView, NewPackageView, UpdatePackageView, TransCoverageView,
-    StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobsYMLBasedView,
+    StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView,
     NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView,
-    UpdateTransPlatformView, refresh_package, release_graph, schedule_job, graph_data, tabular_data, export_packages,
-    generate_reports, read_file_logs, get_build_tags, change_lang_status
+    UpdateTransPlatformView, JobDetailView, refresh_package, release_graph, schedule_job, graph_data, tabular_data,
+    export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status, job_template
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"

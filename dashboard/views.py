@@ -36,9 +36,8 @@ from django.urls import reverse
 
 # dashboard
 
-from dashboard.constants import (APP_DESC, TS_JOB_TYPES)
 from dashboard.constants import (
-    APP_DESC, TS_JOB_TYPES, RELSTREAM_SLUGS, TRANSPLATFORM_ENGINES
+    APP_DESC, TS_JOB_TYPES, TRANSPLATFORM_ENGINES
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
