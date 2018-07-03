@@ -21,6 +21,11 @@
     <a href="{% url 'trans-status-package' package_name %}" class="btn btn-default">{{ package_name }}</a>
 {% endblock %}
 
+{% block right-navigation %}
+    <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default">Go Back</a>
+{% endblock %}
+
+
 {% block dataviews %}
 <span class="text-info pull-right" >
     <span class="btn-group" role="group" aria-label="...">
@@ -36,8 +41,8 @@
       </button>
       <ul class="dropdown-menu">
         <li><a id="syncTransplatformLink" data-toggle="tooltip" title="Sync with translation platform"><input type="hidden" value="syncPlatform" id="syncPackageIdentifier"/>Translation Platform</a></li>
-        <li><a href="{% url 'jobs' %}?package={{ package_name }}" data-toggle="tooltip" title="Sync with {{ package_name }} source repo">Upstream Repository</a></li>
-        <li><a href="{% url 'jobs-yml-based' %}?package={{ package_name }}" data-toggle="tooltip" title="Sync with build system">Release Build System</a></li>
+        <li><a href="{% url 'jobs-yml-based' %}?template=syncupstream&package={{ package_name }}" data-toggle="tooltip" title="Sync with {{ package_name }} source repo">Upstream Repository</a></li>
+        <li><a href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package_name }}" data-toggle="tooltip" title="Sync with build system">Release Build System</a></li>
       </ul>
     </span>
     <span class="btn-group">

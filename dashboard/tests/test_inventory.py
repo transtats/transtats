@@ -17,12 +17,14 @@ from mock import patch
 from fixture import DjangoFixture
 from fixture.style import NamedDataStyle
 from fixture.django_testcase import FixtureTestCase
+from dashboard.constants import TS_JOB_TYPES
 from dashboard.managers.inventory import InventoryManager
 from dashboard.managers.packages import PackagesManager
+from dashboard.managers.jobs import JobTemplateManager
 from dashboard.models import ReleaseStream
 from dashboard.tests.testdata.db_fixtures import (
     LanguagesData, LanguageSetData, TransPlatformData, ReleaseStreamData,
-    StreamBranchesData, PackagesData
+    StreamBranchesData, PackagesData, JobTemplatesData
 )
 from dashboard.tests.testdata.mock_values import (mock_requests_get_add_package,
                                                   mock_requests_get_validate_package)
@@ -247,3 +249,22 @@ class PackagesManagerTest(FixtureTestCase):
         package_validated = self.packages_manager.validate_package(package_name='otherpackage',
                                                                    transplatform_slug=transplatform)
         self.assertFalse(package_validated)
+
+
+class JobTemplateManagerTest(FixtureTestCase):
+
+    job_template_manager = JobTemplateManager()
+    fixture = db_fixture
+    datasets = [JobTemplatesData]
+
+    def test_get_job_templates(self):
+        """
+        Test get_job_templates
+        """
+        templates = self.job_template_manager.get_job_templates()
+        self.assertEqual(len(templates), 2, "two job templates")
+        templates = self.job_template_manager.get_job_templates(
+            'job_template_name', **{'job_template_type': TS_JOB_TYPES[2]}
+        )
+        self.assertEqual(len(templates), 1, "one filtered job template")
+        self.assertEqual(templates[0].job_template_name, 'Clone Upstream Repo')

@@ -2,7 +2,7 @@
 $(function(){$(".dropdown-menu a").click(function(){console.log($(this).attr("data-value")),$(this).closest(".dropdown").find("input.options").val($(this).attr("data-value"))}),$("#buildTag").click(function(){$(this).val("")})});
 </script>
 <div class="input-group dropdown">
-    <input id="buildTag" type="text" class="form-control options dropdown-toggle" value="Select Build Tag">
+    <input id="buildTag" type="text" class="form-control options dropdown-toggle" placeholder="Select Build Tag">
     <ul class="dropdown-menu">
         {% for build_tag in build_tags %}
             <li><a href="#" data-value="{{ build_tag }}">{{ build_tag }}</a></li>

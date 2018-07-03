@@ -26,6 +26,7 @@ class TaskNode(object):
         self.task = task
         self.input = None
         self.output = None
+        self.log = None
 
         self.__namespace = None
         self.__method = None

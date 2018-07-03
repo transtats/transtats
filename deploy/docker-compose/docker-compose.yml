@@ -13,7 +13,7 @@ services:
     image: transtats/transtats-sa:latest
     environment:
       DATABASE_HOST: database
-      DATABASE_JSON_FILE_PATH: /workspace/deploy/docker-compose/transtats/datadump.json
+      INITIAL_DATA_FILE_PATH: /workspace/deploy/docker-compose/transtats/initialdata.yaml
     ports:
       - 8080:8080
     entrypoint: ["wait-for-it.sh", "database:5432", "--", "transtats.sh"]

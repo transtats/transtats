@@ -60,11 +60,11 @@ fi
 
 make static
 make migrate
-if [ -z "$DATABASE_JSON_FILE_PATH" ]
+if [ -z "$INITIAL_DATA_FILE_PATH" ]
 then
-    echo "Skipping 'loadata' as DATABASE_JSON_FILE_PATH is not specified."
+    echo "Skipping 'loaddata' as INITIAL_DATA_FILE_PATH is not specified."
 else
-    python3 manage.py loaddata $DATABASE_JSON_FILE_PATH
+    python3 manage.py loaddata $INITIAL_DATA_FILE_PATH
 fi
 python3 manage.py initlogin
 gunicorn transtats.wsgi:application

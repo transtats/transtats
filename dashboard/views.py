@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import ast
 import csv
 from datetime import datetime
 from pathlib import Path
@@ -26,14 +27,12 @@ from django.http import (
 from django.shortcuts import render
 from django.template import Context, Template
 from django.views.generic import (
-    TemplateView, ListView, FormView
+    TemplateView, ListView, FormView, DetailView
 )
 from django.urls import reverse
 
 # dashboard
-from dashboard.constants import (
-    APP_DESC, TS_JOB_TYPES, RELSTREAM_SLUGS
-)
+from dashboard.constants import (APP_DESC, TS_JOB_TYPES)
 from dashboard.forms import (
     NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
 )
@@ -42,15 +41,13 @@ from dashboard.managers.inventory import (
 )
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.jobs import (
-    JobsLogManager, TransplatformSyncManager,
+    YMLBasedJobManager, JobsLogManager, TransplatformSyncManager,
     ReleaseScheduleSyncManager, BuildTagsSyncManager
 )
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
-from dashboard.managers.downstream import DownstreamManager
-from dashboard.managers.upstream import UpstreamManager
-from dashboard.models import Visitor
+from dashboard.models import Jobs, Visitor
 
 
 class ManagersMixin(object):
@@ -556,28 +553,15 @@ class JobsArchiveView(ManagersMixin, ListView):
         return job_logs[15:]
 
 
-class JobsYMLBasedView(ManagersMixin, TemplateView):
+class JobDetailView(ManagersMixin, DetailView):
     """
-    YML Based Job View
+    Job Log Detail View
     """
-    template_name = "jobs/jobs_yml_based.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(TemplateView, self).get_context_data(**kwargs)
-        packages = self.packages_manager.get_package_name_tuple()
-        if packages:
-            context['packages'] = packages
-        release_streams = \
-            self.packages_manager.get_release_streams(
-                only_active=True, fields=('relstream_built', )
-            )
-        available_build_systems = []
-        for relstream in release_streams:
-            available_build_systems.append(relstream.relstream_built)
-
-        if available_build_systems:
-            context['build_systems'] = available_build_systems
-        return context
+    template_name = "jobs/log_detail.html"
+    context_object_name = 'log'
+    model = Jobs
+    slug_field = 'job_uuid'
+    slug_url_kwarg = 'job_id'
 
 
 def schedule_job(request):
@@ -587,8 +571,11 @@ def schedule_job(request):
     message = "&nbsp;&nbsp;<span class='text-warning'>Request could not be processed.</span>"
     if request.is_ajax():
         job_type = request.POST.dict().get('job')
+        active_user = getattr(request, 'user', None)
+        active_user_email = active_user.email \
+            if active_user and not active_user.is_anonymous else 'anonymous'
         if job_type == TS_JOB_TYPES[0]:
-            transplatform_sync_manager = TransplatformSyncManager()
+            transplatform_sync_manager = TransplatformSyncManager(**{'active_user_email': active_user_email})
             job_uuid = transplatform_sync_manager.syncstats_initiate_job()
             if job_uuid:
                 message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
@@ -597,7 +584,7 @@ def schedule_job(request):
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
         elif job_type == TS_JOB_TYPES[1]:
-            relschedule_sync_manager = ReleaseScheduleSyncManager()
+            relschedule_sync_manager = ReleaseScheduleSyncManager(**{'active_user_email': active_user_email})
             job_uuid = relschedule_sync_manager.syncschedule_initiate_job()
             if job_uuid:
                 message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
@@ -605,43 +592,38 @@ def schedule_job(request):
                 relschedule_sync_manager.sync_release_schedule()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
-        elif job_type == TS_JOB_TYPES[2]:
-            input_package_name = request.POST.dict().get('package')
-            package_manager = PackagesManager()
-            package = package_manager.get_packages([input_package_name], ['package_name', 'upstream_url']).get()
-            if package:
-                upstream_repo = package.upstream_url if package.upstream_url.endswith('.git') \
-                    else package.upstream_url + ".git"
-                upstream_sync_manager = UpstreamManager(package.package_name, upstream_repo,
-                                                        'dashboard/sandbox', package.translation_file_ext)
-                job_uuid = upstream_sync_manager.syncupstream_initiate_job()
-                if job_uuid and upstream_sync_manager.upstream_trans_stats():
-                    message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
-                        "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
-                upstream_sync_manager.clean_workspace()
-            else:
-                message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
-        elif job_type == TS_JOB_TYPES[3]:
-            fields = ['YML_FILE', 'PACKAGE_NAME', 'BUILD_SYSTEM', 'BUILD_TAG']
+        elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], 'YMLbasedJob'):
+            job_params = request.POST.dict().get('params')
+            if not job_params:
+                message = "&nbsp;&nbsp;<span class='text-danger'>Job params missing.</span>"
+                return HttpResponse(message, status=500)
+            req_params, fields = [str(param).upper() for param in ast.literal_eval(job_params)], []
+            fields.extend(req_params + ['YML_FILE'])
             not_available = [field for field in fields if not request.POST.dict().get(field)]
             if len(not_available) > 0:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Provide value for %s</span>" % not_available[0]
                 return HttpResponse(message, status=500)
             else:
                 fields.append('DRY_RUN')
-                downstream_manager = DownstreamManager(**{
-                    field: request.POST.dict().get(field) for field in fields})
+                job_manager = YMLBasedJobManager(
+                    **{field: request.POST.dict().get(field) for field in fields},
+                    **{'params': req_params, 'type': job_type},
+                    **{'active_user_email': active_user_email}
+                )
                 try:
-                    downstream_manager.execute_job()
+                    job_uuid = job_manager.execute_job()
                 except Exception as e:
                     error_msg = str(e) if len(str(e)) < 50 else str(e)[:50] + '...'
                     message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.<br/>" \
                               "&nbsp;&nbsp;<small class='text-danger'>" + error_msg + " </small></span>"
                     return HttpResponse(message, status=500)
                 else:
-                    message = "&nbsp;&nbsp;<span class='text-success'>Job ran successfully.</span>"
+                    message = "&nbsp;&nbsp;<span class='text-success'>Success. Job URL: " \
+                              "<a href='/jobs/log/" + str(job_uuid) + "/detail'" \
+                              " data-toggle='tooltip' title='Copy this link to share!'>" + \
+                              str(job_uuid) + "</a></span>"
         elif job_type == TS_JOB_TYPES[4]:
-            buildtags_sync_manager = BuildTagsSyncManager()
+            buildtags_sync_manager = BuildTagsSyncManager(**{'active_user_email': active_user_email})
             job_uuid = buildtags_sync_manager.syncbuildtags_initiate_job()
             if job_uuid:
                 message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
@@ -656,13 +638,14 @@ def read_file_logs(request):
     message = ''
     if request.is_ajax():
         post_params = request.POST.dict()
-        downstream_manager = DownstreamManager()
-        suffix = downstream_manager.job_suffix(
-            post_params['PACKAGE_NAME'],
-            post_params['BUILD_SYSTEM'],
-            post_params['BUILD_TAG']
+        job_params = [str(param).upper() for param in ast.literal_eval(post_params.get('params', ''))]
+        job_manager = YMLBasedJobManager(
+            **{'params': job_params, 'type': post_params.get('job', 'YMLbasedJob')}
         )
-        log_file_path = downstream_manager.job_log_file + "." + suffix
+        suffix = job_manager.job_suffix(
+            [post_params.get(param, '') for param in job_params]
+        )
+        log_file_path = job_manager.job_log_file + ".%s.%s" % (suffix, job_manager.type)
         log_file = Path(log_file_path)
         if log_file.is_file():
             with open(log_file_path) as f:
@@ -759,17 +742,6 @@ def refresh_package(request):
                     return HttpResponse(Template(template_string).render(context))
             else:
                 return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
-        elif task_type == "syncUpstream" and post_params.get('package'):
-            input_package_name = post_params['package']
-            package = package_manager.get_packages([input_package_name], ['package_name', 'upstream_url']).get()
-            if package:
-                upstream_repo = package.upstream_url if package.upstream_url.endswith('.git') \
-                    else package.upstream_url + ".git"
-                upstream_sync_manager = UpstreamManager(package.package_name, upstream_repo,
-                                                        'dashboard/sandbox', package.translation_file_ext)
-                job_uuid = upstream_sync_manager.syncupstream_initiate_job()
-                if job_uuid and upstream_sync_manager.upstream_trans_stats():
-                    return HttpResponse(status=200)
         elif task_type == "syncPlatform" and post_params.get('package'):
             if package_manager.refresh_package(post_params['package']):
                 return HttpResponse(status=200)
@@ -915,4 +887,23 @@ def get_build_tags(request):
                                 {% tag_build_tags buildsys %}
                             """
             return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)
+
+
+def job_template(request):
+    """
+    Select Job Template
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        selected_template = post_params.get('template', '')
+        context = Context(
+            {'META': request.META,
+             'job_template': selected_template}
+        )
+        template_string = """
+                            {% load tag_job_form from custom_tags %}
+                            {% tag_job_form job_template %}
+                        """
+        return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)

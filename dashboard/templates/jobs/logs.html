@@ -2,9 +2,7 @@
 
 {% block extrascript %}
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('#tab-logs').addClass('active');
-    })
+    var activateAccordion=function(r){var a=$('a[href="#'+r+'"]').parents(".panel-group").children(".panel");$.each(a,function(a,e){var n=$(e).find('a[href="#'+r+'"]'),l=$(e).children(".panel-collapse");0<n.length?(l.removeClass("collapse"),l.addClass("in")):(l.removeClass("in"),l.addClass("collapse"))})};function getUrlVars(){for(var a,e=[],n=window.location.href.slice(window.location.href.indexOf("?")+1).split("&"),l=0;l<n.length;l++)a=n[l].split("="),e.push(a[0]),e[a[0]]=a[1];return e}$(document).ready(function(){$("#tab-logs").addClass("active"),getUrlVars().id&&activateAccordion(getUrlVars().id)});
 </script>
 {% endblock %}
 
@@ -40,8 +38,12 @@
                     <p><span class="glyphicon glyphicon-time" aria-hidden="true"></span><span class="text-info">
                         {% if log.job_start_time %}Started at <strong>{{ log.job_start_time|time:"H:i:s" }}</strong>{% endif %}
                         {% if log.job_end_time %} and completed at <strong>{{ log.job_end_time|time:"H:i:s" }}</strong>
-                        &nbsp;&nbsp;<em>({{ log.duration|floatformat:"0" }} seconds)</em>{% endif %}
-                    </span></p>
+                        &nbsp;&nbsp;<em>({{ log.duration|floatformat:"0" }} seconds)</em>{% endif %}</span>
+                        {% if log.job_visible_on_url %}
+                            <span class="pull-right"><a href="{% url 'log-detail' log.job_uuid %}">Job Details</a>&nbsp;
+                            <span class="glyphicon glyphicon-share"></span></span>
+                        {% endif %}
+                    </p>
                     <hr/>
                     <p>
                         <div class="list-group">
@@ -49,7 +51,10 @@
                             <a href="#" class="list-group-item">
                               <h4 class="list-group-item-heading">{{ task }}</h4>
                                 {% for datetime, event in details.items|dictsortreversed:0 %}
-                                    <p class="list-group-item-text"><strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>{{ event }}</p>
+                                    <p class="list-group-item-text">
+                                        <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
+                                        {{ event|truncatechars:200 }}
+                                    </p>
                                 {% endfor %}
                             </a>
                             {% endfor %}

@@ -16,7 +16,7 @@
 # This file contains fixture data used for tests
 
 from fixture import DataSet
-from dashboard.constants import RELSTREAM_SLUGS
+from dashboard.constants import RELSTREAM_SLUGS, TS_JOB_TYPES
 
 
 class LanguagesData(DataSet):
@@ -157,3 +157,26 @@ class PackagesData(DataSet):
         transplatform_name = 'ibus'
         transplatform_url = 'https://fedora.zanata.org/project/view/ibus'
         release_streams = ['fedora']
+
+
+class JobTemplatesData(DataSet):
+    class Meta:
+        django_model = 'dashboard.JobTemplates'
+
+    class template_syncupstream:
+        job_template_type = TS_JOB_TYPES[2]
+        job_template_name = 'Clone Upstream Repo'
+        job_template_desc = 'Clone Package Upstream GIT Repository'
+        job_template_json = '{"job":{"name":"upstream stats","type":"syncupstream", ' \
+                            '"buildsys": "%BUILD_SYSTEM%", "exception": "raise", "execution": "sequential", ' \
+                            '"package": "%PACKAGE_NAME%", "return_type": "json", "tags": ["%BUILD_TAG%"], ' \
+                            '"tasks": [{"clone": "latest git branch"}]}}'
+
+    class template_syncdownstream:
+        job_template_type = TS_JOB_TYPES[3]
+        job_template_name = 'Latest Build Info'
+        job_template_desc = 'Get latest build info from build system'
+        job_template_json = '{"job":{"name":"downstream stats","type":"syncdownstream", ' \
+                            '"buildsys": "%BUILD_SYSTEM%", "exception": "raise", "execution": "sequential", ' \
+                            '"package": "%PACKAGE_NAME%", "return_type": "json", "tags": ["%BUILD_TAG%"], ' \
+                            '"tasks": [{"get": "latest build info"}]}}'
