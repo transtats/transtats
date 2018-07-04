@@ -120,33 +120,33 @@
   nav-pf-persistent-secondary
   ">
     <ul class="list-group">
-      <li class="list-group-item ">
-        <a href="/" id="button-dashboard">
+      <li class="list-group-item" id="li-dashboard">
+        <a href="/">
           <span class="fa fa-dashboard" data-toggle="tooltip" title="Dashboard"></span>
           <span class="list-group-item-value">Dashboard</span>
         </a>
       </li>
-      <li class="list-group-item">
-        <a href="{% url 'settings-packages' %}" id="button-packages">
+      <li class="list-group-item" id="li-packages">
+        <a href="{% url 'settings-packages' %}">
           <span class="fa fa-file-zip-o" data-toggle="tooltip" title="Packages"></span>
           <span class="list-group-item-value">Packages</span>
 
         </a>
       </li>
-      <li class="list-group-item">
-        <a href="{% url 'jobs' %}" id="button-jobs">
+      <li class="list-group-item" id="li-jobs">
+        <a href="{% url 'jobs' %}">
           <span class="fa fa-bolt" data-toggle="tooltip" title="Jobs"></span>
           <span class="list-group-item-value">Jobs</span>
         </a>
       </li>
-      <li class="list-group-item ">
-        <a href="{% url 'settings-languages' %}" id="button-languages">
+      <li class="list-group-item" id="li-languages">
+        <a href="{% url 'settings-languages' %}">
           <span class="fa fa-language" data-toggle="tooltip" title="Languages"></span>
           <span class="list-group-item-value">Languages</span>
         </a>
       </li>
-      <li class="list-group-item">
-        <a href="{% url 'settings-trans-platforms' %}" id="button-platforms">
+      <li class="list-group-item" id="li-translation-platforms">
+        <a href="{% url 'settings-trans-platforms' %}">
           <span class="fa fa-server" data-toggle="tooltip" title="Translation Platforms"></span>
           <span class="list-group-item-value">Platforms</span>
         </a>
@@ -242,6 +242,28 @@
 
   <script>
     var waitSpinner = null
+    function activateSection() {
+      var currentPath = window.location.pathname;
+      var currentSection = currentPath.substring(1, currentPath.indexOf("/", 1))
+      if (currentSection === "releases" || currentSection === "products"){
+        $("#li-dashboard").addClass("active");
+      } else if (currentSection === "packages"){
+        $("#li-packages").addClass("active");
+      } else if (currentSection === "jobs"){
+        $("#li-jobs").addClass("active");
+      } else if (currentSection === "languages") {
+        $("#li-languages").addClass("active");
+      } else if (currentSection === "translation-platforms") {
+        $("#li-translation-platforms").addClass("active");
+      }
+    }
+
+    // Check if the waitSpinner is initialized or not
+    function getWaitSpinner() {
+      if (waitSpinner === null) {
+        waitSpinner = $('.spinner-wait-ts');
+      }
+    }
     $(document).ready(function () {
       // Initialize the vertical navigation
       $().setupVerticalNavigation(true);
@@ -251,6 +273,7 @@
         $('#about-modal').modal('show');
       });
       waitSpinner = $('.spinner-wait-ts')
+      activateSection();
     });
   </script>
 
