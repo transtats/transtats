@@ -333,6 +333,7 @@ class NewLanguageForm(forms.ModelForm):
         Div(
             Field('lang_name', css_class='form-control'),
             Field('locale_id', css_class='form-control'),
+            Field('locale_script', css_class='form-control'),
             Field('locale_alias', css_class='form-control'),
             Field('lang_status', css_class='bootstrap-switch'),
             FormActions(
@@ -360,6 +361,7 @@ class UpdateLanguageForm(forms.ModelForm):
         Div(
             Field('locale_id', css_class='form-control', readonly=True),
             Field('lang_name', css_class='form-control'),
+            Field('locale_script', css_class='form-control'),
             Field('locale_alias', css_class='form-control'),
             Field('lang_status', css_class='bootstrap-switch'),
             FormActions(
