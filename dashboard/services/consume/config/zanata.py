@@ -20,7 +20,7 @@ media_types = ('application/json', 'application/vnd.zanata.projects+json', 'appl
                'application/vnd.zanata.project.iteration+json', 'application/vnd.zanata.glossary+json',
                'application/vnd.zanata.project.locales+json', 'application/xml')
 
-# based on https://zanata.ci.cloudbees.com/job/zanata-api-site/site/zanata-common-api/rest-api-docs/index.html
+# based on http://zanata.org/zanata-platform/rest-api-docs/
 # please add, modify resource details here, and make entry in service-to-resource mappings and in services
 resource_config_dict = {
     'AccountResource': OrderedDict(),

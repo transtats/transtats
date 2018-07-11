@@ -72,7 +72,7 @@ class Get(JobCommandBase):
     """
     Handles all operations for GET Command
     """
-    def latest_build_info(self, input):
+    def latest_build_info(self, input, kwargs):
         """
         Fetch latest build info from koji
         """
@@ -95,6 +95,9 @@ class Get(JobCommandBase):
 
 
 class Download(JobCommandBase):
+    """
+    Handles all operations for DOWNLOAD Command
+    """
 
     def _download_srpm(self, srpm_link):
         req = requests.get(srpm_link)
@@ -106,7 +109,7 @@ class Download(JobCommandBase):
         except:
             return ''
 
-    def srpm(self, input):
+    def srpm(self, input, kwargs):
 
         task_subject = "Download SRPM"
         task_log = OrderedDict()
@@ -142,10 +145,23 @@ class Download(JobCommandBase):
                 ))
             return {'srpm_path': srpm_downloaded_path}, {task_subject: task_log}
 
+    def platform_pot_file(self, input, kwargs):
+
+        task_subject = "Download platform POT file"
+        task_log = OrderedDict()
+
+        # todo
+        # logic goes here
+
+        return {}, {task_subject: task_log}
+
 
 class Clone(JobCommandBase):
+    """
+    Handles all operations for CLONE Command
+    """
 
-    def git_repository(self, input):
+    def git_repository(self, input, kwargs):
         """
         Clone GIT repository
         """
@@ -154,14 +170,18 @@ class Clone(JobCommandBase):
 
         src_tar_dir = os.path.join(self.sandbox_path, input['package'])
 
+        kwargs = {}
+        kwargs.update(dict(config='http.sslVerify=false'))
+        if kwargs.get('branch'):
+            kwargs.update(dict(branch=kwargs['branch']))
+
         try:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
                 'Start cloning %s repository.' % input['upstream_repo_url']
             ))
             clone_result = Repo.clone_from(
-                input['upstream_repo_url'], src_tar_dir,
-                config='http.sslVerify=false'
+                input['upstream_repo_url'], src_tar_dir, **kwargs
             )
         except Exception as e:
             task_log.update(self._log_task(
@@ -176,9 +196,30 @@ class Clone(JobCommandBase):
             return {'src_tar_dir': src_tar_dir}, {task_subject: task_log}
 
 
-class Unpack(JobCommandBase):
+class Generate(JobCommandBase):
+    """
+    Handles all operations for GENERATE Command
+    """
 
-    def srpm(self, input):
+    def pot_file(self, input, kwargs):
+        """
+        Generates POT file
+        """
+        task_subject = "Generate POT File"
+        task_log = OrderedDict()
+
+        # todo
+        # logic goes here
+
+        return {}, {task_subject: task_log}
+
+
+class Unpack(JobCommandBase):
+    """
+    Handles all operations for UNPACK Command
+    """
+
+    def srpm(self, input, kwargs):
         """
         SRPM is a headers + cpio file
             - its extraction currently is dependent on cpio command
@@ -218,7 +259,7 @@ class Unpack(JobCommandBase):
                     return os.path.join(root, directory)
             return root
 
-    def tarball(self, input):
+    def tarball(self, input, kwargs):
         """
         Untar source tarball
         """
@@ -251,8 +292,11 @@ class Unpack(JobCommandBase):
 
 
 class Load(JobCommandBase):
+    """
+    Handles all operations for LOAD Command
+    """
 
-    def spec_file(self, input):
+    def spec_file(self, input, kwargs):
         """
         locate and load spec file
         """
@@ -287,8 +331,11 @@ class Load(JobCommandBase):
 
 
 class Apply(JobCommandBase):
+    """
+    Handles all operations for APPLY Command
+    """
 
-    def patch(self, input):
+    def patch(self, input, kwargs):
 
         task_subject = "Apply Patches"
         task_log = OrderedDict()
@@ -336,8 +383,11 @@ class Apply(JobCommandBase):
 
 
 class Filter(JobCommandBase):
+    """
+    Handles all operations for FILTER Command
+    """
 
-    def po_files(self, input):
+    def po_files(self, input, kwargs):
         """
         Filter PO files from tarball
         """
@@ -364,8 +414,11 @@ class Filter(JobCommandBase):
 
 
 class Calculate(JobCommandBase):
+    """
+    Handles all operations for CALCULATE Command
+    """
 
-    def stats(self, input):
+    def stats(self, input, kwargs):
         """
         Calculate stats from filtered translations
         """
@@ -410,6 +463,18 @@ class Calculate(JobCommandBase):
             ))
             return {'trans_stats': trans_stats}, {task_subject: task_log}
 
+    def diff(self, input, kwargs):
+        """
+        Calculate diff between two
+        """
+        task_subject = "Calculate Differences"
+        task_log = OrderedDict()
+
+        # todo
+        # logic goes here
+
+        return {}, {task_subject: task_log}
+
 
 class ActionMapper(BaseManager):
     """
@@ -423,7 +488,8 @@ class ActionMapper(BaseManager):
         'FILTER',       # Filter files recursively
         'APPLY',        # Apply patch on source tree
         'CALCULATE',    # Do some maths/try formulae
-        'CLONE'         # Clone source repository
+        'CLONE',        # Clone source repository
+        'GENERATE'      # Exec command to create
     ]
 
     def __init__(self,
@@ -435,6 +501,7 @@ class ActionMapper(BaseManager):
                  build_system,
                  upstream_url,
                  trans_file_ext,
+                 pkg_branch_map,
                  job_log_file):
         super(ActionMapper, self).__init__()
         self.tasks = tasks_structure
@@ -445,6 +512,7 @@ class ActionMapper(BaseManager):
         self.buildsys = build_system
         self.upstream_url = upstream_url
         self.trans_file_ext = trans_file_ext
+        self.pkg_branch_map = pkg_branch_map
         self.log_f = job_log_file
         self.cleanup_resources = {}
         self.__stats = None
@@ -464,8 +532,17 @@ class ActionMapper(BaseManager):
                 current_node.set_namespace(cmd.title())
             available_methods = [member[0] for member in getmembers(eval(cmd.title()))
                                  if isfunction(member[1])]
+            cur_node_task = current_node.task
+            if isinstance(cur_node_task, list) and len(cur_node_task) > 0:
+                if isinstance(current_node.task[0], dict):
+                    cur_node_task = current_node.task[0].get('name', '')
+                if len(cur_node_task) > 1:
+                    [current_node.set_kwargs(kwarg)
+                     for kwarg in current_node.task[1:] if isinstance(kwarg, dict)]
+            elif not isinstance(cur_node_task, str):
+                cur_node_task = str(current_node.task)
             probable_method = difflib.get_close_matches(
-                current_node.task.lower(), available_methods
+                cur_node_task.lower(), available_methods
             )
             if isinstance(probable_method, list) and len(probable_method) > 0:
                 current_node.set_method(probable_method[0])
@@ -477,7 +554,8 @@ class ActionMapper(BaseManager):
         initials = {
             'build_tag': self.tag, 'package': self.pkg, 'hub_url': self.hub,
             'base_dir': self.base_dir, 'build_system': self.buildsys, 'log_f': self.log_f,
-            'upstream_repo_url': self.upstream_url, 'trans_file_ext': self.trans_file_ext
+            'upstream_repo_url': self.upstream_url, 'trans_file_ext': self.trans_file_ext,
+            'pkg_branch_map': self.pkg_branch_map
         }
 
         while current_node is not None:
@@ -489,7 +567,7 @@ class ActionMapper(BaseManager):
             current_node.output, current_node.log = getattr(
                 eval(current_node.get_namespace()),
                 current_node.get_method(), self.skip
-            )(eval(current_node.get_namespace())(), current_node.input)
+            )(eval(current_node.get_namespace())(), current_node.input, current_node.kwargs)
 
             if current_node.log:
                 self.__log.update(current_node.log)

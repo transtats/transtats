@@ -141,7 +141,7 @@ Use `python3 manage.py initlogin` command. And login with `transtats:transtats`.
 
 #### Load demo data
 
-Run `python3 manage.py loaddata deploy/docker-compose/transtats/datadump.json`
+Run `python3 manage.py loaddata deploy/docker-compose/transtats/initialdata.yaml`
 
 #### Generate Docs
 

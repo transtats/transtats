@@ -505,7 +505,7 @@ class YMLBasedJobManager(BaseManager):
         if package:
             try:
                 package_details = \
-                    self.package_manager.get_packages([package], ['upstream_url'])
+                    self.package_manager.get_packages([package])
                 package_detail = package_details.get()
             except Exception as e:
                 self.app_logger(
@@ -519,6 +519,7 @@ class YMLBasedJobManager(BaseManager):
                 t_ext = package_detail.translation_file_ext
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
+                self.pkg_branch_map = package_detail.release_branch_mapping
 
     def _save_result_in_db(self, stats_dict):
         """
@@ -604,7 +605,7 @@ class YMLBasedJobManager(BaseManager):
         if self.type != yml_job.job_type:
             raise Exception('Selected job type differs to that of YML.')
 
-        if self.type == TS_JOB_TYPES[2] and self.package:
+        if (self.type == TS_JOB_TYPES[2] or self.type == TS_JOB_TYPES[5]) and self.package:
             self._bootstrap(package=self.package)
         elif self.type == TS_JOB_TYPES[3] and self.buildsys:
             self._bootstrap(build_system=self.buildsys)
@@ -636,6 +637,7 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'buildsys', ''),
             getattr(self, 'upstream_repo_url', ''),
             getattr(self, 'trans_file_ext', ''),
+            getattr(self, 'pkg_branch_map', {}),
             log_file
         )
         action_mapper.set_actions()

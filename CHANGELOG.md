@@ -1,3 +1,6 @@
+##### Tue Jul 11 2018 Sundeep Anand <suanand@redhat.com>
+* Provision to pass kwargs for tasks in YML jobs
+
 ##### Tue Jul 03 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6-rc.1
 * Language shortcuts in release summary page
 * YML Job trigger through API. API Authentication

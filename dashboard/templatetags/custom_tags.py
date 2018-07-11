@@ -22,6 +22,7 @@ from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
 from dashboard.managers.graphs import GraphManager, ReportsManager
 from dashboard.managers.jobs import JobTemplateManager
 from dashboard.managers.packages import PackagesManager
+from dashboard.managers.inventory import ReleaseBranchManager
 
 
 register = template.Library()
@@ -231,6 +232,10 @@ def tag_job_form(template_type):
     packages = package_manager.get_package_name_tuple()
     if packages:
         return_value['packages'] = packages
+    relbranch_manager = ReleaseBranchManager()
+    release_branches = relbranch_manager.get_relbranch_name_slug_tuple()
+    if release_branches:
+        return_value['releases'] = release_branches
     return return_value
 
 

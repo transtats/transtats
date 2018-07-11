@@ -15,5 +15,43 @@ job:
     - load: Spec file
     - unpack: tarball
     - apply: patch
-    - filter: PO files
+    - filter:
+      - name: files
+      - ext: PO
     - calculate: Stats
+
+
+job:
+  exception: raise
+  execution: sequential
+  name: upstream stats
+  package: %PACKAGE_NAME%
+  return_type: json
+  tasks:
+  - clone:
+    - name: git repo
+    - branch: master
+  - filter:
+    - name: files
+    - ext: PO
+  - calculate: Stats
+  type: syncupstream
+
+
+job:
+  release: %RELEASE_SLUG%
+  exception: raise
+  execution: sequential
+  name: string change
+  package: %PACKAGE_NAME%
+  return_type: json
+  tasks:
+  - clone:
+    - name: git repo
+    - branch: master
+  - generate:
+    - name: POT file
+    - cmd: inttool
+  - download: Platform POT file
+  - calculate: Diff
+  type: stringchange

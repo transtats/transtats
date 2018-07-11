@@ -592,7 +592,7 @@ def schedule_job(request):
                 relschedule_sync_manager.sync_release_schedule()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
-        elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], 'YMLbasedJob'):
+        elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5], TS_JOB_TYPES[6], 'YMLbasedJob'):
             job_params = request.POST.dict().get('params')
             if not job_params:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Job params missing.</span>"

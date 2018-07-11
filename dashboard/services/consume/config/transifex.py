@@ -41,6 +41,16 @@ resource_config_dict = {
             },
         }),
     ]),
+    'SourceDocResource': OrderedDict([
+        ('/project/<project_slug>/resource/<resource_slug>/content/', {
+            http_methods[0]: {
+                'path_params': ('project_slug', 'resource_slug'),
+                'query_params': None,
+                'request_media_type': media_types[0],
+                'response_media_type': media_types[0],
+            },
+        }),
+    ]),
     'StatisticsResource': OrderedDict([
         ('/project/{project_slug}/resource/{resource_slug}/stats/', {
             http_methods[0]: {
