@@ -1,0 +1,20 @@
+job:
+  release: %RELEASE_SLUG%
+  exception: raise
+  execution: sequential
+  name: string change
+  package: %PACKAGE_NAME%
+  return_type: json
+  tasks:
+  - clone:
+    - name: git repo
+    - branch: master
+    - recursive: true
+  - generate:
+    - name: POT file
+    - cmd: cd po && intltool-update --pot --gettext-package=%PACKAGE_NAME%
+    - domain: %PACKAGE_NAME%
+    - overwrite: false
+  - download: Platform POT file
+  - calculate: Diff
+  type: stringchange

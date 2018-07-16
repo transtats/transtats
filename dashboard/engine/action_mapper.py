@@ -67,6 +67,20 @@ class JobCommandBase(BaseManager):
             the_file.write(text_to_write)
         return {str(datetime.now()): '%s' % self._format_log_text(", ", text, text_prefix)}
 
+    def _run_shell_cmd(self, command):
+        process = Popen(command, stdout=PIPE, shell=True)
+        while True:
+            line = process.stdout.readline().rstrip()
+            if not line:
+                break
+            yield line
+
+    def find_dir(self, dirname, path):
+        for root, dirs, files in os.walk(path):
+            if root[len(path) + 1:].count(os.sep) < 2:
+                if dirname in dirs:
+                    return os.path.join(root, dirname)
+
 
 class Get(JobCommandBase):
     """
@@ -170,10 +184,12 @@ class Clone(JobCommandBase):
 
         src_tar_dir = os.path.join(self.sandbox_path, input['package'])
 
-        kwargs = {}
-        kwargs.update(dict(config='http.sslVerify=false'))
+        clone_kwargs = {}
+        clone_kwargs.update(dict(config='http.sslVerify=false'))
+        if kwargs.get('recursive'):
+            clone_kwargs.update(dict(recursive=True))
         if kwargs.get('branch'):
-            kwargs.update(dict(branch=kwargs['branch']))
+            clone_kwargs.update(dict(branch=kwargs['branch']))
 
         try:
             task_log.update(self._log_task(
@@ -181,7 +197,7 @@ class Clone(JobCommandBase):
                 'Start cloning %s repository.' % input['upstream_repo_url']
             ))
             clone_result = Repo.clone_from(
-                input['upstream_repo_url'], src_tar_dir, **kwargs
+                input['upstream_repo_url'], src_tar_dir, **clone_kwargs
             )
         except Exception as e:
             task_log.update(self._log_task(
@@ -204,14 +220,51 @@ class Generate(JobCommandBase):
     def pot_file(self, input, kwargs):
         """
         Generates POT file
+            as per the given command
         """
         task_subject = "Generate POT File"
         task_log = OrderedDict()
+        pot_file_path = ''
 
-        # todo
-        # logic goes here
+        if kwargs.get('cmd'):
+            command = kwargs['cmd']
+            po_dir = self.find_dir('po', input['src_tar_dir'])
+            pot_file = os.path.join(
+                po_dir, '%s.pot' % kwargs.get('domain', input['package'])
+            )
+            if os.path.exists(pot_file) and kwargs.get('overwrite'):
+                    os.unlink(pot_file)
+            try:
+                os.chdir(input['src_tar_dir'])
+                generate_pot = Popen(command, stdout=PIPE, shell=True)
+                output, error = generate_pot.communicate()
+            except Exception as e:
+                os.chdir(input['base_dir'])
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject,
+                    'POT file generation failed %s' % str(e)
+                ))
+            else:
+                os.chdir(input['base_dir'])
+                if os.path.isfile(pot_file):
+                    pot_file_path = pot_file
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject, str(output),
+                        text_prefix='POT file generated successfully. [ %s.pot ]' %
+                                    kwargs.get('domain', input['package'])
+                    ))
+                else:
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject,
+                        'POT file generation failed with command: %s' % command
+                    ))
+                    raise Exception('POT file generation failed.')
+        else:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, 'Command to generate POT missing.'
+            ))
 
-        return {}, {task_subject: task_log}
+        return {'src_pot_file': pot_file_path}, {task_subject: task_log}
 
 
 class Unpack(JobCommandBase):

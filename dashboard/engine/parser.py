@@ -47,7 +47,7 @@ class YMLJobParser(object):
     """
     Parse YML and build objects
     """
-    test_yml_path = 'dashboard/tests/testdata/test.yml'
+    test_yml_path = 'dashboard/tests/testdata/job-templates/stringchange.yml'
 
     def __init__(self, yml_stream=None):
 
