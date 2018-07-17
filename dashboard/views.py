@@ -209,7 +209,7 @@ class TransCoverageView(ManagersMixin, TemplateView):
     """
     Translation Coverage View
     """
-    template_name = "stats/custom_graph.html"
+    template_name = "graph_rules/graph_rule_view.html"
 
     def get_context_data(self, **kwargs):
         """
@@ -471,7 +471,7 @@ class GraphRulesSettingsView(ManagersMixin, ListView):
     """
     Graph Rules Settings View
     """
-    template_name = "settings/graph_rules.html"
+    template_name = "graph_rules/graph_rule_list.html"
     context_object_name = 'rules'
 
     def get_queryset(self):
@@ -482,8 +482,10 @@ class NewGraphRuleView(ManagersMixin, FormView):
     """
     New Graph Rule View
     """
-    template_name = "settings/graphrule_new.html"
-    success_url = "/settings/graph-rules/new"
+    template_name = "graph_rules/graph_rule_new.html"
+
+    def get_success_url(self):
+        return reverse('settings-graph-rules-new')
 
     def get_initial(self):
         initials = {}
@@ -541,7 +543,7 @@ class NewGraphRuleView(ManagersMixin, FormView):
                 messages.add_message(request, messages.SUCCESS, (
                     'Great! Graph rule added successfully.'
                 ))
-            return HttpResponseRedirect(self.success_url)
+            return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
 

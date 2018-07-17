@@ -64,16 +64,15 @@ app_setting_urls = [
     url(r'^translation-platforms$', RedirectView.as_view(permanent=True, url='/translation-platforms')),
     url(r'^packages$', RedirectView.as_view(permanent=True, url='/packages')),
     url(r'^products$', RedirectView.as_view(permanent=True, url='/products')),
+    url(r'^graph-rules$', RedirectView.as_view(permanent=True, url='/graph-rules')),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
-    url(r'^graph-rules/new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
-        name="settings-graph-rules-new"),
-    url(r'^graph-rules$', GraphRulesSettingsView.as_view(), name="settings-graph-rules")
 ]
 
 trans_status_urls = [
     url(r'^$', RedirectView.as_view(permanent=False, url='/releases'),
         name="trans-status"),
+    # TODO: redirect this to /packages
     url(r'^packages$', TranStatusPackagesView.as_view(), name="trans-status-packages"),
     url(r'^releases$', RedirectView.as_view(permanent=True, url='/releases')),
 ]
@@ -120,6 +119,13 @@ transplatforms_urls = [
         name="transplatform-update"),
 ]
 
+graph_rules_urls = [
+    url(r'^$', GraphRulesSettingsView.as_view(), name="settings-graph-rules"),
+    url(r'^view/$', TransCoverageView.as_view(), name="custom-graph"),
+    url(r'^new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
+        name="settings-graph-rules-new"),
+]
+
 urlpatterns = [
     url(r'^api/', include(api_urls)),
     url(r'^ajax/', include(ajax_urls)),
@@ -128,7 +134,8 @@ urlpatterns = [
     # landing URLs
     url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/'), name="home"),
     url(r'^translation-status/', include(trans_status_urls)),
-    url(r'^translation-coverage/$', TransCoverageView.as_view(), name="custom-graph"),
+    url(r'^translation-coverage/$', RedirectView.as_view(query_string=True,
+        permanent=True, url='/graph-rules/view/')),
     url(r'^quick-start$', TemplateView.as_view(template_name="howto.html"), name="howto"),
     url(r'^health$', RedirectView.as_view(permanent=False, url='/api/ping?format=json')),
     # packages section urls
@@ -140,4 +147,6 @@ urlpatterns = [
     # dashboard section urls
     url(r'^releases/', include(releases_urls)),
     url(r'^products/', include(products_urls)),
+    # custom graphs section urls (graph_rules)
+    url(r'^graph-rules/', include(graph_rules_urls)),
 ]
