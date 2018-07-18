@@ -34,7 +34,10 @@ from subprocess import Popen, PIPE, call
 from inspect import getmembers, isfunction
 
 # dashboard
-from dashboard.constants import BUILD_SYSTEMS
+from dashboard.constants import (
+    TRANSPLATFORM_ENGINES,
+    BRANCH_MAPPING_KEYS, BUILD_SYSTEMS
+)
 from dashboard.managers.base import BaseManager
 
 __all__ = ['ActionMapper']
@@ -113,13 +116,14 @@ class Download(JobCommandBase):
     Handles all operations for DOWNLOAD Command
     """
 
-    def _download_srpm(self, srpm_link):
-        req = requests.get(srpm_link)
-        srpm_path = self.sandbox_path + srpm_link.split('/')[-1]
+    def _download_file(self, file_link, file_path=None):
+        req = requests.get(file_link)
+        if not file_path:
+            file_path = self.sandbox_path + file_link.split('/')[-1]
         try:
-            with open(srpm_path, 'wb') as f:
+            with open(file_path, 'wb') as f:
                 f.write(req.content)
-                return srpm_path
+                return file_path
         except:
             return ''
 
@@ -146,7 +150,7 @@ class Download(JobCommandBase):
                 self.api_resources.get_path_info(build=build_info),
                 self.api_resources.get_path_info(srpm=src_rpm)
             ).replace('/mnt/koji', pkgs_download_server_url)
-            srpm_downloaded_path = self._download_srpm(srpm_download_url)
+            srpm_downloaded_path = self._download_file(srpm_download_url)
             if srpm_downloaded_path:
                 task_log.update(self._log_task(
                     input['log_f'], task_subject,
@@ -164,10 +168,45 @@ class Download(JobCommandBase):
         task_subject = "Download platform POT file"
         task_log = OrderedDict()
 
-        # todo
-        # logic goes here
+        platform_pot_urls = {
+            TRANSPLATFORM_ENGINES[0]:
+                'https://l10n.gnome.org/POT/{project}.{version}/{project}.{version}.pot',
+            TRANSPLATFORM_ENGINES[2]:
+                'https://fedora.zanata.org/rest/file/source/{project}/{version}/pot?docId={domain}'
+        }
 
-        return {}, {task_subject: task_log}
+        if not input.get('pkg_branch_map'):
+            err_msg = 'No branch mapping for package: %s' % input['package']
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, err_msg
+            ))
+            raise Exception(err_msg)
+
+        url_kwargs = {
+            'project': input['package'],
+            'version': input.get('pkg_branch_map', {}).get(input.get('release_slug'), {}).get(
+                BRANCH_MAPPING_KEYS[0], ''),
+            'domain': input.get('i18n_domain')
+        }
+
+        platform_pot_path = ''
+        if input.get('pkg_tp_engine'):
+            platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
+            try:
+                platform_pot_path = self._download_file(
+                    platform_pot_url,
+                    self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot'
+                )
+            except Exception as e:
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject, 'POT download failed. Details: %s' % str(e)
+                ))
+            else:
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject,
+                    'POT downloaded successfully. URL: %s' % platform_pot_url
+                ))
+        return {'platform_pot_path': platform_pot_path}, {task_subject: task_log}
 
 
 class Clone(JobCommandBase):
@@ -263,8 +302,9 @@ class Generate(JobCommandBase):
             task_log.update(self._log_task(
                 input['log_f'], task_subject, 'Command to generate POT missing.'
             ))
-
-        return {'src_pot_file': pot_file_path}, {task_subject: task_log}
+        return {'src_pot_file': pot_file_path,
+                'i18n_domain': kwargs.get('domain', input['package'])}, \
+               {task_subject: task_log}
 
 
 class Unpack(JobCommandBase):
@@ -522,11 +562,28 @@ class Calculate(JobCommandBase):
         """
         task_subject = "Calculate Differences"
         task_log = OrderedDict()
+        diff_lines = ''
 
-        # todo
-        # logic goes here
-
-        return {}, {task_subject: task_log}
+        try:
+            src_pot = input.get('src_pot_file')
+            platform_pot = input.get('platform_pot_path')
+            if src_pot and platform_pot:
+                differ = difflib.Differ()
+                diff = differ.compare(open(platform_pot).readlines(), open(src_pot).readlines())
+                if diff:
+                    diff_lines = "\n".join(
+                        [line.strip() for line in diff]
+                    )
+        except Exception as e:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Something went wrong in calculating diff: %s' % str(e)
+            ))
+        else:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, diff_lines, text_prefix='Calculated Diff'
+            ))
+        return {'pot_diff': diff_lines}, {task_subject: task_log}
 
 
 class ActionMapper(BaseManager):
@@ -552,9 +609,11 @@ class ActionMapper(BaseManager):
                  package,
                  server_url,
                  build_system,
+                 release_slug,
                  upstream_url,
                  trans_file_ext,
                  pkg_branch_map,
+                 pkg_tp_engine,
                  job_log_file):
         super(ActionMapper, self).__init__()
         self.tasks = tasks_structure
@@ -563,12 +622,14 @@ class ActionMapper(BaseManager):
         self.hub = server_url
         self.base_dir = job_base_dir
         self.buildsys = build_system
+        self.release = release_slug
         self.upstream_url = upstream_url
         self.trans_file_ext = trans_file_ext
         self.pkg_branch_map = pkg_branch_map
+        self.pkg_tp_engine = pkg_tp_engine
         self.log_f = job_log_file
         self.cleanup_resources = {}
-        self.__stats = None
+        self.__result = None
         self.__log = OrderedDict()
 
     def skip(self, abc, xyz):
@@ -608,7 +669,8 @@ class ActionMapper(BaseManager):
             'build_tag': self.tag, 'package': self.pkg, 'hub_url': self.hub,
             'base_dir': self.base_dir, 'build_system': self.buildsys, 'log_f': self.log_f,
             'upstream_repo_url': self.upstream_url, 'trans_file_ext': self.trans_file_ext,
-            'pkg_branch_map': self.pkg_branch_map
+            'pkg_branch_map': self.pkg_branch_map, 'pkg_tp_engine': self.pkg_tp_engine,
+            'release_slug': self.release
         }
 
         while current_node is not None:
@@ -641,13 +703,24 @@ class ActionMapper(BaseManager):
                 d = {'extract_dir': current_node.output.get('extract_dir')}
                 initials.update(d)
                 self.cleanup_resources.update(d)
-            if current_node.output and 'trans_stats' in current_node.output:
-                self.__stats = current_node.output.get('trans_stats')
+            if current_node.output and 'src_pot_file' in current_node.output:
+                d = {'src_pot_file': current_node.output.get('src_pot_file')}
+                initials.update(d)
+                self.cleanup_resources.update(d)
+            if current_node.output and 'platform_pot_path' in current_node.output:
+                d = {'platform_pot_path': current_node.output.get('platform_pot_path')}
+                initials.update(d)
+                self.cleanup_resources.update(d)
+            if current_node.output and 'trans_stats' in current_node.output \
+                    or 'pot_diff' in current_node.output:
+                self.__result = current_node.output.get('trans_stats')
+                if not self.__result:
+                    self.__result = {"diff": current_node.output.get('pot_diff')}
             current_node = current_node.next
 
     @property
     def result(self):
-        return self.__stats
+        return self.__result
 
     @property
     def log(self):
@@ -664,6 +737,8 @@ class ActionMapper(BaseManager):
         try:
             if self.cleanup_resources.get('srpm_path'):
                 os.remove(self.cleanup_resources.get('srpm_path'))
+            if self.cleanup_resources.get('platform_pot_path'):
+                os.remove(self.cleanup_resources.get('platform_pot_path'))
             if self.cleanup_resources.get('src_tar_dir'):
                 rmtree(self.cleanup_resources.get('src_tar_dir'), ignore_errors=True)
             if self.cleanup_resources.get('extract_dir'):

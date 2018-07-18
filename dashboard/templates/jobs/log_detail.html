@@ -1,4 +1,5 @@
 {% extends "jobs/jobs_base.html" %}
+{% load custom_tags %}
 
 {% block extrascript %}
 <style type="text/css">
@@ -79,5 +80,18 @@
             </div>
         </div>
     </div>
+    {% if 'diff' in log.job_output_json %}
+        <hr/>
+        <div class="col-sm-6 col-md-12">
+            <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#diff">Show Diff</button>
+            <span class="text-muted pull-right">
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                lines start with <strong class="text-success" style="font-size:large">+</strong>
+                are new and those start with <strong class="text-danger" style="font-size:large">-</strong> are old.</span>
+            <div id="diff" class="collapse">
+                <pre>{{ log.job_output_json|get_item:"diff"|linebreaksbr }}</pre>
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

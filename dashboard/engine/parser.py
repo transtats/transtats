@@ -66,6 +66,10 @@ class YMLJobParser(object):
         return self.data.get('buildsys', '')
 
     @property
+    def release(self):
+        return self.data.get('release', '')
+
+    @property
     def exception(self):
         return self.data.get('exception', '')
 

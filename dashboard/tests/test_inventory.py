@@ -64,6 +64,16 @@ class InventoryManagerTest(FixtureTestCase):
         locale_alias = self.inventory_manager.get_locale_alias('de_DE')
         self.assertEqual(locale_alias, 'de_DE')
 
+    def test_get_alias_locale(self):
+        """
+        Test get_alias_locale
+        """
+        alias_locale = self.inventory_manager.get_alias_locale('fr')
+        self.assertEqual(alias_locale, 'fr_FR')
+
+        alias_locale = self.inventory_manager.get_alias_locale('de_DE')
+        self.assertEqual(alias_locale, 'de_DE')
+
     def test_get_locales_set(self):
         """
         Test get_locales_set

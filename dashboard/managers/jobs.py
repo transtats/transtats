@@ -519,6 +519,7 @@ class YMLBasedJobManager(BaseManager):
                 t_ext = package_detail.translation_file_ext
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
+                self.pkg_tp_engine = package_detail.transplatform_slug.engine_name
                 self.pkg_branch_map = package_detail.release_branch_mapping
 
     def _save_result_in_db(self, stats_dict):
@@ -607,6 +608,7 @@ class YMLBasedJobManager(BaseManager):
 
         if (self.type == TS_JOB_TYPES[2] or self.type == TS_JOB_TYPES[5]) and self.package:
             self._bootstrap(package=self.package)
+            self.release = yml_job.release
         elif self.type == TS_JOB_TYPES[3] and self.buildsys:
             self._bootstrap(build_system=self.buildsys)
         # for sequential jobs, tasks should be pushed to linked list
@@ -635,9 +637,11 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'package', ''),
             getattr(self, 'hub_url', ''),
             getattr(self, 'buildsys', ''),
+            getattr(self, 'release', ''),
             getattr(self, 'upstream_repo_url', ''),
             getattr(self, 'trans_file_ext', ''),
             getattr(self, 'pkg_branch_map', {}),
+            getattr(self, 'pkg_tp_engine', ''),
             log_file
         )
         action_mapper.set_actions()
