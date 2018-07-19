@@ -1,5 +1,5 @@
 ##### Thu Jul 19 2018 Sundeep Anand <suanand@redhat.com>
-* String change job template tasks implementation
+* String change job implementation and diff UI
 * Provision to pass kwargs for tasks in YML jobs
 
 ##### Tue Jul 03 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6-rc.1

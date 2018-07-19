@@ -288,7 +288,7 @@ class Generate(JobCommandBase):
                 if os.path.isfile(pot_file):
                     pot_file_path = pot_file
                     task_log.update(self._log_task(
-                        input['log_f'], task_subject, str(output),
+                        input['log_f'], task_subject, output.decode("utf-8"),
                         text_prefix='POT file generated successfully. [ %s.pot ]' %
                                     kwargs.get('domain', input['package'])
                     ))
@@ -568,12 +568,10 @@ class Calculate(JobCommandBase):
             src_pot = input.get('src_pot_file')
             platform_pot = input.get('platform_pot_path')
             if src_pot and platform_pot:
-                differ = difflib.Differ()
-                diff = differ.compare(open(platform_pot).readlines(), open(src_pot).readlines())
-                if diff:
-                    diff_lines = "\n".join(
-                        [line.strip() for line in diff]
-                    )
+                git_diff_command = 'git diff --no-index %s %s' % (platform_pot, src_pot)
+                calculated_diff = Popen(git_diff_command, stdout=PIPE, shell=True)
+                output, error = calculated_diff.communicate()
+                diff_lines = output.decode("utf-8")
         except Exception as e:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
