@@ -10,10 +10,13 @@
 {% block pagecontent %}
     <ul class="nav nav-tabs nav-justified">
       <li id="tab-translation-status" role="presentation">
-          <a href="{% url 'trans-status' %}">Translation Status</a>
+          <a href="{% url 'trans-status' %}" role="tab">Releases - Translation Status</a>
+      </li>
+      <li id="tab-translation-completeness" role="presentation">
+          <a href="{% url 'trans-status-packages' %}" role="tab">Packages - Translation Completeness</a>
       </li>
       <li id="tab-translation-coverage" role="presentation">
-          <a href="{% url 'custom-graph' %}">Translation Coverage</a>
+          <a href="{% url 'custom-graph' %}" role="tab">Translation Coverage</a>
       </li>
     </ul>
     {% block tabcontent %}{% endblock %}
