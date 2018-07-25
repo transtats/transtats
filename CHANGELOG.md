@@ -1,4 +1,4 @@
-##### Fri Jul 20 2018 Sundeep Anand <suanand@redhat.com>
+##### Wed Jul 25 2018 Sundeep Anand <suanand@redhat.com>
 * String change job implementation and diff UI
 * Provision to pass kwargs for tasks in YML jobs
 

@@ -14,7 +14,7 @@
 <script type="text/javascript" src="/static/js/diff2html.js"></script>
 <script type="text/javascript" src="/static/js/diff2html-ui.js"></script>
 <script type="text/javascript">
-    var diffHtml=Diff2Html.getPrettyHtml("{{ log.job_output_json|get_item:'diff'|escapejs }}",{inputFormat:"diff",showFiles:!0,matching:"lines",outputFormat:"side-by-side"});function copyToClipboard(t,o){var e=document.queryCommandSupported("copy"),i=o.attr("data-original-title");if(!0===e){var a=document.createElement("textarea");a.value=t,document.body.appendChild(a),a.select();try{var d=document.execCommand("copy")?"Copied!":"Whoops, not copied!";o.attr("data-original-title",d).tooltip("show")}catch(t){console.log("Oops, unable to copy")}document.body.removeChild(a),o.attr("data-original-title",i)}else window.prompt("Copy to clipboard: Ctrl+C or Command+C, Enter",t)}$(document).ready(function(){$("#tab-logs").addClass("active"),$("#diffDiv").html(diffHtml),$(".js-tooltip").tooltip(),$(".js-copy").click(function(){copyToClipboard($(this).attr("data-copy"),$(this))})});
+    var diffHtml=Diff2Html.getPrettyHtml("{{ log.job_output_json|get_item:'full_diff'|escapejs }}",{inputFormat:"diff",showFiles:!0,matching:"lines",outputFormat:"side-by-side"});function copyToClipboard(t,o){var e=document.queryCommandSupported("copy"),i=o.attr("data-original-title");if(!0===e){var a=document.createElement("textarea");a.value=t,document.body.appendChild(a),a.select();try{var d=document.execCommand("copy")?"Copied!":"Whoops, not copied!";o.attr("data-original-title",d).tooltip("show")}catch(t){console.log("Oops, unable to copy")}document.body.removeChild(a),o.attr("data-original-title",i)}else window.prompt("Copy to clipboard: Ctrl+C or Command+C, Enter",t)}$(document).ready(function(){$("#tab-logs").addClass("active"),$("#diffDiv").html(diffHtml),$(".js-tooltip").tooltip(),$(".js-copy").click(function(){copyToClipboard($(this).attr("data-copy"),$(this))})});
 </script>
 {% endblock %}
 
@@ -89,10 +89,17 @@
             </div>
         </div>
     </div>
-    {% if 'diff' in log.job_output_json %}
-        <hr/>
+    {% if 'full_diff' in log.job_output_json %}
         <div class="col-sm-6 col-md-12">
-            <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#diff">Show Diff</button>
+            <hr/>{% if log.job_output_json|get_item:'diff_count' == 0 %}
+                <h4 class="text-success">&nbsp;&nbsp;{{ log.job_output_json|get_item:'diff_count' }} <small>messages differ!</small></h4>
+            {% else %}
+                <h4 class="text-danger">&nbsp;&nbsp;{{ log.job_output_json|get_item:'diff_count' }} <small>messages differ! <i class="pull-right">May be new or updated.</i></small></h4>
+                {% if 'pot_diff' in log.job_output_json %}
+                    <pre>{{ log.job_output_json|get_item:'pot_diff' }}</pre>
+                {% endif %}
+            {% endif %}<hr/>
+            <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#diff">Show Full Diff</button>
             <span class="text-muted pull-right">
             <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
                 POT at Translation Platform <strong>vs</strong> POT created from Source</span>

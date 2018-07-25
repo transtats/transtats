@@ -38,7 +38,7 @@ INSERT INTO ts_langset (lang_set_name, lang_set_slug, lang_set_color, locale_ids
 
 INSERT INTO ts_transplatforms (engine_name, subject, api_url, platform_slug, server_status) VALUES ('zanata', 'public', 'https://translate.zanata.org', 'ZNTAPUB', TRUE);
 INSERT INTO ts_transplatforms (engine_name, subject, api_url, platform_slug, server_status) VALUES ('zanata', 'fedora', 'https://fedora.zanata.org', 'ZNTAFED', TRUE);
-INSERT INTO ts_transplatforms (engine_name, subject, api_url, platform_slug, server_status) VALUES ('damnedlies', 'public', 'http://l10n.gnome.org', 'DMLSPUB', TRUE);
+INSERT INTO ts_transplatforms (engine_name, subject, api_url, platform_slug, server_status) VALUES ('damnedlies', 'public', 'https://l10n.gnome.org', 'DMLSPUB', TRUE);
 
 --
 -- Data for Name: ts_relstreams; Type: TABLE DATA; Schema: public; Owner: postgres

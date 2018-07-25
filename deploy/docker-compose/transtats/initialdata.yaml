@@ -250,7 +250,7 @@
     auth_login_id: null, auth_token_key: null}
 - model: dashboard.transplatform
   pk: 3
-  fields: {engine_name: damnedlies, subject: public, api_url: 'http://l10n.gnome.org',
+  fields: {engine_name: damnedlies, subject: public, api_url: 'https://l10n.gnome.org',
     platform_slug: DMLSPUB, server_status: true, projects_json: null, projects_lastupdated: null,
     auth_login_id: null, auth_token_key: null}
 - model: dashboard.releasestream

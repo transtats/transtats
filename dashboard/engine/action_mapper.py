@@ -118,6 +118,8 @@ class Download(JobCommandBase):
 
     def _download_file(self, file_link, file_path=None):
         req = requests.get(file_link)
+        if req.status_code == 404:
+            return '404'
         if not file_path:
             file_path = self.sandbox_path + file_link.split('/')[-1]
         try:
@@ -151,6 +153,8 @@ class Download(JobCommandBase):
                 self.api_resources.get_path_info(srpm=src_rpm)
             ).replace('/mnt/koji', pkgs_download_server_url)
             srpm_downloaded_path = self._download_file(srpm_download_url)
+            if srpm_downloaded_path == '404':
+                raise Exception('SRPM download failed. URL returns 404.')
             if srpm_downloaded_path:
                 task_log.update(self._log_task(
                     input['log_f'], task_subject,
@@ -170,9 +174,9 @@ class Download(JobCommandBase):
 
         platform_pot_urls = {
             TRANSPLATFORM_ENGINES[0]:
-                'https://l10n.gnome.org/POT/{project}.{version}/{project}.{version}.pot',
+                '{platform_url}/POT/{project}.{version}/{project}.{version}.pot',
             TRANSPLATFORM_ENGINES[2]:
-                'https://fedora.zanata.org/rest/file/source/{project}/{version}/pot?docId={domain}'
+                '{platform_url}/rest/file/source/{project}/{version}/pot?docId={domain}'
         }
 
         if not input.get('pkg_branch_map'):
@@ -183,6 +187,7 @@ class Download(JobCommandBase):
             raise Exception(err_msg)
 
         url_kwargs = {
+            'platform_url': input['pkg_tp_url'],
             'project': input['package'],
             'version': input.get('pkg_branch_map', {}).get(input.get('release_slug'), {}).get(
                 BRANCH_MAPPING_KEYS[0], ''),
@@ -197,10 +202,22 @@ class Download(JobCommandBase):
                     platform_pot_url,
                     self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot'
                 )
+                probable_versions = ('master', 'default', input['package'])
+                while_loop_counter = 0
+                while platform_pot_path == '404' and while_loop_counter < len(probable_versions):
+                    url_kwargs['version'] = probable_versions[while_loop_counter]
+                    platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
+                    platform_pot_path = self._download_file(
+                        platform_pot_url,
+                        self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot'
+                    )
+                    while_loop_counter += 1
+                if platform_pot_path == '404':
+                    raise Exception('POT file could not be located at platform.')
             except Exception as e:
-                task_log.update(self._log_task(
-                    input['log_f'], task_subject, 'POT download failed. Details: %s' % str(e)
-                ))
+                err_msg = 'POT download failed. Details: %s' % str(e)
+                task_log.update(self._log_task(input['log_f'], task_subject, err_msg))
+                raise Exception(err_msg)
             else:
                 task_log.update(self._log_task(
                     input['log_f'], task_subject,
@@ -480,28 +497,32 @@ class Filter(JobCommandBase):
     Handles all operations for FILTER Command
     """
 
-    def po_files(self, input, kwargs):
+    def files(self, input, kwargs):
         """
-        Filter PO files from tarball
+        Filter files from tarball
         """
-        task_subject = "Filter PO files"
+        file_ext = 'po'
+        if kwargs.get('ext'):
+            file_ext = kwargs['ext'].lower()
+
+        task_subject = "Filter %s files" % file_ext.upper()
         task_log = OrderedDict()
 
         try:
             trans_files = []
             for root, dirs, files in os.walk(input['src_tar_dir']):
                     for file in files:
-                        if file.endswith('.po'):
+                        if file.endswith('.%s' % file_ext):
                             trans_files.append(os.path.join(root, file))
         except Exception as e:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
-                'Something went wrong in filtering PO files: %s' % str(e)
+                'Something went wrong in filtering %s files: %s' % file_ext, str(e)
             ))
         else:
             task_log.update(self._log_task(
                 input['log_f'], task_subject, trans_files,
-                text_prefix='%s PO files filtered' % len(trans_files)
+                text_prefix='%s %s files filtered' % (len(trans_files), file_ext.upper())
             ))
             return {'trans_files': trans_files}, {task_subject: task_log}
 
@@ -563,10 +584,28 @@ class Calculate(JobCommandBase):
         task_subject = "Calculate Differences"
         task_log = OrderedDict()
         diff_lines = ''
+        diff_msg = ''
+        diff_count = 0
 
         try:
             src_pot = input.get('src_pot_file')
             platform_pot = input.get('platform_pot_path')
+
+            src_pot_obj, platform_pot_obj = polib.pofile(src_pot), polib.pofile(platform_pot)
+            src_pot_dict = {ut_entry.msgid: ut_entry for ut_entry in src_pot_obj.untranslated_entries()}
+            platform_pot_dict = {ut_entry.msgid: ut_entry
+                                 for ut_entry in platform_pot_obj.untranslated_entries()}
+            diff_entries = {k: src_pot_dict[k] for k in set(src_pot_dict) - set(platform_pot_dict)}
+            if not diff_entries:
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject, "No new or updated messages found."
+                ))
+            else:
+                diff_msg = "".join(["line %s\n%s\n%s\n\n" %
+                                    (str(entry.linenum), "\n".join(
+                                        [" ".join(i) for i in entry.occurrences]
+                                    ), entry.msgid) for msg, entry in diff_entries.items()])
+                diff_count = len(set(diff_entries))
             if src_pot and platform_pot:
                 git_diff_command = 'git diff --no-index %s %s' % (platform_pot, src_pot)
                 calculated_diff = Popen(git_diff_command, stdout=PIPE, shell=True)
@@ -578,10 +617,12 @@ class Calculate(JobCommandBase):
                 'Something went wrong in calculating diff: %s' % str(e)
             ))
         else:
-            task_log.update(self._log_task(
-                input['log_f'], task_subject, diff_lines, text_prefix='Calculated Diff'
-            ))
-        return {'pot_diff': diff_lines}, {task_subject: task_log}
+            if diff_count > 0:
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject, '%s messages differ.\n\n%s' % (str(diff_count), diff_msg),
+                    text_prefix='Calculated Diff'
+                ))
+        return {'pot_diff': diff_msg, 'full_diff': diff_lines, 'diff_count': diff_count}, {task_subject: task_log}
 
 
 class ActionMapper(BaseManager):
@@ -612,6 +653,7 @@ class ActionMapper(BaseManager):
                  trans_file_ext,
                  pkg_branch_map,
                  pkg_tp_engine,
+                 pkg_tp_url,
                  job_log_file):
         super(ActionMapper, self).__init__()
         self.tasks = tasks_structure
@@ -625,6 +667,7 @@ class ActionMapper(BaseManager):
         self.trans_file_ext = trans_file_ext
         self.pkg_branch_map = pkg_branch_map
         self.pkg_tp_engine = pkg_tp_engine
+        self.pkg_tp_url = pkg_tp_url
         self.log_f = job_log_file
         self.cleanup_resources = {}
         self.__result = None
@@ -668,7 +711,7 @@ class ActionMapper(BaseManager):
             'base_dir': self.base_dir, 'build_system': self.buildsys, 'log_f': self.log_f,
             'upstream_repo_url': self.upstream_url, 'trans_file_ext': self.trans_file_ext,
             'pkg_branch_map': self.pkg_branch_map, 'pkg_tp_engine': self.pkg_tp_engine,
-            'release_slug': self.release
+            'release_slug': self.release, 'pkg_tp_url': self.pkg_tp_url
         }
 
         while current_node is not None:
@@ -713,7 +756,7 @@ class ActionMapper(BaseManager):
                     or 'pot_diff' in current_node.output:
                 self.__result = current_node.output.get('trans_stats')
                 if not self.__result:
-                    self.__result = {"diff": current_node.output.get('pot_diff')}
+                    self.__result = current_node.output.copy()
             current_node = current_node.next
 
     @property

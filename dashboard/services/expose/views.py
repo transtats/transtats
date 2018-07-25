@@ -374,7 +374,7 @@ class JobLog(JobManagerMixin, APIView):
                 response_text['result'] = job.job_result
                 response_text['remarks'] = job.job_remarks
                 response_text['YML_input'] = job.job_yml_text
-                response_text['log_ouput'] = job.job_log_json
+                response_text['log_output'] = job.job_log_json
                 response_code = 200
             else:
                 response_text = {kwargs['job_id']: "Job not found"}
