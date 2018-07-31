@@ -519,8 +519,11 @@ class YMLBasedJobManager(BaseManager):
                 t_ext = package_detail.translation_file_ext
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
+                self.pkg_upstream_name = package_detail.upstream_name
                 self.pkg_tp_engine = package_detail.transplatform_slug.engine_name
                 self.pkg_tp_url = package_detail.transplatform_slug.api_url
+                self.pkg_tp_auth_usr = package_detail.transplatform_slug.auth_login_id
+                self.pkg_tp_auth_token = package_detail.transplatform_slug.auth_token_key
                 self.pkg_branch_map = package_detail.release_branch_mapping
 
     def _save_result_in_db(self, stats_dict):
@@ -641,8 +644,11 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'release', ''),
             getattr(self, 'upstream_repo_url', ''),
             getattr(self, 'trans_file_ext', ''),
+            getattr(self, 'pkg_upstream_name', ''),
             getattr(self, 'pkg_branch_map', {}),
             getattr(self, 'pkg_tp_engine', ''),
+            getattr(self, 'pkg_tp_auth_usr', ''),
+            getattr(self, 'pkg_tp_auth_token', ''),
             getattr(self, 'pkg_tp_url', ''),
             log_file
         )

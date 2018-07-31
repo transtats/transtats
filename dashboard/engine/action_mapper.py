@@ -116,8 +116,8 @@ class Download(JobCommandBase):
     Handles all operations for DOWNLOAD Command
     """
 
-    def _download_file(self, file_link, file_path=None):
-        req = requests.get(file_link)
+    def _download_file(self, file_link, file_path=None, headers=None):
+        req = requests.get(file_link, headers=headers)
         if req.status_code == 404:
             return '404'
         if not file_path:
@@ -172,6 +172,10 @@ class Download(JobCommandBase):
         task_subject = "Download platform POT file"
         task_log = OrderedDict()
 
+        doc_prefix = ''
+        if kwargs.get('dir'):
+            doc_prefix = requests.utils.requote_uri(kwargs['dir'])
+
         platform_pot_urls = {
             TRANSPLATFORM_ENGINES[0]:
                 '{platform_url}/POT/{project}.{version}/{project}.{version}.pot',
@@ -191,17 +195,33 @@ class Download(JobCommandBase):
             'project': input['package'],
             'version': input.get('pkg_branch_map', {}).get(input.get('release_slug'), {}).get(
                 BRANCH_MAPPING_KEYS[0], ''),
-            'domain': input.get('i18n_domain')
+            'domain': doc_prefix + input.get('i18n_domain', '')
         }
 
         platform_pot_path = ''
         if input.get('pkg_tp_engine'):
             platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
+            headers = {}
+            if input.get('pkg_tp_auth_usr') and input.get('pkg_tp_auth_token') \
+                    and input['pkg_tp_engine'] == TRANSPLATFORM_ENGINES[2]:
+                headers['X-Auth-User'] = input['pkg_tp_auth_usr']
+                headers['X-Auth-Token'] = input['pkg_tp_auth_token']
             try:
                 platform_pot_path = self._download_file(
                     platform_pot_url,
-                    self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot'
+                    self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot',
+                    headers=headers
                 )
+                if platform_pot_path == '404' and input.get('pkg_upstream_name') and \
+                    input['package'] != input.get('pkg_upstream_name', '') and \
+                        input['package'] == input.get('i18n_domain'):
+                    url_kwargs['domain'] = doc_prefix + input['pkg_upstream_name']
+                    platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
+                    platform_pot_path = self._download_file(
+                        platform_pot_url,
+                        self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot',
+                        headers=headers
+                    )
                 probable_versions = ('master', 'default', input['package'])
                 while_loop_counter = 0
                 while platform_pot_path == '404' and while_loop_counter < len(probable_versions):
@@ -209,7 +229,8 @@ class Download(JobCommandBase):
                     platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
                     platform_pot_path = self._download_file(
                         platform_pot_url,
-                        self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot'
+                        self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot',
+                        headers=headers
                     )
                     while_loop_counter += 1
                 if platform_pot_path == '404':
@@ -259,6 +280,7 @@ class Clone(JobCommandBase):
             task_log.update(self._log_task(
                 input['log_f'], task_subject, 'Cloning failed. Details: %s' % str(e)
             ))
+            raise Exception("Cloning '%s' branch failed." % kwargs.get('branch', 'master'))
         else:
             if vars(clone_result).get('git_dir'):
                 task_log.update(self._log_task(
@@ -651,8 +673,11 @@ class ActionMapper(BaseManager):
                  release_slug,
                  upstream_url,
                  trans_file_ext,
+                 pkg_upstream_name,
                  pkg_branch_map,
                  pkg_tp_engine,
+                 pkg_tp_auth_usr,
+                 pkg_tp_auth_token,
                  pkg_tp_url,
                  job_log_file):
         super(ActionMapper, self).__init__()
@@ -665,8 +690,11 @@ class ActionMapper(BaseManager):
         self.release = release_slug
         self.upstream_url = upstream_url
         self.trans_file_ext = trans_file_ext
+        self.pkg_upstream_name = pkg_upstream_name
         self.pkg_branch_map = pkg_branch_map
         self.pkg_tp_engine = pkg_tp_engine
+        self.pkg_tp_auth_usr = pkg_tp_auth_usr
+        self.pkg_tp_auth_token = pkg_tp_auth_token
         self.pkg_tp_url = pkg_tp_url
         self.log_f = job_log_file
         self.cleanup_resources = {}
@@ -711,7 +739,9 @@ class ActionMapper(BaseManager):
             'base_dir': self.base_dir, 'build_system': self.buildsys, 'log_f': self.log_f,
             'upstream_repo_url': self.upstream_url, 'trans_file_ext': self.trans_file_ext,
             'pkg_branch_map': self.pkg_branch_map, 'pkg_tp_engine': self.pkg_tp_engine,
-            'release_slug': self.release, 'pkg_tp_url': self.pkg_tp_url
+            'release_slug': self.release, 'pkg_tp_auth_usr': self.pkg_tp_auth_usr,
+            'pkg_tp_url': self.pkg_tp_url, 'pkg_tp_auth_token': self.pkg_tp_auth_token,
+            'pkg_upstream_name': self.pkg_upstream_name
         }
 
         while current_node is not None:

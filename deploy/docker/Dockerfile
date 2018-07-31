@@ -7,8 +7,9 @@ FROM registry.fedoraproject.org/fedora:latest
 LABEL maintainer="suanand@redhat.com"
 
 RUN dnf -y update && \
-    dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel redhat-rpm-config \
-    sudo postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel patch && \
+    dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel \
+    sudo postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel \
+    redhat-rpm-config patch intltool libtool gtk3-devel && \
     dnf clean all
 
 RUN su - postgres -c "PGDATA=/var/lib/pgsql/data initdb"

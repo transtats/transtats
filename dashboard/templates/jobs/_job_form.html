@@ -69,7 +69,7 @@
             <label class="control-label">Package Name</label>
             <div class="input-group dropdown">
                 <input id="pkgName" type="text" class="form-control options dropdown-toggle" placeholder="Select Package">
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu scrollable-menu">
                     {% for package_name, upstream_name in packages %}
                         <li><a href="#" data-value="{{ package_name }}">{{ upstream_name }}</a></li>
                     {% endfor %}
@@ -83,7 +83,7 @@
             <label class="control-label">Release Name</label>
             <div class="input-group dropdown">
                 <input id="releaseName" type="text" class="form-control options dropdown-toggle" placeholder="Select Release">
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu scrollable-menu">
                     {% for release_slug, release_name in releases %}
                         <li><a href="#" data-value="{{ release_slug }}">{{ release_name }}</a></li>
                     {% endfor %}

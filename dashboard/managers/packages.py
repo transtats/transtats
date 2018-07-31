@@ -149,7 +149,7 @@ class PackagesManager(InventoryManager):
                          if package.transtats_lastupdated or package.upstream_lastupdated]
         elif check_mapping:
             name_list = [(package.package_name, package.package_name) for package in packages
-                         if package.transtats_lastupdated and package.package_name_mapping]
+                         if package.transtats_lastupdated and package.release_branch_mapping]
         return tuple(sorted(name_list))
 
     def _get_project_details(self, transplatform, package_name):

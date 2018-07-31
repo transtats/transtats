@@ -1,4 +1,5 @@
-##### Wed Jul 25 2018 Sundeep Anand <suanand@redhat.com>
+##### Tue Jul 31 2018 Sundeep Anand <suanand@redhat.com>
+* Add translation platform auth in jobs, bug fixes
 * String change job implementation and diff UI
 * Provision to pass kwargs for tasks in YML jobs
 

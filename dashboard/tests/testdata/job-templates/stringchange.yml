@@ -15,6 +15,8 @@ job:
     - cmd: cd po && intltool-update --pot --gettext-package=%PACKAGE_NAME%
     - domain: %PACKAGE_NAME%
     - overwrite: false
-  - download: Platform POT file
+  - download:
+    - name: Platform POT file
+    - dir: ''
   - calculate: Diff
   type: stringchange
