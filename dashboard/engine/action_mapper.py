@@ -183,8 +183,10 @@ class Download(JobCommandBase):
                 '{platform_url}/rest/file/source/{project}/{version}/pot?docId={domain}'
         }
 
-        if not input.get('pkg_branch_map'):
-            err_msg = 'No branch mapping for package: %s' % input['package']
+        if not (input.get('pkg_branch_map') or {}).get(input.get('release_slug')):
+            err_msg = "No branch mapping for %s package of %s release." % (
+                input['package'], input.get('release_slug', 'given release')
+            )
             task_log.update(self._log_task(
                 input['log_f'], task_subject, err_msg
             ))
@@ -295,6 +297,26 @@ class Generate(JobCommandBase):
     Handles all operations for GENERATE Command
     """
 
+    def _verify_command(self, command):
+        """
+        verify given command against commands.acl file
+        :param command: str
+        :return: filtered command
+        """
+        sh_commands = [command]
+        if ';' in command:
+            sh_commands = [cmd.strip() for cmd in command.split(';')]
+        elif '&&' in command:
+            sh_commands = [cmd.strip() for cmd in command.split('&&')]
+        with open(os.path.join(
+                'dashboard', 'engine', 'commands.acl'), 'r'
+        ) as acl_values:
+            allowed_base_commands = acl_values.read().splitlines()
+            not_allowed = [cmd for cmd in sh_commands if cmd.split()[0] not in allowed_base_commands]
+            if not_allowed and len(not_allowed) >= 1:
+                raise Exception('Invalid command: %s' % not_allowed[0])
+        return command
+
     def pot_file(self, input, kwargs):
         """
         Generates POT file
@@ -305,7 +327,7 @@ class Generate(JobCommandBase):
         pot_file_path = ''
 
         if kwargs.get('cmd'):
-            command = kwargs['cmd']
+            command = self._verify_command(kwargs['cmd'])
             po_dir = self.find_dir('po', input['src_tar_dir'])
             pot_file = os.path.join(
                 po_dir, '%s.pot' % kwargs.get('domain', input['package'])

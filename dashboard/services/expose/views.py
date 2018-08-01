@@ -75,6 +75,25 @@ class PingServer(APIView):
         return Response(response_text)
 
 
+class PackageExist(GraphManagerMixin, APIView):
+    """
+    Package Exist API
+    """
+    def get(self, request, **kwargs):
+        """
+        GET response
+        :param request: Request object
+        :param kwargs: Keyword Arguments
+        :return: Custom JSON
+        """
+        response_text = {}
+        if kwargs.get('package_name'):
+            package = kwargs['package_name']
+            response_text = {package: self.graph_manager.package_manager.is_package_exist(
+                package_name=package)}
+        return Response(response_text)
+
+
 class PackageStatus(GraphManagerMixin, APIView):
     """
     Package Translation Status API

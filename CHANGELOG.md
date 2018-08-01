@@ -1,4 +1,5 @@
-##### Tue Jul 31 2018 Sundeep Anand <suanand@redhat.com>
+##### Wed Aug 01 2018 Sundeep Anand <suanand@redhat.com>
+* Package exist API and Job commands ACL for POT files
 * Add translation platform auth in jobs, bug fixes
 * String change job implementation and diff UI
 * Provision to pass kwargs for tasks in YML jobs
