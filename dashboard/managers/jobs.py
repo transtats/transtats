@@ -33,7 +33,7 @@ from dashboard.constants import TS_JOB_TYPES, JOB_EXEC_TYPES
 from dashboard.engine.action_mapper import ActionMapper
 from dashboard.engine.ds import TaskList
 from dashboard.engine.parser import YMLPreProcessor, YMLJobParser
-from dashboard.managers.base import BaseManager
+from dashboard.managers import BaseManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.models import (
@@ -511,7 +511,7 @@ class YMLBasedJobManager(BaseManager):
                 self.app_logger(
                     'ERROR', "Package could not be found, details: " + str(e)
                 )
-                raise Exception('Upstream URL could NOT be located for %s.' % package)
+                raise Exception('Upstream URL could NOT be located for %s package.' % package)
             else:
                 self.upstream_repo_url = package_detail.upstream_url \
                     if package_detail.upstream_url.endswith('.git') \

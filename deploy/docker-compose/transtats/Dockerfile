@@ -7,7 +7,7 @@ LABEL maintainer="suanand@redhat.com, bhavin7392@gmail.com"
 USER root
 RUN useradd -ms /bin/bash tsuser
 RUN dnf -y update && \
-    dnf -y install git make cpio koji patch intltool libtool gtk3-devel && \
+    dnf -y install git make cpio koji file patch intltool libtool gtk3-devel && \
     dnf clean all
 
 RUN mkdir /workspace

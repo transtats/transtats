@@ -302,3 +302,33 @@
             Stats']
         type: syncdownstream
     job_template_last_accessed: null
+- model: dashboard.jobtemplates
+  pk: 3
+  fields:
+    job_template_type: stringchange
+    job_template_name: Track String Change
+    job_template_desc: Generate translation template from source and compare it with
+      translation platform.
+    job_template_params: '["package_name", "release_slug"]'
+    job_template_json:
+      job:
+        exception: raise
+        execution: sequential
+        name: string change
+        package: '%PACKAGE_NAME%'
+        release: '%RELEASE_SLUG%'
+        return_type: json
+        tasks:
+        - clone:
+          - {name: git repo}
+          - {branch: master}
+          - {recursive: 'true'}
+        - generate:
+          - {name: POT file}
+          - {domain: '%PACKAGE_NAME%'}
+          - {cmd: cd po && intltool-update --pot --gettext-package=%PACKAGE_NAME%}
+        - download:
+          - {name: Platform POT file}
+        - {calculate: Diff}
+        type: stringchange
+    job_template_last_accessed: null

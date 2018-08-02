@@ -16,8 +16,6 @@
 # Currently, it is implemented as...
 # Every command has its own class and task gets matched
 #   with most appropriate method therein
-# todo - make tasks more generic
-#   like: in filter cmd, extension can be passed as param
 
 import os
 import difflib
@@ -38,7 +36,7 @@ from dashboard.constants import (
     TRANSPLATFORM_ENGINES,
     BRANCH_MAPPING_KEYS, BUILD_SYSTEMS
 )
-from dashboard.managers.base import BaseManager
+from dashboard.managers import BaseManager
 
 __all__ = ['ActionMapper']
 
@@ -723,8 +721,13 @@ class ActionMapper(BaseManager):
         self.__result = None
         self.__log = OrderedDict()
 
-    def skip(self, abc, xyz):
-        pass
+    def skip(self, abc, pqr, xyz):
+        try:
+            command = abc.__doc__.strip().split()[-2]
+        except Exception as e:
+            pass
+        else:
+            raise Exception('Action mapping failed for %s command.' % command)
 
     def set_actions(self):
         count = 0

@@ -32,7 +32,7 @@ from slugify import slugify
 from django.utils import timezone
 
 # dashboard
-from dashboard.managers.base import BaseManager
+from dashboard.managers import BaseManager
 from dashboard.models import (
     TransPlatform, Languages, LanguageSet,
     ReleaseStream, StreamBranches, SyncStats

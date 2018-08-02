@@ -9,7 +9,7 @@ LABEL maintainer="suanand@redhat.com"
 RUN dnf -y update && \
     dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel \
     sudo postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel \
-    redhat-rpm-config patch intltool libtool gtk3-devel && \
+    redhat-rpm-config file patch intltool libtool gtk3-devel && \
     dnf clean all
 
 RUN su - postgres -c "PGDATA=/var/lib/pgsql/data initdb"
@@ -19,7 +19,7 @@ RUN chown -R 26:26 /var/lib/pgsql/data
 ENV PYTHONUNBUFFERED 1
 RUN mkdir /workspace
 WORKDIR /workspace
-RUN git clone -b master https://github.com/transtats/transtats.git .
+RUN git clone -b jobs https://github.com/transtats/transtats.git .
 ADD conf/sample_keys.json /workspace/transtats/settings/keys.json
 RUN pip3 install -r /workspace/requirements/base.txt
 ADD launch.sh /usr/bin/transtats.sh
