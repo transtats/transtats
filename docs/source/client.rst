@@ -4,6 +4,18 @@ Transtats CLI
 
 `transtats-cli <https://github.com/transtats/transtats-cli>`_ is a command line interface to query transtats server.
 
+- **Configuration**
+
+    ``transtats.conf`` should be placed inside ``~/.config/`` directory.
+    Transtats server url and API token can be added as
+
+    .. code-block:: bash
+
+        [server]
+        server_url = http://app.server.transtats.org
+        token = <API-token-from-server>
+
+
 - **Usage**
 
     .. code-block:: bash
@@ -20,11 +32,34 @@ Transtats CLI
     1. coverage
         Translation coverage as per graph rule.
 
-    2. package
+        .. code-block:: bash
+
+            transtats coverage [OPTIONS] GRAPH_RULE
+
+    2. job
+        Runs a job and/or show the job log.
+
+        .. code-block:: bash
+
+            transtats job [OPTIONS] COMMAND [ARGS]...
+
+    3. package
         Translation status of a package.
 
-    3. version
+        .. code-block:: bash
+
+            transtats package [OPTIONS] PACKAGE_NAME
+
+    4. version
         Display the current version.
 
-    4. release
+        .. code-block:: bash
+
+            transtats version [OPTIONS]
+
+    5. release
         Translation status of a release.
+
+        .. code-block:: bash
+
+            transtats release [OPTIONS] RELEASE_SLUG

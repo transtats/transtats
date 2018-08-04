@@ -9,7 +9,7 @@ Transtats 0.1.6
 
 We are currently working on :code:`0.1.6` release.
 
-Target delivery: In mid of August 2018
+Target delivery: In end of August 2018
 
 For features list please look `here <https://github.com/transtats/transtats/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_0.1.6>`_.
 

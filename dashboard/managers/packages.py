@@ -454,6 +454,8 @@ class PackagesManager(InventoryManager):
         """
         kwargs = {}
         branch_mapping_dict = self.get_pkg_branch_mapping(package_name)
+        if not branch_mapping_dict:
+            return False
         kwargs['package_name_mapping'] = {package_name: ''}
         kwargs['release_branch_mapping'] = branch_mapping_dict
         kwargs['mapping_lastupdated'] = timezone.now()

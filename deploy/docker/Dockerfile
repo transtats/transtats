@@ -19,7 +19,7 @@ RUN chown -R 26:26 /var/lib/pgsql/data
 ENV PYTHONUNBUFFERED 1
 RUN mkdir /workspace
 WORKDIR /workspace
-RUN git clone -b jobs https://github.com/transtats/transtats.git .
+RUN git clone -b master https://github.com/transtats/transtats.git .
 ADD conf/sample_keys.json /workspace/transtats/settings/keys.json
 RUN pip3 install -r /workspace/requirements/base.txt
 ADD launch.sh /usr/bin/transtats.sh

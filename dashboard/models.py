@@ -252,7 +252,7 @@ class JobTemplates(models.Model):
     Job Templates Model
     """
     job_template_id = models.AutoField(primary_key=True)
-    job_template_type = models.CharField(max_length=100)
+    job_template_type = models.CharField(max_length=100, unique=True)
     job_template_name = models.CharField(max_length=500)
     job_template_desc = models.CharField(max_length=1000, blank=True, null=True)
     job_template_params = ArrayField(

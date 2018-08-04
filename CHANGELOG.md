@@ -1,4 +1,4 @@
-##### Wed Aug 01 2018 Sundeep Anand <suanand@redhat.com>
+##### Sat Aug 04 2018 Sundeep Anand <suanand@redhat.com>
 * Package exist API and Job commands ACL, better docs
 * Add translation platform auth in jobs, bug fixes
 * String change job implementation and diff UI
