@@ -33,7 +33,7 @@ from dashboard.constants import TS_JOB_TYPES, JOB_EXEC_TYPES
 from dashboard.engine.action_mapper import ActionMapper
 from dashboard.engine.ds import TaskList
 from dashboard.engine.parser import YMLPreProcessor, YMLJobParser
-from dashboard.managers.base import BaseManager
+from dashboard.managers import BaseManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.models import (
@@ -505,13 +505,13 @@ class YMLBasedJobManager(BaseManager):
         if package:
             try:
                 package_details = \
-                    self.package_manager.get_packages([package], ['upstream_url'])
+                    self.package_manager.get_packages([package])
                 package_detail = package_details.get()
             except Exception as e:
                 self.app_logger(
                     'ERROR', "Package could not be found, details: " + str(e)
                 )
-                raise Exception('Upstream URL could NOT be located for %s.' % package)
+                raise Exception('Upstream URL could NOT be located for %s package.' % package)
             else:
                 self.upstream_repo_url = package_detail.upstream_url \
                     if package_detail.upstream_url.endswith('.git') \
@@ -519,6 +519,12 @@ class YMLBasedJobManager(BaseManager):
                 t_ext = package_detail.translation_file_ext
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
+                self.pkg_upstream_name = package_detail.upstream_name
+                self.pkg_tp_engine = package_detail.transplatform_slug.engine_name
+                self.pkg_tp_url = package_detail.transplatform_slug.api_url
+                self.pkg_tp_auth_usr = package_detail.transplatform_slug.auth_login_id
+                self.pkg_tp_auth_token = package_detail.transplatform_slug.auth_token_key
+                self.pkg_branch_map = package_detail.release_branch_mapping
 
     def _save_result_in_db(self, stats_dict):
         """
@@ -604,8 +610,9 @@ class YMLBasedJobManager(BaseManager):
         if self.type != yml_job.job_type:
             raise Exception('Selected job type differs to that of YML.')
 
-        if self.type == TS_JOB_TYPES[2] and self.package:
+        if (self.type == TS_JOB_TYPES[2] or self.type == TS_JOB_TYPES[5]) and self.package:
             self._bootstrap(package=self.package)
+            self.release = yml_job.release
         elif self.type == TS_JOB_TYPES[3] and self.buildsys:
             self._bootstrap(build_system=self.buildsys)
         # for sequential jobs, tasks should be pushed to linked list
@@ -634,8 +641,15 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'package', ''),
             getattr(self, 'hub_url', ''),
             getattr(self, 'buildsys', ''),
+            getattr(self, 'release', ''),
             getattr(self, 'upstream_repo_url', ''),
             getattr(self, 'trans_file_ext', ''),
+            getattr(self, 'pkg_upstream_name', ''),
+            getattr(self, 'pkg_branch_map', {}),
+            getattr(self, 'pkg_tp_engine', ''),
+            getattr(self, 'pkg_tp_auth_usr', ''),
+            getattr(self, 'pkg_tp_auth_token', ''),
+            getattr(self, 'pkg_tp_url', ''),
             log_file
         )
         action_mapper.set_actions()

@@ -9,14 +9,11 @@
 Transtats
 =========
 
-Helps making packages ready to ship with translation completeness.
+*Track Product Release Translation Completeness.*
 
-In a software release cycle, localisation steps like extracting or updating language resource, pushing them to translation platform, pulling and packaging translations, accuracy & quality checks etc. seem necessary but sometimes they lack attention which results in delay. Transtats is an attempt to tie up loose ends and then, may be automate some of the steps. Concept is based on syncing with Upstream Repository, Translation Platform and Build System for statistics and translation resources, comparing stats based on mapping, calculating translation differences, keep upstream updated and create notifications.
+In a software release cycle, some of the necessary localization steps lack attention which affect translation quality and delivery. These steps (for a package) are extracting or updating language resource, pushing that to translation platform, pulling and packaging translations, quality checks etc. Transtats helps to tie up loose ends and make packages ready to ship with translation completeness. Further, its an attempt to bring automation in ``i18n`` ``l10n`` space through jobs.
 
-Stack
------
-
-Transtats Server is a simple django application with PostgreSQL backend. Has one CLI and some ansible playbooks for deployment.
+Transtats Server is a simple django application with PostgreSQL backend. Has one CLI and some ansible playbooks for deployment. And, can be deployed on container based systems.
 
 .. toctree::
     :caption: Table of Contents

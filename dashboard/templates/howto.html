@@ -110,20 +110,36 @@
         <!-- /.container -->
     </div>
     <hr/>
-    <div style="padding:10px">
+    <div style="padding:10px;text-align:justify">
         <h3 class="text-primary">FAQs</h3><br/>
         <h4>Is {{ app_name }} project opensource? Where we have docs written?</h4>
         <span class="text-muted">Yes. Source is available at <a href="https://github.com/transtats" target="_blank">GitHub</a></span>. Projects website is <a href="http://transtats.org/" target="_blank">transtats.org</a> and point your browser to <a href="http://docs.transtats.org/" target="_blank">docs.transtats.org</a> for docs.
-        <h4>While working with {{ app_name }} I got an issue, how should I report it?</h4>
-        <span class="text-muted">You're welcome! Please create a <a href="https://github.com/transtats/transtats/issues/new" target="_blank">GitHub Issue</a> or join #transtats channel at IRC freenode.</span>
-        <h4>I like the idea and want to contribute, how should I start?</h4>
-        <span class="text-muted">Please look out for <a href="https://github.com/transtats/transtats/blob/devel/CONTRIBUTING.md" target="_blank">contributing guide</a> to get you started.</span>
         <h4>Which translation platforms and build systems are currently supported?</h4>
         <span class="text-muted">{{ app_name }} supports <a href="https://l10n.gnome.org/" target="_blank">DamnedLies</a> and <a href="http://zanata.org" target="_blank">Zanata</a>. {{ app_name }} can talk to <a href="https://koji.fedoraproject.org/koji/" target="_blank">koji</a> build system.</span>
         <h4>What is branch mapping? And why is it important?</h4>
-        <span class="text-muted">Every package has its branch mapping. This establishes mapping between: {{ app_name }} release_branch : translation platform project_version : build system build_tag. On the basis of this, translation differences/gaps can be calculated/located.</span>
+        <span class="text-muted">Every package has its own branch mapping. This establishes mapping between:
+            <br/><br/><table class="table table-condensed table-hover"><tr><td>{{ app_name }} <b>release_branch</b></td><td>translation platform <b>project_version</b></td><td>build system <b>build_tag</b></td></tr></table>On the basis of this, translation differences/gaps are calculated/located.</span>
+        <h4>How to figure out which languages need attention for any of the packages?</h4>
+        <span class="text-muted">Please navigate to package details page. Sync the package with translation platform and build system. Use shortcuts. Update branch mapping.<br/>Once all the branches mapped got sync'd, update statistics diff. Here you could find an answer to this!</span>
+        <h4>What jobs are available?</h4>
+        <span class="text-muted">Broadly two categories: <i>Predefined</i> and <i>YAML based</i>.<br/>Predefined jobs fill data required by various work flows. <b>syncbuildtags</b> should be run first (one-time), as it is required for branch mapping and <i>syncdownstream</i> job. Three templates are available in YAML based jobs: <i>syncupstream</i>, <i>syncdownstream</i> and <i>stringchange</i>.</span>
         <h4>Why YAML based jobs are introduced?</h4>
-        <span class="text-muted">YAML based jobs add great level of flexibility by broadening capabilities to interact with build systems and/or translation platforms.</span>
+        <span class="text-muted">YAML based jobs add great level of flexibility by broadening capabilities to interact with build systems, translation platforms and source repositories.</span>
+        <h4>Which YAML job to run when and why?</h4>
+        <span class="text-muted">
+            They can be run in any order. Just that required values should be obeyed.
+            <ul>
+                <li>To collect translation statistics from package source repository, <i>syncupstream</i> job can be triggered. This job can only be run for added packages.</li>
+                <li>Using <i>syncdownstream</i> job, one can inspect translation files and generate statistics in latest built SRPM. Applies patches (in SPEC file) also.</li>
+                <li>Translation string change can be detected using <i>stringchange</i> job. This is highly flexible. Requires package branch mapping and POT command.</li>
+            </ul>
+        </span>
+        <h4>How to look and share for details about a YAML job ran?</h4>
+        <span class="text-muted">Please navigate to job log details page. Here you would find the YAML supplied to the job and respective output of each task. If the job type is <i>stringchange</i> msgid diff found in translation template would be available along with full line-by-line file diff. This URL can be copied and shared.</span>
+        <h4>I like the idea and want to contribute, how should I start?</h4>
+        <span class="text-muted">Please look out for <a href="https://github.com/transtats/transtats/blob/devel/CONTRIBUTING.md" target="_blank">contributing guide</a> to get you started.</span>
+        <h4>While working with {{ app_name }} I got an issue, how should I report it?</h4>
+        <span class="text-muted">You're welcome! Please create a <a href="https://github.com/transtats/transtats/issues/new" target="_blank">GitHub Issue</a> or join #transtats channel at IRC freenode.</span>
         <h4>Where to find what features will be available in coming {{ app_name }} release?</h4>
         <span class="text-muted">Please see <a href="http://docs.transtats.org/en/latest/roadmap.html" target="_blank">Roadmap</a> section in docs. You may also like going through <a href="https://github.com/transtats/transtats/blob/devel/CHANGELOG.md" target="_blank">changelog</a>.</span>
     </div>

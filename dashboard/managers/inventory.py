@@ -32,7 +32,7 @@ from slugify import slugify
 from django.utils import timezone
 
 # dashboard
-from dashboard.managers.base import BaseManager
+from dashboard.managers import BaseManager
 from dashboard.models import (
     TransPlatform, Languages, LanguageSet,
     ReleaseStream, StreamBranches, SyncStats
@@ -51,7 +51,7 @@ class InventoryManager(BaseManager):
     Manage application inventories
     """
 
-    def get_locales(self, only_active=None, pick_locales=None):
+    def get_locales(self, only_active=None, pick_locales=None, pick_alias=None):
         """
         fetch all languages from db
         """
@@ -60,6 +60,8 @@ class InventoryManager(BaseManager):
             filter_kwargs.update(dict(lang_status=True))
         if pick_locales:
             filter_kwargs.update(dict(locale_id__in=pick_locales))
+        if pick_alias:
+            filter_kwargs.update(dict(locale_alias__in=pick_alias))
 
         locales = []
         try:
@@ -92,6 +94,15 @@ class InventoryManager(BaseManager):
         """
         locale_qset = self.get_locales(pick_locales=[locale])
         return locale_qset.get().locale_alias if locale_qset else locale
+
+    def get_alias_locale(self, alias):
+        """
+        Fetch locale of a alias
+        :param alias: str
+        :return: locale: str
+        """
+        locale_qset = self.get_locales(pick_alias=[alias])
+        return locale_qset.get().locale_id if locale_qset else alias
 
     def get_locale_lang_tuple(self, locales=None):
         """

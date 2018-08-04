@@ -31,8 +31,8 @@ DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
                'DATABASE_HOST', 'TRANSIFEX_USER', 'TRANSIFEX_PASSWD')
 
 # Job Types
-TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream',
-                'syncdownstream', 'syncbuildtags', 'stringchange')
+TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream', 'syncdownstream',
+                'syncbuildtags', 'stringchange', 'verifytrans')
 
 # Branch Mapping Keys
 BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys', 'buildsys_tag', 'upstream_release')

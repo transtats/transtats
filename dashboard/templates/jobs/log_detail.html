@@ -1,6 +1,8 @@
 {% extends "jobs/jobs_base.html" %}
+{% load custom_tags %}
 
 {% block extrascript %}
+<link rel="stylesheet" type="text/css" href="/static/css/diff2html.css">
 <style type="text/css">
     .list-group-item-text{
         max-height: 300px;
@@ -9,10 +11,10 @@
         -webkit-overflow-scrolling: touch;
     }
 </style>
+<script type="text/javascript" src="/static/js/diff2html.js"></script>
+<script type="text/javascript" src="/static/js/diff2html-ui.js"></script>
 <script type="text/javascript">
-    $(document).ready(function() {
-        $("#tab-logs").addClass("active")
-    });
+    var diffHtml=Diff2Html.getPrettyHtml("{{ log.job_output_json|get_item:'full_diff'|escapejs }}",{inputFormat:"diff",showFiles:!0,matching:"lines",outputFormat:"side-by-side"});function copyToClipboard(t,o){var e=document.queryCommandSupported("copy"),i=o.attr("data-original-title");if(!0===e){var a=document.createElement("textarea");a.value=t,document.body.appendChild(a),a.select();try{var d=document.execCommand("copy")?"Copied!":"Whoops, not copied!";o.attr("data-original-title",d).tooltip("show")}catch(t){console.log("Oops, unable to copy")}document.body.removeChild(a),o.attr("data-original-title",i)}else window.prompt("Copy to clipboard: Ctrl+C or Command+C, Enter",t)}$(document).ready(function(){$("#tab-logs").addClass("active"),$("#diffDiv").html(diffHtml),$(".js-tooltip").tooltip(),$(".js-copy").click(function(){copyToClipboard($(this).attr("data-copy"),$(this))})});
 </script>
 {% endblock %}
 
@@ -48,8 +50,16 @@
         {% if log.job_end_time %} and completed at <strong>{{ log.job_end_time|time:"H:i:s" }}</strong>
         &nbsp;&nbsp;<em>({{ log.duration|floatformat:"0" }} seconds)</em>{% endif %}</span>
         {% if log.job_visible_on_url %}
-            <span class="pull-right"><a href="{% url 'log-detail' log.job_uuid %}">Copy this link to Share</a>&nbsp;
-            <span class="glyphicon glyphicon-share"></span></span>
+            <span class="pull-right">
+                <span class="input-group">
+                  <span class="input-group-btn">
+                    <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
+                            data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
+                            title="Copy to clipboard">Copy Job URL
+                        <span class="glyphicon glyphicon-share"></span></button>
+                  </span>
+                </span>
+            </span>
         {% endif %}
     </p>
     <hr/>
@@ -79,5 +89,24 @@
             </div>
         </div>
     </div>
+    {% if 'full_diff' in log.job_output_json %}
+        <div class="col-sm-6 col-md-12">
+            <hr/>{% if log.job_output_json|get_item:'diff_count' == 0 %}
+                <h4 class="text-success">&nbsp;&nbsp;{{ log.job_output_json|get_item:'diff_count' }} <small>messages differ!</small></h4>
+            {% else %}
+                <h4 class="text-danger">&nbsp;&nbsp;{{ log.job_output_json|get_item:'diff_count' }} <small>messages differ! <i class="pull-right">May be new or updated.</i></small></h4>
+                {% if 'pot_diff' in log.job_output_json %}
+                    <pre>{{ log.job_output_json|get_item:'pot_diff' }}</pre>
+                {% endif %}
+            {% endif %}<hr/>
+            <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#diff">Show Full Diff</button>
+            <span class="text-muted pull-right">
+            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                POT at Translation Platform <strong>vs</strong> POT created from Source</span>
+            <div id="diff" class="collapse">
+                <br/><div id="diffDiv"></div>
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -27,6 +27,7 @@ class TaskNode(object):
         self.input = None
         self.output = None
         self.log = None
+        self.kwargs = {}
 
         self.__namespace = None
         self.__method = None
@@ -56,6 +57,12 @@ class TaskNode(object):
 
     def set_result(self, res):
         self.output = res
+
+    def set_kwargs(self, kwargs):
+        self.kwargs.update(kwargs)
+
+    def get_kwargs(self):
+        return self.kwargs
 
 
 class TaskList(object):

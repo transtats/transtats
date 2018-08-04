@@ -16,8 +16,6 @@
 # Currently, it is implemented as...
 # Every command has its own class and task gets matched
 #   with most appropriate method therein
-# todo - make tasks more generic
-#   like: in filter cmd, extension can be passed as param
 
 import os
 import difflib
@@ -34,8 +32,11 @@ from subprocess import Popen, PIPE, call
 from inspect import getmembers, isfunction
 
 # dashboard
-from dashboard.constants import BUILD_SYSTEMS
-from dashboard.managers.base import BaseManager
+from dashboard.constants import (
+    TRANSPLATFORM_ENGINES,
+    BRANCH_MAPPING_KEYS, BUILD_SYSTEMS
+)
+from dashboard.managers import BaseManager
 
 __all__ = ['ActionMapper']
 
@@ -67,12 +68,26 @@ class JobCommandBase(BaseManager):
             the_file.write(text_to_write)
         return {str(datetime.now()): '%s' % self._format_log_text(", ", text, text_prefix)}
 
+    def _run_shell_cmd(self, command):
+        process = Popen(command, stdout=PIPE, shell=True)
+        while True:
+            line = process.stdout.readline().rstrip()
+            if not line:
+                break
+            yield line
+
+    def find_dir(self, dirname, path):
+        for root, dirs, files in os.walk(path):
+            if root[len(path) + 1:].count(os.sep) < 2:
+                if dirname in dirs:
+                    return os.path.join(root, dirname)
+
 
 class Get(JobCommandBase):
     """
     Handles all operations for GET Command
     """
-    def latest_build_info(self, input):
+    def latest_build_info(self, input, kwargs):
         """
         Fetch latest build info from koji
         """
@@ -95,18 +110,24 @@ class Get(JobCommandBase):
 
 
 class Download(JobCommandBase):
+    """
+    Handles all operations for DOWNLOAD Command
+    """
 
-    def _download_srpm(self, srpm_link):
-        req = requests.get(srpm_link)
-        srpm_path = self.sandbox_path + srpm_link.split('/')[-1]
+    def _download_file(self, file_link, file_path=None, headers=None):
+        req = requests.get(file_link, headers=headers)
+        if req.status_code == 404:
+            return '404'
+        if not file_path:
+            file_path = self.sandbox_path + file_link.split('/')[-1]
         try:
-            with open(srpm_path, 'wb') as f:
+            with open(file_path, 'wb') as f:
                 f.write(req.content)
-                return srpm_path
+                return file_path
         except:
             return ''
 
-    def srpm(self, input):
+    def srpm(self, input, kwargs):
 
         task_subject = "Download SRPM"
         task_log = OrderedDict()
@@ -129,7 +150,9 @@ class Download(JobCommandBase):
                 self.api_resources.get_path_info(build=build_info),
                 self.api_resources.get_path_info(srpm=src_rpm)
             ).replace('/mnt/koji', pkgs_download_server_url)
-            srpm_downloaded_path = self._download_srpm(srpm_download_url)
+            srpm_downloaded_path = self._download_file(srpm_download_url)
+            if srpm_downloaded_path == '404':
+                raise Exception('SRPM download failed. URL returns 404.')
             if srpm_downloaded_path:
                 task_log.update(self._log_task(
                     input['log_f'], task_subject,
@@ -142,10 +165,94 @@ class Download(JobCommandBase):
                 ))
             return {'srpm_path': srpm_downloaded_path}, {task_subject: task_log}
 
+    def platform_pot_file(self, input, kwargs):
+
+        task_subject = "Download platform POT file"
+        task_log = OrderedDict()
+
+        doc_prefix = ''
+        if kwargs.get('dir'):
+            doc_prefix = requests.utils.requote_uri(kwargs['dir'])
+
+        platform_pot_urls = {
+            TRANSPLATFORM_ENGINES[0]:
+                '{platform_url}/POT/{project}.{version}/{project}.{version}.pot',
+            TRANSPLATFORM_ENGINES[2]:
+                '{platform_url}/rest/file/source/{project}/{version}/pot?docId={domain}'
+        }
+
+        if not (input.get('pkg_branch_map') or {}).get(input.get('release_slug')):
+            err_msg = "No branch mapping for %s package of %s release." % (
+                input['package'], input.get('release_slug', 'given release')
+            )
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, err_msg
+            ))
+            raise Exception(err_msg)
+
+        url_kwargs = {
+            'platform_url': input['pkg_tp_url'],
+            'project': input['package'],
+            'version': input.get('pkg_branch_map', {}).get(input.get('release_slug'), {}).get(
+                BRANCH_MAPPING_KEYS[0], ''),
+            'domain': doc_prefix + input.get('i18n_domain', '')
+        }
+
+        platform_pot_path = ''
+        if input.get('pkg_tp_engine'):
+            platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
+            headers = {}
+            if input.get('pkg_tp_auth_usr') and input.get('pkg_tp_auth_token') \
+                    and input['pkg_tp_engine'] == TRANSPLATFORM_ENGINES[2]:
+                headers['X-Auth-User'] = input['pkg_tp_auth_usr']
+                headers['X-Auth-Token'] = input['pkg_tp_auth_token']
+            try:
+                platform_pot_path = self._download_file(
+                    platform_pot_url,
+                    self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot',
+                    headers=headers
+                )
+                if platform_pot_path == '404' and input.get('pkg_upstream_name') and \
+                    input['package'] != input.get('pkg_upstream_name', '') and \
+                        input['package'] == input.get('i18n_domain'):
+                    url_kwargs['domain'] = doc_prefix + input['pkg_upstream_name']
+                    platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
+                    platform_pot_path = self._download_file(
+                        platform_pot_url,
+                        self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot',
+                        headers=headers
+                    )
+                probable_versions = ('master', 'default', input['package'])
+                while_loop_counter = 0
+                while platform_pot_path == '404' and while_loop_counter < len(probable_versions):
+                    url_kwargs['version'] = probable_versions[while_loop_counter]
+                    platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
+                    platform_pot_path = self._download_file(
+                        platform_pot_url,
+                        self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot',
+                        headers=headers
+                    )
+                    while_loop_counter += 1
+                if platform_pot_path == '404':
+                    raise Exception('POT file could not be located at platform.')
+            except Exception as e:
+                err_msg = 'POT download failed. Details: %s' % str(e)
+                task_log.update(self._log_task(input['log_f'], task_subject, err_msg))
+                raise Exception(err_msg)
+            else:
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject,
+                    'POT downloaded successfully. URL: %s' % platform_pot_url
+                ))
+        return {'platform_pot_path': platform_pot_path}, {task_subject: task_log}
+
 
 class Clone(JobCommandBase):
+    """
+    Handles all operations for CLONE Command
+    """
 
-    def git_repository(self, input):
+    def git_repository(self, input, kwargs):
         """
         Clone GIT repository
         """
@@ -154,19 +261,26 @@ class Clone(JobCommandBase):
 
         src_tar_dir = os.path.join(self.sandbox_path, input['package'])
 
+        clone_kwargs = {}
+        clone_kwargs.update(dict(config='http.sslVerify=false'))
+        if kwargs.get('recursive'):
+            clone_kwargs.update(dict(recursive=True))
+        if kwargs.get('branch'):
+            clone_kwargs.update(dict(branch=kwargs['branch']))
+
         try:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
                 'Start cloning %s repository.' % input['upstream_repo_url']
             ))
             clone_result = Repo.clone_from(
-                input['upstream_repo_url'], src_tar_dir,
-                config='http.sslVerify=false'
+                input['upstream_repo_url'], src_tar_dir, **clone_kwargs
             )
         except Exception as e:
             task_log.update(self._log_task(
                 input['log_f'], task_subject, 'Cloning failed. Details: %s' % str(e)
             ))
+            raise Exception("Cloning '%s' branch failed." % kwargs.get('branch', 'master'))
         else:
             if vars(clone_result).get('git_dir'):
                 task_log.update(self._log_task(
@@ -176,9 +290,88 @@ class Clone(JobCommandBase):
             return {'src_tar_dir': src_tar_dir}, {task_subject: task_log}
 
 
-class Unpack(JobCommandBase):
+class Generate(JobCommandBase):
+    """
+    Handles all operations for GENERATE Command
+    """
 
-    def srpm(self, input):
+    def _verify_command(self, command):
+        """
+        verify given command against commands.acl file
+        :param command: str
+        :return: filtered command
+        """
+        sh_commands = [command]
+        if ';' in command:
+            sh_commands = [cmd.strip() for cmd in command.split(';')]
+        elif '&&' in command:
+            sh_commands = [cmd.strip() for cmd in command.split('&&')]
+        with open(os.path.join(
+                'dashboard', 'engine', 'commands.acl'), 'r'
+        ) as acl_values:
+            allowed_base_commands = acl_values.read().splitlines()
+            not_allowed = [cmd for cmd in sh_commands if cmd.split()[0] not in allowed_base_commands]
+            if not_allowed and len(not_allowed) >= 1:
+                raise Exception('Invalid command: %s' % not_allowed[0])
+        return command
+
+    def pot_file(self, input, kwargs):
+        """
+        Generates POT file
+            as per the given command
+        """
+        task_subject = "Generate POT File"
+        task_log = OrderedDict()
+        pot_file_path = ''
+
+        if kwargs.get('cmd'):
+            command = self._verify_command(kwargs['cmd'])
+            po_dir = self.find_dir('po', input['src_tar_dir'])
+            pot_file = os.path.join(
+                po_dir, '%s.pot' % kwargs.get('domain', input['package'])
+            )
+            if os.path.exists(pot_file) and kwargs.get('overwrite'):
+                    os.unlink(pot_file)
+            try:
+                os.chdir(input['src_tar_dir'])
+                generate_pot = Popen(command, stdout=PIPE, shell=True)
+                output, error = generate_pot.communicate()
+            except Exception as e:
+                os.chdir(input['base_dir'])
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject,
+                    'POT file generation failed %s' % str(e)
+                ))
+            else:
+                os.chdir(input['base_dir'])
+                if os.path.isfile(pot_file):
+                    pot_file_path = pot_file
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject, output.decode("utf-8"),
+                        text_prefix='POT file generated successfully. [ %s.pot ]' %
+                                    kwargs.get('domain', input['package'])
+                    ))
+                else:
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject,
+                        'POT file generation failed with command: %s' % command
+                    ))
+                    raise Exception('POT file generation failed.')
+        else:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, 'Command to generate POT missing.'
+            ))
+        return {'src_pot_file': pot_file_path,
+                'i18n_domain': kwargs.get('domain', input['package'])}, \
+               {task_subject: task_log}
+
+
+class Unpack(JobCommandBase):
+    """
+    Handles all operations for UNPACK Command
+    """
+
+    def srpm(self, input, kwargs):
         """
         SRPM is a headers + cpio file
             - its extraction currently is dependent on cpio command
@@ -218,7 +411,7 @@ class Unpack(JobCommandBase):
                     return os.path.join(root, directory)
             return root
 
-    def tarball(self, input):
+    def tarball(self, input, kwargs):
         """
         Untar source tarball
         """
@@ -251,8 +444,11 @@ class Unpack(JobCommandBase):
 
 
 class Load(JobCommandBase):
+    """
+    Handles all operations for LOAD Command
+    """
 
-    def spec_file(self, input):
+    def spec_file(self, input, kwargs):
         """
         locate and load spec file
         """
@@ -287,8 +483,11 @@ class Load(JobCommandBase):
 
 
 class Apply(JobCommandBase):
+    """
+    Handles all operations for APPLY Command
+    """
 
-    def patch(self, input):
+    def patch(self, input, kwargs):
 
         task_subject = "Apply Patches"
         task_log = OrderedDict()
@@ -336,36 +535,46 @@ class Apply(JobCommandBase):
 
 
 class Filter(JobCommandBase):
+    """
+    Handles all operations for FILTER Command
+    """
 
-    def po_files(self, input):
+    def files(self, input, kwargs):
         """
-        Filter PO files from tarball
+        Filter files from tarball
         """
-        task_subject = "Filter PO files"
+        file_ext = 'po'
+        if kwargs.get('ext'):
+            file_ext = kwargs['ext'].lower()
+
+        task_subject = "Filter %s files" % file_ext.upper()
         task_log = OrderedDict()
 
         try:
             trans_files = []
             for root, dirs, files in os.walk(input['src_tar_dir']):
                     for file in files:
-                        if file.endswith('.po'):
+                        if file.endswith('.%s' % file_ext):
                             trans_files.append(os.path.join(root, file))
         except Exception as e:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
-                'Something went wrong in filtering PO files: %s' % str(e)
+                'Something went wrong in filtering %s files: %s' % file_ext, str(e)
             ))
         else:
             task_log.update(self._log_task(
                 input['log_f'], task_subject, trans_files,
-                text_prefix='%s PO files filtered' % len(trans_files)
+                text_prefix='%s %s files filtered' % (len(trans_files), file_ext.upper())
             ))
             return {'trans_files': trans_files}, {task_subject: task_log}
 
 
 class Calculate(JobCommandBase):
+    """
+    Handles all operations for CALCULATE Command
+    """
 
-    def stats(self, input):
+    def stats(self, input, kwargs):
         """
         Calculate stats from filtered translations
         """
@@ -410,6 +619,53 @@ class Calculate(JobCommandBase):
             ))
             return {'trans_stats': trans_stats}, {task_subject: task_log}
 
+    def diff(self, input, kwargs):
+        """
+        Calculate diff between two
+        """
+        task_subject = "Calculate Differences"
+        task_log = OrderedDict()
+        diff_lines = ''
+        diff_msg = ''
+        diff_count = 0
+
+        try:
+            src_pot = input.get('src_pot_file')
+            platform_pot = input.get('platform_pot_path')
+
+            src_pot_obj, platform_pot_obj = polib.pofile(src_pot), polib.pofile(platform_pot)
+            src_pot_dict = {ut_entry.msgid: ut_entry for ut_entry in src_pot_obj.untranslated_entries()}
+            platform_pot_dict = {ut_entry.msgid: ut_entry
+                                 for ut_entry in platform_pot_obj.untranslated_entries()}
+            diff_entries = {k: src_pot_dict[k] for k in set(src_pot_dict) - set(platform_pot_dict)}
+            if not diff_entries:
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject, "No new or updated messages found."
+                ))
+            else:
+                diff_msg = "".join(["line %s\n%s\n%s\n\n" %
+                                    (str(entry.linenum), "\n".join(
+                                        [" ".join(i) for i in entry.occurrences]
+                                    ), entry.msgid) for msg, entry in diff_entries.items()])
+                diff_count = len(set(diff_entries))
+            if src_pot and platform_pot:
+                git_diff_command = 'git diff --no-index %s %s' % (platform_pot, src_pot)
+                calculated_diff = Popen(git_diff_command, stdout=PIPE, shell=True)
+                output, error = calculated_diff.communicate()
+                diff_lines = output.decode("utf-8")
+        except Exception as e:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Something went wrong in calculating diff: %s' % str(e)
+            ))
+        else:
+            if diff_count > 0:
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject, '%s messages differ.\n\n%s' % (str(diff_count), diff_msg),
+                    text_prefix='Calculated Diff'
+                ))
+        return {'pot_diff': diff_msg, 'full_diff': diff_lines, 'diff_count': diff_count}, {task_subject: task_log}
+
 
 class ActionMapper(BaseManager):
     """
@@ -423,7 +679,8 @@ class ActionMapper(BaseManager):
         'FILTER',       # Filter files recursively
         'APPLY',        # Apply patch on source tree
         'CALCULATE',    # Do some maths/try formulae
-        'CLONE'         # Clone source repository
+        'CLONE',        # Clone source repository
+        'GENERATE'      # Exec command to create
     ]
 
     def __init__(self,
@@ -433,8 +690,15 @@ class ActionMapper(BaseManager):
                  package,
                  server_url,
                  build_system,
+                 release_slug,
                  upstream_url,
                  trans_file_ext,
+                 pkg_upstream_name,
+                 pkg_branch_map,
+                 pkg_tp_engine,
+                 pkg_tp_auth_usr,
+                 pkg_tp_auth_token,
+                 pkg_tp_url,
                  job_log_file):
         super(ActionMapper, self).__init__()
         self.tasks = tasks_structure
@@ -443,15 +707,27 @@ class ActionMapper(BaseManager):
         self.hub = server_url
         self.base_dir = job_base_dir
         self.buildsys = build_system
+        self.release = release_slug
         self.upstream_url = upstream_url
         self.trans_file_ext = trans_file_ext
+        self.pkg_upstream_name = pkg_upstream_name
+        self.pkg_branch_map = pkg_branch_map
+        self.pkg_tp_engine = pkg_tp_engine
+        self.pkg_tp_auth_usr = pkg_tp_auth_usr
+        self.pkg_tp_auth_token = pkg_tp_auth_token
+        self.pkg_tp_url = pkg_tp_url
         self.log_f = job_log_file
         self.cleanup_resources = {}
-        self.__stats = None
+        self.__result = None
         self.__log = OrderedDict()
 
-    def skip(self, abc, xyz):
-        pass
+    def skip(self, abc, pqr, xyz):
+        try:
+            command = abc.__doc__.strip().split()[-2]
+        except Exception as e:
+            pass
+        else:
+            raise Exception('Action mapping failed for %s command.' % command)
 
     def set_actions(self):
         count = 0
@@ -464,8 +740,17 @@ class ActionMapper(BaseManager):
                 current_node.set_namespace(cmd.title())
             available_methods = [member[0] for member in getmembers(eval(cmd.title()))
                                  if isfunction(member[1])]
+            cur_node_task = current_node.task
+            if isinstance(cur_node_task, list) and len(cur_node_task) > 0:
+                if isinstance(current_node.task[0], dict):
+                    cur_node_task = current_node.task[0].get('name', '')
+                if len(cur_node_task) > 1:
+                    [current_node.set_kwargs(kwarg)
+                     for kwarg in current_node.task[1:] if isinstance(kwarg, dict)]
+            elif not isinstance(cur_node_task, str):
+                cur_node_task = str(current_node.task)
             probable_method = difflib.get_close_matches(
-                current_node.task.lower(), available_methods
+                cur_node_task.lower(), available_methods
             )
             if isinstance(probable_method, list) and len(probable_method) > 0:
                 current_node.set_method(probable_method[0])
@@ -477,7 +762,11 @@ class ActionMapper(BaseManager):
         initials = {
             'build_tag': self.tag, 'package': self.pkg, 'hub_url': self.hub,
             'base_dir': self.base_dir, 'build_system': self.buildsys, 'log_f': self.log_f,
-            'upstream_repo_url': self.upstream_url, 'trans_file_ext': self.trans_file_ext
+            'upstream_repo_url': self.upstream_url, 'trans_file_ext': self.trans_file_ext,
+            'pkg_branch_map': self.pkg_branch_map, 'pkg_tp_engine': self.pkg_tp_engine,
+            'release_slug': self.release, 'pkg_tp_auth_usr': self.pkg_tp_auth_usr,
+            'pkg_tp_url': self.pkg_tp_url, 'pkg_tp_auth_token': self.pkg_tp_auth_token,
+            'pkg_upstream_name': self.pkg_upstream_name
         }
 
         while current_node is not None:
@@ -489,7 +778,7 @@ class ActionMapper(BaseManager):
             current_node.output, current_node.log = getattr(
                 eval(current_node.get_namespace()),
                 current_node.get_method(), self.skip
-            )(eval(current_node.get_namespace())(), current_node.input)
+            )(eval(current_node.get_namespace())(), current_node.input, current_node.kwargs)
 
             if current_node.log:
                 self.__log.update(current_node.log)
@@ -510,13 +799,24 @@ class ActionMapper(BaseManager):
                 d = {'extract_dir': current_node.output.get('extract_dir')}
                 initials.update(d)
                 self.cleanup_resources.update(d)
-            if current_node.output and 'trans_stats' in current_node.output:
-                self.__stats = current_node.output.get('trans_stats')
+            if current_node.output and 'src_pot_file' in current_node.output:
+                d = {'src_pot_file': current_node.output.get('src_pot_file')}
+                initials.update(d)
+                self.cleanup_resources.update(d)
+            if current_node.output and 'platform_pot_path' in current_node.output:
+                d = {'platform_pot_path': current_node.output.get('platform_pot_path')}
+                initials.update(d)
+                self.cleanup_resources.update(d)
+            if current_node.output and 'trans_stats' in current_node.output \
+                    or 'pot_diff' in current_node.output:
+                self.__result = current_node.output.get('trans_stats')
+                if not self.__result:
+                    self.__result = current_node.output.copy()
             current_node = current_node.next
 
     @property
     def result(self):
-        return self.__stats
+        return self.__result
 
     @property
     def log(self):
@@ -533,6 +833,8 @@ class ActionMapper(BaseManager):
         try:
             if self.cleanup_resources.get('srpm_path'):
                 os.remove(self.cleanup_resources.get('srpm_path'))
+            if self.cleanup_resources.get('platform_pot_path'):
+                os.remove(self.cleanup_resources.get('platform_pot_path'))
             if self.cleanup_resources.get('src_tar_dir'):
                 rmtree(self.cleanup_resources.get('src_tar_dir'), ignore_errors=True)
             if self.cleanup_resources.get('extract_dir'):

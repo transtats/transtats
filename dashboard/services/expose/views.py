@@ -28,10 +28,18 @@ from rest_framework.response import Response
 
 # application
 from transtats import __version__
+from dashboard.managers.inventory import InventoryManager
 from dashboard.managers.graphs import GraphManager
 from dashboard.managers.jobs import (
     JobTemplateManager, JobsLogManager, YMLBasedJobManager
 )
+
+
+class InventoryManagerMixin(object):
+    """
+    Required Manager
+    """
+    inventory_manager = InventoryManager()
 
 
 class GraphManagerMixin(object):
@@ -64,6 +72,25 @@ class PingServer(APIView):
         if 'callback' in request.query_params and request.query_params.get('callback'):
             response_text = '%s(%s);' % (request.query_params['callback'], response_text)
             return HttpResponse(response_text, 'application/javascript')
+        return Response(response_text)
+
+
+class PackageExist(GraphManagerMixin, APIView):
+    """
+    Package Exist API
+    """
+    def get(self, request, **kwargs):
+        """
+        GET response
+        :param request: Request object
+        :param kwargs: Keyword Arguments
+        :return: Custom JSON
+        """
+        response_text = {}
+        if kwargs.get('package_name'):
+            package = kwargs['package_name']
+            response_text = {package: self.graph_manager.package_manager.is_package_exist(
+                package_name=package)}
         return Response(response_text)
 
 
@@ -231,7 +258,7 @@ class ReleaseStatusDetail(ReleaseStatus):
         return Response(response_text)
 
 
-class ReleaseStatusLocale(ReleaseStatus):
+class ReleaseStatusLocale(InventoryManagerMixin, ReleaseStatus):
     """
     Release Status Locale API View
     """
@@ -247,11 +274,22 @@ class ReleaseStatusLocale(ReleaseStatus):
         if kwargs.get('release_stream') and kwargs.get('locale'):
             release = kwargs['release_stream']
             locale = kwargs['locale']
+            locale_alias = self.inventory_manager.get_locale_alias(locale)
+            if locale == locale_alias:
+                locale = self.inventory_manager.get_alias_locale(locale)
+            relbranch_locales = self.inventory_manager.get_relbranch_locales(release)
+            if not relbranch_locales:
+                return Response({release: "Release seems not configured yet."}, status=412)
+            if locale not in relbranch_locales:
+                return Response({locale: "Does not belong to language set %s is mapped to."
+                                % release}, status=412)
             estimate = self.graph_manager.get_workload_estimate(release, locale=locale)
             if isinstance(estimate, tuple) and len(estimate) > 1:
-                response_text = {release: self._process_stats_data(estimate[1])} \
-                    if estimate[1] else {release: "Release not found"}
-                response_text[release]['locale'] = locale
+                if not estimate[1]:
+                    response_text = {release: "Release not found"}
+                else:
+                    response_text = {release: self._process_stats_data(estimate[1])}
+                    response_text[release]['locale'] = locale
             else:
                 response_text = {release: "Release status could not be determined."}
         return Response(response_text)
@@ -309,22 +347,26 @@ class RunJob(JobManagerMixin, APIView):
                     except Exception as e:
                         return Response({
                             "Exception": "Something went wrong. Details: %s" % str(e)
-                        })
+                        }, status=500)
                     else:
-                        response_text = {
+                        response_text, response_code = {
                             "Success": "Job created and logged. URL: %s" %
                                        self.request.get_raw_uri().replace(
                                            self.request.get_full_path(), reverse(
-                                               'log-detail', kwargs={'job_id': str(job_uuid)}))}
+                                               'log-detail', kwargs={'job_id': str(job_uuid)}))}, 200
                         response_text.update(dict(job_id=str(job_uuid)))
                 else:
-                    response_text = {"job_params": "Required params: %s not found" % ", ".join(unavailable_params)}
+                    response_text, response_code = {
+                        "job_params": "Required params: %s not found" % ", ".join(unavailable_params)
+                    }, 412
             else:
-                response_text = {"job_type": "Job template for %s not found" % data_received['job_type']}
+                response_text, response_code = {
+                    "job_type": "Job template for %s not found" % data_received['job_type']
+                }, 412
         else:
-            response_text = {"job_type": "Empty job type"}
+            response_text, response_code = {"job_type": "Empty job type"}, 412
 
-        return Response(response_text)
+        return Response(response_text, status=response_code)
 
 
 class JobLog(JobManagerMixin, APIView):
@@ -340,6 +382,7 @@ class JobLog(JobManagerMixin, APIView):
         :return: Custom JSON
         """
         response_text = {}
+        response_code = None
         if kwargs.get('job_id'):
             job = self.job_log_manager.get_job_detail(kwargs['job_id'])
             if job and job.job_visible_on_url:
@@ -350,7 +393,9 @@ class JobLog(JobManagerMixin, APIView):
                 response_text['result'] = job.job_result
                 response_text['remarks'] = job.job_remarks
                 response_text['YML_input'] = job.job_yml_text
-                response_text['log_ouput'] = job.job_log_json
+                response_text['log_output'] = job.job_log_json
+                response_code = 200
             else:
                 response_text = {kwargs['job_id']: "Job not found"}
-        return Response(response_text)
+                response_code = 412
+        return Response(response_text, status=response_code)

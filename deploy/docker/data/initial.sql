@@ -38,7 +38,7 @@ INSERT INTO ts_langset (lang_set_name, lang_set_slug, lang_set_color, locale_ids
 
 INSERT INTO ts_transplatforms (engine_name, subject, api_url, platform_slug, server_status) VALUES ('zanata', 'public', 'https://translate.zanata.org', 'ZNTAPUB', TRUE);
 INSERT INTO ts_transplatforms (engine_name, subject, api_url, platform_slug, server_status) VALUES ('zanata', 'fedora', 'https://fedora.zanata.org', 'ZNTAFED', TRUE);
-INSERT INTO ts_transplatforms (engine_name, subject, api_url, platform_slug, server_status) VALUES ('damnedlies', 'public', 'http://l10n.gnome.org', 'DMLSPUB', TRUE);
+INSERT INTO ts_transplatforms (engine_name, subject, api_url, platform_slug, server_status) VALUES ('damnedlies', 'public', 'https://l10n.gnome.org', 'DMLSPUB', TRUE);
 
 --
 -- Data for Name: ts_relstreams; Type: TABLE DATA; Schema: public; Owner: postgres
@@ -60,3 +60,8 @@ INSERT INTO ts_jobtemplates (job_template_type, job_template_name, job_template_
 VALUES ('syncdownstream', 'Sync Package Build System', 'Download and Unpack SRPM from latest build, filter translations and calculate statistics.', ARRAY['package_name', 'build_system', 'build_tag'],
 '{"job":{"name":"downstream stats","type":"syncdownstream","buildsys":"%BUILD_SYSTEM%","exception":"raise","execution":"sequential","package":"%PACKAGE_NAME%","return_type":"json",
 "tags":"%BUILD_TAG%","tasks":["get: latest build info","download: SRPM","unpack: SRPM","load: Spec file","unpack: tarball","apply: patch","filter: PO files","calculate: Stats"]}}');
+
+INSERT INTO ts_jobtemplates (job_template_type, job_template_name, job_template_desc, job_template_params, job_template_json)
+VALUES ('stringchange', 'Track String Change', 'Generate translation template from source and compare it with translation platform.', '{package_name,release_slug}',
+'{"job":{"release":"%RELEASE_SLUG%","exception":"raise","execution":"sequential","name":"string change","package":"%PACKAGE_NAME%","return_type":"json","tasks":[{"clone":[{"name":"git repo"},{"branch":"master"},{"recursive":"true"}]},
+{"generate":[{"name":"POT file"},{"domain":"%PACKAGE_NAME%"},{"cmd":"cd po && intltool-update --pot --gettext-package=%PACKAGE_NAME%"}]},{"download":[{"name": "Platform POT file"}]},{"calculate":"Diff"}],"type":"stringchange"}}');

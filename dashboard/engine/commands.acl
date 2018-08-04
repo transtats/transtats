@@ -1,0 +1,6 @@
+cd
+make
+intltool-update
+./autogen.sh
+./configure
+buildr

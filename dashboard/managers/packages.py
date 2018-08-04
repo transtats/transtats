@@ -149,7 +149,7 @@ class PackagesManager(InventoryManager):
                          if package.transtats_lastupdated or package.upstream_lastupdated]
         elif check_mapping:
             name_list = [(package.package_name, package.package_name) for package in packages
-                         if package.transtats_lastupdated and package.package_name_mapping]
+                         if package.transtats_lastupdated and package.release_branch_mapping]
         return tuple(sorted(name_list))
 
     def _get_project_details(self, transplatform, package_name):
@@ -454,6 +454,8 @@ class PackagesManager(InventoryManager):
         """
         kwargs = {}
         branch_mapping_dict = self.get_pkg_branch_mapping(package_name)
+        if not branch_mapping_dict:
+            return False
         kwargs['package_name_mapping'] = {package_name: ''}
         kwargs['release_branch_mapping'] = branch_mapping_dict
         kwargs['mapping_lastupdated'] = timezone.now()
