@@ -32,7 +32,7 @@ from django.views.generic import (
 from django.urls import reverse
 
 # dashboard
-from dashboard.constants import (APP_DESC, TS_JOB_TYPES)
+from dashboard.constants import TS_JOB_TYPES
 from dashboard.forms import (
     NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
 )
@@ -119,7 +119,6 @@ class TranStatusPackagesView(ManagersMixin, TemplateView):
         Build the Context Data
         """
         context = super(TemplateView, self).get_context_data(**kwargs)
-        context['description'] = APP_DESC
         packages = self.packages_manager.get_package_name_tuple()
         langs = self.inventory_manager.get_locale_lang_tuple()
         if packages:
@@ -161,7 +160,6 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         Build the Context Data
         """
         context = super(TemplateView, self).get_context_data(**kwargs)
-        context['description'] = APP_DESC
         relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
         langs = self.inventory_manager.get_locale_lang_tuple()
         context['releases'] = relbranches
@@ -200,7 +198,6 @@ class TransCoverageView(ManagersMixin, TemplateView):
         Build the Context Data
         """
         context = super(TemplateView, self).get_context_data(**kwargs)
-        context['description'] = APP_DESC
         graph_rules = self.graph_manager.get_graph_rules(only_active=True)
         if graph_rules:
             context['rules'] = graph_rules

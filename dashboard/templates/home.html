@@ -2,7 +2,7 @@
 
 {% block pagebanner %}
     <div style="padding-left:20px">
-      <h1>About&nbsp;&nbsp;&nbsp;&nbsp;<small>{{ description }} ...</small></h1>
+      {% include '_intro.html' %}
       {% include 'summary.html' %}
     </div>
 {% endblock %}
