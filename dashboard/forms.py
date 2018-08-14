@@ -193,6 +193,8 @@ class NewReleaseBranchForm(forms.Form):
     relbranch_name = forms.CharField(
         label='Release Branch Name', help_text='Version of the release stream.', required=True,
     )
+    # Placeholder field for showing the slug on the form, this will be disabled
+    relbranch_slug = forms.CharField(label='Release Branch Slug')
     current_phase = forms.ChoiceField(
         label='Current Phase', choices=phases_choices, required=True,
         help_text='Phase in which this version/branch is running.'
@@ -229,13 +231,14 @@ class NewReleaseBranchForm(forms.Form):
     helper.layout = Layout(
         Div(
             Field('relbranch_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
+            Field('relbranch_slug', disabled=True),
             Field('current_phase', css_class='selectpicker'),
             Field('lang_set', css_class='selectpicker'),
             Field('calendar_url', css_class='form-control'),
             InlineCheckboxes('enable_flags'),
             HTML("<hr/>"),
             FormActions(
-                Submit('addrelbranch', 'Add Release Branch'), Reset('reset', 'Reset')
+                Submit('addrelbranch', 'Add Release Branch'), Reset('reset', 'Reset', css_class='btn-danger')
             )
         )
     )
@@ -261,7 +264,7 @@ class NewGraphRuleForm(forms.Form):
         required=True
     )
     rule_packages = TextArrayField(
-        label='Packages', widget=forms.CheckboxSelectMultiple, choices=rule_packages_choices,
+        label='Packages', widget=forms.SelectMultiple, choices=rule_packages_choices,
         help_text="Selected packages will be included in this rule.", required=True
     )
     lang_selection = forms.ChoiceField(
@@ -272,7 +275,7 @@ class NewGraphRuleForm(forms.Form):
         help_text="Either pick language set associated with selected release branch or choose languages."
     )
     rule_langs = TextArrayField(
-        label='Languages', widget=forms.CheckboxSelectMultiple, choices=rule_langs_choices,
+        label='Languages', widget=forms.SelectMultiple, choices=rule_langs_choices,
         help_text="Selected languages will be included in this rule.", required=False
     )
 
@@ -288,7 +291,6 @@ class NewGraphRuleForm(forms.Form):
 
     helper = FormHelper()
     helper.form_method = 'POST'
-    helper.form_action = '/settings/graph-rules/new'
     helper.form_class = 'dynamic-form'
     helper.error_text_inline = True
     helper.form_show_errors = True
@@ -297,12 +299,13 @@ class NewGraphRuleForm(forms.Form):
         Div(
             Field('rule_name', css_class="form-control", onkeyup="showRuleSlug()"),
             Field('rule_relbranch', css_class="selectpicker"),
-            InlineCheckboxes('rule_packages', css_class="checkbox"),
+            Field('rule_packages', css_class="selectpicker"),
             InlineRadios('lang_selection', id="lang_selection_id"),
-            InlineCheckboxes('rule_langs', css_class="checkbox"),
+            Field('rule_langs', css_class="selectpicker"),
             HTML("<hr/>"),
             FormActions(
-                Submit('addRule', 'Add Graph Rule'), Reset('reset', 'Reset')
+                Submit('addRule', 'Add Graph Rule'),
+                Reset('reset', 'Reset', css_class='btn-danger')
             )
         )
     )
@@ -330,6 +333,7 @@ class NewLanguageForm(forms.ModelForm):
         Div(
             Field('lang_name', css_class='form-control'),
             Field('locale_id', css_class='form-control'),
+            Field('locale_script', css_class='form-control'),
             Field('locale_alias', css_class='form-control'),
             Field('lang_status', css_class='bootstrap-switch'),
             FormActions(
@@ -357,6 +361,7 @@ class UpdateLanguageForm(forms.ModelForm):
         Div(
             Field('locale_id', css_class='form-control', readonly=True),
             Field('lang_name', css_class='form-control'),
+            Field('locale_script', css_class='form-control'),
             Field('locale_alias', css_class='form-control'),
             Field('lang_status', css_class='bootstrap-switch'),
             FormActions(

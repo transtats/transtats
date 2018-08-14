@@ -64,7 +64,26 @@
 }
 
 .panel-footer {
-    overflow: auto
+    overflow: auto;
+}
+
+.card-releases-ts {
+    box-shadow: 0px 0px 3px 2px rgba(3, 3, 3, 0.175);
+}
+
+@media (min-width: 992px){
+    .list-view-pf .list-group-item-heading {
+        font-size: initial;
+    }
+}
+
+.card-pf-footer {
+    overflow: auto;
+}
+
+.vert-scroll-div-ts {
+    max-height: 470px;
+    overflow-y: auto;
 }
 
 /*

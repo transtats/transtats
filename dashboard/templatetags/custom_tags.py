@@ -37,6 +37,11 @@ def join_by(sequence, delimiter):
     return delimiter.join(sequence)
 
 
+@register.filter
+def js_id_safe(id_value):
+    return id_value.replace("@", "-at-")
+
+
 @register.inclusion_tag(
     os.path.join("packages", "_package_details.html")
 )
@@ -125,7 +130,7 @@ def tag_tabular_form(package):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_workload_combined.html")
+    os.path.join("releases", "_workload_combined.html")
 )
 def tag_workload_per_lang(relbranch, lang_id):
     return_value = OrderedDict()
@@ -139,7 +144,7 @@ def tag_workload_per_lang(relbranch, lang_id):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_workload_combined.html")
+    os.path.join("releases", "_workload_combined.html")
 )
 def tag_workload_combined(relbranch):
     return_value = OrderedDict()
@@ -151,7 +156,7 @@ def tag_workload_combined(relbranch):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_workload_detailed.html")
+    os.path.join("releases", "_workload_detailed.html")
 )
 def tag_workload_detailed(relbranch):
     return_value = OrderedDict()
@@ -163,7 +168,7 @@ def tag_workload_detailed(relbranch):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_releases_summary.html")
+    os.path.join("releases", "_releases_summary.html")
 )
 def tag_releases_summary():
     return_value = OrderedDict()

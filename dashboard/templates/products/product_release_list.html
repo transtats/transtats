@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block extrascript %}
+<script src="/static/node_modules/jquery-match-height/dist/jquery.matchHeight.js"></script>
+{% endblock %}
+{% block pagecontent %}
+<div class="panel panel-default" id="panel-product-releases">
+  <div class="panel-heading">
+    <h3 class="panel-title">
+      {{ relstream.relstream_name }} releases
+      {% if user.is_staff %}
+      <a class="pull-right btn btn-default btn-xs" id="button-add-release" type="button" href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}">
+        <span class="pficon pficon-add-circle-o"></span> Add release
+      </a>
+      {% endif %}
+    </h3>
+  </div>
+  <div class="panel-body">
+    <div class="row row-cards-pf">
+      {% for relbranch in relbranches %}
+      <div class="col-xs-12 col-sm-6 col-md-4">
+        <div class="card-pf card-pf-utilization card-pf-accented card-releases-ts">
+          <h2 class="card-pf-title">
+            <a href="{% url 'trans-status-release' relbranch.relbranch_slug %}" data-toggle="tooltip" title="Stats of {{ relbranch.relbranch_slug }}">
+              {{ relbranch.relbranch_name }}
+            </a>
+          </h2>
+          <div class="card-pf-body">
+            <div class="card-pf-utilization-details">
+              <div>
+                <span class="text-muted"><strong>Status: </strong></span>{{ relbranch.current_phase|capfirst }}
+              </div>
+              <div>
+                <span class="text-muted"><strong>Language Set: </strong></span>{{ relbranch.lang_set|capfirst }}
+              </div>
+              <div>
+                <span class="text-muted"><strong>Sync Calendar: </strong></span>
+                {% if relbranch.sync_calendar %}
+                <span class="pficon pficon-ok"></span>
+                {% else %}
+                <span class="fa fa-ban"></span>
+                {% endif %}
+              </div>
+              <div>
+                <span class="text-muted"><strong>Notifications: </strong></span>
+                {% if relbranch.notifications_flag %}
+                <span class="pficon pficon-ok"></span>
+                {% else %}
+                <span class="fa fa-ban"></span>
+                {% endif %}
+              </div>
+              <div>
+                <span class="text-muted"><strong>Track Translation: </strong></span>
+                {% if relbranch.track_trans_flag %}
+                <span class="pficon pficon-ok"></span>
+                {% else %}
+                <span class="fa fa-ban"></span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="vert-scroll-div-ts">
+              <table class="table table-bordered table-striped table-hover">
+                <caption>
+                  <strong>Release Schedule</strong>
+                </caption>
+                <tbody>
+                  {% for milestone, date in relbranch.schedule_json.items|dictsort:1 %}
+                  <tr>
+                    <td>{{ milestone }}</td>
+                    <td class="text-info">{{ date }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-pf-footer">
+            {% if relbranch.scm_branch %}
+            <span>{{ relbranch.scm_branch }}</span>
+            {% endif %}
+            <span class="pull-right">
+              <a href="{{ relbranch.calendar_url }}" target="_blank">iCal</a>
+              <span class="fa fa-external-link" aria-hidden="true"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="blank-slate-pf blank-state-ts" id="empty-state-product-releases">
+        <div class="blank-slate-pf-icon">
+          <span class="pficon pficon pficon-add-circle-o"></span>
+        </div>
+        <h1>
+          No releases available!
+        </h1>
+        <p>
+          Seems like no releases are available, would like to add one?
+        </p>
+        <p>
+          Learn more about this
+          <a href="#">on the documentation</a>.
+        </p>
+        <div class="blank-slate-pf-main-action">
+          <a class="btn btn-primary btn-lg" href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}">
+            <i class="pficon pficon-add-circle-o"></i> Add a {{ relstream.relstream_name }} release</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% if relbranches %}
+  <div class="panel-footer">
+    <span class="pull-right text-muted">
+      Total {{ relstream.relstream_name }} releases: {{ relbranches|length }}
+    </span>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  $(document).ready(function() {
+    $(".row-cards-pf > [class*='col'] > .card-pf .card-pf-title").matchHeight();
+    $(".row-cards-pf > [class*='col'] > .card-pf > .card-pf-body").matchHeight();
+    $(".row-cards-pf > [class*='col'] > .card-pf > .card-pf-footer").matchHeight();
+    $(".row-cards-pf > [class*='col'] > .card-pf").matchHeight();
+  });
+</script>
+{% endblock %}

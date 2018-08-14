@@ -2,13 +2,13 @@
 {% block extrascript %}
 <script src="/static/node_modules/bootstrap-select/js/bootstrap-select.js"></script>
 <script type="text/javascript">
-    function slugify(e) {
-        return e.toString().toLowerCase().replace(/\s+/g, "-").replace(/\-\-+/g, "-").replace(/\./g, "-").replace(/^-+/, "")
-        //.replace(/[^\w\-]+/g, "").replace(/-+$/, "")
-    }
-    function showPackageSlug() {
-        $("#id_package_name").val(slugify($("#id_package_name").val()))
-    }
+  function slugify(e) {
+    return e.toString().toLowerCase().replace(/\s+/g, "-").replace(/\-\-+/g, "-").replace(/\./g, "-").replace(/^-+/, "")
+    //.replace(/[^\w\-]+/g, "").replace(/-+$/, "")
+  }
+  function showPackageSlug() {
+    $("#id_package_name").val(slugify($("#id_package_name").val()))
+  }
 </script>
 {% endblock %}
 {% block formtitle %}
