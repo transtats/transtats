@@ -528,7 +528,7 @@ class JobsView(ManagersMixin, TemplateView):
 
 class JobsLogsView(ManagersMixin, ListView):
     """
-    Logs Settings View
+    Logs List View
     """
     template_name = "jobs/logs.html"
     context_object_name = 'logs'
@@ -538,9 +538,24 @@ class JobsLogsView(ManagersMixin, ListView):
         return job_logs[:15]
 
 
+class JobsLogsPackageView(ManagersMixin, ListView):
+    """
+    Logs List per Package View
+    """
+    template_name = "jobs/logs.html"
+    context_object_name = 'logs'
+
+    def get_queryset(self):
+        job_logs = []
+        pkg_name = self.request.resolver_match.kwargs.get('package_name')
+        if pkg_name:
+            job_logs = self.jobs_log_manager.get_job_logs(remarks=pkg_name)
+        return job_logs
+
+
 class JobsArchiveView(ManagersMixin, ListView):
     """
-    Logs Settings View
+    Archive List View
     """
     template_name = "jobs/archive.html"
     context_object_name = 'logs'

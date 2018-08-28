@@ -6,7 +6,8 @@
               <small class="text-muted">(<i>this mapping is basis to comparision of statistics</i>)</small></span>
         <span class="pull-right">
             {% if mapping_lastupdated %}
-                <span class="text-muted">Last Updated:</span> {{ mapping_lastupdated|timesince }}
+                <span class="text-muted" data-toggle="tooltip" title="Mapping should be updated as soon as a new release is added.">
+                    Mapping Last Updated:</span> {{ mapping_lastupdated|timesince }}
                 <span style="color:grey">ago</span>.&nbsp;&nbsp;
             {% endif %}
         </span>

@@ -50,10 +50,12 @@
           Update <span class="caret"></span>
       </button>
       <ul class="dropdown-menu">
-        <li><a id="createBranchMapping" data-toggle="tooltip" title="Rebuild Branch Mapping"><input type="hidden" value="mapBranches" id="mapBranchesIdentifier"/>Branch Mapping</a></li>
-        <li><a id="createStatsDiff" data-toggle="tooltip" title="Sync done? Rebuild diff"><input type="hidden" value="statsDiff" id="statsDiffIdentifier"/>Statistics Diff</a></li>
+        <li><a id="createBranchMapping" data-toggle="tooltip" title="Update Branch Mapping"><input type="hidden" value="mapBranches" id="mapBranchesIdentifier"/>Branch Mapping</a></li>
+        <li><a id="createStatsDiff" data-toggle="tooltip" title="Sync done? Update diff"><input type="hidden" value="statsDiff" id="statsDiffIdentifier"/>Statistics Diff</a></li>
       </ul>
-    </span><br/><br/>
+    </span>
+    <span><a href="{% url 'jobs-logs-package' package_name %}" class="btn btn-default" data-toggle="tooltip" title="Job logs of {{ package_name }}">
+        <span class="glyphicon glyphicon-tasks" aria-hidden="true"></span></a></span><br/><br/>
     <span id="span-alerts" class="text-warning pull-right"></span>
 </span>
 {% endblock %}

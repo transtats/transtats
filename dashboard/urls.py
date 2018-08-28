@@ -24,10 +24,11 @@ from django.views.generic.base import TemplateView, RedirectView
 from dashboard.services.urls import api_urls
 from dashboard.views import (
     TranStatusPackagesView, TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
-    TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView, JobsView,
-    JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView, get_build_tags,
-    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobDetailView, refresh_package, job_template,
-    release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs
+    TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
+    JobsView, JobsLogsView, JobsLogsPackageView, JobsArchiveView, NewPackageView, TransCoverageView,
+    StreamBranchesSettingsView, get_build_tags, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView,
+    JobDetailView, refresh_package, job_template, release_graph, schedule_job, graph_data, tabular_data,
+    export_packages, generate_reports, read_file_logs
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -51,7 +52,9 @@ app_jobs_urls = [
     url(r'^archive$', JobsArchiveView.as_view(), name="jobs-archive"),
     url(r'^yml-based$', TemplateView.as_view(template_name="jobs/jobs_yml_based.html"),
         name="jobs-yml-based"),
-    url(r'^log/(?P<job_id>[0-9a-f-]+)/detail$', JobDetailView.as_view(), name="log-detail")
+    url(r'^log/(?P<job_id>[0-9a-f-]+)/detail$', JobDetailView.as_view(), name="log-detail"),
+    url(r'^logs/package/(?P<package_name>[\w\-\+]+)$', JobsLogsPackageView.as_view(),
+        name="jobs-logs-package")
 ]
 
 app_setting_urls = [

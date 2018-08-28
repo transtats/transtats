@@ -144,13 +144,16 @@ class JobsLogManager(BaseManager):
     Maintains Job Logs
     """
 
-    def get_job_logs(self):
+    def get_job_logs(self, remarks=None):
         """
         Fetch all job logs from the db
         """
         job_logs = None
+        filters = {}
+        if remarks:
+            filters.update(dict(job_remarks=remarks))
         try:
-            job_logs = Jobs.objects.all().order_by('-job_start_time')
+            job_logs = Jobs.objects.filter(**filters).order_by('-job_start_time')
         except:
             # log event, passing for now
             pass
@@ -548,7 +551,7 @@ class YMLBasedJobManager(BaseManager):
                     'upstream_lastupdated': timezone.now()
                 })
             # If its for rawhide, update downstream sync time for the package
-            if getattr(self, 'tag', '') == 'rawhide':
+            if getattr(self, 'tag', ''):
                 self.package_manager.update_package(self.package, {
                     'downstream_lastupdated': timezone.now()
                 })
