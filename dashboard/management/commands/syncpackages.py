@@ -34,13 +34,13 @@ class Command(BaseCommand):
         self.package_manager.sync_update_package_stats(pkg)
 
     def handle(self, *args, **options):
-
         all_packages = self.package_manager.get_packages().filter(
-            transtats_lastupdated__lte=timezone.now() - timedelta(days=1)
+            transtats_lastupdated__lte=timezone.now() - timedelta(hours=6)
         ).order_by('transplatform_url')
-
         for package in all_packages:
-            th = threading.Thread(target=self._sync_package, args=(package, ))
+            th = threading.Thread(
+                target=self._sync_package, args=(package.package_name, )
+            )
             th.start()
             th.join()
             time.sleep(2)
