@@ -2,7 +2,6 @@
 -- Data for Name: ts_locales; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('as_IN', 'Assamese', 'as', 'Beng', FALSE);
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('bn_IN', 'Bengali', 'bn', 'Beng', FALSE);
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('de_DE', 'German', 'de', 'Latn', TRUE);
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('es_ES', 'Spanish', 'es', 'Latn', TRUE);
@@ -10,27 +9,23 @@ INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('gu_IN', 'Gujarati', 'gu', 'Gujr', FALSE);
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('it_IT', 'Italian', 'it', 'Latn', TRUE);
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('ja_JP', 'Japanese', 'ja', 'Hani', TRUE);
-INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('kn_IN', 'Kannada', 'kn', 'Knda', FALSE);
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('ko_KR', 'Korean', 'ko', 'Hang', TRUE);
-INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('ml_IN', 'Malayalam', 'ml', 'Mlym', FALSE);
-INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('pa_IN', 'Punjabi', 'pa', 'Guru', FALSE);
-INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('pt_BR', 'Portuguese (Brazilian)', 'pt', 'Latn', TRUE);
+INSERT INTO ts_locales (locale_id, lang_name, locale_alias, lang_status, locale_script) VALUES ('pt_PT', 'Portuguese', 'pt', TRUE, 'Latn');
+INSERT INTO ts_locales (locale_id, lang_name, locale_alias, lang_status, locale_script) VALUES ('pt_BR', 'Portuguese (Brazil)', NULL, TRUE, 'Latn');
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('ru_RU', 'Russian', 'ru', 'Cyrl', TRUE);
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('ta_IN', 'Tamil', 'ta', 'Taml', FALSE);
-INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('te_IN', 'Telugu', 'te', 'Telu', FALSE);
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('zh_CN', 'Chinese (Simplified)', 'zh-Hans', 'Hans', TRUE);
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('zh_TW', 'Chinese (Traditional)', 'zh-Hant', 'Hant', TRUE);
-INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('or_IN', 'Odia', 'or', 'Orya', FALSE);
-INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('mr_IN', 'Marathi', 'mr', 'Deva', FALSE);
 INSERT INTO ts_locales (locale_id, lang_name, locale_alias, locale_script, lang_status) VALUES ('hi_IN', 'Hindi', 'hi', 'Deva', FALSE);
 
 --
 -- Data for Name: ts_langset; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO ts_langset (lang_set_name, lang_set_slug, lang_set_color, locale_ids) VALUES ('Master Set', 'master-set', 'Grey', ARRAY['as_IN', 'bn_IN', 'de_DE', 'es_ES', 'fr_FR',
-'gu_IN', 'it_IT', 'ja_JP', 'kn_IN', 'ko_KR', 'ml_IN', 'pa_IN', 'pt_BR', 'ru_RU', 'ta_IN', 'te_IN', 'zh_CN', 'zh_TW', 'or_IN', 'mr_IN', 'hi_IN']);
-INSERT INTO ts_langset (lang_set_name, lang_set_slug, lang_set_color, locale_ids) VALUES ('All Enabled', 'all-enabled', 'LightSeaGreen', ARRAY['de_DE', 'es_ES', 'fr_FR', 'it_IT', 'ja_JP', 'ko_KR', 'pt_BR', 'ru_RU', 'zh_CN', 'zh_TW']);
+INSERT INTO ts_langset (lang_set_name, lang_set_slug, lang_set_color, locale_ids) VALUES ('Master Set', 'master-set', 'Grey', ARRAY['bn_IN', 'de_DE', 'es_ES',
+'fr_FR', 'gu_IN', 'it_IT', 'ja_JP', 'ko_KR', 'pt_PT', 'pt_BR', 'ru_RU', 'ta_IN', 'zh_CN', 'zh_TW', 'hi_IN']);
+INSERT INTO ts_langset (lang_set_name, lang_set_slug, lang_set_color, locale_ids) VALUES ('All Enabled', 'all-enabled', 'LightSeaGreen', ARRAY['de_DE', 'es_ES',
+'fr_FR', 'it_IT', 'ja_JP', 'ko_KR', 'pt_PT', 'pt_BR', 'ru_RU', 'zh_CN', 'zh_TW']);
 
 --
 -- Data for Name: ts_transplatforms; Type: TABLE DATA; Schema: public; Owner: postgres

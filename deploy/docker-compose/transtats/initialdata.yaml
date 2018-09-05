@@ -147,6 +147,10 @@
   fields: {lang_name: Polish, locale_alias: pl, locale_script: Latn, lang_status: true}
 - model: dashboard.languages
   pk: pt_BR
+  fields: {lang_name: Portuguese (Brazil), locale_alias: null, locale_script: Latn,
+    lang_status: true}
+- model: dashboard.languages
+  pk: pt_PT
   fields: {lang_name: Portuguese, locale_alias: pt, locale_script: Latn, lang_status: true}
 - model: dashboard.languages
   pk: ro_RO
@@ -212,46 +216,48 @@
   pk: zu_ZA
   fields: {lang_name: Zulu, locale_alias: zu, locale_script: Latn, lang_status: true}
 - model: dashboard.languageset
-  pk: 1
+  pk: 5
   fields: {lang_set_name: Master Set, lang_set_slug: master-set, lang_set_color: Grey,
     locale_ids: '["af_ZA", "sq_AL", "ar_EG", "as_IN", "eu_ES", "be_BY", "bn_BD", "bg_BG",
       "my_MM", "ca_ES", "zh_CN", "zh_TW", "hr_HR", "cs_CZ", "da_DK", "nl_NL", "en_GB",
       "fi_FI", "fr_FR", "fur_IT", "gl_ES", "de_DE", "ka_GE", "el_GR", "gu_IN", "he_IL",
       "hi_IN", "hu_HU", "id_ID", "it_IT", "ja_JP", "kn_IN", "kk_KZ", "km_KH", "ko_KR",
       "lt_LT", "mk_MK", "mai_IN", "ms_MY", "ml_IN", "mr_IN", "mn_MN", "ne_NP", "nb_NO",
-      "nn_NO", "or_IN", "fa_IR", "pl_PL", "pt_BR", "pa_IN", "pa_PK", "ro_RO", "ru_RU",
-      "sr_RS", "sr_RS@latin", "gd_GB", "si_LK", "sk_SK", "es_ES", "sv_SE", "ta_IN",
-      "te_IN", "th_TH", "tr_TR", "uk_UA", "ur_PK", "vi_VN", "xh_ZA", "yo_NG", "zu_ZA"]'}
+      "nn_NO", "or_IN", "fa_IR", "pl_PL", "pt_PT", "pt_BR", "pa_IN", "pa_PK", "ro_RO",
+      "ru_RU", "sr_RS", "sr_RS@latin", "gd_GB", "si_LK", "sk_SK", "es_ES", "sv_SE",
+      "ta_IN", "te_IN", "th_TH", "tr_TR", "uk_UA", "ur_PK", "vi_VN", "xh_ZA", "yo_NG",
+      "zu_ZA"]'}
 - model: dashboard.languageset
-  pk: 2
+  pk: 6
   fields: {lang_set_name: All Enabled, lang_set_slug: all-enabled, lang_set_color: LightSeaGreen,
     locale_ids: '["af_ZA", "sq_AL", "ar_EG", "as_IN", "eu_ES", "be_BY", "bn_BD", "bg_BG",
       "my_MM", "ca_ES", "zh_CN", "zh_TW", "hr_HR", "cs_CZ", "da_DK", "nl_NL", "en_GB",
       "fi_FI", "fr_FR", "fur_IT", "gl_ES", "de_DE", "ka_GE", "el_GR", "gu_IN", "he_IL",
       "hi_IN", "hu_HU", "id_ID", "it_IT", "ja_JP", "kn_IN", "kk_KZ", "km_KH", "ko_KR",
       "lt_LT", "mk_MK", "mai_IN", "ms_MY", "ml_IN", "mr_IN", "mn_MN", "ne_NP", "nb_NO",
-      "nn_NO", "or_IN", "fa_IR", "pl_PL", "pt_BR", "pa_IN", "pa_PK", "ro_RO", "ru_RU",
-      "sr_RS", "sr_RS@latin", "gd_GB", "si_LK", "sk_SK", "es_ES", "sv_SE", "ta_IN",
-      "te_IN", "th_TH", "tr_TR", "uk_UA", "ur_PK", "vi_VN", "xh_ZA", "yo_NG", "zu_ZA"]'}
+      "nn_NO", "or_IN", "fa_IR", "pl_PL", "pt_PT", "pt_BR", "pa_IN", "pa_PK", "ro_RO",
+      "ru_RU", "sr_RS", "sr_RS@latin", "gd_GB", "si_LK", "sk_SK", "es_ES", "sv_SE",
+      "ta_IN", "te_IN", "th_TH", "tr_TR", "uk_UA", "ur_PK", "vi_VN", "xh_ZA", "yo_NG",
+      "zu_ZA"]'}
 - model: dashboard.languageset
-  pk: 3
+  pk: 7
   fields: {lang_set_name: Internal, lang_set_slug: internal, lang_set_color: MediumPurple,
-    locale_ids: '["de_DE", "es_ES", "fr_FR", "it_IT", "ja_JP", "ko_KR", "pt_BR", "ru_RU",
+    locale_ids: '["de_DE", "es_ES", "fr_FR", "it_IT", "ja_JP", "ko_KR", "pt_PT", "ru_RU",
       "zh_CN", "zh_TW"]'}
 - model: dashboard.transplatform
   pk: 1
+  fields: {engine_name: damnedlies, subject: public, api_url: 'https://l10n.gnome.org',
+    platform_slug: DMLSPUB, server_status: true, projects_json: null, projects_lastupdated: null,
+    auth_login_id: null, auth_token_key: null}
+- model: dashboard.transplatform
+  pk: 2
   fields: {engine_name: zanata, subject: public, api_url: 'https://translate.zanata.org',
     platform_slug: ZNTAPUB, server_status: true, projects_json: null, projects_lastupdated: null,
     auth_login_id: null, auth_token_key: null}
 - model: dashboard.transplatform
-  pk: 2
+  pk: 3
   fields: {engine_name: zanata, subject: fedora, api_url: 'https://fedora.zanata.org',
     platform_slug: ZNTAFED, server_status: true, projects_json: null, projects_lastupdated: null,
-    auth_login_id: null, auth_token_key: null}
-- model: dashboard.transplatform
-  pk: 3
-  fields: {engine_name: damnedlies, subject: public, api_url: 'https://l10n.gnome.org',
-    platform_slug: DMLSPUB, server_status: true, projects_json: null, projects_lastupdated: null,
     auth_login_id: null, auth_token_key: null}
 - model: dashboard.releasestream
   pk: 1
