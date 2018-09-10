@@ -37,8 +37,7 @@ from dashboard.managers import BaseManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.models import (
-    TransPlatform, Packages, ReleaseStream, StreamBranches,
-    JobTemplates, Jobs
+    Platform, Package, Product, Release, JobTemplate, Job
 )
 
 
@@ -60,7 +59,7 @@ class JobTemplateManager(BaseManager):
         """
         job_templates = []
         try:
-            job_templates = JobTemplates.objects.only(*fields).filter(**filters)
+            job_templates = JobTemplate.objects.only(*fields).filter(**filters)
         except Exception as e:
             self.app_logger(
                 'ERROR', "Job templates could not be fetched for " +
@@ -108,7 +107,7 @@ class JobManager(object):
         if user_email:
             kwargs.update(dict(triggered_by=user_email))
         try:
-            Jobs.objects.update_or_create(
+            Job.objects.update_or_create(
                 **match_params, defaults=kwargs
             )
         except:
@@ -122,7 +121,7 @@ class JobManager(object):
         Update job with finish details
         """
         try:
-            Jobs.objects.filter(job_uuid=self.uuid).update(
+            Job.objects.filter(job_uuid=self.uuid).update(
                 job_end_time=timezone.now(),
                 job_log_json=self.log_json,
                 job_result=self.job_result,
@@ -153,7 +152,7 @@ class JobsLogManager(BaseManager):
         if remarks:
             filters.update(dict(job_remarks=remarks))
         try:
-            job_logs = Jobs.objects.filter(**filters).order_by('-job_start_time')
+            job_logs = Job.objects.filter(**filters).order_by('-job_start_time')
         except:
             # log event, passing for now
             pass
@@ -169,7 +168,7 @@ class JobsLogManager(BaseManager):
         if not job_id:
             return job_log
         try:
-            job_log = Jobs.objects.filter(job_uuid=job_id).first()
+            job_log = Job.objects.filter(job_uuid=job_id).first()
         except:
             # log event, passing for now
             pass
@@ -228,8 +227,8 @@ class TransplatformSyncManager(BaseManager):
         """
         self.job_manager.log_json['Projects'] = OrderedDict()
         try:
-            transplatforms = TransPlatform.objects.only('engine_name', 'api_url',
-                                                        'auth_login_id', 'auth_token_key') \
+            transplatforms = Platform.objects.only('engine_name', 'api_url',
+                                                   'auth_login_id', 'auth_token_key') \
                 .filter(server_status=True).all()
         except Exception as e:
             self.job_manager.log_json['Projects'].update(
@@ -249,7 +248,7 @@ class TransplatformSyncManager(BaseManager):
                 if response_dict:
                     # save projects json in db
                     try:
-                        TransPlatform.objects.filter(api_url=platform.api_url).update(
+                        Platform.objects.filter(api_url=platform.api_url).update(
                             projects_json=response_dict, projects_lastupdated=timezone.now()
                         )
                     except Exception as e:
@@ -275,7 +274,7 @@ class TransplatformSyncManager(BaseManager):
         """
         self.job_manager.log_json['Project-Details'] = OrderedDict()
         try:
-            project_urls = Packages.objects.select_related()
+            project_urls = Package.objects.select_related()
         except Exception as e:
             self.job_manager.log_json['Project-Details'].update(
                 {str(datetime.now()): 'Fetch Project URLs from db failed. Details: ' + str(e)}
@@ -294,7 +293,7 @@ class TransplatformSyncManager(BaseManager):
                     )
                     if project_details_resp_dict:
                         try:
-                            Packages.objects.filter(transplatform_url=url.transplatform_url).update(
+                            Package.objects.filter(transplatform_url=url.transplatform_url).update(
                                 package_details_json=project_details_resp_dict,
                                 details_json_lastupdated=timezone.now()
                             )
@@ -353,7 +352,7 @@ class ReleaseScheduleSyncManager(BaseManager):
         self.job_manager.log_json[SUBJECT] = OrderedDict()
 
         try:
-            relbranches = StreamBranches.objects.only('relbranch_slug', 'relstream_slug', 'calendar_url') \
+            relbranches = Release.objects.only('release_slug', 'product_slug', 'calendar_url') \
                 .filter(sync_calendar=True).all()
         except Exception as e:
             self.job_manager.log_json[SUBJECT].update(
@@ -375,7 +374,7 @@ class ReleaseScheduleSyncManager(BaseManager):
                         relbranch.relstream_slug, relbranch.relbranch_slug, ical_events, required_events
                     )
                 if schedule_dict:
-                    relbranch_update_result = StreamBranches.objects.filter(
+                    relbranch_update_result = Release.objects.filter(
                         relbranch_slug=relbranch.relbranch_slug
                     ).update(schedule_json=schedule_dict)
                     if relbranch_update_result:
@@ -454,7 +453,7 @@ class BuildTagsSyncManager(BaseManager):
                 self.job_manager.job_result = False
             else:
                 if tags:
-                    relbranch_update_result = ReleaseStream.objects.filter(
+                    relbranch_update_result = Product.objects.filter(
                         relstream_slug=relstream.relstream_slug
                     ).update(relstream_built_tags=tags,
                              relstream_built_tags_lastupdated=timezone.now())

@@ -24,8 +24,7 @@ from dashboard.constants import (
     TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS
 )
 from dashboard.models import (
-    Languages, LanguageSet, TransPlatform, ReleaseStream,
-    StreamBranches, Packages
+    Language, LanguageSet, Platform, Product, Release, Package
 )
 from dashboard.managers.inventory import InventoryManager
 
@@ -42,7 +41,7 @@ all_platform_slugs.extend(DAMNEDLIES_SLUGS)
 SLUG_CHOICES = tuple([(slug, slug) for slug in all_platform_slugs])
 
 
-class TransPlatformAdminForm(forms.ModelForm):
+class PlatformAdminForm(forms.ModelForm):
     engine_name = forms.ChoiceField(
         choices=ENGINE_CHOICES, label="Platform Engine",
         help_text="Platform engine helps system to determine specific API/tasks."
@@ -54,10 +53,10 @@ class TransPlatformAdminForm(forms.ModelForm):
     )
 
 
-class ReleaseStreamAdminForm(forms.ModelForm):
-    relstream_slug = forms.ChoiceField(
-        choices=RELSTR_CHOICES, label="Release Stream SLUG",
-        help_text="System identifies release stream by this SLUG.",
+class ProductAdminForm(forms.ModelForm):
+    product_slug = forms.ChoiceField(
+        choices=RELSTR_CHOICES, label="Product SLUG",
+        help_text="System identifies product by this SLUG.",
     )
 
 
@@ -78,7 +77,7 @@ class LanguageSetAdminForm(forms.ModelForm):
     )
 
 
-class StreamBranchesAdminForm(forms.ModelForm):
+class ReleaseAdminForm(forms.ModelForm):
 
     lang_set_choices = ()
 
@@ -87,7 +86,7 @@ class StreamBranchesAdminForm(forms.ModelForm):
         lang_sets = inventory_manager.get_langsets(['lang_set_slug', 'lang_set_name'])
         self.lang_set_choices = tuple([(lang_set.lang_set_slug, lang_set.lang_set_name)
                                        for lang_set in lang_sets])
-        super(StreamBranchesAdminForm, self).__init__(*args, **kwargs)
+        super(ReleaseAdminForm, self).__init__(*args, **kwargs)
         self.fields['lang_set'].choices = self.lang_set_choices
 
     lang_set = forms.ChoiceField(
@@ -96,7 +95,7 @@ class StreamBranchesAdminForm(forms.ModelForm):
     )
 
 
-@admin.register(Languages)
+@admin.register(Language)
 class LanguagesAdmin(admin.ModelAdmin):
     search_fields = ('lang_name', )
 
@@ -107,30 +106,30 @@ class LanguageSetAdmin(admin.ModelAdmin):
     search_fields = ('lang_set_name', )
 
 
-@admin.register(TransPlatform)
-class TransPlatformAdmin(admin.ModelAdmin):
-    form = TransPlatformAdminForm
-    exclude = ('projects_json', 'projects_lastupdated')
+@admin.register(Platform)
+class PlatformAdmin(admin.ModelAdmin):
+    form = PlatformAdminForm
+    exclude = ('projects_json_str', 'projects_last_updated')
     search_fields = ('subject', )
 
 
-@admin.register(ReleaseStream)
-class ReleaseStreamAdmin(admin.ModelAdmin):
-    form = ReleaseStreamAdminForm
-    search_fields = ('relstream_name', )
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    form = ProductAdminForm
+    search_fields = ('product_name', )
 
 
-@admin.register(StreamBranches)
-class StreamBranchesAdmin(admin.ModelAdmin):
-    form = StreamBranchesAdminForm
-    search_fields = ('relbranch_slug', )
-    exclude = ('relstream_slug', 'created_on', 'schedule_json')
+@admin.register(Release)
+class ReleaseAdmin(admin.ModelAdmin):
+    form = ReleaseAdminForm
+    search_fields = ('release_slug', )
+    exclude = ('release_slug', 'created_on', 'schedule_json_str')
 
 
-@admin.register(Packages)
-class PackagesAdmin(admin.ModelAdmin):
+@admin.register(Package)
+class PackageAdmin(admin.ModelAdmin):
     search_fields = ('package_name', )
-    exclude = ('package_details_json', 'details_json_lastupdated',
-               'package_name_mapping', 'mapping_lastupdated',
-               'transtats_lastupdated', 'upstream_latest_stats',
-               'upstream_lastupdated')
+    exclude = ('package_details_json_str', 'details_json_last_updated',
+               'name_map_last_updated', 'release_branch_map_last_updated',
+               'platform_last_updated', 'upstream_last_updated',
+               'downstream_last_updated')

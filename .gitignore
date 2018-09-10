@@ -65,7 +65,7 @@ target/
 .ipynb_checkpoints
 
 # db related
-*.sqlite3
+*sqlite3*
 alembic.ini
 initial-data-*.sql
 

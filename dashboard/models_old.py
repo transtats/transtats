@@ -1,4 +1,4 @@
-# Copyright 2018 Red Hat, Inc.
+# Copyright 2016 Red Hat, Inc.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,6 +18,7 @@ from uuid import uuid4
 
 # django
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField, ArrayField
 from django.db.models.signals import post_save
 from django.db import models
 from django.dispatch import receiver
@@ -30,9 +31,9 @@ from rest_framework.authtoken.models import Token
 TABLE_PREFIX = 'ts_'
 
 
-class Language(models.Model):
+class Languages(models.Model):
     """
-    Language Model
+    Languages Model
     """
     locale_id = models.CharField(
         max_length=50, primary_key=True, verbose_name="Locale ID"
@@ -52,7 +53,7 @@ class Language(models.Model):
         return self.lang_name
 
     class Meta:
-        db_table = TABLE_PREFIX + 'languages'
+        db_table = TABLE_PREFIX + 'locales'
         verbose_name = "Language"
 
 
@@ -70,7 +71,10 @@ class LanguageSet(models.Model):
     lang_set_color = models.CharField(
         max_length=100, unique=True, verbose_name="Tag Colour"
     )
-    languages = models.ManyToManyField(Language)
+    locale_ids = ArrayField(
+        models.CharField(max_length=50, blank=True),
+        default=list, null=True, verbose_name="Locale IDs"
+    )
 
     def __str__(self):
         return self.lang_set_name
@@ -80,7 +84,7 @@ class LanguageSet(models.Model):
         verbose_name = "Language Set"
 
 
-class Platform(models.Model):
+class TransPlatform(models.Model):
     """
     Translation Platforms Model
     """
@@ -96,8 +100,8 @@ class Platform(models.Model):
         max_length=400, unique=True, verbose_name="Platform SLUG"
     )
     server_status = models.BooleanField(verbose_name="Enable/Disable")
-    projects_json_str = models.TextField(null=True, blank=True)
-    projects_last_updated = models.DateTimeField(null=True)
+    projects_json = JSONField(null=True)
+    projects_lastupdated = models.DateTimeField(null=True)
     auth_login_id = models.CharField(
         max_length=200, null=True, blank=True, verbose_name="Auth User"
     )
@@ -109,32 +113,33 @@ class Platform(models.Model):
         return "{0} {1}".format(self.engine_name, self.subject)
 
     class Meta:
-        db_table = TABLE_PREFIX + 'platforms'
+        db_table = TABLE_PREFIX + 'transplatforms'
         verbose_name = "Translation Platform"
 
 
-class Product(models.Model):
+class ReleaseStream(models.Model):
     """
-    Product Model
+    Release Stream Model
     """
-    product_id = models.AutoField(primary_key=True)
-    product_name = models.CharField(
-        max_length=200, verbose_name="Product Name"
+    relstream_id = models.AutoField(primary_key=True)
+    relstream_name = models.CharField(
+        max_length=200, verbose_name="Release Stream Name"
     )
-    product_slug = models.CharField(
-        max_length=400, unique=True, verbose_name="Product SLUG"
+    relstream_slug = models.CharField(
+        max_length=400, unique=True, verbose_name="Release Stream SLUG"
     )
-    product_server = models.URLField(
-        max_length=500, unique=True, verbose_name="Product Server"
+    relstream_server = models.URLField(
+        max_length=500, unique=True, verbose_name="Release Stream Server"
     )
-    product_build_system = models.CharField(
+    relstream_built = models.CharField(
         max_length=200, null=True, verbose_name="Release Build System"
     )
-    product_build_tags = models.TextField(
-        null=True, blank=True, verbose_name="Release Build Tags"
+    relstream_built_tags = ArrayField(
+        models.CharField(max_length=200, blank=True),
+        default=list, null=True, verbose_name="Release Build Tags"
     )
-    product_build_tags_last_updated = models.DateTimeField(null=True)
-    src_pkg_format = models.CharField(
+    relstream_built_tags_lastupdated = models.DateTimeField(null=True)
+    srcpkg_format = models.CharField(
         max_length=50, null=True, verbose_name="Source Package Format"
     )
     top_url = models.URLField(max_length=500, unique=True, verbose_name="Top URL")
@@ -149,56 +154,52 @@ class Product(models.Model):
     msgbus_exchange = models.CharField(
         max_length=200, null=True, blank=True, verbose_name="Message Bus Exchange"
     )
-    major_milestones = models.TextField(
-        null=True, blank=True, verbose_name="Major Milestones"
+    major_milestones = ArrayField(
+        models.CharField(max_length=1000, blank=True),
+        default=list, null=True, verbose_name="Major Milestones"
     )
-    product_phases = models.TextField(
-        null=True, blank=True, verbose_name="Release Stream Phases"
+    relstream_phases = ArrayField(
+        models.CharField(max_length=200, blank=True),
+        default=list, null=True, verbose_name="Release Stream Phases"
     )
-    product_status = models.BooleanField(verbose_name="Enable/Disable")
+    relstream_status = models.BooleanField(verbose_name="Enable/Disable")
 
     def __str__(self):
-        return self.product_name
+        return self.relstream_name
 
     class Meta:
-        db_table = TABLE_PREFIX + 'products'
-        verbose_name = "Product"
+        db_table = TABLE_PREFIX + 'relstreams'
+        verbose_name = "Release Stream"
 
 
-class Release(models.Model):
+class StreamBranches(models.Model):
     """
-    Releases Model
+    Stream Branches Model
     """
-    release_id = models.AutoField(primary_key=True)
-    release_name = models.CharField(max_length=500, verbose_name="Release Name")
-    release_slug = models.CharField(max_length=500, unique=True, verbose_name="Release SLUG")
-    product_slug = models.ForeignKey(
-        Product, on_delete=models.PROTECT,
-        to_field='product_slug', verbose_name="Product"
-    )
-    language_set_slug = models.ForeignKey(
-        LanguageSet, on_delete=models.PROTECT,
-        to_field='lang_set_slug', verbose_name="Language Set"
-    )
+    relbranch_id = models.AutoField(primary_key=True)
+    relbranch_name = models.CharField(max_length=500, verbose_name="Release Branch Name")
+    relbranch_slug = models.CharField(max_length=500, unique=True, verbose_name="Release Branch Slug")
+    relstream_slug = models.CharField(max_length=400, verbose_name="Release Stream Slug")
+    lang_set = models.CharField(max_length=200, verbose_name="Language Set")
     scm_branch = models.CharField(max_length=100, null=True, blank=True, verbose_name="SCM Branch Name")
     created_on = models.DateTimeField()
     current_phase = models.CharField(max_length=200, null=True, verbose_name="Current Phase")
     calendar_url = models.URLField(max_length=500, unique=True, null=True, verbose_name="Calender iCal URL")
-    schedule_json_str = models.TextField(null=True, blank=True)
+    schedule_json = JSONField(null=True)
     sync_calendar = models.BooleanField(default=True, verbose_name="Sync Calender")
     notifications_flag = models.BooleanField(default=True, verbose_name="Notification")
     track_trans_flag = models.BooleanField(default=True, verbose_name="Track Translation")
     created_by = models.EmailField(null=True)
 
     def __str__(self):
-        return self.release_name
+        return self.relbranch_name
 
     class Meta:
-        db_table = TABLE_PREFIX + 'releases'
-        verbose_name_plural = "Release"
+        db_table = TABLE_PREFIX + 'relbranches'
+        verbose_name_plural = "Release Branches"
 
 
-class Package(models.Model):
+class Packages(models.Model):
     """
     Packages Model
     """
@@ -208,32 +209,35 @@ class Package(models.Model):
                                      verbose_name="Upstream Name")
     component = models.CharField(max_length=200, null=True, blank=True, verbose_name="Component")
     upstream_url = models.URLField(max_length=2000, unique=True, verbose_name="Upstream URL")
-    platform_slug = models.ForeignKey(
-        Platform, on_delete=models.PROTECT,
+    transplatform_slug = models.ForeignKey(
+        TransPlatform, on_delete=models.PROTECT,
         to_field='platform_slug', verbose_name="Translation Platform"
     )
-    platform_name = models.CharField(max_length=1000, null=True, blank=True,
-                                     verbose_name="Package Name at Translation Platform")
+    transplatform_name = models.CharField(max_length=1000, null=True, blank=True,
+                                          verbose_name="Package Name at Translation Platform")
     # translation platform project http url
-    platform_url = models.URLField(max_length=500, null=True, blank=True,
-                                   verbose_name="Translation Platform Project URL")
-    package_details_json_str = models.TextField(null=True, blank=True)
-    details_json_last_updated = models.DateTimeField(null=True)
-    package_name_mapping_json_str = models.TextField(null=True, blank=True)
-    name_map_last_updated = models.DateTimeField(null=True, blank=True)
-    release_branch_mapping = models.TextField(null=True, blank=True)
-    release_branch_map_last_updated = models.DateTimeField(null=True, blank=True)
-    stats_diff = models.TextField(null=True, blank=True)
-    stats_diff_last_updated = models.DateTimeField(null=True, blank=True)
-    platform_last_updated = models.DateTimeField(null=True, blank=True)
-    upstream_last_updated = models.DateTimeField(null=True, blank=True)
-    downstream_last_updated = models.DateTimeField(null=True, blank=True)
+    transplatform_url = models.URLField(max_length=500, null=True, blank=True,
+                                        verbose_name="Translation Platform Project URL")
+    release_streams = ArrayField(
+        models.CharField(max_length=400, blank=True),
+        default=list, null=True, verbose_name="Release Streams"
+    )
+    package_details_json = JSONField(null=True)
+    details_json_lastupdated = models.DateTimeField(null=True)
+    package_name_mapping = JSONField(null=True)
+    release_branch_mapping = JSONField(null=True, blank=True)
+    mapping_lastupdated = models.DateTimeField(null=True, blank=True)
+    stats_diff = JSONField(null=True, blank=True)
+    transtats_lastupdated = models.DateTimeField(null=True, blank=True)
+    upstream_latest_stats = JSONField(null=True, blank=True)
+    upstream_lastupdated = models.DateTimeField(null=True, blank=True)
+    downstream_lastupdated = models.DateTimeField(null=True, blank=True)
     translation_file_ext = models.CharField(
         max_length=10, null=True, blank=True, default='po',
         verbose_name="Translation Format (po)"
     )
     created_by = models.EmailField(null=True)
-    maintainers = models.TextField(null=True, blank=True)
+    maintainers = JSONField(null=True, blank=True)
 
     def __str__(self):
         return self.package_name
@@ -243,31 +247,7 @@ class Package(models.Model):
         verbose_name = "Package"
 
 
-class PackageSet(models.Model):
-    """
-    Package Set Model
-    """
-    package_set_id = models.AutoField(primary_key=True)
-    package_set_name = models.CharField(
-        max_length=1000, verbose_name="Package Set Name"
-    )
-    package_set_slug = models.CharField(
-        max_length=400, unique=True, verbose_name="Package Set SLUG"
-    )
-    package_set_color = models.CharField(
-        max_length=100, unique=True, verbose_name="Tag Colour"
-    )
-    packages = models.ManyToManyField(Package)
-
-    def __str__(self):
-        return self.package_set_name
-
-    class Meta:
-        db_table = TABLE_PREFIX + 'packageset'
-        verbose_name = "Package Set"
-
-
-class JobTemplate(models.Model):
+class JobTemplates(models.Model):
     """
     Job Templates Model
     """
@@ -275,8 +255,10 @@ class JobTemplate(models.Model):
     job_template_type = models.CharField(max_length=100, unique=True)
     job_template_name = models.CharField(max_length=500)
     job_template_desc = models.CharField(max_length=1000, blank=True, null=True)
-    job_template_params = models.TextField(null=True, blank=True)
-    job_template_json_str = models.TextField(null=True, blank=True)
+    job_template_params = ArrayField(
+        models.CharField(max_length=1000, blank=True), default=list
+    )
+    job_template_json = JSONField(null=True)
     job_template_last_accessed = models.DateTimeField(null=True)
 
     def __str__(self):
@@ -284,10 +266,10 @@ class JobTemplate(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'jobtemplates'
-        verbose_name = "Job Template"
+        verbose_name = "Job Templates"
 
 
-class Job(models.Model):
+class Jobs(models.Model):
     """
     Jobs Model
     """
@@ -297,24 +279,23 @@ class Job(models.Model):
     job_start_time = models.DateTimeField()
     job_end_time = models.DateTimeField(null=True)
     job_yml_text = models.CharField(max_length=2000, null=True, blank=True)
-    job_log_json_str = models.TextField(null=True, blank=True)
+    job_log_json = JSONField(null=True)
     job_result = models.NullBooleanField()
     job_remarks = models.CharField(max_length=200, null=True)
-    job_template = models.ForeignKey(JobTemplate, on_delete=models.PROTECT,
+    job_template = models.ForeignKey(JobTemplates, on_delete=models.PROTECT,
                                      verbose_name="Job Template", null=True)
-    job_params_json_str = models.TextField(null=True, blank=True)
-    job_output_json_str = models.TextField(null=True, blank=True)
+    job_params_json = JSONField(null=True)
+    job_output_json = JSONField(null=True)
     triggered_by = models.EmailField(null=True)
     job_visible_on_url = models.BooleanField(default=False)
 
     @property
     def duration(self):
-        time_diff = self.job_end_time - self.job_start_time
-        return time_diff.total_seconds()
+        timediff = self.job_end_time - self.job_start_time
+        return timediff.total_seconds()
 
     class Meta:
         db_table = TABLE_PREFIX + 'jobs'
-        verbose_name = "Job"
 
 
 class SyncStats(models.Model):
@@ -322,15 +303,12 @@ class SyncStats(models.Model):
     Sync Stats Model
     """
     sync_id = models.AutoField(primary_key=True)
-    package_name = models.ForeignKey(
-        Package, on_delete=models.PROTECT,
-        to_field='package_name', verbose_name="Package"
-    )
+    package_name = models.CharField(max_length=500)
     job_uuid = models.UUIDField()
     project_version = models.CharField(max_length=500, null=True)
     source = models.CharField(max_length=500, null=True)
-    stats_raw_json_str = models.TextField(null=True, blank=True)
-    stats_processed_json_str = models.TextField(null=True, blank=True)
+    stats_raw_json = JSONField(null=True)
+    stats_processed_json = JSONField(null=True)
     sync_iter_count = models.IntegerField()
     sync_visibility = models.BooleanField()
 
@@ -338,18 +316,19 @@ class SyncStats(models.Model):
         db_table = TABLE_PREFIX + 'syncstats'
 
 
-class GraphRule(models.Model):
+class GraphRules(models.Model):
     """
     Graph Rules Model
     """
     graph_rule_id = models.AutoField(primary_key=True)
     rule_name = models.CharField(max_length=1000, unique=True)
-    rule_packages = models.ManyToManyField(Package)
-    rule_languages = models.ManyToManyField(Language)
-    rule_release_slug = models.ForeignKey(
-        Release, on_delete=models.PROTECT,
-        to_field='release_slug', verbose_name="Graph Rule for Release"
+    rule_packages = ArrayField(
+        models.CharField(max_length=1000, blank=True), default=list
     )
+    rule_langs = ArrayField(
+        models.CharField(max_length=400, blank=True), default=list
+    )
+    rule_relbranch = models.CharField(max_length=500)
     created_on = models.DateTimeField()
     rule_status = models.BooleanField(default=True)
     rule_visibility_public = models.BooleanField(default=False)
@@ -357,7 +336,6 @@ class GraphRule(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'graphrules'
-        verbose_name = "Graph Rule"
 
 
 class CacheAPI(models.Model):
@@ -367,23 +345,25 @@ class CacheAPI(models.Model):
     cache_api_id = models.AutoField(primary_key=True)
     base_url = models.URLField(max_length=800)
     resource = models.CharField(max_length=200)
-    request_args = models.TextField(null=True, blank=True)
+    request_args = ArrayField(
+        models.CharField(max_length=400, blank=True), default=list
+    )
     request_kwargs = models.CharField(max_length=1000)
     response_content = models.TextField(max_length=10000)
-    response_content_json_str = models.TextField(null=True, blank=True)
+    response_content_json = JSONField(null=True)
     expiry = models.DateTimeField()
 
     class Meta:
         db_table = TABLE_PREFIX + 'cacheapi'
 
 
-class Report(models.Model):
+class Reports(models.Model):
     """
     Reports Model
     """
     reports_id = models.AutoField(primary_key=True)
     report_subject = models.CharField(max_length=200, unique=True)
-    report_json_str = models.TextField(null=True, blank=True)
+    report_json = JSONField(null=True)
     report_updated = models.DateTimeField(null=True)
 
     def __str__(self):
@@ -391,7 +371,7 @@ class Report(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'reports'
-        verbose_name = "Report"
+        verbose_name = "Reports"
 
 
 class Visitor(models.Model):

@@ -47,7 +47,7 @@ from dashboard.managers.jobs import (
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
-from dashboard.models import Jobs, Visitor
+from dashboard.models import Job, Visitor
 
 
 class ManagersMixin(object):
@@ -571,7 +571,7 @@ class JobDetailView(ManagersMixin, DetailView):
     """
     template_name = "jobs/log_detail.html"
     context_object_name = 'log'
-    model = Jobs
+    model = Job
     slug_field = 'job_uuid'
     slug_url_kwarg = 'job_id'
 

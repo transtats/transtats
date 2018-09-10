@@ -31,7 +31,7 @@ from dashboard.constants import RELSTREAM_SLUGS, WORKLOAD_HEADERS
 from dashboard.managers import BaseManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.managers.packages import PackagesManager, PackageBranchMapping
-from dashboard.models import GraphRules, Reports
+from dashboard.models import GraphRule, Report
 
 
 __all__ = ['GraphManager', 'ReportsManager']
@@ -58,7 +58,7 @@ class GraphManager(BaseManager):
 
         rules = None
         try:
-            rules = GraphRules.objects.filter(**filter_kwargs).order_by('rule_name')
+            rules = GraphRule.objects.filter(**filter_kwargs).order_by('rule_name')
         except:
             # log event, passing for now
             pass
@@ -112,7 +112,7 @@ class GraphManager(BaseManager):
             kwargs.pop('lang_selection')
             kwargs['created_on'] = timezone.now()
             kwargs['rule_status'] = True
-            new_rule = GraphRules(**kwargs)
+            new_rule = GraphRule(**kwargs)
             new_rule.save()
         except:
             # log event, pass for now
@@ -465,7 +465,7 @@ class ReportsManager(GraphManager):
 
         reports = None
         try:
-            reports = Reports.objects.filter(**filter_kwargs)
+            reports = Report.objects.filter(**filter_kwargs)
         except Exception as e:
             self.app_logger(
                 'ERROR', "Reports could not be fetched, details: " + str(e))
@@ -487,7 +487,7 @@ class ReportsManager(GraphManager):
         default_params['report_json'] = kwargs['report_json']
         default_params['report_updated'] = timezone.now()
         try:
-            Reports.objects.update_or_create(
+            Report.objects.update_or_create(
                 report_subject=kwargs['subject'], defaults=default_params
             )
         except Exception as e:

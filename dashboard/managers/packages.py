@@ -33,7 +33,7 @@ from dashboard.constants import (
 from dashboard.managers.inventory import (
     InventoryManager, SyncStatsManager, ReleaseBranchManager
 )
-from dashboard.models import TransPlatform, Packages
+from dashboard.models import Platform, Package
 from dashboard.managers.utilities import parse_project_details_json
 
 
@@ -58,7 +58,7 @@ class PackagesManager(InventoryManager):
         if pkgs:
             kwargs.update(dict(package_name__in=pkgs))
         try:
-            packages = Packages.objects.only(*fields).filter(**kwargs) \
+            packages = Package.objects.only(*fields).filter(**kwargs) \
                 .order_by('-transtats_lastupdated')
         except Exception as e:
             self.app_logger(
@@ -79,7 +79,7 @@ class PackagesManager(InventoryManager):
         Update a package with certain fields
         """
         try:
-            Packages.objects.filter(package_name=package_name).update(**fields)
+            Package.objects.filter(package_name=package_name).update(**fields)
         except Exception as e:
             self.app_logger(
                 'ERROR', "Package could not be updated, details: " + str(e)
@@ -92,7 +92,7 @@ class PackagesManager(InventoryManager):
         packages = ()
         fields_required = fields if fields else ()
         try:
-            packages = Packages.objects.only(*fields_required) \
+            packages = Package.objects.only(*fields_required) \
                 .filter(release_branch_mapping__has_key=release_branch) \
                 .order_by('-transtats_lastupdated')
         except Exception as e:
@@ -194,7 +194,7 @@ class PackagesManager(InventoryManager):
 
         try:
             # derive translation platform project URL
-            platform = TransPlatform.objects.only('engine_name', 'api_url') \
+            platform = Platform.objects.only('engine_name', 'api_url') \
                 .filter(platform_slug=kwargs['transplatform_slug']).get()
             kwargs['transplatform_url'], resp_dict = \
                 self._get_project_details(platform, kwargs['package_name'])
@@ -238,11 +238,11 @@ class PackagesManager(InventoryManager):
             if 'update_stats' in kwargs:
                 del kwargs['update_stats']
 
-            kwargs['transplatform_slug'] = platform
-            kwargs['transplatform_name'] = kwargs['package_name']
+            kwargs['platform_slug'] = platform
+            kwargs['platform_name'] = kwargs['package_name']
             kwargs['upstream_name'] = kwargs['upstream_url'].split('/')[-1]
             # save in db
-            new_package = Packages(**kwargs)
+            new_package = Package(**kwargs)
             new_package.save()
         except:
             # log event, pass for now
@@ -278,7 +278,7 @@ class PackagesManager(InventoryManager):
         transplatform_fields = ('engine_name', 'api_url', 'projects_json',
                                 'auth_login_id', 'auth_token_key')
         # get transplatform projects from db
-        platform = TransPlatform.objects.only(*transplatform_fields) \
+        platform = Platform.objects.only(*transplatform_fields) \
             .filter(platform_slug=kwargs['transplatform_slug']).get()
         projects_json = platform.projects_json
         # if not found in db, fetch transplatform projects from API
@@ -298,7 +298,7 @@ class PackagesManager(InventoryManager):
                 )
                 # save all_projects_json in db - faster validation next times
                 # except transifex, as there we have project level details
-                TransPlatform.objects.filter(api_url=platform.api_url).update(
+                Platform.objects.filter(api_url=platform.api_url).update(
                     projects_json=response_dict, projects_lastupdated=timezone.now()
                 )
             if response_dict:
@@ -381,7 +381,7 @@ class PackagesManager(InventoryManager):
         )
         if project_details_response_dict:
             try:
-                Packages.objects.filter(transplatform_url=package.transplatform_url).update(
+                Package.objects.filter(transplatform_url=package.transplatform_url).update(
                     package_details_json=project_details_response_dict,
                     details_json_lastupdated=timezone.now()
                 )
@@ -435,7 +435,7 @@ class PackagesManager(InventoryManager):
                         project, version, proj_trans_stats_response_dict,
                         package.transplatform_slug.engine_name, p_stats=processed_stats
                 ):
-                    Packages.objects.filter(transplatform_url=package.transplatform_url).update(
+                    Package.objects.filter(transplatform_url=package.transplatform_url).update(
                         transtats_lastupdated=timezone.now())
                     update_stats_status = True
         # this makes sense if we create branch-mapping just after package sync
@@ -460,7 +460,7 @@ class PackagesManager(InventoryManager):
         kwargs['release_branch_mapping'] = branch_mapping_dict
         kwargs['mapping_lastupdated'] = timezone.now()
         try:
-            Packages.objects.filter(package_name=package_name).update(**kwargs)
+            Package.objects.filter(package_name=package_name).update(**kwargs)
         except Exception as e:
             self.app_logger(
                 'ERROR', "Package branch mapping could not be saved, details: " + str(e))
@@ -588,7 +588,7 @@ class PackageBranchMapping(object):
     def __init__(self, package_name):
         self.package_name = package_name
         try:
-            self.package = Packages.objects.filter(package_name=self.package_name).first()
+            self.package = Package.objects.filter(package_name=self.package_name).first()
         except Exception as e:
             # log event, passing for now
             pass

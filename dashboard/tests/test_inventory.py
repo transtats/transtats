@@ -21,10 +21,10 @@ from dashboard.constants import TS_JOB_TYPES
 from dashboard.managers.inventory import InventoryManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.jobs import JobTemplateManager
-from dashboard.models import ReleaseStream
+from dashboard.models import Product
 from dashboard.tests.testdata.db_fixtures import (
-    LanguagesData, LanguageSetData, TransPlatformData, ReleaseStreamData,
-    StreamBranchesData, PackagesData, JobTemplatesData
+    LanguageData, LanguageSetData, PlatformData, ProductData,
+    ReleaseData, PackageData, JobTemplatesData
 )
 from dashboard.tests.testdata.mock_values import (mock_requests_get_add_package,
                                                   mock_requests_get_validate_package)
@@ -36,7 +36,7 @@ class InventoryManagerTest(FixtureTestCase):
 
     inventory_manager = InventoryManager()
     fixture = db_fixture
-    datasets = [LanguagesData, LanguageSetData, TransPlatformData, ReleaseStreamData, StreamBranchesData]
+    datasets = [LanguageData, LanguageSetData, PlatformData, ProductData, ReleaseData]
 
     def test_get_locales(self):
         """
@@ -156,8 +156,8 @@ class InventoryManagerTest(FixtureTestCase):
         """
         Test get_release_streams
         """
-        relstream_fedora = ReleaseStream.objects.get(relstream_name='Fedora')
-        relstream_rhel = ReleaseStream.objects.get(relstream_name='RHEL')
+        relstream_fedora = Product.objects.get(relstream_name='Fedora')
+        relstream_rhel = Product.objects.get(relstream_name='RHEL')
 
         release_streams = self.inventory_manager.get_release_streams()
         self.assertEqual(len(release_streams), 2)
@@ -207,7 +207,7 @@ class PackagesManagerTest(FixtureTestCase):
 
     packages_manager = PackagesManager()
     fixture = db_fixture
-    datasets = [PackagesData]
+    datasets = [PackageData]
 
     def test_get_packages(self):
         """
@@ -215,12 +215,12 @@ class PackagesManagerTest(FixtureTestCase):
         """
         packages = self.packages_manager.get_packages()
         self.assertEqual(len(packages), 4)
-        package_names = [PackagesData.package_anaconda.package_name,
-                         PackagesData.package_ibus.package_name]
+        package_names = [PackageData.package_anaconda.package_name,
+                         PackageData.package_ibus.package_name]
         packages = self.packages_manager.get_packages(pkgs=package_names).values()
         self.assertEqual(len(packages), 2)
-        self.assertEqual(packages[0]['package_name'], PackagesData.package_anaconda.package_name)
-        self.assertEqual(packages[1]['package_name'], PackagesData.package_ibus.package_name)
+        self.assertEqual(packages[0]['package_name'], PackageData.package_anaconda.package_name)
+        self.assertEqual(packages[1]['package_name'], PackageData.package_ibus.package_name)
         # todo: test the filtering according to params
         # params = ['package_name', 'upstream_url']
         # packages = self.packages_manager.get_packages(pkgs=['ibus'], pkg_params=params)
@@ -230,7 +230,7 @@ class PackagesManagerTest(FixtureTestCase):
         """
         Test is_package_exist
         """
-        self.assertTrue(self.packages_manager.is_package_exist(PackagesData.package_anaconda.package_name))
+        self.assertTrue(self.packages_manager.is_package_exist(PackageData.package_anaconda.package_name))
         self.assertFalse(self.packages_manager.is_package_exist('otherpackage'))
 
     @patch('requests.get', new=mock_requests_get_add_package)
@@ -251,8 +251,8 @@ class PackagesManagerTest(FixtureTestCase):
         """
         Test validate_package
         """
-        transplatform = TransPlatformData.platform_zanata_public.platform_slug
-        package_candlepin_name = PackagesData.package_candlepin.package_name
+        transplatform = PlatformData.platform_zanata_public.platform_slug
+        package_candlepin_name = PackageData.package_candlepin.package_name
         package_validated = self.packages_manager.validate_package(package_name=package_candlepin_name,
                                                                    transplatform_slug=transplatform)
         self.assertEqual(package_validated, package_candlepin_name)

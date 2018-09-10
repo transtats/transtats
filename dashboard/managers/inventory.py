@@ -34,8 +34,7 @@ from django.utils import timezone
 # dashboard
 from dashboard.managers import BaseManager
 from dashboard.models import (
-    TransPlatform, Languages, LanguageSet,
-    ReleaseStream, StreamBranches, SyncStats
+    Platform, Language, LanguageSet, Product, Release, SyncStats
 )
 from dashboard.constants import (
     ZANATA_SLUGS, DAMNEDLIES_SLUGS, TRANSIFEX_SLUGS, RELSTREAM_SLUGS
@@ -65,7 +64,7 @@ class InventoryManager(BaseManager):
 
         locales = []
         try:
-            locales = Languages.objects.filter(**filter_kwargs) \
+            locales = Language.objects.filter(**filter_kwargs) \
                 .order_by('lang_name').order_by('-lang_status')
         except Exception as e:
             self.app_logger(
@@ -79,7 +78,7 @@ class InventoryManager(BaseManager):
         Return count of active locales
         """
         try:
-            return Languages.objects.filter(lang_status=True).count()
+            return Language.objects.filter(lang_status=True).count()
         except Exception as e:
             self.app_logger(
                 'ERROR', "locales count could not be fetched, details: " + str(e)
@@ -186,7 +185,7 @@ class InventoryManager(BaseManager):
         required_locales = []
         try:
             release_branch_specific_lang_set = \
-                StreamBranches.objects.only('lang_set').filter(relbranch_slug=release_branch).first()
+                Release.objects.only('lang_set').filter(relbranch_slug=release_branch).first()
             required_lang_set = self.get_langset(
                 release_branch_specific_lang_set.lang_set, fields=('locale_ids')
             )
@@ -210,7 +209,7 @@ class InventoryManager(BaseManager):
 
         platforms = None
         try:
-            platforms = TransPlatform.objects.filter(**filter_kwargs) \
+            platforms = Platform.objects.filter(**filter_kwargs) \
                 .order_by('platform_id')
         except Exception as e:
             self.app_logger(
@@ -254,7 +253,7 @@ class InventoryManager(BaseManager):
         filter_fields = fields if isinstance(fields, (tuple, list)) else ()
         relstreams = None
         try:
-            relstreams = ReleaseStream.objects.only(*filter_fields).filter(**filter_kwargs) \
+            relstreams = Product.objects.only(*filter_fields).filter(**filter_kwargs) \
                 .order_by('relstream_id')
         except Exception as e:
             self.app_logger(
@@ -301,7 +300,7 @@ class SyncStatsManager(BaseManager):
     def get_sync_stats(self, pkgs=None, fields=None, versions=None, sources=None):
         """
         fetch sync translation stats from db
-        :return: resultset
+        :return: queryset
         """
         sync_stats = None
         required_params = fields if fields and isinstance(fields, (list, tuple)) \
@@ -446,7 +445,7 @@ class ReleaseBranchManager(InventoryManager):
 
         relbranches = None
         try:
-            relbranches = StreamBranches.objects.only(*required_fields).filter(**filter_kwargs)
+            relbranches = Release.objects.only(*required_fields).filter(**filter_kwargs)
         except Exception as e:
             self.app_logger(
                 'ERROR', "Release branches could not be fetched, details: " + str(e))
@@ -482,7 +481,7 @@ class ReleaseBranchManager(InventoryManager):
         branches_of_relstreams = {}
         fields = ('relstream_slug', 'relbranch_slug')
         try:
-            relbranches = StreamBranches.objects.only(*fields).filter(
+            relbranches = Release.objects.only(*fields).filter(
                 relstream_slug__in=release_streams).all()
         except Exception as e:
             self.app_logger(
@@ -591,7 +590,7 @@ class ReleaseBranchManager(InventoryManager):
             kwargs['sync_calendar'] = True if 'sync_calendar' in flags else False
             kwargs['notifications_flag'] = True if 'notifications_flag' in flags else False
             kwargs['track_trans_flag'] = True if 'track_trans_flag' in flags else False
-            new_relstream_branch = StreamBranches(**kwargs)
+            new_relstream_branch = Release(**kwargs)
             new_relstream_branch.save()
         except Exception as e:
             self.app_logger(
