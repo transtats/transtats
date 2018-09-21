@@ -185,15 +185,13 @@ class InventoryManager(BaseManager):
         required_locales = []
         try:
             release_branch_specific_lang_set = \
-                Release.objects.only('lang_set').filter(relbranch_slug=release_branch).first()
-            required_lang_set = self.get_langset(
-                release_branch_specific_lang_set.lang_set, fields=('locale_ids')
-            )
+                Release.objects.filter(release_slug=release_branch).first()
+            required_lang_set = release_branch_specific_lang_set.language_set_slug
             required_locales = required_lang_set.locale_ids if required_lang_set else []
         except Exception as e:
             self.app_logger(
                 'ERROR', ("locales could not be fetched for " +
-                          release_branch + " release branch, details: " + str(e))
+                          release_branch + " release, details: " + str(e))
             )
         return required_locales
 
@@ -241,23 +239,23 @@ class InventoryManager(BaseManager):
     def get_release_streams(self, stream_slug=None, only_active=None,
                             built=None, fields=None):
         """
-        Fetch all release streams from the db
+        Fetch all products from the db
         """
         filter_kwargs = {}
         if only_active:
-            filter_kwargs.update(dict(relstream_status=True))
+            filter_kwargs.update(dict(product_status=True))
         if stream_slug:
-            filter_kwargs.update(dict(relstream_slug=stream_slug))
+            filter_kwargs.update(dict(product_slug=stream_slug))
         if built:
-            filter_kwargs.update(dict(relstream_built=built))
+            filter_kwargs.update(dict(product_build_system=built))
         filter_fields = fields if isinstance(fields, (tuple, list)) else ()
         relstreams = None
         try:
             relstreams = Product.objects.only(*filter_fields).filter(**filter_kwargs) \
-                .order_by('relstream_id')
+                .order_by('product_id')
         except Exception as e:
             self.app_logger(
-                'ERROR', "release streams could not be fetched, details: " + str(e)
+                'ERROR', "products could not be fetched, details: " + str(e)
             )
         return relstreams
 
@@ -267,16 +265,16 @@ class InventoryManager(BaseManager):
         :return: tuple
         """
         active_streams = self.get_release_streams(only_active=True)
-        return tuple([(stream.relstream_slug, stream.relstream_name)
+        return tuple([(stream.product_slug, stream.product_name)
                       for stream in active_streams]) or ()
 
     def get_relstream_build_tags(self, stream_slug=None):
         build_tags = {}
-        release_streams = self.get_release_streams(stream_slug=stream_slug) \
+        products = self.get_release_streams(stream_slug=stream_slug) \
             if stream_slug else self.get_release_streams(only_active=True)
-        for release_stream in release_streams:
-            build_tags[release_stream.relstream_slug] = \
-                release_stream.relstream_built_tags or []
+        for product in products:
+            build_tags[product.product_slug] = \
+                product.product_build_tags or []
         return build_tags
 
     def get_build_tags(self, buildsys):

@@ -18,6 +18,7 @@
 
 # python
 import re
+import json
 import difflib
 import operator
 from collections import OrderedDict
@@ -59,7 +60,7 @@ class PackagesManager(InventoryManager):
             kwargs.update(dict(package_name__in=pkgs))
         try:
             packages = Package.objects.only(*fields).filter(**kwargs) \
-                .order_by('-transtats_lastupdated')
+                .order_by('-platform_last_updated')
         except Exception as e:
             self.app_logger(
                 'ERROR', "Packages could not be fetched, details: " + str(e)
@@ -94,7 +95,7 @@ class PackagesManager(InventoryManager):
         try:
             packages = Package.objects.only(*fields_required) \
                 .filter(release_branch_mapping__has_key=release_branch) \
-                .order_by('-transtats_lastupdated')
+                .order_by('-platform_last_updated')
         except Exception as e:
             self.app_logger(
                 'ERROR', ("release branch specific package could not be fetched for " +
@@ -185,7 +186,7 @@ class PackagesManager(InventoryManager):
         :param kwargs: dict
         :return: boolean
         """
-        required_params = ('package_name', 'upstream_url', 'transplatform_slug', 'release_streams')
+        required_params = ('package_name', 'upstream_url', 'platform_slug', 'products')
         if not set(required_params) <= set(kwargs.keys()):
             return
 
@@ -195,13 +196,13 @@ class PackagesManager(InventoryManager):
         try:
             # derive translation platform project URL
             platform = Platform.objects.only('engine_name', 'api_url') \
-                .filter(platform_slug=kwargs['transplatform_slug']).get()
-            kwargs['transplatform_url'], resp_dict = \
+                .filter(platform_slug=kwargs['platform_slug']).get()
+            kwargs['platform_url'], resp_dict = \
                 self._get_project_details(platform, kwargs['package_name'])
             if resp_dict:
                 # save project details in db
-                kwargs['package_details_json'] = resp_dict
-                kwargs['details_json_lastupdated'] = timezone.now()
+                kwargs['package_details_json_str'] = json.dumps(resp_dict)
+                kwargs['details_json_last_updated'] = timezone.now()
                 if kwargs.get('update_stats') == 'stats':
                     kwargs.pop('update_stats')
                     # fetch project_version stats from translation platform and save in db
@@ -234,7 +235,7 @@ class PackagesManager(InventoryManager):
                                 p_stats = self._process_response_stats_json(resp_dict['stats'])
                             if self.syncstats_manager.save_version_stats(
                                     project, version, resp_dict, platform.engine_name, p_stats=p_stats):
-                                kwargs['transtats_lastupdated'] = timezone.now()
+                                kwargs['platform_last_updated'] = timezone.now()
             if 'update_stats' in kwargs:
                 del kwargs['update_stats']
 
@@ -275,12 +276,13 @@ class PackagesManager(InventoryManager):
         if not (kwargs.get('package_name')):
             return
         package_name = kwargs['package_name']
-        transplatform_fields = ('engine_name', 'api_url', 'projects_json',
+        transplatform_fields = ('engine_name', 'api_url', 'projects_json_str',
                                 'auth_login_id', 'auth_token_key')
         # get transplatform projects from db
         platform = Platform.objects.only(*transplatform_fields) \
             .filter(platform_slug=kwargs['transplatform_slug']).get()
-        projects_json = platform.projects_json
+        projects_json = json.loads(platform.projects_json_str) \
+            if platform.projects_json_str else {}
         # if not found in db, fetch transplatform projects from API
         if not projects_json:
             response_dict = None
@@ -295,11 +297,12 @@ class PackagesManager(InventoryManager):
                     platform.engine_name == TRANSPLATFORM_ENGINES[2]:
                 response_dict = self.api_resources.fetch_all_projects(
                     platform.engine_name, platform.api_url, **auth_dict
-                )
+                ) or {}
                 # save all_projects_json in db - faster validation next times
                 # except transifex, as there we have project level details
                 Platform.objects.filter(api_url=platform.api_url).update(
-                    projects_json=response_dict, projects_lastupdated=timezone.now()
+                    projects_json_str=json.dumps(response_dict),
+                    projects_last_updated=timezone.now()
                 )
             if response_dict:
                 projects_json = response_dict

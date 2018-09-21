@@ -18,6 +18,7 @@ from uuid import uuid4
 
 # django
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import post_save
 from django.db import models
 from django.dispatch import receiver
@@ -70,7 +71,10 @@ class LanguageSet(models.Model):
     lang_set_color = models.CharField(
         max_length=100, unique=True, verbose_name="Tag Colour"
     )
-    languages = models.ManyToManyField(Language)
+    locale_ids = ArrayField(
+        models.CharField(max_length=50, blank=True),
+        default=list, null=True, verbose_name="Locale IDs"
+    )
 
     def __str__(self):
         return self.lang_set_name
@@ -130,8 +134,9 @@ class Product(models.Model):
     product_build_system = models.CharField(
         max_length=200, null=True, verbose_name="Release Build System"
     )
-    product_build_tags = models.TextField(
-        null=True, blank=True, verbose_name="Release Build Tags"
+    product_build_tags = ArrayField(
+        models.CharField(max_length=200, blank=True),
+        default=list, null=True, verbose_name="Release Build Tags"
     )
     product_build_tags_last_updated = models.DateTimeField(null=True)
     src_pkg_format = models.CharField(
@@ -149,11 +154,13 @@ class Product(models.Model):
     msgbus_exchange = models.CharField(
         max_length=200, null=True, blank=True, verbose_name="Message Bus Exchange"
     )
-    major_milestones = models.TextField(
-        null=True, blank=True, verbose_name="Major Milestones"
+    major_milestones = ArrayField(
+        models.CharField(max_length=1000, blank=True),
+        default=list, null=True, verbose_name="Major Milestones"
     )
-    product_phases = models.TextField(
-        null=True, blank=True, verbose_name="Release Stream Phases"
+    product_phases = ArrayField(
+        models.CharField(max_length=200, blank=True),
+        default=list, null=True, verbose_name="Release Stream Phases"
     )
     product_status = models.BooleanField(verbose_name="Enable/Disable")
 
@@ -217,6 +224,10 @@ class Package(models.Model):
     # translation platform project http url
     platform_url = models.URLField(max_length=500, null=True, blank=True,
                                    verbose_name="Translation Platform Project URL")
+    products = ArrayField(
+        models.CharField(max_length=400, blank=True),
+        default=list, null=True, verbose_name="Release Streams"
+    )
     package_details_json_str = models.TextField(null=True, blank=True)
     details_json_last_updated = models.DateTimeField(null=True)
     package_name_mapping_json_str = models.TextField(null=True, blank=True)
@@ -257,7 +268,7 @@ class PackageSet(models.Model):
     package_set_color = models.CharField(
         max_length=100, unique=True, verbose_name="Tag Colour"
     )
-    packages = models.ManyToManyField(Package)
+    packages = models.TextField(null=True, blank=True, verbose_name="Packages")
 
     def __str__(self):
         return self.package_set_name
@@ -275,7 +286,9 @@ class JobTemplate(models.Model):
     job_template_type = models.CharField(max_length=100, unique=True)
     job_template_name = models.CharField(max_length=500)
     job_template_desc = models.CharField(max_length=1000, blank=True, null=True)
-    job_template_params = models.TextField(null=True, blank=True)
+    job_template_params = ArrayField(
+        models.CharField(max_length=1000, blank=True), default=list
+    )
     job_template_json_str = models.TextField(null=True, blank=True)
     job_template_last_accessed = models.DateTimeField(null=True)
 
@@ -344,8 +357,12 @@ class GraphRule(models.Model):
     """
     graph_rule_id = models.AutoField(primary_key=True)
     rule_name = models.CharField(max_length=1000, unique=True)
-    rule_packages = models.ManyToManyField(Package)
-    rule_languages = models.ManyToManyField(Language)
+    rule_packages = ArrayField(
+        models.CharField(max_length=1000, blank=True), default=list
+    )
+    rule_languages = ArrayField(
+        models.CharField(max_length=400, blank=True), default=list
+    )
     rule_release_slug = models.ForeignKey(
         Release, on_delete=models.PROTECT,
         to_field='release_slug', verbose_name="Graph Rule for Release"
@@ -367,7 +384,9 @@ class CacheAPI(models.Model):
     cache_api_id = models.AutoField(primary_key=True)
     base_url = models.URLField(max_length=800)
     resource = models.CharField(max_length=200)
-    request_args = models.TextField(null=True, blank=True)
+    request_args = ArrayField(
+        models.CharField(max_length=400, blank=True), default=list
+    )
     request_kwargs = models.CharField(max_length=1000)
     response_content = models.TextField(max_length=10000)
     response_content_json_str = models.TextField(null=True, blank=True)

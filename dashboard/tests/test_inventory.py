@@ -24,7 +24,7 @@ from dashboard.managers.jobs import JobTemplateManager
 from dashboard.models import Product
 from dashboard.tests.testdata.db_fixtures import (
     LanguageData, LanguageSetData, PlatformData, ProductData,
-    ReleaseData, PackageData, JobTemplatesData
+    ReleaseData, PackageData, JobTemplateData
 )
 from dashboard.tests.testdata.mock_values import (mock_requests_get_add_package,
                                                   mock_requests_get_validate_package)
@@ -46,6 +46,7 @@ class InventoryManagerTest(FixtureTestCase):
         self.assertEqual(len(japanese_locale), 1)
         self.assertEqual(japanese_locale[0].lang_name, 'Japanese')
         self.assertEqual(japanese_locale[0].locale_alias, 'ja')
+        self.assertEqual(japanese_locale[0].locale_script, 'Hani')
 
     def test_get_active_locales_count(self):
         """
@@ -83,6 +84,20 @@ class InventoryManagerTest(FixtureTestCase):
         self.assertEqual(len(active_locales), 3)
         self.assertEqual(len(inactive_locales), 1)
         self.assertEqual(len(aliases), 4)
+
+    def test_get_locale_lang_tuple(self):
+        """
+        Test get_locale_lang_tuple
+        """
+        ru_tuple = ('ru_RU', 'Russian')
+        fr_tuple = ('fr_FR', 'French')
+        locale_lang_tuple = self.inventory_manager.get_locale_lang_tuple()
+        self.assertEqual(len(locale_lang_tuple), 3)
+
+        locale_lang_tuple = self.inventory_manager.get_locale_lang_tuple(locales=['fr_FR', 'ru_RU'])
+        self.assertEqual(len(locale_lang_tuple), 2)
+        self.assertTupleEqual(locale_lang_tuple[0], ru_tuple)
+        self.assertTupleEqual(locale_lang_tuple[1], fr_tuple)
 
     def test_get_langset(self):
         """
@@ -156,8 +171,8 @@ class InventoryManagerTest(FixtureTestCase):
         """
         Test get_release_streams
         """
-        relstream_fedora = Product.objects.get(relstream_name='Fedora')
-        relstream_rhel = Product.objects.get(relstream_name='RHEL')
+        relstream_fedora = Product.objects.get(product_name='Fedora')
+        relstream_rhel = Product.objects.get(product_name='RHEL')
 
         release_streams = self.inventory_manager.get_release_streams()
         self.assertEqual(len(release_streams), 2)
@@ -171,20 +186,6 @@ class InventoryManagerTest(FixtureTestCase):
         release_streams = self.inventory_manager.get_release_streams(only_active=True)
         self.assertEqual(len(release_streams), 1)
         self.assertIn(relstream_fedora, release_streams)
-
-    def test_get_locale_lang_tuple(self):
-        """
-        Test get_locale_lang_tuple
-        """
-        ru_tuple = ('ru_RU', 'Russian')
-        fr_tuple = ('fr_FR', 'French')
-        locale_lang_tuple = self.inventory_manager.get_locale_lang_tuple()
-        self.assertEqual(len(locale_lang_tuple), 3)
-
-        locale_lang_tuple = self.inventory_manager.get_locale_lang_tuple(locales=['fr_FR', 'ru_RU'])
-        self.assertEqual(len(locale_lang_tuple), 2)
-        self.assertTupleEqual(locale_lang_tuple[0], ru_tuple)
-        self.assertTupleEqual(locale_lang_tuple[1], fr_tuple)
 
     def test_get_relstream_slug_name(self):
         """
@@ -238,8 +239,9 @@ class PackagesManagerTest(FixtureTestCase):
         """
         Test add_package
         """
+        transplatform = PlatformData.platform_zanata_fedora.platform_slug
         kwargs = {'package_name': 'authconfig', 'upstream_url': 'https://github.com/jcam/authconfig',
-                  'transplatform_slug': 'ZNTAFED', 'release_streams': ['fedora']}
+                  'platform_slug': transplatform, 'products': ['fedora']}
         package_added = self.packages_manager.add_package(**kwargs)
         self.assertTrue(package_added)
         self.assertTrue(self.packages_manager.is_package_exist('authconfig'))
@@ -265,7 +267,7 @@ class JobTemplateManagerTest(FixtureTestCase):
 
     job_template_manager = JobTemplateManager()
     fixture = db_fixture
-    datasets = [JobTemplatesData]
+    datasets = [JobTemplateData]
 
     def test_get_job_templates(self):
         """
