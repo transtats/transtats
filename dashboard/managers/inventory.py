@@ -261,7 +261,7 @@ class InventoryManager(BaseManager):
 
     def get_relstream_slug_name(self):
         """
-        Get slug and name for active relstream
+        Get slug and name for active product
         :return: tuple
         """
         active_streams = self.get_release_streams(only_active=True)
@@ -280,13 +280,13 @@ class InventoryManager(BaseManager):
     def get_build_tags(self, buildsys):
         release_stream = self.get_release_streams(built=buildsys)
         if release_stream:
-            return release_stream.first().relstream_built_tags or [' ']
+            return release_stream.first().product_build_tags or [' ']
         return []
 
     def get_relstream_buildsys(self, relstream):
         release_stream = self.get_release_streams(stream_slug=relstream)
         if release_stream:
-            return release_stream.first().relstream_built
+            return release_stream.first().product_build_system
         return ''
 
 
@@ -437,9 +437,9 @@ class ReleaseBranchManager(InventoryManager):
 
         filter_kwargs = {}
         if relstream:
-            filter_kwargs.update(dict(relstream_slug=relstream))
+            filter_kwargs.update(dict(product_slug=relstream))
         if relbranch:
-            filter_kwargs.update(dict(relbranch_slug=relbranch))
+            filter_kwargs.update(dict(release_slug=relbranch))
 
         relbranches = None
         try:
@@ -463,30 +463,30 @@ class ReleaseBranchManager(InventoryManager):
         :return: (('master', 'master'), )
         """
         release_branches = self.get_release_branches(
-            fields=('relbranch_slug', 'relbranch_name', 'track_trans_flag')
+            fields=('release_slug', 'release_name', 'track_trans_flag')
         )
-        return tuple([(branch.relbranch_slug, branch.relbranch_name)
+        return tuple([(branch.release_slug, branch.release_name)
                       for branch in release_branches if branch.track_trans_flag])
 
     def get_branches_of_relstreams(self, release_streams):
         """
-        Retrieve all branches of input release streams
+        Retrieve all branches of input release streams (products)
         :param release_streams: release stream slugs
         :return: dict
         """
         if not release_streams:
             return
         branches_of_relstreams = {}
-        fields = ('relstream_slug', 'relbranch_slug')
+        fields = ('product_slug', 'release_slug')
         try:
             relbranches = Release.objects.only(*fields).filter(
-                relstream_slug__in=release_streams).all()
+                product_slug__in=release_streams).all()
         except Exception as e:
             self.app_logger(
-                'ERROR', "Branches of release streams could not be fetched, details: " + str(e))
+                'ERROR', "Releases of product could not be fetched, details: " + str(e))
         else:
             if relbranches:
-                stream_branches = [{i.relstream_slug: i.relbranch_slug} for i in relbranches]
+                stream_branches = [{i.product_slug: i.release_slug} for i in relbranches]
                 for r_stream in release_streams:
                     branches_of_relstreams[r_stream] = []
                     for relbranch in stream_branches:
@@ -495,7 +495,7 @@ class ReleaseBranchManager(InventoryManager):
                         )
         return branches_of_relstreams
 
-    def get_calendar_events_dict(self, ical_url, relstream_slug):
+    def get_calendar_events_dict(self, ical_url, product_slug):
         """
         Fetches iCal contents over http and converts into dict
         :param ical_url: calendar url
@@ -509,9 +509,9 @@ class ReleaseBranchManager(InventoryManager):
             return {}
         else:
             ical_contents_array = [line.strip() for line in io.StringIO(rest_response.text)]
-            return parse_ical_file(ical_contents_array, relstream_slug)
+            return parse_ical_file(ical_contents_array, product_slug)
 
-    def parse_events_for_required_milestones(self, relstream_slug, relbranch_slug,
+    def parse_events_for_required_milestones(self, product_slug, relbranch_slug,
                                              ical_events, required_events):
         """
         Parse ical events for required milestones
@@ -523,7 +523,7 @@ class ReleaseBranchManager(InventoryManager):
         DELIMITER = ":"
         branch_schedule_dict = OrderedDict()
 
-        if relstream_slug == RELSTREAM_SLUGS[0]:
+        if product_slug == RELSTREAM_SLUGS[0]:
             try:
                 for event in required_events:
                     for event_dict in ical_events:
@@ -534,9 +534,9 @@ class ReleaseBranchManager(InventoryManager):
 
             except Exception as e:
                 self.app_logger(
-                    'WARNING', "Parsing failed for " + relstream_slug + ", details: " + str(e))
+                    'WARNING', "Parsing failed for " + product_slug + ", details: " + str(e))
                 return False
-        elif relstream_slug == RELSTREAM_SLUGS[1]:
+        elif product_slug == RELSTREAM_SLUGS[1]:
             try:
                 for event in required_events:
                     for event_dict in ical_events:
@@ -545,11 +545,11 @@ class ReleaseBranchManager(InventoryManager):
                                 (event_dict.get('DUE', '') or event_dict.get('DTSTART', ''))[:8]
             except Exception as e:
                 self.app_logger(
-                    'WARNING', "Parsing failed for " + relstream_slug + ", details: " + str(e))
+                    'WARNING', "Parsing failed for " + product_slug + ", details: " + str(e))
                 return False
         return branch_schedule_dict
 
-    def validate_branch(self, relstream, **kwargs):
+    def validate_branch(self, product, **kwargs):
         """
         Validate iCal URL for a branch
         :return: boolean
@@ -557,39 +557,42 @@ class ReleaseBranchManager(InventoryManager):
         if 'calendar_url' not in kwargs:
             return False
         ical_url = kwargs.get('calendar_url')
-        relbranch_slug = slugify(kwargs.get('relbranch_name', ''))
-        release_stream = self.get_release_streams(stream_slug=relstream).get()
-        ical_events = self.get_calendar_events_dict(ical_url, release_stream.relstream_slug)
+        relbranch_slug = slugify(kwargs.get('release_name', ''))
+        release_stream = self.get_release_streams(stream_slug=product).get()
+        ical_events = self.get_calendar_events_dict(ical_url, release_stream.product_slug)
         required_events = release_stream.major_milestones
         return relbranch_slug, \
             self.parse_events_for_required_milestones(
-                release_stream.relstream_slug, relbranch_slug, ical_events, required_events)
+                release_stream.product_slug, relbranch_slug, ical_events, required_events)
 
-    def add_relbranch(self, relstream_slug, **kwargs):
+    def add_relbranch(self, product_slug, **kwargs):
         """
         Save release branch in db
-        :param relstream_slug: str
+        :param product_slug: str
         :param post_params: dict
         :return: boolean
         """
-        if not relstream_slug:
+        if not product_slug:
             return False
-        required_params = ('relbranch_name', 'lang_set', 'current_phase',
-                           'calendar_url', 'schedule_json', 'relbranch_slug')
+        required_params = ('release_name', 'lang_set', 'current_phase',
+                           'calendar_url', 'schedule_json_str', 'release_slug')
         if not set(required_params) <= set(kwargs.keys()):
             return False
-        if not (kwargs['relbranch_name'] and kwargs['calendar_url']):
+        if not (kwargs['release_name'] and kwargs['calendar_url']):
             return False
         flags = kwargs.pop('enable_flags') if 'enable_flags' in kwargs else []
+        product = self.get_release_streams(stream_slug=product_slug).first()
+        language_set = self.get_langset(langset_slug=kwargs.pop('lang_set'))
         try:
-            kwargs['relstream_slug'] = relstream_slug
+            kwargs['language_set_slug'] = language_set
+            kwargs['product_slug'] = product
             kwargs['scm_branch'] = None
             kwargs['created_on'] = timezone.now()
             kwargs['sync_calendar'] = True if 'sync_calendar' in flags else False
             kwargs['notifications_flag'] = True if 'notifications_flag' in flags else False
             kwargs['track_trans_flag'] = True if 'track_trans_flag' in flags else False
-            new_relstream_branch = Release(**kwargs)
-            new_relstream_branch.save()
+            new_release_branch = Release(**kwargs)
+            new_release_branch.save()
         except Exception as e:
             self.app_logger(
                 'ERROR', "Release branch could not be added, details: " + str(e))

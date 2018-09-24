@@ -736,9 +736,9 @@ class PackageBranchMapping(object):
                             and self.package.transplatform_slug_id in DAMNEDLIES_SLUGS:
                         release_stream = self.relbranch_manager.get_release_streams(
                             built=branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[1]],
-                            fields=('relstream_server',))
+                            fields=('product_server',))
                         if release_stream:
-                            release_stream_hub_url = release_stream.get().relstream_server or ''
+                            release_stream_hub_url = release_stream.get().product_server or ''
                             build_info = self.relbranch_manager.api_resources.build_info(
                                 hub_url=release_stream_hub_url,
                                 tag=branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[2]],

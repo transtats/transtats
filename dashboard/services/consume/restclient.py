@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import json
 import requests
 from datetime import timedelta
 from requests.auth import HTTPBasicAuth
@@ -249,7 +250,6 @@ class RestClient(object):
         cache_params['request_args'] = req_args
         cache_params['request_kwargs'] = str(req_kwargs)
         cache_params['response_content'] = resp_content
-        cache_params['response_content_json'] = resp_content_json
         cache_params['expiry'] = timezone.now() + timedelta(minutes=self.EXPIRY_MIN)
         try:
             CacheAPI.objects.update_or_create(
@@ -267,7 +267,7 @@ class RestClient(object):
         :return:
         """
         try:
-            fields = ['expiry', 'response_content', 'response_content_json']
+            fields = ['expiry', 'response_content']
             filter_params = {
                 'base_url': base_url,
                 'resource': resource,
@@ -279,7 +279,7 @@ class RestClient(object):
         else:
             if cache:
                 if cache.expiry > timezone.now():
-                    return cache.response_content, cache.response_content_json
+                    return cache.response_content, json.loads(cache.response_content)
         return False, False
 
     def process_request(self, base_url, resource, *args, **kwargs):

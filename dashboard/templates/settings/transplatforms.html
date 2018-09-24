@@ -29,8 +29,8 @@
         </span>
         <span class="pull-right">
             {% if user.is_authenticated and user.is_staff %}
-                <a href="{% url 'admin:dashboard_transplatform_add' %}" role="button" class="btn btn-default">Add Server Instance</a>
-                <a href="{% url 'admin:dashboard_transplatform_changelist' %}" role="button" class="btn btn-default">Manage Platforms</a>
+                <a href="{% url 'admin:dashboard_platform_add' %}" role="button" class="btn btn-default">Add Server Instance</a>
+                <a href="{% url 'admin:dashboard_platform_changelist' %}" role="button" class="btn btn-default">Manage Platforms</a>
             {% endif %}
         </span>
     </div>
@@ -52,8 +52,8 @@
             <p><a href="{{ platform.api_url }}" target="_blank">{{ platform.api_url }}</a>
                 <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
             </p>
-            {% if platform.projects_lastupdated %}
-            <p><span style="color:grey">Last Sync</span> {{ platform.projects_lastupdated|timesince }}
+            {% if platform.projects_last_updated %}
+            <p><span style="color:grey">Last Sync</span> {{ platform.projects_last_updated|timesince }}
                 <span style="color:grey">ago</span>.
                 <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
             </p>

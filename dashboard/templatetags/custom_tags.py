@@ -14,6 +14,7 @@
 # under the License.
 
 import os
+import json
 import yaml
 from collections import OrderedDict
 from django import template
@@ -38,6 +39,14 @@ def get_item(dict_object, key):
 @register.filter
 def join_by(sequence, delimiter):
     return delimiter.join(sequence)
+
+
+@register.filter
+def str_to_dict_items(string):
+    try:
+        return json.loads(string).items()
+    except:
+        return {}.items()
 
 
 @register.inclusion_tag(
@@ -173,7 +182,8 @@ def tag_releases_summary():
     reports_manager = ReportsManager()
     releases_summary = reports_manager.get_reports('releases')
     if releases_summary:
-        release_report_json = releases_summary.get().report_json
+        report = releases_summary.get().report_json_str
+        release_report_json = json.loads(report) if isinstance(report, str) else {}
         pkg_manager = PackagesManager()
         lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
         for release, summary in release_report_json.items():
@@ -197,7 +207,7 @@ def tag_packages_summary():
     packages_summary = reports_manager.get_reports('packages')
     if packages_summary:
         return_value.update(dict(
-            pkgsummary=packages_summary.get().report_json,
+            pkgsummary=json.loads(packages_summary.get().report_json_str),
             last_updated=packages_summary.get().report_updated
         ))
     return return_value
@@ -224,11 +234,11 @@ def tag_job_form(template_type):
     package_manager = PackagesManager()
     release_streams = \
         package_manager.get_release_streams(
-            only_active=True, fields=('relstream_built',)
+            only_active=True, fields=('product_build_system',)
         )
     available_build_systems = []
     for relstream in release_streams:
-        available_build_systems.append(relstream.relstream_built)
+        available_build_systems.append(relstream.product_build_system)
     if available_build_systems:
         return_value['build_systems'] = available_build_systems
     packages = package_manager.get_package_name_tuple(check_mapping=True)

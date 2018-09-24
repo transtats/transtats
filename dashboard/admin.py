@@ -77,24 +77,6 @@ class LanguageSetAdminForm(forms.ModelForm):
     )
 
 
-class ReleaseAdminForm(forms.ModelForm):
-
-    lang_set_choices = ()
-
-    def __init__(self, *args, **kwargs):
-        inventory_manager = InventoryManager()
-        lang_sets = inventory_manager.get_langsets(['lang_set_slug', 'lang_set_name'])
-        self.lang_set_choices = tuple([(lang_set.lang_set_slug, lang_set.lang_set_name)
-                                       for lang_set in lang_sets])
-        super(ReleaseAdminForm, self).__init__(*args, **kwargs)
-        self.fields['lang_set'].choices = self.lang_set_choices
-
-    lang_set = forms.ChoiceField(
-        choices=lang_set_choices, label="Language Set",
-        help_text="Select language set to link with this branch.",
-    )
-
-
 @admin.register(Language)
 class LanguagesAdmin(admin.ModelAdmin):
     search_fields = ('lang_name', )
@@ -121,7 +103,9 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Release)
 class ReleaseAdmin(admin.ModelAdmin):
-    form = ReleaseAdminForm
+    def has_add_permission(self, request, obj=None):
+        return False
+
     search_fields = ('release_slug', )
     exclude = ('release_slug', 'created_on', 'schedule_json_str')
 

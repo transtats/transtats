@@ -116,7 +116,7 @@ class NewReleaseBranchForm(forms.Form):
                             ('sync_calendar', 'Sync Calendar'),
                             ('notifications_flag', 'Notification'))
 
-    relbranch_name = forms.CharField(
+    release_name = forms.CharField(
         label='Release Branch Name', help_text='Version of the release stream.', required=True,
     )
     current_phase = forms.ChoiceField(
@@ -154,7 +154,7 @@ class NewReleaseBranchForm(forms.Form):
 
     helper.layout = Layout(
         Div(
-            Field('relbranch_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
+            Field('release_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
             Field('current_phase', css_class='selectpicker'),
             Field('lang_set', css_class='selectpicker'),
             Field('calendar_url', css_class='form-control'),

@@ -16,6 +16,7 @@
 # Stats Graphs
 
 # python
+import json
 import functools
 from operator import itemgetter
 from collections import Counter, OrderedDict
@@ -253,7 +254,7 @@ class GraphManager(BaseManager):
         rule = self.get_graph_rules(graph_rule=graph_rule).get()
         graph_rule_branch = rule.rule_relbranch
         release_branch = self.branch_manager.get_release_branches(
-            relbranch=graph_rule_branch, fields=['relbranch_name']
+            relbranch=graph_rule_branch, fields=['release_name']
         ).get().relbranch_name
         packages = rule.rule_packages
         exclude_packages = []
@@ -484,7 +485,7 @@ class ReportsManager(GraphManager):
             'report_subject': kwargs['subject']
         }
         default_params.update(match_params)
-        default_params['report_json'] = kwargs['report_json']
+        default_params['report_json_str'] = json.dumps(kwargs['report_json'])
         default_params['report_updated'] = timezone.now()
         try:
             Report.objects.update_or_create(
@@ -523,7 +524,7 @@ class ReportsManager(GraphManager):
                     total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_msgs)) or 0
                     relbranch_report[branch_name]['languages'][lang] = total_untranslated_msgs
         if self.create_or_update_report(**{
-            'subject': 'releases', 'report_json': relbranch_report
+            'subject': 'releases', 'report_json_str': json.dumps(relbranch_report)
         }):
             return OrderedDict(sorted(relbranch_report.items(), reverse=True))
         return False
@@ -536,8 +537,8 @@ class ReportsManager(GraphManager):
             'package_name', 'release_streams', 'details_json_lastupdated', 'stats_diff',
             'release_branch_mapping', 'transtats_lastupdated', 'upstream_lastupdated'
         ])
-        pkg_tracking_for_RHEL = all_packages.filter(release_streams__icontains=RELSTREAM_SLUGS[0]).count()
-        pkg_tracking_for_fedora = all_packages.filter(release_streams__icontains=RELSTREAM_SLUGS[1]).count()
+        pkg_tracking_for_RHEL = all_packages.filter(products__icontains=RELSTREAM_SLUGS[0]).count()
+        pkg_tracking_for_fedora = all_packages.filter(products__icontains=RELSTREAM_SLUGS[1]).count()
         pkg_details_week_old = all_packages.filter(
             details_json_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         pkg_transtats_week_old = all_packages.filter(
@@ -568,7 +569,7 @@ class ReportsManager(GraphManager):
             'pkg_having_stats_diff': pkg_having_stats_diff or 0
         }
         if self.create_or_update_report(**{
-            'subject': 'packages', 'report_json': package_report
+            'subject': 'packages', 'report_json_str': json.dumps(package_report)
         }):
             return package_report
         return False

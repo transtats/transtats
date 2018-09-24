@@ -389,7 +389,6 @@ class CacheAPI(models.Model):
     )
     request_kwargs = models.CharField(max_length=1000)
     response_content = models.TextField(max_length=10000)
-    response_content_json_str = models.TextField(null=True, blank=True)
     expiry = models.DateTimeField()
 
     class Meta:

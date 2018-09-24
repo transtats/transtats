@@ -18,6 +18,7 @@
 # python
 import io
 import os
+import json
 import shutil
 import time
 from collections import OrderedDict
@@ -123,13 +124,13 @@ class JobManager(object):
         try:
             Job.objects.filter(job_uuid=self.uuid).update(
                 job_end_time=timezone.now(),
-                job_log_json=self.log_json,
+                job_log_json_str=json.dumps(self.log_json),
                 job_result=self.job_result,
                 job_remarks=self.job_remarks,
-                job_output_json=self.output_json,
+                job_output_json_str=json.dumps(self.output_json),
                 job_template=self.job_template,
                 job_yml_text=self.job_yml,
-                job_params_json=self.job_params,
+                job_params_json_str=json.dumps(self.job_params),
                 job_visible_on_url=self.visible_on_url
             )
         except:
@@ -249,7 +250,8 @@ class TransplatformSyncManager(BaseManager):
                     # save projects json in db
                     try:
                         Platform.objects.filter(api_url=platform.api_url).update(
-                            projects_json=response_dict, projects_lastupdated=timezone.now()
+                            projects_json_str=json.dumps(response_dict),
+                            projects_last_updated=timezone.now()
                         )
                     except Exception as e:
                         self.job_manager.log_json['Projects'].update(
@@ -364,28 +366,29 @@ class ReleaseScheduleSyncManager(BaseManager):
                 {str(datetime.now()): str(len(relbranches)) + ' release branches fetched from db.'}
             )
             for relbranch in relbranches:
+                product_slug = relbranch.product_slug.product_slug
                 ical_events = self.release_branch_manager.get_calendar_events_dict(
-                    relbranch.calendar_url, relbranch.relstream_slug)
+                    relbranch.calendar_url, product_slug)
                 release_stream = self.release_branch_manager.get_release_streams(
-                    stream_slug=relbranch.relstream_slug).get()
+                    stream_slug=product_slug).get()
                 required_events = release_stream.major_milestones
                 schedule_dict = \
                     self.release_branch_manager.parse_events_for_required_milestones(
-                        relbranch.relstream_slug, relbranch.relbranch_slug, ical_events, required_events
+                        product_slug, relbranch.release_slug, ical_events, required_events
                     )
                 if schedule_dict:
                     relbranch_update_result = Release.objects.filter(
-                        relbranch_slug=relbranch.relbranch_slug
-                    ).update(schedule_json=schedule_dict)
+                        release_slug=relbranch.release_slug
+                    ).update(schedule_json_str=json.dumps(schedule_dict))
                     if relbranch_update_result:
                         self.job_manager.log_json[SUBJECT].update(
-                            {str(datetime.now()): 'Release schedule for ' + relbranch.relbranch_slug +
+                            {str(datetime.now()): 'Release schedule for ' + relbranch.release_slug +
                                                   ' branch updated in db.'}
                         )
                         self.job_manager.job_result = True
                 else:
                     self.job_manager.log_json[SUBJECT].update(
-                        {str(datetime.now()): 'Release schedule for ' + relbranch.relbranch_slug +
+                        {str(datetime.now()): 'Release schedule for ' + relbranch.release_slug +
                                               ' failed to get saved in db.'}
                     )
                     self.job_manager.job_result = False
@@ -439,28 +442,28 @@ class BuildTagsSyncManager(BaseManager):
         )
 
         for relstream in active_release_streams or []:
-            hub_server_url = relstream.relstream_server
+            hub_server_url = relstream.product_server
             # # for brew several configuration needs to be set
             # # before we access its hub for info, #todo
-            # if relstream.relstream_built == 'koji':
+            # if relstream.product_build_system == 'koji':
             try:
                 tags = self.api_resources.build_tags(hub_url=hub_server_url)
             except Exception as e:
                 self.job_manager.log_json[SUBJECT].update(
                     {str(datetime.now()): 'Failed to fetch build tags of %s. Details: %s' %
-                                          (relstream.relstream_built, str(e))}
+                                          (relstream.product_build_system, str(e))}
                 )
                 self.job_manager.job_result = False
             else:
                 if tags:
                     relbranch_update_result = Product.objects.filter(
-                        relstream_slug=relstream.relstream_slug
-                    ).update(relstream_built_tags=tags,
-                             relstream_built_tags_lastupdated=timezone.now())
+                        product_slug=relstream.product_slug
+                    ).update(product_build_tags=tags,
+                             product_build_tags_last_updated=timezone.now())
                     if relbranch_update_result:
                         self.job_manager.log_json[SUBJECT].update(
                             {str(datetime.now()): '%s build tags of %s saved in db.' %
-                                                  (str(len(tags)), relstream.relstream_built)}
+                                                  (str(len(tags)), relstream.product_build_system)}
                         )
                         self.job_manager.job_result = True
         return self.job_manager.job_result
@@ -503,7 +506,7 @@ class YMLBasedJobManager(BaseManager):
                 )
                 raise Exception('Build Server URL could NOT be located for %s.' % build_system)
             else:
-                self.hub_url = release_stream.relstream_server
+                self.hub_url = release_stream.product_server
         if package:
             try:
                 package_details = \

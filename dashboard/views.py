@@ -15,6 +15,7 @@
 
 import ast
 import csv
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -181,9 +182,9 @@ class TranStatusReleaseView(TranStatusReleasesView):
                 kwargs.get('release_branch', '')):
             raise Http404("Release does not exist.")
         release_stream = self.release_branch_manager.get_release_branches(
-            relbranch=kwargs.get('release_branch'), fields=['relstream_slug']).get()
+            relbranch=kwargs.get('release_branch'), fields=['product_slug']).get()
         if release_stream:
-            context['release_stream'] = release_stream.relstream_slug
+            context['release_stream'] = release_stream.product_slug
         return context
 
 
@@ -320,8 +321,8 @@ class NewReleaseBranchView(ManagersMixin, FormView):
         kwargs = {}
         release_stream = self._get_relstream()
         lang_sets = self._get_langsets()
-        kwargs.update({'action_url': reverse('settings-stream-branches-new', args=[release_stream.relstream_slug])})
-        kwargs.update({'phases_choices': tuple([(phase, phase) for phase in release_stream.relstream_phases])})
+        kwargs.update({'action_url': reverse('settings-stream-branches-new', args=[release_stream.product_slug])})
+        kwargs.update({'phases_choices': tuple([(phase, phase) for phase in release_stream.product_phases])})
         kwargs.update({'langset_choices': tuple([(set.lang_set_slug, set.lang_set_name) for set in lang_sets])})
         kwargs.update({'initial': self.get_initial()})
         if data:
@@ -334,7 +335,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
         post_params = form.cleaned_data
         relstream = kwargs.get('stream_slug')
         # Check for required params
-        required_params = ('relbranch_name', 'current_phase', 'lang_set', 'calendar_url')
+        required_params = ('release_name', 'current_phase', 'lang_set', 'calendar_url')
         if not set(required_params) <= set(post_params.keys()):
             return render(request, self.template_name, {'form': form})
         relbranch_slug, schedule_json = \
@@ -344,8 +345,8 @@ class NewReleaseBranchView(ManagersMixin, FormView):
             errors.append("Please check calendar URL, could not parse required dates!")
         if schedule_json:
             success_url = reverse('settings-stream-branches-new', args=[relstream])
-            post_params['schedule_json'] = schedule_json
-            post_params['relbranch_slug'] = relbranch_slug
+            post_params['schedule_json_str'] = json.dumps(schedule_json)
+            post_params['release_slug'] = relbranch_slug
             active_user = getattr(request, 'user', None)
             if active_user:
                 post_params['created_by'] = active_user.email
