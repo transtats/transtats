@@ -534,17 +534,17 @@ class ReportsManager(GraphManager):
         Summarize Packages Status
         """
         all_packages = self.package_manager.get_packages(pkg_params=[
-            'package_name', 'release_streams', 'details_json_lastupdated', 'stats_diff',
-            'release_branch_mapping', 'transtats_lastupdated', 'upstream_lastupdated'
+            'package_name', 'products', 'details_json_last_updated', 'stats_diff',
+            'release_branch_mapping', 'platform_last_updated', 'upstream_last_updated'
         ])
         pkg_tracking_for_RHEL = all_packages.filter(products__icontains=RELSTREAM_SLUGS[0]).count()
         pkg_tracking_for_fedora = all_packages.filter(products__icontains=RELSTREAM_SLUGS[1]).count()
         pkg_details_week_old = all_packages.filter(
-            details_json_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
+            details_json_last_updated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         pkg_transtats_week_old = all_packages.filter(
-            transtats_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
+            platform_last_updated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         pkg_upstream_week_old = all_packages.filter(
-            upstream_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
+            upstream_last_updated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         relbranches = self.branch_manager.get_relbranch_name_slug_tuple()
         pkg_improper_branch_mapping = 0
         pkg_having_stats_diff = 0

@@ -158,9 +158,9 @@ class PackagesManager(InventoryManager):
         Get platform-wise project details
         """
         resp_dict = None
-        transplatform_url = None
+        platform_url = None
         if transplatform.engine_name == TRANSPLATFORM_ENGINES[0]:
-            transplatform_url = transplatform.api_url + "/module/" + package_name + "/"
+            platform_url = transplatform.api_url + "/module/" + package_name + "/"
             resp_dict = self.api_resources.fetch_project_details(
                 transplatform.engine_name, transplatform.api_url, package_name
             )
@@ -171,14 +171,14 @@ class PackagesManager(InventoryManager):
             )
             if resp_dict:
                 tx_org_slug = resp_dict['organization']['slug']
-                transplatform_url = transplatform.api_url + "/" + tx_org_slug + "/" + package_name
+                platform_url = transplatform.api_url + "/" + tx_org_slug + "/" + package_name
         elif transplatform.engine_name == TRANSPLATFORM_ENGINES[2]:
-            transplatform_url = transplatform.api_url + "/project/view/" + package_name
+            platform_url = transplatform.api_url + "/project/view/" + package_name
             resp_dict = self.api_resources.fetch_project_details(
                 transplatform.engine_name, transplatform.api_url, package_name,
                 **dict(auth_user=transplatform.auth_login_id, auth_token=transplatform.auth_token_key)
             )
-        return transplatform_url, resp_dict
+        return platform_url, resp_dict
 
     def add_package(self, **kwargs):
         """
@@ -281,8 +281,7 @@ class PackagesManager(InventoryManager):
         # get transplatform projects from db
         platform = Platform.objects.only(*transplatform_fields) \
             .filter(platform_slug=kwargs['transplatform_slug']).get()
-        projects_json = json.loads(platform.projects_json_str) \
-            if platform.projects_json_str else {}
+        projects_json = platform.projects_json
         # if not found in db, fetch transplatform projects from API
         if not projects_json:
             response_dict = None
@@ -350,12 +349,12 @@ class PackagesManager(InventoryManager):
             for pkg_stats_version in pkg_stats_versions:
                 trans_stats_list, missing_locales = \
                     self.syncstats_manager.filter_stats_for_required_locales(
-                        package_details.transplatform_slug_id,
+                        package_details.platform_slug_id,
                         pkg_stats_version.stats_raw_json, list(lang_id_name)
                     )
                 if 'test' not in pkg_stats_version.project_version and 'extras' not in pkg_stats_version.project_version:
                     trans_stats_dict[pkg_stats_version.project_version] = \
-                        self.syncstats_manager.extract_locale_translated(package_details.transplatform_slug_id,
+                        self.syncstats_manager.extract_locale_translated(package_details.platform_slug_id,
                                                                          trans_stats_list)
             if apply_branch_mapping and package_details.release_branch_mapping:
                 branch_mapping = package_details.release_branch_mapping
@@ -366,7 +365,7 @@ class PackagesManager(InventoryManager):
     def _get_pkg_and_ext(self, package_name):
         package = self.get_packages([package_name]).get()
         # extension for Transifex should be true, otherwise false
-        extension = (True if package.transplatform_slug.engine_name == TRANSPLATFORM_ENGINES[0] else False)
+        extension = (True if package.platform_slug.engine_name == TRANSPLATFORM_ENGINES[0] else False)
         return package, extension
 
     def sync_update_package_details(self, package_name):
@@ -377,16 +376,16 @@ class PackagesManager(InventoryManager):
         """
         update_pkg_status = False
         package, ext = self._get_pkg_and_ext(package_name)
-        platform = package.transplatform_slug
+        platform = package.platform_slug
         project_details_response_dict = self.api_resources.fetch_project_details(
             platform.engine_name, platform.api_url, package_name,
             **(dict(auth_user=platform.auth_login_id, auth_token=platform.auth_token_key))
         )
         if project_details_response_dict:
             try:
-                Package.objects.filter(transplatform_url=package.transplatform_url).update(
-                    package_details_json=project_details_response_dict,
-                    details_json_lastupdated=timezone.now()
+                Package.objects.filter(platform_url=package.platform_url).update(
+                    package_details_json_str=json.dumps(project_details_response_dict),
+                    details_json_last_updated=timezone.now()
                 )
             except Exception as e:
                 self.app_logger(
@@ -404,18 +403,18 @@ class PackagesManager(InventoryManager):
         update_stats_status = False
         package, ext = self._get_pkg_and_ext(package_name)
         project, versions = parse_project_details_json(
-            package.transplatform_slug.engine_name, package.package_details_json
+            package.platform_slug.engine_name, package.package_details_json
         )
         for version in versions:
             proj_trans_stats_response_dict = {}
-            if package.transplatform_slug.engine_name == TRANSPLATFORM_ENGINES[0]:
+            if package.platform_slug.engine_name == TRANSPLATFORM_ENGINES[0]:
                 # this is a quick fix for chinese in DamnedLies modules
                 locales = [locale.locale_alias if 'zh' not in locale.locale_id else locale.locale_id
                            for locale in self.get_locales(only_active=True)]
                 locales_stats_list = []
                 for locale in locales:
                     locale_stats = self.api_resources.fetch_translation_statistics(
-                        package.transplatform_slug.engine_name, package.transplatform_slug.api_url,
+                        package.platform_slug.engine_name, package.platform_slug.api_url,
                         locale, version, **dict(package_name=package_name)
                     )
                     if locale_stats:
@@ -423,9 +422,9 @@ class PackagesManager(InventoryManager):
                 proj_trans_stats_response_dict.update({"id": version, "stats": locales_stats_list})
             else:
                 proj_trans_stats_response_dict = self.api_resources.fetch_translation_statistics(
-                    package.transplatform_slug.engine_name, package.transplatform_slug.api_url, project, version,
-                    **dict(auth_user=package.transplatform_slug.auth_login_id,
-                           auth_token=package.transplatform_slug.auth_token_key)
+                    package.platform_slug.engine_name, package.platform_slug.api_url, project, version,
+                    **dict(auth_user=package.platform_slug.auth_login_id,
+                           auth_token=package.platform_slug.auth_token_key)
                 )
             if proj_trans_stats_response_dict:
                 processed_stats = {}
@@ -436,10 +435,10 @@ class PackagesManager(InventoryManager):
 
                 if self.syncstats_manager.save_version_stats(
                         project, version, proj_trans_stats_response_dict,
-                        package.transplatform_slug.engine_name, p_stats=processed_stats
+                        package.platform_slug.engine_name, p_stats=processed_stats
                 ):
-                    Package.objects.filter(transplatform_url=package.transplatform_url).update(
-                        transtats_lastupdated=timezone.now())
+                    Package.objects.filter(platform_url=package.platform_url).update(
+                        platform_last_updated=timezone.now())
                     update_stats_status = True
         # this makes sense if we create branch-mapping just after package sync
         self.build_branch_mapping(package_name)
@@ -733,7 +732,7 @@ class PackageBranchMapping(object):
                             self.release_build_tags_dict[stream]))
 
                     if not branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]] \
-                            and self.package.transplatform_slug_id in DAMNEDLIES_SLUGS:
+                            and self.package.platform_slug_id in DAMNEDLIES_SLUGS:
                         release_stream = self.relbranch_manager.get_release_streams(
                             built=branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[1]],
                             fields=('product_server',))

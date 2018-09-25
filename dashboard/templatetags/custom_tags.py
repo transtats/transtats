@@ -41,14 +41,6 @@ def join_by(sequence, delimiter):
     return delimiter.join(sequence)
 
 
-@register.filter
-def str_to_dict_items(string):
-    try:
-        return json.loads(string).items()
-    except:
-        return {}.items()
-
-
 @register.inclusion_tag(
     os.path.join("stats", "_package_details.html")
 )

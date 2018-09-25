@@ -112,6 +112,9 @@ class ReleaseAdmin(admin.ModelAdmin):
 
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request, obj=None):
+        return False
+
     search_fields = ('package_name', )
     exclude = ('package_details_json_str', 'details_json_last_updated',
                'name_map_last_updated', 'release_branch_map_last_updated',

@@ -14,6 +14,7 @@
 # under the License.
 
 # python
+import json
 from uuid import uuid4
 
 # django
@@ -29,6 +30,16 @@ from rest_framework.authtoken.models import Token
 
 
 TABLE_PREFIX = 'ts_'
+
+
+class ModelMixin(object):
+
+    @staticmethod
+    def str2json(text_value):
+        try:
+            return json.loads(text_value)
+        except:
+            return {}
 
 
 class Language(models.Model):
@@ -84,7 +95,7 @@ class LanguageSet(models.Model):
         verbose_name = "Language Set"
 
 
-class Platform(models.Model):
+class Platform(ModelMixin, models.Model):
     """
     Translation Platforms Model
     """
@@ -108,6 +119,10 @@ class Platform(models.Model):
     auth_token_key = models.CharField(
         max_length=200, null=True, blank=True, verbose_name="Auth Token"
     )
+
+    @property
+    def projects_json(self):
+        return self.str2json(self.projects_json_str)
 
     def __str__(self):
         return "{0} {1}".format(self.engine_name, self.subject)
@@ -172,7 +187,7 @@ class Product(models.Model):
         verbose_name = "Product"
 
 
-class Release(models.Model):
+class Release(ModelMixin, models.Model):
     """
     Releases Model
     """
@@ -197,6 +212,10 @@ class Release(models.Model):
     track_trans_flag = models.BooleanField(default=True, verbose_name="Track Translation")
     created_by = models.EmailField(null=True)
 
+    @property
+    def schedule_json(self):
+        return self.str2json(self.schedule_json_str)
+
     def __str__(self):
         return self.release_name
 
@@ -205,7 +224,7 @@ class Release(models.Model):
         verbose_name_plural = "Release"
 
 
-class Package(models.Model):
+class Package(ModelMixin, models.Model):
     """
     Packages Model
     """
@@ -246,6 +265,26 @@ class Package(models.Model):
     created_by = models.EmailField(null=True)
     maintainers = models.TextField(null=True, blank=True)
 
+    @property
+    def package_details_json(self):
+        return self.str2json(self.package_details_json_str)
+
+    @property
+    def package_name_mapping_json(self):
+        return self.str2json(self.package_name_mapping_json_str)
+
+    @property
+    def release_branch_mapping_json(self):
+        return self.str2json(self.release_branch_mapping)
+
+    @property
+    def stats_diff_json(self):
+        return self.str2json(self.stats_diff)
+
+    @property
+    def maintainers_json(self):
+        return self.str2json(self.maintainers)
+
     def __str__(self):
         return self.package_name
 
@@ -278,7 +317,7 @@ class PackageSet(models.Model):
         verbose_name = "Package Set"
 
 
-class JobTemplate(models.Model):
+class JobTemplate(ModelMixin, models.Model):
     """
     Job Templates Model
     """
@@ -292,6 +331,10 @@ class JobTemplate(models.Model):
     job_template_json_str = models.TextField(null=True, blank=True)
     job_template_last_accessed = models.DateTimeField(null=True)
 
+    @property
+    def job_template_json(self):
+        return self.str2json(self.job_template_json_str)
+
     def __str__(self):
         return self.job_template_name
 
@@ -300,7 +343,7 @@ class JobTemplate(models.Model):
         verbose_name = "Job Template"
 
 
-class Job(models.Model):
+class Job(ModelMixin, models.Model):
     """
     Jobs Model
     """
@@ -321,6 +364,18 @@ class Job(models.Model):
     job_visible_on_url = models.BooleanField(default=False)
 
     @property
+    def job_log_json(self):
+        return self.str2json(self.job_log_json_str)
+
+    @property
+    def job_params_json(self):
+        return self.str2json(self.job_params_json_str)
+
+    @property
+    def job_output_json(self):
+        return self.str2json(self.job_output_json_str)
+
+    @property
     def duration(self):
         time_diff = self.job_end_time - self.job_start_time
         return time_diff.total_seconds()
@@ -330,7 +385,7 @@ class Job(models.Model):
         verbose_name = "Job"
 
 
-class SyncStats(models.Model):
+class SyncStats(ModelMixin, models.Model):
     """
     Sync Stats Model
     """
@@ -346,6 +401,14 @@ class SyncStats(models.Model):
     stats_processed_json_str = models.TextField(null=True, blank=True)
     sync_iter_count = models.IntegerField()
     sync_visibility = models.BooleanField()
+
+    @property
+    def stats_raw_json(self):
+        return self.str2json(self.stats_raw_json_str)
+
+    @property
+    def stats_processed_json(self):
+        return self.str2json(self.stats_processed_json_str)
 
     class Meta:
         db_table = TABLE_PREFIX + 'syncstats'
@@ -395,7 +458,7 @@ class CacheAPI(models.Model):
         db_table = TABLE_PREFIX + 'cacheapi'
 
 
-class Report(models.Model):
+class Report(ModelMixin, models.Model):
     """
     Reports Model
     """
@@ -403,6 +466,10 @@ class Report(models.Model):
     report_subject = models.CharField(max_length=200, unique=True)
     report_json_str = models.TextField(null=True, blank=True)
     report_updated = models.DateTimeField(null=True)
+
+    @property
+    def report_json(self):
+        return self.str2json(self.report_json_str)
 
     def __str__(self):
         return self.report_subject

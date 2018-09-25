@@ -1,5 +1,4 @@
 {% extends "settings/settings_base.html" %}
-{% load custom_tags %}
 
 {% block extrascript %}
 <script type="text/javascript">
@@ -83,7 +82,7 @@
                 <div class="list-group">
                   <a href="#" class="list-group-item">
                     <h4 class="list-group-item-heading">Release Schedule</h4><br/>
-                    {% for milestone, date in relbranch.schedule_json_str|str_to_dict_items|dictsort:1 %}
+                    {% for milestone, date in relbranch.schedule_json.items|dictsort:1 %}
                         <p class="list-group-item-text">
                             <div style="background-color: Azure;">
                                 <span class="text-info">{{ milestone }}</span>

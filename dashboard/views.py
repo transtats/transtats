@@ -779,8 +779,8 @@ def export_packages(request, **kwargs):
     if request.method == 'GET' and kwargs.get('format', '') == 'csv':
         file_name = "ts-packages-%s.csv" % datetime.today().strftime('%d-%m-%Y')
         packages_manager = PackagesManager()
-        required_fields = ['package_name', 'upstream_url', 'transplatform_url',
-                           'release_streams', 'release_branch_mapping']
+        required_fields = ['package_name', 'upstream_url', 'platform_url',
+                           'products', 'release_branch_mapping']
         packages = packages_manager.get_packages(pkg_params=required_fields)
         response = HttpResponse(content_type='text/csv', status=200)
         response['Content-Disposition'] = 'attachment; filename="' + file_name + '"'
@@ -789,7 +789,7 @@ def export_packages(request, **kwargs):
         for package in packages:
             writer.writerow(
                 [package.package_name, package.upstream_url,
-                 package.transplatform_url, ', '.join(package.release_streams),
+                 package.platform_url, ', '.join(package.products),
                  package.release_branch_mapping if package.release_branch_mapping
                  else ''])
         return response

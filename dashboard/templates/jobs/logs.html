@@ -1,5 +1,4 @@
 {% extends "jobs/jobs_base.html" %}
-{% load custom_tags %}
 
 {% block extrascript %}
 <script type="text/javascript">
@@ -48,7 +47,7 @@
                     <hr/>
                     <p>
                         <div class="list-group">
-                            {% for task, details in log.job_log_json_str|str_to_dict_items %}
+                            {% for task, details in log.job_log_json.items %}
                             <a href="#" class="list-group-item">
                               <h4 class="list-group-item-heading">{{ task }}</h4>
                                 {% for datetime, event in details.items|dictsortreversed:0 %}

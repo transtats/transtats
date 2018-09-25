@@ -295,9 +295,9 @@ class TransplatformSyncManager(BaseManager):
                     )
                     if project_details_resp_dict:
                         try:
-                            Package.objects.filter(transplatform_url=url.transplatform_url).update(
-                                package_details_json=project_details_resp_dict,
-                                details_json_lastupdated=timezone.now()
+                            Package.objects.filter(platform_url=url.platform_url).update(
+                                package_details_json_str=json.dumps(project_details_resp_dict),
+                                details_json_last_updated=timezone.now()
                             )
                         except Exception as e:
                             self.job_manager.log_json['Project-Details'].update(
