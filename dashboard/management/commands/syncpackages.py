@@ -35,8 +35,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         all_packages = self.package_manager.get_packages().filter(
-            transtats_lastupdated__lte=timezone.now() - timedelta(hours=6)
-        ).order_by('transplatform_url')
+            platform_last_updated__lte=timezone.now() - timedelta(hours=6)
+        ).order_by('platform_url')
         for package in all_packages:
             th = threading.Thread(
                 target=self._sync_package, args=(package.package_name, )

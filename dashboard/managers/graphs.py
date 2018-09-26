@@ -94,23 +94,33 @@ class GraphManager(BaseManager):
         :param kwargs: dict
         :return: boolean
         """
+        if not kwargs.get('rule_name'):
+            return
+
+        if not kwargs.get('rule_relbranch'):
+            return
+
+        relbranch_slug = kwargs.get('rule_relbranch')
+        release_branch = \
+            self.branch_manager.get_release_branches(relbranch=relbranch_slug)
+
         if kwargs.get('lang_selection') == "pick" and not kwargs.get('rule_langs'):
-            relbranch_slug = kwargs.get('rule_relbranch')
             relbranch_lang_set = self.branch_manager.get_release_branches(
-                relbranch=relbranch_slug, fields=['lang_set']
+                relbranch=relbranch_slug, fields=['language_set_slug']
             ).first()
-            locales = self.branch_manager.get_langset(
-                relbranch_lang_set.lang_set, fields=['locale_ids']
-            ).locale_ids
+            locales = relbranch_lang_set.language_set_slug.locale_ids
             if locales:
-                kwargs['rule_langs'] = locales
+                kwargs['rule_languages'] = locales
             else:
                 return False
+        elif kwargs.get('rule_langs'):
+            kwargs['rule_languages'] = kwargs.pop('rule_langs')
 
-        if not (kwargs['rule_name']):
-            return
+        filters = ['lang_selection', 'rule_langs', 'rule_relbranch']
+        [kwargs.pop(i) for i in filters if i in kwargs]
+
         try:
-            kwargs.pop('lang_selection')
+            kwargs['rule_release_slug'] = release_branch.get()
             kwargs['created_on'] = timezone.now()
             kwargs['rule_status'] = True
             new_rule = GraphRule(**kwargs)
@@ -252,13 +262,13 @@ class GraphManager(BaseManager):
         if not graph_rule:
             return {}
         rule = self.get_graph_rules(graph_rule=graph_rule).get()
-        graph_rule_branch = rule.rule_relbranch
+        graph_rule_branch = rule.rule_release_slug.release_slug
         release_branch = self.branch_manager.get_release_branches(
             relbranch=graph_rule_branch, fields=['release_name']
-        ).get().relbranch_name
+        ).get().release_name
         packages = rule.rule_packages
         exclude_packages = []
-        rule_locales = rule.rule_langs
+        rule_locales = rule.rule_languages
 
         trans_stats_dict_set = OrderedDict()
         languages_list = []
@@ -524,7 +534,7 @@ class ReportsManager(GraphManager):
                     total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_msgs)) or 0
                     relbranch_report[branch_name]['languages'][lang] = total_untranslated_msgs
         if self.create_or_update_report(**{
-            'subject': 'releases', 'report_json_str': json.dumps(relbranch_report)
+            'subject': 'releases', 'report_json': relbranch_report
         }):
             return OrderedDict(sorted(relbranch_report.items(), reverse=True))
         return False
@@ -547,18 +557,16 @@ class ReportsManager(GraphManager):
             upstream_last_updated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         relbranches = self.branch_manager.get_relbranch_name_slug_tuple()
         pkg_improper_branch_mapping = 0
-        pkg_having_stats_diff = 0
-        pkg_having_stats_diff_list = []
+        pkg_with_stats_diff = 0
         if relbranches and len(relbranches) > 0:
             relbranch_slugs = sorted([slug for slug, name in relbranches], reverse=True)
-            pkg_improper_branch_mapping = all_packages.filter(
-                release_branch_mapping__contains={relbranch_slugs[0]: ""}).count()
-            pkg_with_stats_diff = all_packages.filter(stats_diff__has_keys=relbranch_slugs)
-            for pkg_stats in pkg_with_stats_diff:
-                for branch in relbranches:
-                    if pkg_stats.stats_diff.get(branch[0]):
-                        pkg_having_stats_diff_list.append(pkg_stats)
-            pkg_having_stats_diff = len(set(pkg_having_stats_diff_list))
+            pkgs_improper_branch_mapping = [i for i in all_packages
+                                            if not i.release_branch_mapping_json.get(relbranch_slugs[0])]
+            pkg_improper_branch_mapping = len(pkgs_improper_branch_mapping)
+            pkg_with_stats_diff = [i.package_name
+                                   for i in all_packages
+                                   for y in relbranch_slugs if i.stats_diff_json.get(y)]
+
         package_report = {
             RELSTREAM_SLUGS[0]: pkg_tracking_for_RHEL or 0,
             RELSTREAM_SLUGS[1]: pkg_tracking_for_fedora or 0,
@@ -566,10 +574,11 @@ class ReportsManager(GraphManager):
             'pkg_transtats_week_old': pkg_transtats_week_old or 0,
             'pkg_upstream_week_old': pkg_upstream_week_old or 0,
             'pkg_improper_branch_mapping': pkg_improper_branch_mapping or 0,
-            'pkg_having_stats_diff': pkg_having_stats_diff or 0
+            'pkg_with_stats_diff': pkg_with_stats_diff or [],
+            'pkg_having_stats_diff': len(pkg_with_stats_diff) or 0
         }
         if self.create_or_update_report(**{
-            'subject': 'packages', 'report_json_str': json.dumps(package_report)
+            'subject': 'packages', 'report_json': package_report
         }):
             return package_report
         return False

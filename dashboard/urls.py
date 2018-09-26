@@ -100,4 +100,5 @@ urlpatterns = [
     url(r'^translation-coverage/$', TransCoverageView.as_view(), name="custom-graph"),
     url(r'^quick-start$', TemplateView.as_view(template_name="howto.html"), name="howto"),
     url(r'^health$', RedirectView.as_view(permanent=False, url='/api/ping?format=json')),
+    url(r'^favicon.ico$', RedirectView.as_view(permanent=False, url='/static/img/favicon.ico'), name="favicon"),
 ]

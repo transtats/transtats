@@ -79,8 +79,8 @@ def tag_branch_mapping(package):
     else:
         return_value.update(
             {'package_name': package_details.package_name,
-             'branch_mapping': package_details.release_branch_mapping,
-             'mapping_lastupdated': package_details.mapping_lastupdated,
+             'branch_mapping': package_details.release_branch_mapping_json,
+             'mapping_lastupdated': package_details.release_branch_map_last_updated,
              'mapping_keys': BRANCH_MAPPING_KEYS}
         )
     return return_value
@@ -98,7 +98,7 @@ def tag_stats_diff(package):
         # log event, passing for now
         pass
     else:
-        stats_diff = package_details.stats_diff or {}
+        stats_diff = package_details.stats_diff_json or {}
         langs_out_of_sync = {}
         for branch, diff in stats_diff.items():
             langs_out_of_sync[branch] = {}

@@ -13,8 +13,16 @@
       </li>
       {% endif %}
       <li class="list-group-item {% if pkgsummary.pkg_having_stats_diff > 0 %}list-group-item-warning{% endif %}">
-        <span class="badge" style="font-size:medium">{{ pkgsummary.pkg_having_stats_diff }}</span>
+        <button class="badge" type="button" style="font-size:medium" data-toggle="collapse" data-target="#diff">
+            {{ pkgsummary.pkg_having_stats_diff }}</button>
           Packages out of sync. <code>Latest translations may not be pulled and packaged</code>.
+          {% if pkgsummary.pkg_with_stats_diff %}
+          <span id="diff" class="collapse"><br/>
+            {% for pkg in pkgsummary.pkg_with_stats_diff %}
+              <a href="{% url 'trans-status-package' pkg %}">{{ pkg }}</a>&nbsp;&nbsp;
+            {% endfor %}
+          </span>
+          {% endif %}
       </li>
       <li class="list-group-item {% if pkgsummary.pkg_improper_branch_mapping > 0 %}list-group-item-warning{% endif %}">
         <span class="badge" style="font-size:medium">{{ pkgsummary.pkg_improper_branch_mapping }}</span>

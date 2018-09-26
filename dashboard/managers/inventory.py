@@ -21,6 +21,7 @@
 
 # python
 import io
+import json
 from uuid import uuid4
 from collections import OrderedDict
 
@@ -302,7 +303,7 @@ class SyncStatsManager(BaseManager):
         """
         sync_stats = None
         required_params = fields if fields and isinstance(fields, (list, tuple)) \
-            else ('package_name', 'project_version', 'source', 'stats_raw_json')
+            else ('package_name', 'project_version', 'source', 'stats_raw_json_str')
         kwargs = {}
         kwargs.update(dict(sync_visibility=True))
         if pkgs:
@@ -398,17 +399,17 @@ class SyncStatsManager(BaseManager):
                 params.update(dict(job_uuid=sync_uuid))
                 params.update(dict(project_version=version))
                 params.update(dict(source=stats_source))
-                params.update(dict(stats_raw_json=stats_json))
+                params.update(dict(stats_raw_json_str=json.dumps(stats_json)))
                 if isinstance(p_stats, dict):
-                    params.update(dict(stats_processed_json=p_stats))
+                    params.update(dict(stats_processed_json_str=json.dumps(p_stats)))
                 params.update(dict(sync_iter_count=1))
                 params.update(dict(sync_visibility=True))
                 new_sync_stats = SyncStats(**params)
                 new_sync_stats.save()
             else:
                 SyncStats.objects.filter(**filter_kwargs).update(
-                    job_uuid=sync_uuid, stats_raw_json=stats_json,
-                    stats_processed_json=p_stats if isinstance(p_stats, dict) else {},
+                    job_uuid=sync_uuid, stats_raw_json_str=json.dumps(stats_json),
+                    stats_processed_json_str=json.dumps(p_stats) if isinstance(p_stats, dict) else {},
                     sync_iter_count=existing_sync_stat.sync_iter_count + 1
                 )
         except Exception as e:
@@ -486,7 +487,7 @@ class ReleaseBranchManager(InventoryManager):
                 'ERROR', "Releases of product could not be fetched, details: " + str(e))
         else:
             if relbranches:
-                stream_branches = [{i.product_slug: i.release_slug} for i in relbranches]
+                stream_branches = [{i.product_slug.product_slug: i.release_slug} for i in relbranches]
                 for r_stream in release_streams:
                     branches_of_relstreams[r_stream] = []
                     for relbranch in stream_branches:

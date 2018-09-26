@@ -65,11 +65,6 @@ class NewPackageForm(forms.Form):
         label='Release Stream', widget=forms.CheckboxSelectMultiple, choices=relstream_choices,
         help_text="Translation progress for selected streams will be tracked."
     )
-    update_stats = forms.ChoiceField(
-        label='Update details', widget=forms.CheckboxSelectMultiple, choices=update_stats_choices,
-        help_text="Stats fetch would be attempted. <span class='text-warning'>This may take some time!</span>",
-        required=False
-    )
 
     def __init__(self, *args, **kwargs):
         self.transplatform_choices = kwargs.pop('transplatform_choices')
@@ -92,7 +87,6 @@ class NewPackageForm(forms.Form):
             Field('upstream_url', css_class='form-control', onkeyup="showUpstreamName()"),
             Field('transplatform_slug', css_class='selectpicker', onchange="showTransplatformId()"),
             InlineCheckboxes('release_streams'),
-            InlineCheckboxes('update_stats'),
             HTML("<hr/>"),
             HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),
             FormActions(

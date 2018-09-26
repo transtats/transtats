@@ -494,6 +494,11 @@ class YMLBasedJobManager(BaseManager):
             [getattr(self, param, '') for param in self.params]
         )
 
+    def _get_package(self):
+        package_details = \
+            self.package_manager.get_packages([self.package])
+        return package_details.get()
+
     def _bootstrap(self, package=None, build_system=None):
         if build_system:
             try:
@@ -509,9 +514,7 @@ class YMLBasedJobManager(BaseManager):
                 self.hub_url = release_stream.product_server
         if package:
             try:
-                package_details = \
-                    self.package_manager.get_packages([package])
-                package_detail = package_details.get()
+                package_detail = self._get_package()
             except Exception as e:
                 self.app_logger(
                     'ERROR', "Package could not be found, details: " + str(e)
@@ -525,11 +528,11 @@ class YMLBasedJobManager(BaseManager):
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
                 self.pkg_upstream_name = package_detail.upstream_name
-                self.pkg_tp_engine = package_detail.transplatform_slug.engine_name
-                self.pkg_tp_url = package_detail.transplatform_slug.api_url
-                self.pkg_tp_auth_usr = package_detail.transplatform_slug.auth_login_id
-                self.pkg_tp_auth_token = package_detail.transplatform_slug.auth_token_key
-                self.pkg_branch_map = package_detail.release_branch_mapping
+                self.pkg_tp_engine = package_detail.platform_slug.engine_name
+                self.pkg_tp_url = package_detail.platform_slug.api_url
+                self.pkg_tp_auth_usr = package_detail.platform_slug.auth_login_id
+                self.pkg_tp_auth_token = package_detail.platform_slug.auth_token_key
+                self.pkg_branch_map = package_detail.release_branch_mapping_json
 
     def _save_result_in_db(self, stats_dict):
         """
@@ -546,16 +549,16 @@ class YMLBasedJobManager(BaseManager):
 
         try:
             self.package_manager.syncstats_manager.save_version_stats(
-                self.package, stats_version, stats_dict, stats_source
+                self._get_package(), stats_version, stats_dict, stats_source
             )
             if stats_source == 'upstream':
                 self.package_manager.update_package(self.package, {
-                    'upstream_lastupdated': timezone.now()
+                    'upstream_last_updated': timezone.now()
                 })
             # If its for rawhide, update downstream sync time for the package
             if getattr(self, 'tag', ''):
                 self.package_manager.update_package(self.package, {
-                    'downstream_lastupdated': timezone.now()
+                    'downstream_last_updated': timezone.now()
                 })
         except Exception as e:
             self.app_logger(

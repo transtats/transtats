@@ -241,7 +241,7 @@ class PackagesManagerTest(FixtureTestCase):
         """
         transplatform = PlatformData.platform_zanata_fedora.platform_slug
         kwargs = {'package_name': 'authconfig', 'upstream_url': 'https://github.com/jcam/authconfig',
-                  'platform_slug': transplatform, 'products': ['fedora']}
+                  'transplatform_slug': transplatform, 'release_streams': ['fedora']}
         package_added = self.packages_manager.add_package(**kwargs)
         self.assertTrue(package_added)
         self.assertTrue(self.packages_manager.is_package_exist('authconfig'))
