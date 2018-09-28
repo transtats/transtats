@@ -563,9 +563,8 @@ class ReportsManager(GraphManager):
             pkgs_improper_branch_mapping = [i for i in all_packages
                                             if not i.release_branch_mapping_json.get(relbranch_slugs[0])]
             pkg_improper_branch_mapping = len(pkgs_improper_branch_mapping)
-            pkg_with_stats_diff = [i.package_name
-                                   for i in all_packages
-                                   for y in relbranch_slugs if i.stats_diff_json.get(y)]
+            pkg_with_stats_diff = list(set([i.package_name for i in all_packages
+                                            for y in relbranch_slugs if i.stats_diff_json.get(y)]))
 
         package_report = {
             RELSTREAM_SLUGS[0]: pkg_tracking_for_RHEL or 0,

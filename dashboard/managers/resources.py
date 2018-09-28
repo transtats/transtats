@@ -63,10 +63,16 @@ class TransplatformResources(object):
         pick_releases = []
         if response and response.get('json_content'):
             releases = response['json_content']
+            first_stable_pk = None
             for release in releases:
-                if '(development)' in release['fields']['description'] or \
-                        '(stable)' in release['fields']['description']:
+                if '(development)' in release['fields']['description']:
                     pick_releases.append(release['fields']['name'])
+                elif '(stable)' in release['fields']['description']:
+                    pick_releases.append(release['fields']['name'])
+                    first_stable_pk = release['pk']
+                elif first_stable_pk and release['pk'] == first_stable_pk - 1:
+                    pick_releases.append(release['fields']['name'])
+                    first_stable_pk = None
         return {'releases': pick_releases}
 
     @staticmethod

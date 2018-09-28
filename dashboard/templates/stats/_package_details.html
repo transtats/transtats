@@ -13,7 +13,7 @@
 {% endif %}
 </h5>
 <h5>
-    Being tracked for Release Streams:&nbsp;&nbsp;<span class="text-info">{{ package.release_streams|join:", " }}</span>
+    Being tracked for Release Streams:&nbsp;&nbsp;<span class="text-info">{{ package.products|join:", " }}</span>
     {% if package.downstream_last_updated %}
     &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-muted">Last Sync with Build System:</span>
     {{ package.downstream_last_updated|timesince }} <span class="text-muted">ago</span>.

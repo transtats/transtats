@@ -41,8 +41,10 @@
                 <span class="text-info pull-right" id="relbranch"></span>
             </div>
         </div>
+        {% if rules %}
         <div id="legendarea" class="panel panel-default" style="padding:10px"></div>
         <div id="grapharea" class="panel panel-info graph-area"></div>
         <p id="graphdisclaimer"></p>
+        {% endif %}
     </div>
 {% endblock %}

@@ -440,7 +440,7 @@ class GraphRule(models.Model):
         verbose_name = "Graph Rule"
 
 
-class CacheAPI(models.Model):
+class CacheAPI(ModelMixin, models.Model):
     """
     Cache API Model
     """
@@ -452,7 +452,12 @@ class CacheAPI(models.Model):
     )
     request_kwargs = models.CharField(max_length=1000)
     response_content = models.TextField(max_length=10000)
+    response_content_json_str = models.TextField(null=True, blank=True)
     expiry = models.DateTimeField()
+
+    @property
+    def response_content_json(self):
+        return self.str2json(self.response_content_json_str)
 
     class Meta:
         db_table = TABLE_PREFIX + 'cacheapi'

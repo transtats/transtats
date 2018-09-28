@@ -734,7 +734,7 @@ class PackageBranchMapping(object):
                                         probable_versions = [int(version.split('-')[0:3][2])
                                                              for version in first_place_matched_versions]
                                         version_y = int(version_y)
-                                        located_version = min(probable_versions, key=lambda x: abs(x - version_y))
+                                        located_version = max(probable_versions, key=lambda x: abs(x + version_y))
                                         if located_version:
                                             required_version = [ver for ver in first_place_matched_versions
                                                                 if str(located_version) in ver]

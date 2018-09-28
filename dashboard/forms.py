@@ -49,7 +49,6 @@ class NewPackageForm(forms.Form):
     """
     transplatform_choices = ()
     relstream_choices = ()
-    update_stats_choices = (('stats', 'Translation Stats'), )
 
     package_name = forms.CharField(
         label='Package Name', help_text='Package id as-in translation platform. Use hyphen (-) to separate words.', required=True,
@@ -62,8 +61,8 @@ class NewPackageForm(forms.Form):
         choices=transplatform_choices, help_text='Translation statistics will be fetched from this server.'
     )
     release_streams = TextArrayField(
-        label='Release Stream', widget=forms.CheckboxSelectMultiple, choices=relstream_choices,
-        help_text="Translation progress for selected streams will be tracked."
+        label='Products', widget=forms.CheckboxSelectMultiple, choices=relstream_choices,
+        help_text="Translation progress for selected products will be tracked."
     )
 
     def __init__(self, *args, **kwargs):
