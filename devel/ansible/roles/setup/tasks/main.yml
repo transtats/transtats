@@ -12,6 +12,3 @@
 
 - name: Setup DB Schema
   shell: cd /workspace; make migrate
-
-- name: Load Initial Data
-  shell: runuser -l postgres -c "psql -d {{ db_name }} -a -f /workspace/deploy/docker/data/initial.sql"
