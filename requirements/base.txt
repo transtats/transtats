@@ -3,6 +3,7 @@ GitPython
 Django
 django-crispy-forms
 django-debug-toolbar
+django-kronos
 djangorestframework
 gunicorn
 mozilla-django-oidc

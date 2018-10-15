@@ -12,9 +12,12 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+
 import time
 import threading
 from datetime import timedelta
+
+import kronos
 
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
@@ -23,9 +26,10 @@ from dashboard.managers.packages import PackagesManager
 from dashboard.managers.graphs import ReportsManager
 
 
+@kronos.register('0 21 * * *')
 class Command(BaseCommand):
 
-    help = 'Sync packages with respective translation platform'
+    help = 'Sync packages with their respective translation platform.'
 
     package_manager = PackagesManager()
     reports_manager = ReportsManager()

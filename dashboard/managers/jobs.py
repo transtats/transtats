@@ -289,9 +289,9 @@ class TransplatformSyncManager(BaseManager):
             if project_urls and len(project_urls) > 0:
                 for url in project_urls:
                     project_details_resp_dict = self.api_resources.fetch_project_details(
-                        url.transplatform_slug.engine_name, url.transplatform_slug.api_url, url.package_name,
-                        **(dict(auth_user=url.transplatform_slug.auth_login_id,
-                                auth_token=url.transplatform_slug.auth_token_key))
+                        url.platform_slug.engine_name, url.platform_slug.api_url, url.package_name,
+                        **(dict(auth_user=url.platform_slug.auth_login_id,
+                                auth_token=url.platform_slug.auth_token_key))
                     )
                     if project_details_resp_dict:
                         try:

@@ -67,4 +67,5 @@ else
     python3 manage.py loaddata $INITIAL_DATA_FILE_PATH
 fi
 python3 manage.py initlogin
+python3 manage.py installtasks
 gunicorn transtats.wsgi:application
