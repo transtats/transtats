@@ -41,10 +41,12 @@ class TranstatsOIDCBackend(OIDCAuthenticationBackend):
 
         return self.UserModel.objects.create_user(claims['sub'], email=email)
 
-    def authenticate(self, **kwargs):
+    def authenticate(self, request, **kwargs):
         """Handles SuspiciousOperation, route to the OIDC code flow."""
 
         try:
+            if request and not kwargs.get('request'):
+                kwargs['request'] = request
             return super(TranstatsOIDCBackend, self).authenticate(**kwargs)
         except SuspiciousOperation:
             HttpResponseRedirect(reverse('admin:index'))
