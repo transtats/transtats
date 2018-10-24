@@ -55,7 +55,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'kronos',
     'crispy_forms',
     'rest_framework',
     'dashboard.apps.DashboardConfig',

@@ -3,7 +3,6 @@ GitPython
 Django==2.0.8
 django-crispy-forms
 django-debug-toolbar
-django-kronos
 djangorestframework
 gunicorn
 mozilla-django-oidc
