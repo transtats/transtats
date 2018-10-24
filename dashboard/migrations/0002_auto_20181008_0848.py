@@ -64,7 +64,7 @@ def save_languages(apps, schema_editor):
         Language(locale_id="mr_IN", lang_name="Marathi", locale_alias="mr", locale_script="Deva", lang_status=True),
         Language(locale_id="mn_MN", lang_name="Mongolian", locale_alias="mn", locale_script="Cyrl", lang_status=True),
         Language(locale_id="ne_NP", lang_name="Nepali", locale_alias="ne", locale_script="Deva", lang_status=True),
-        Language(locale_id="nb_NO", lang_name="Norwegian Bokmal", locale_alias="nb", locale_script="Latn", lang_status=True),
+        Language(locale_id="nb_NO", lang_name="Norwegian Bokmål", locale_alias="nb", locale_script="Latn", lang_status=True),
         Language(locale_id="nn_NO", lang_name="Norwegian Nynorsk", locale_alias="nn", locale_script="Latn", lang_status=True),
         Language(locale_id="or_IN", lang_name="Odia", locale_alias="or", locale_script="Odia", lang_status=True),
         Language(locale_id="fa_IR", lang_name="Persian", locale_alias="fa", locale_script="Arab", lang_status=True),
