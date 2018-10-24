@@ -45,11 +45,6 @@ spec:
             secretKeyRef:
               name: transtats-secret
               key: database-password
-        - name: INITIAL_DATA_FILE_PATH
-          valueFrom:
-            secretKeyRef:
-              name: transtats-secret
-              key: initial-data-file-path
         readinessProbe:
           timeoutSeconds: 1
           initialDelaySeconds: 5

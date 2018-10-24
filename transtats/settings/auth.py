@@ -18,7 +18,7 @@ ADMIN_INITIAL_PASSWORD = app_config_vars('ADMIN_PASSWORD')
 
 # OpenID Connect
 # NOTE: This client ID only works on localhost:8080.
-INSTALLED_APPS += ('mozilla_django_oidc', )
+INSTALLED_APPS += ('mozilla_django_oidc', 'rest_framework.authtoken')
 AUTHENTICATION_BACKENDS += ('transtats.utils.TranstatsOIDCBackend', )
 OIDC_RP_CLIENT_ID = 'transtatsdev'
 OIDC_RP_CLIENT_SECRET = app_config_vars('OIDC_RP_CLIENT_SECRET')
@@ -34,5 +34,3 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     )
 }
-
-INSTALLED_APPS += ('rest_framework.authtoken', )

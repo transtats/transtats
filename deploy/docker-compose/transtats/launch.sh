@@ -60,12 +60,6 @@ fi
 
 make static
 make migrate
-if [ -z "$INITIAL_DATA_FILE_PATH" ]
-then
-    echo "Skipping 'loaddata' as INITIAL_DATA_FILE_PATH is not specified."
-else
-    python3 manage.py loaddata $INITIAL_DATA_FILE_PATH
-fi
 python3 manage.py initlogin
 python3 manage.py installtasks
 gunicorn transtats.wsgi:application
