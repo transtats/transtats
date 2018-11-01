@@ -184,7 +184,7 @@ class TranStatusReleaseView(TranStatusReleasesView):
         release_stream = self.release_branch_manager.get_release_branches(
             relbranch=kwargs.get('release_branch'), fields=['product_slug']).get()
         if release_stream:
-            context['release_stream'] = release_stream.product_slug
+            context['release_stream'] = release_stream.product_slug.product_slug
         return context
 
 
