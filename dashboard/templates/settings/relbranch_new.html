@@ -11,8 +11,8 @@
     <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
     <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
     <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Products</a>
-    <a href="{% url 'settings-stream-branches' relstream.relstream_slug %}" class="btn btn-default">Releases</a>
-    <a href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}" class="btn btn-default">Add</a>
+    <a href="{% url 'settings-stream-branches' relstream.product_slug %}" class="btn btn-default">Releases</a>
+    <a href="{% url 'settings-stream-branches-new' relstream.product_slug %}" class="btn btn-default">Add</a>
 {% endblock %}
 
 {% block tabcontent %}
@@ -20,10 +20,10 @@
     <span class="col-xs-12">
         <span>
             <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-            &nbsp;&nbsp;<span class="text-muted" style="font-size:large">Register a new {{ relstream.relstream_name|capfirst }} release</span>
+            &nbsp;&nbsp;<span class="text-muted" style="font-size:large">Register a new {{ relstream.product_name|capfirst }} release</span>
         </span>
         <span class="pull-right">
-            <a href="{% url 'settings-stream-branches' relstream.relstream_slug %}" class="btn btn-default">Back to {{ relstream.relstream_name|capfirst }} Releases</a>
+            <a href="{% url 'settings-stream-branches' relstream.product_slug %}" class="btn btn-default">Back to {{ relstream.product_name|capfirst }} Releases</a>
             <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Back to Products</a>
         </span>
     </span>

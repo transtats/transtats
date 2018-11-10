@@ -34,8 +34,8 @@
         </span>
         <span class="pull-right">
             {% if user.is_authenticated and user.is_staff %}
-                <a href="{% url 'admin:dashboard_languages_add' %}" role="button" class="btn btn-default">Add Language</a>
-                <a href="{% url 'admin:dashboard_languages_changelist' %}" role="button" class="btn btn-default">Edit Languages</a>
+                <a href="{% url 'admin:dashboard_language_add' %}" role="button" class="btn btn-default">Add Language</a>
+                <a href="{% url 'admin:dashboard_language_changelist' %}" role="button" class="btn btn-default">Edit Languages</a>
             {% endif %}
         </span>
     </div>

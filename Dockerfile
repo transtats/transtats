@@ -38,8 +38,6 @@ WORKDIR /workspace
 
 ADD / /workspace
 
-ADD deploy/docker/conf/sample_keys.json /workspace/transtats/settings/keys.json
-
 RUN pip3 install -r /workspace/requirements/dev.txt
 
 RUN mkdir /var/run/sshd

@@ -19,32 +19,36 @@ from fixture import DataSet
 from dashboard.constants import RELSTREAM_SLUGS, TS_JOB_TYPES
 
 
-class LanguagesData(DataSet):
+class LanguageData(DataSet):
     class Meta:
-        django_model = 'dashboard.Languages'
+        django_model = 'dashboard.Language'
 
     class lang_ja:
         locale_id = 'ja_JP'
         lang_name = 'Japanese'
         locale_alias = 'ja'
+        locale_script = 'Hani'
         lang_status = True
 
     class lang_fr:
         locale_id = 'fr_FR'
         lang_name = 'French'
         locale_alias = 'fr'
+        locale_script = 'Latn'
         lang_status = False
 
     class lang_ru:
         locale_id = 'ru_RU'
         lang_name = 'Russian'
         locale_alias = 'ru'
+        locale_script = 'Cyrl'
         lang_status = True
 
     class lang_ko:
         locale_id = 'ko_KR'
         lang_name = 'Korean'
         locale_alias = 'ko'
+        locale_script = 'Hang'
         lang_status = True
 
 
@@ -65,9 +69,9 @@ class LanguageSetData(DataSet):
         locale_ids = ['ja_JP', 'fr_FR', 'ru_RU']
 
 
-class TransPlatformData(DataSet):
+class PlatformData(DataSet):
     class Meta:
-        django_model = 'dashboard.TransPlatform'
+        django_model = 'dashboard.Platform'
 
     class platform_zanata_public:
         engine_name = 'zanata'
@@ -84,99 +88,99 @@ class TransPlatformData(DataSet):
         server_status = True
 
 
-class ReleaseStreamData(DataSet):
+class ProductData(DataSet):
     class Meta:
-        django_model = 'dashboard.ReleaseStream'
+        django_model = 'dashboard.Product'
 
-    class relstream_fedora:
-        relstream_name = 'Fedora'
-        relstream_slug = RELSTREAM_SLUGS[1]
-        relstream_server = 'https://koji.fedoraproject.org/kojihub'
+    class product_fedora:
+        product_name = 'Fedora'
+        product_slug = RELSTREAM_SLUGS[1]
+        product_server = 'https://koji.fedoraproject.org/kojihub'
         top_url = 'https://kojipkgs.fedoraproject.org'
-        relstream_built_tags = ['f28', 'f29', 'rawhide']
-        relstream_status = True
+        product_build_tags = ['f28', 'f29', 'rawhide']
+        product_status = True
 
-    class relstream_rhel:
-        relstream_name = 'RHEL'
-        relstream_slug = RELSTREAM_SLUGS[0]
-        relstream_server = 'https://companyserver.net/tool'
+    class product_rhel(product_fedora):
+        product_name = 'RHEL'
+        product_slug = RELSTREAM_SLUGS[0]
+        product_server = 'https://companyserver.net/tool'
         top_url = 'http://companyserver.net/topdir'
-        relstream_built_tags = ['tag1', 'tag2']
-        relstream_status = False
+        product_build_tags = ['tag1', 'tag2']
+        product_status = False
 
 
-class StreamBranchesData(DataSet):
+class ReleaseData(DataSet):
     class Meta:
-        django_model = 'dashboard.StreamBranches'
+        django_model = 'dashboard.Release'
 
-    class streambranch_f27:
-        relbranch_name = 'Fedora 27'
-        relbranch_slug = 'fedora-27'
-        relstream_slug = RELSTREAM_SLUGS[1]
-        lang_set = 'f27-set'
+    class release_f27:
+        release_name = 'Fedora 27'
+        release_slug = 'fedora-27'
+        product_slug = ProductData.product_fedora
+        language_set_slug = LanguageSetData.lang_set_f27
         created_on = '2017-10-30 00:00+05:30'
         sync_calendar = False
 
 
-class PackagesData(DataSet):
+class PackageData(DataSet):
     class Meta:
-        django_model = 'dashboard.Packages'
+        django_model = 'dashboard.Package'
 
     class package_candlepin:
         package_name = 'candlepin'
         upstream_name = 'candlepin'
         upstream_url = 'https://github.com/candlepin/candlepin'
-        transplatform_slug = TransPlatformData.platform_zanata_public
-        transplatform_name = 'candlepin'
-        transplatform_url = 'https://translate.zanata.org/project/view/candlepin'
-        release_streams = ['fedora']
+        platform_slug = PlatformData.platform_zanata_public
+        platform_name = 'candlepin'
+        platform_url = 'https://translate.zanata.org/project/view/candlepin'
+        products = ['fedora']
 
     class package_subscription_manager:
         package_name = 'subscription-manager'
         upstream_name = 'subscription-manager'
         upstream_url = 'https://github.com/candlepin/subscription-manager'
-        transplatform_slug = TransPlatformData.platform_zanata_public
-        transplatform_name = 'subscription-manager'
-        transplatform_url = 'https://translate.zanata.org/project/view/subscription-manager'
-        release_streams = ['fedora']
+        platform_slug = PlatformData.platform_zanata_public
+        platform_name = 'subscription-manager'
+        platform_url = 'https://translate.zanata.org/project/view/subscription-manager'
+        products = ['fedora']
 
     class package_anaconda:
         package_name = 'anaconda'
         upstream_name = 'anaconda'
         upstream_url = 'https://github.com/rhinstaller/anaconda'
-        transplatform_slug = TransPlatformData.platform_zanata_fedora
-        transplatform_name = 'anaconda'
-        transplatform_url = 'https://fedora.zanata.org/project/view/anaconda'
-        release_streams = ['fedora']
+        platform_slug = PlatformData.platform_zanata_fedora
+        platform_name = 'anaconda'
+        platform_url = 'https://fedora.zanata.org/project/view/anaconda'
+        products = ['fedora']
 
     class package_ibus:
         package_name = 'ibus'
         upstream_name = 'ibus'
         upstream_url = 'https://github.com/ibus/ibus'
-        transplatform_slug = TransPlatformData.platform_zanata_fedora
-        transplatform_name = 'ibus'
-        transplatform_url = 'https://fedora.zanata.org/project/view/ibus'
-        release_streams = ['fedora']
+        platform_slug = PlatformData.platform_zanata_fedora
+        platform_name = 'ibus'
+        platform_url = 'https://fedora.zanata.org/project/view/ibus'
+        products = ['fedora']
 
 
-class JobTemplatesData(DataSet):
+class JobTemplateData(DataSet):
     class Meta:
-        django_model = 'dashboard.JobTemplates'
+        django_model = 'dashboard.JobTemplate'
 
     class template_syncupstream:
         job_template_type = TS_JOB_TYPES[2]
         job_template_name = 'Clone Upstream Repo'
         job_template_desc = 'Clone Package Upstream GIT Repository'
-        job_template_json = '{"job":{"name":"upstream stats","type":"syncupstream", ' \
-                            '"buildsys": "%BUILD_SYSTEM%", "exception": "raise", "execution": "sequential", ' \
-                            '"package": "%PACKAGE_NAME%", "return_type": "json", "tags": ["%BUILD_TAG%"], ' \
-                            '"tasks": [{"clone": "latest git branch"}]}}'
+        job_template_json_str = '{"job":{"name":"upstream stats","type":"syncupstream", ' \
+                                '"buildsys": "%BUILD_SYSTEM%", "exception": "raise", "execution": "sequential", ' \
+                                '"package": "%PACKAGE_NAME%", "return_type": "json", "tags": ["%BUILD_TAG%"], ' \
+                                '"tasks": [{"clone": "latest git branch"}]}}'
 
     class template_syncdownstream:
         job_template_type = TS_JOB_TYPES[3]
         job_template_name = 'Latest Build Info'
         job_template_desc = 'Get latest build info from build system'
-        job_template_json = '{"job":{"name":"downstream stats","type":"syncdownstream", ' \
-                            '"buildsys": "%BUILD_SYSTEM%", "exception": "raise", "execution": "sequential", ' \
-                            '"package": "%PACKAGE_NAME%", "return_type": "json", "tags": ["%BUILD_TAG%"], ' \
-                            '"tasks": [{"get": "latest build info"}]}}'
+        job_template_json_str = '{"job":{"name":"downstream stats","type":"syncdownstream", ' \
+                                '"buildsys": "%BUILD_SYSTEM%", "exception": "raise", "execution": "sequential", ' \
+                                '"package": "%PACKAGE_NAME%", "return_type": "json", "tags": ["%BUILD_TAG%"], ' \
+                                '"tasks": [{"get": "latest build info"}]}}'

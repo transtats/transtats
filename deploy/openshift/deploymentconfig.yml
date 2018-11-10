@@ -23,6 +23,8 @@ spec:
         ports:
         - containerPort: 8080
         env:
+        - name: GUNICORN_CMD_ARGS
+          value: "--workers 3 --bind 0.0.0.0:8080 --timeout 300"
         - name: DATABASE_ENGINE
           value: postgresql
         - name: DATABASE_NAME
@@ -45,11 +47,6 @@ spec:
             secretKeyRef:
               name: transtats-secret
               key: database-password
-        - name: INITIAL_DATA_FILE_PATH
-          valueFrom:
-            secretKeyRef:
-              name: transtats-secret
-              key: initial-data-file-path
         readinessProbe:
           timeoutSeconds: 1
           initialDelaySeconds: 5

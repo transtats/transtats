@@ -16,6 +16,7 @@
 # Stats Graphs
 
 # python
+import json
 import functools
 from operator import itemgetter
 from collections import Counter, OrderedDict
@@ -31,7 +32,7 @@ from dashboard.constants import RELSTREAM_SLUGS, WORKLOAD_HEADERS
 from dashboard.managers import BaseManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.managers.packages import PackagesManager, PackageBranchMapping
-from dashboard.models import GraphRules, Reports
+from dashboard.models import GraphRule, Report
 
 
 __all__ = ['GraphManager', 'ReportsManager']
@@ -58,7 +59,7 @@ class GraphManager(BaseManager):
 
         rules = None
         try:
-            rules = GraphRules.objects.filter(**filter_kwargs).order_by('rule_name')
+            rules = GraphRule.objects.filter(**filter_kwargs).order_by('rule_name')
         except:
             # log event, passing for now
             pass
@@ -93,26 +94,36 @@ class GraphManager(BaseManager):
         :param kwargs: dict
         :return: boolean
         """
+        if not kwargs.get('rule_name'):
+            return
+
+        if not kwargs.get('rule_relbranch'):
+            return
+
+        relbranch_slug = kwargs.get('rule_relbranch')
+        release_branch = \
+            self.branch_manager.get_release_branches(relbranch=relbranch_slug)
+
         if kwargs.get('lang_selection') == "pick" and not kwargs.get('rule_langs'):
-            relbranch_slug = kwargs.get('rule_relbranch')
             relbranch_lang_set = self.branch_manager.get_release_branches(
-                relbranch=relbranch_slug, fields=['lang_set']
+                relbranch=relbranch_slug, fields=['language_set_slug']
             ).first()
-            locales = self.branch_manager.get_langset(
-                relbranch_lang_set.lang_set, fields=['locale_ids']
-            ).locale_ids
+            locales = relbranch_lang_set.language_set_slug.locale_ids
             if locales:
-                kwargs['rule_langs'] = locales
+                kwargs['rule_languages'] = locales
             else:
                 return False
+        elif kwargs.get('rule_langs'):
+            kwargs['rule_languages'] = kwargs.pop('rule_langs')
 
-        if not (kwargs['rule_name']):
-            return
+        filters = ['lang_selection', 'rule_langs', 'rule_relbranch']
+        [kwargs.pop(i) for i in filters if i in kwargs]
+
         try:
-            kwargs.pop('lang_selection')
+            kwargs['rule_release_slug'] = release_branch.get()
             kwargs['created_on'] = timezone.now()
             kwargs['rule_status'] = True
-            new_rule = GraphRules(**kwargs)
+            new_rule = GraphRule(**kwargs)
             new_rule.save()
         except:
             # log event, pass for now
@@ -251,13 +262,13 @@ class GraphManager(BaseManager):
         if not graph_rule:
             return {}
         rule = self.get_graph_rules(graph_rule=graph_rule).get()
-        graph_rule_branch = rule.rule_relbranch
+        graph_rule_branch = rule.rule_release_slug.release_slug
         release_branch = self.branch_manager.get_release_branches(
-            relbranch=graph_rule_branch, fields=['relbranch_name']
-        ).get().relbranch_name
+            relbranch=graph_rule_branch, fields=['release_name']
+        ).get().release_name
         packages = rule.rule_packages
         exclude_packages = []
-        rule_locales = rule.rule_langs
+        rule_locales = rule.rule_languages
 
         trans_stats_dict_set = OrderedDict()
         languages_list = []
@@ -397,9 +408,7 @@ class GraphManager(BaseManager):
             required_stats_dict = self._process_workload_combined_view(pkg_stats, headers)
         elif isinstance(locale, str):
             for pkg, locale_stat in pkg_stats.items():
-                required_stats_dict[pkg] = locale_stat.get(locale, {
-                    header: 0 for header in headers
-                })
+                required_stats_dict[pkg] = locale_stat.get(locale) or {header: 0 for header in headers}
         return headers, OrderedDict(sorted(
             required_stats_dict.items(), key=lambda x: x[1]['Remaining'], reverse=True
         ))
@@ -465,7 +474,7 @@ class ReportsManager(GraphManager):
 
         reports = None
         try:
-            reports = Reports.objects.filter(**filter_kwargs)
+            reports = Report.objects.filter(**filter_kwargs)
         except Exception as e:
             self.app_logger(
                 'ERROR', "Reports could not be fetched, details: " + str(e))
@@ -484,10 +493,10 @@ class ReportsManager(GraphManager):
             'report_subject': kwargs['subject']
         }
         default_params.update(match_params)
-        default_params['report_json'] = kwargs['report_json']
+        default_params['report_json_str'] = json.dumps(kwargs['report_json'])
         default_params['report_updated'] = timezone.now()
         try:
-            Reports.objects.update_or_create(
+            Report.objects.update_or_create(
                 report_subject=kwargs['subject'], defaults=default_params
             )
         except Exception as e:
@@ -533,31 +542,28 @@ class ReportsManager(GraphManager):
         Summarize Packages Status
         """
         all_packages = self.package_manager.get_packages(pkg_params=[
-            'package_name', 'release_streams', 'details_json_lastupdated', 'stats_diff',
-            'release_branch_mapping', 'transtats_lastupdated', 'upstream_lastupdated'
+            'package_name', 'products', 'details_json_last_updated', 'stats_diff',
+            'release_branch_mapping', 'platform_last_updated', 'upstream_last_updated'
         ])
-        pkg_tracking_for_RHEL = all_packages.filter(release_streams__icontains=RELSTREAM_SLUGS[0]).count()
-        pkg_tracking_for_fedora = all_packages.filter(release_streams__icontains=RELSTREAM_SLUGS[1]).count()
+        pkg_tracking_for_RHEL = all_packages.filter(products__icontains=RELSTREAM_SLUGS[0]).count()
+        pkg_tracking_for_fedora = all_packages.filter(products__icontains=RELSTREAM_SLUGS[1]).count()
         pkg_details_week_old = all_packages.filter(
-            details_json_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
+            details_json_last_updated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         pkg_transtats_week_old = all_packages.filter(
-            transtats_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
+            platform_last_updated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         pkg_upstream_week_old = all_packages.filter(
-            upstream_lastupdated__lte=timezone.now() - timezone.timedelta(days=7)).count()
+            upstream_last_updated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         relbranches = self.branch_manager.get_relbranch_name_slug_tuple()
         pkg_improper_branch_mapping = 0
-        pkg_having_stats_diff = 0
-        pkg_having_stats_diff_list = []
+        pkg_with_stats_diff = 0
         if relbranches and len(relbranches) > 0:
             relbranch_slugs = sorted([slug for slug, name in relbranches], reverse=True)
-            pkg_improper_branch_mapping = all_packages.filter(
-                release_branch_mapping__contains={relbranch_slugs[0]: ""}).count()
-            pkg_with_stats_diff = all_packages.filter(stats_diff__has_keys=relbranch_slugs)
-            for pkg_stats in pkg_with_stats_diff:
-                for branch in relbranches:
-                    if pkg_stats.stats_diff.get(branch[0]):
-                        pkg_having_stats_diff_list.append(pkg_stats)
-            pkg_having_stats_diff = len(set(pkg_having_stats_diff_list))
+            pkgs_improper_branch_mapping = [i for i in all_packages
+                                            if not i.release_branch_mapping_json.get(relbranch_slugs[0])]
+            pkg_improper_branch_mapping = len(pkgs_improper_branch_mapping)
+            pkg_with_stats_diff = list(set([i.package_name for i in all_packages
+                                            for y in relbranch_slugs if i.stats_diff_json.get(y)]))
+
         package_report = {
             RELSTREAM_SLUGS[0]: pkg_tracking_for_RHEL or 0,
             RELSTREAM_SLUGS[1]: pkg_tracking_for_fedora or 0,
@@ -565,7 +571,8 @@ class ReportsManager(GraphManager):
             'pkg_transtats_week_old': pkg_transtats_week_old or 0,
             'pkg_upstream_week_old': pkg_upstream_week_old or 0,
             'pkg_improper_branch_mapping': pkg_improper_branch_mapping or 0,
-            'pkg_having_stats_diff': pkg_having_stats_diff or 0
+            'pkg_with_stats_diff': pkg_with_stats_diff or [],
+            'pkg_having_stats_diff': len(pkg_with_stats_diff) or 0
         }
         if self.create_or_update_report(**{
             'subject': 'packages', 'report_json': package_report

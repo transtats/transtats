@@ -49,7 +49,6 @@ class NewPackageForm(forms.Form):
     """
     transplatform_choices = ()
     relstream_choices = ()
-    update_stats_choices = (('stats', 'Translation Stats'), )
 
     package_name = forms.CharField(
         label='Package Name', help_text='Package id as-in translation platform. Use hyphen (-) to separate words.', required=True,
@@ -62,13 +61,8 @@ class NewPackageForm(forms.Form):
         choices=transplatform_choices, help_text='Translation statistics will be fetched from this server.'
     )
     release_streams = TextArrayField(
-        label='Release Stream', widget=forms.CheckboxSelectMultiple, choices=relstream_choices,
-        help_text="Translation progress for selected streams will be tracked."
-    )
-    update_stats = forms.ChoiceField(
-        label='Update details', widget=forms.CheckboxSelectMultiple, choices=update_stats_choices,
-        help_text="Stats fetch would be attempted. <span class='text-warning'>This may take some time!</span>",
-        required=False
+        label='Products', widget=forms.CheckboxSelectMultiple, choices=relstream_choices,
+        help_text="Translation progress for selected products will be tracked."
     )
 
     def __init__(self, *args, **kwargs):
@@ -92,7 +86,6 @@ class NewPackageForm(forms.Form):
             Field('upstream_url', css_class='form-control', onkeyup="showUpstreamName()"),
             Field('transplatform_slug', css_class='selectpicker', onchange="showTransplatformId()"),
             InlineCheckboxes('release_streams'),
-            InlineCheckboxes('update_stats'),
             HTML("<hr/>"),
             HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),
             FormActions(
@@ -116,7 +109,7 @@ class NewReleaseBranchForm(forms.Form):
                             ('sync_calendar', 'Sync Calendar'),
                             ('notifications_flag', 'Notification'))
 
-    relbranch_name = forms.CharField(
+    release_name = forms.CharField(
         label='Release Branch Name', help_text='Version of the release stream.', required=True,
     )
     current_phase = forms.ChoiceField(
@@ -154,7 +147,7 @@ class NewReleaseBranchForm(forms.Form):
 
     helper.layout = Layout(
         Div(
-            Field('relbranch_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
+            Field('release_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
             Field('current_phase', css_class='selectpicker'),
             Field('lang_set', css_class='selectpicker'),
             Field('calendar_url', css_class='form-control'),

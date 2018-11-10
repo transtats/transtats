@@ -12,18 +12,18 @@
     <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
     <a href="{% url 'settings' %}" class="btn btn-default">Settings</a>
     <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Products</a>
-    <a href="{% url 'settings-stream-branches' relstream.relstream_slug %}" class="btn btn-default">Releases</a>
+    <a href="{% url 'settings-stream-branches' relstream.product_slug %}" class="btn btn-default">Releases</a>
 {% endblock %}
 
 {% block tabcontent %}
 <div class="row">
     <span class="col-xs-12">
         <span>
-            <span class="badge">{{ relbranches|length }}</span> {{ relstream.relstream_name }} releases
+            <span class="badge">{{ relbranches|length }}</span> {{ relstream.product_name }} releases
         </span>
         <span class="pull-right">
             {% if user.is_authenticated and user.is_staff %}
-                <a href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}" class="btn btn-default">Add Release</a>
+                <a href="{% url 'settings-stream-branches-new' relstream.product_slug %}" class="btn btn-default">Add Release</a>
             {% endif %}
             <!--<button type="button" class="btn btn-default disabled">Unsupported Releases</button>-->
             <a href="{% url 'settings-release-streams' %}" class="btn btn-default">Back to Products</a>
@@ -37,13 +37,13 @@
       <div class="col-sm-6 col-md-4">
         <div class="thumbnail">
           <div class="caption">
-              <h3><span data-toggle="tooltip" title="{{ relbranch.relbranch_slug }}">{{ relbranch.relbranch_name }}</span>
+              <h3><span data-toggle="tooltip" title="{{ relbranch.release_slug }}">{{ relbranch.release_name }}</span>
                 {% if relbranch.scm_branch %}
                     <small>{{ relbranch.scm_branch }}</small>
                 {% endif %}
                 <span class="pull-right">
                     <a type="button" class="btn btn-default btn-small"
-                       href="{% url 'trans-status-release' relbranch.relbranch_slug %}" data-toggle="tooltip" title="Stats">
+                       href="{% url 'trans-status-release' relbranch.release_slug %}" data-toggle="tooltip" title="Stats">
                         <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
                     </a>
                 </span>
@@ -52,7 +52,7 @@
                 <span style="color:grey">Current Status:</span> {{ relbranch.current_phase|capfirst }}
             </p>
             <p>
-                <span style="color:grey">Language Set:</span> {{ relbranch.lang_set|capfirst }}
+                <span style="color:grey">Language Set:</span> {{ relbranch.language_set_slug.lang_set_name }}
             </p>
             <p>
                 <span style="color:grey">Sync Calendar:</span>
@@ -78,7 +78,7 @@
                     <span class="glyphicon glyphicon-ban-circle" style="color:orange"></span>
                 {% endif %}
             </p>
-            {% if relbranch.schedule_json %}
+            {% if relbranch.schedule_json_str %}
                 <div class="list-group">
                   <a href="#" class="list-group-item">
                     <h4 class="list-group-item-heading">Release Schedule</h4><br/>
@@ -104,7 +104,7 @@
     </div>
 {% else %}
     <p>
-        No release configured. Add <a href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}">one</a> now.
+        No release configured. Add <a href="{% url 'settings-stream-branches-new' relstream.product_slug %}">one</a> now.
     </p>
 {% endif %}
 {% endblock %}
