@@ -279,7 +279,7 @@ class Migration(migrations.Migration):
                 ('last_visit_time', models.DateTimeField()),
             ],
             options={
-                'verbose_name': 'Visitors',
+                'verbose_name': 'Visitor',
                 'db_table': 'ts_visitors',
             },
         ),

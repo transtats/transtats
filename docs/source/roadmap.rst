@@ -9,7 +9,7 @@ Transtats 0.1.6
 
 We are currently working on :code:`0.1.6` release.
 
-Target delivery: In end of August 2018
+Target delivery: In mid of December 2018
 
 For features list please look `here <https://github.com/transtats/transtats/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_0.1.6>`_.
 
@@ -24,11 +24,12 @@ To Do
 
 - Transtats Jobs
     - YML Based Jobs - Parser & ActionMapper (Done)
-    - Streamline Jobs and String Breakage (In Progress)
+    - Streamline Jobs and String Breakage (Done)
     - Scheduling of Jobs as per Release Schedule
 
 - Transtats New Dashboard
     - Integration of new PatternFly UI
+    - More sub-commands and flags in CLI
 
 - Transtats Notifications
     - Emails about push/pull or translation status/diff

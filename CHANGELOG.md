@@ -1,4 +1,5 @@
-##### Sat Aug 04 2018 Sundeep Anand <suanand@redhat.com>
+##### Sat Nov 10 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6-rc.2
+* PostgreSQL database 9.2 back port and bug fixes
 * Package exist API and Job commands ACL, better docs
 * Add translation platform auth in jobs, bug fixes
 * String change job implementation and diff UI

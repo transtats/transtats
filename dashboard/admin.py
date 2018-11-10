@@ -24,7 +24,7 @@ from dashboard.constants import (
     TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS
 )
 from dashboard.models import (
-    Language, LanguageSet, Platform, Product, Release, Package
+    Language, LanguageSet, Platform, Product, Release, Package, Visitor
 )
 from dashboard.managers.inventory import InventoryManager
 
@@ -120,3 +120,19 @@ class PackageAdmin(admin.ModelAdmin):
                'name_map_last_updated', 'release_branch_map_last_updated',
                'platform_last_updated', 'upstream_last_updated',
                'downstream_last_updated')
+
+
+@admin.register(Visitor)
+class VisitorAdmin(admin.ModelAdmin):
+
+    actions = None
+    list_display_links = None
+    list_display = ('visitor_ip', 'visitor_user_agent', 'visitor_accept', 'visitor_encoding',
+                    'visitor_language', 'first_visit_time', 'last_visit_time')
+    search_fields = ('visitor_user_agent',)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

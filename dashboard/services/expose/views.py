@@ -28,7 +28,7 @@ from rest_framework.response import Response
 
 # application
 from transtats import __version__
-from dashboard.managers.inventory import InventoryManager
+from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.managers.graphs import GraphManager
 from dashboard.managers.jobs import (
     JobTemplateManager, JobsLogManager, YMLBasedJobManager
@@ -39,7 +39,7 @@ class InventoryManagerMixin(object):
     """
     Required Manager
     """
-    inventory_manager = InventoryManager()
+    inventory_manager = ReleaseBranchManager()
 
 
 class GraphManagerMixin(object):
@@ -192,7 +192,7 @@ class GraphRuleCoverage(GraphManagerMixin, APIView):
         return Response(response_text)
 
 
-class ReleaseStatus(GraphManagerMixin, APIView):
+class ReleaseStatus(InventoryManagerMixin, GraphManagerMixin, APIView):
     """
     Release Status API
     """
@@ -220,12 +220,15 @@ class ReleaseStatus(GraphManagerMixin, APIView):
         response_text = {}
         if kwargs.get('release_stream'):
             release = kwargs['release_stream']
-            estimate = self.graph_manager.get_workload_combined(release)
-            if isinstance(estimate, tuple) and len(estimate) > 1:
-                response_text = {release: self._process_stats_data(estimate[1])} \
-                    if estimate[1] else {release: "Release not found"}
+            if not self.inventory_manager.is_relbranch_exist(release):
+                response_text = {release: "Release not found"}
             else:
-                response_text = {release: "Release status could not be determined."}
+                estimate = self.graph_manager.get_workload_combined(release)
+                if isinstance(estimate, tuple) and len(estimate) > 1:
+                    response_text = {release: self._process_stats_data(estimate[1])} \
+                        if estimate[1] else {release: "Release not found"}
+                else:
+                    response_text = {release: "Release status could not be determined."}
         return Response(response_text)
 
 
@@ -258,7 +261,7 @@ class ReleaseStatusDetail(ReleaseStatus):
         return Response(response_text)
 
 
-class ReleaseStatusLocale(InventoryManagerMixin, ReleaseStatus):
+class ReleaseStatusLocale(ReleaseStatus):
     """
     Release Status Locale API View
     """

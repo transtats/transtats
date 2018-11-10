@@ -509,7 +509,7 @@ class Visitor(models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'visitors'
-        verbose_name = "Visitors"
+        verbose_name = "Visitor"
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
