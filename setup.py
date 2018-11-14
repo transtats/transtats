@@ -18,7 +18,7 @@ setup(
     include_package_data=True,
     install_requires=REQUIRE,
     license='Apache License 2.0',
-    description='translation stats across packages for releases',
+    description='translation completeness across packages for releases',
     long_description=README,
     url='http://transtats.org/',
     author='Sundeep Anand',

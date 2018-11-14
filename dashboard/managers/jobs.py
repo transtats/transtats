@@ -18,6 +18,7 @@
 # python
 import io
 import os
+import json
 import shutil
 import time
 from collections import OrderedDict
@@ -33,12 +34,11 @@ from dashboard.constants import TS_JOB_TYPES, JOB_EXEC_TYPES
 from dashboard.engine.action_mapper import ActionMapper
 from dashboard.engine.ds import TaskList
 from dashboard.engine.parser import YMLPreProcessor, YMLJobParser
-from dashboard.managers.base import BaseManager
+from dashboard.managers import BaseManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.models import (
-    TransPlatform, Packages, ReleaseStream, StreamBranches,
-    JobTemplates, Jobs
+    Platform, Package, Product, Release, JobTemplate, Job
 )
 
 
@@ -60,7 +60,7 @@ class JobTemplateManager(BaseManager):
         """
         job_templates = []
         try:
-            job_templates = JobTemplates.objects.only(*fields).filter(**filters)
+            job_templates = JobTemplate.objects.only(*fields).filter(**filters)
         except Exception as e:
             self.app_logger(
                 'ERROR', "Job templates could not be fetched for " +
@@ -108,7 +108,7 @@ class JobManager(object):
         if user_email:
             kwargs.update(dict(triggered_by=user_email))
         try:
-            Jobs.objects.update_or_create(
+            Job.objects.update_or_create(
                 **match_params, defaults=kwargs
             )
         except:
@@ -122,15 +122,15 @@ class JobManager(object):
         Update job with finish details
         """
         try:
-            Jobs.objects.filter(job_uuid=self.uuid).update(
+            Job.objects.filter(job_uuid=self.uuid).update(
                 job_end_time=timezone.now(),
-                job_log_json=self.log_json,
+                job_log_json_str=json.dumps(self.log_json),
                 job_result=self.job_result,
                 job_remarks=self.job_remarks,
-                job_output_json=self.output_json,
+                job_output_json_str=json.dumps(self.output_json),
                 job_template=self.job_template,
                 job_yml_text=self.job_yml,
-                job_params_json=self.job_params,
+                job_params_json_str=json.dumps(self.job_params),
                 job_visible_on_url=self.visible_on_url
             )
         except:
@@ -144,13 +144,16 @@ class JobsLogManager(BaseManager):
     Maintains Job Logs
     """
 
-    def get_job_logs(self):
+    def get_job_logs(self, remarks=None):
         """
         Fetch all job logs from the db
         """
         job_logs = None
+        filters = {}
+        if remarks:
+            filters.update(dict(job_remarks=remarks))
         try:
-            job_logs = Jobs.objects.all().order_by('-job_start_time')
+            job_logs = Job.objects.filter(**filters).order_by('-job_start_time')
         except:
             # log event, passing for now
             pass
@@ -166,7 +169,7 @@ class JobsLogManager(BaseManager):
         if not job_id:
             return job_log
         try:
-            job_log = Jobs.objects.filter(job_uuid=job_id).first()
+            job_log = Job.objects.filter(job_uuid=job_id).first()
         except:
             # log event, passing for now
             pass
@@ -225,8 +228,8 @@ class TransplatformSyncManager(BaseManager):
         """
         self.job_manager.log_json['Projects'] = OrderedDict()
         try:
-            transplatforms = TransPlatform.objects.only('engine_name', 'api_url',
-                                                        'auth_login_id', 'auth_token_key') \
+            transplatforms = Platform.objects.only('engine_name', 'api_url',
+                                                   'auth_login_id', 'auth_token_key') \
                 .filter(server_status=True).all()
         except Exception as e:
             self.job_manager.log_json['Projects'].update(
@@ -246,8 +249,9 @@ class TransplatformSyncManager(BaseManager):
                 if response_dict:
                     # save projects json in db
                     try:
-                        TransPlatform.objects.filter(api_url=platform.api_url).update(
-                            projects_json=response_dict, projects_lastupdated=timezone.now()
+                        Platform.objects.filter(api_url=platform.api_url).update(
+                            projects_json_str=json.dumps(response_dict),
+                            projects_last_updated=timezone.now()
                         )
                     except Exception as e:
                         self.job_manager.log_json['Projects'].update(
@@ -272,7 +276,7 @@ class TransplatformSyncManager(BaseManager):
         """
         self.job_manager.log_json['Project-Details'] = OrderedDict()
         try:
-            project_urls = Packages.objects.select_related()
+            project_urls = Package.objects.select_related()
         except Exception as e:
             self.job_manager.log_json['Project-Details'].update(
                 {str(datetime.now()): 'Fetch Project URLs from db failed. Details: ' + str(e)}
@@ -285,15 +289,15 @@ class TransplatformSyncManager(BaseManager):
             if project_urls and len(project_urls) > 0:
                 for url in project_urls:
                     project_details_resp_dict = self.api_resources.fetch_project_details(
-                        url.transplatform_slug.engine_name, url.transplatform_slug.api_url, url.package_name,
-                        **(dict(auth_user=url.transplatform_slug.auth_login_id,
-                                auth_token=url.transplatform_slug.auth_token_key))
+                        url.platform_slug.engine_name, url.platform_slug.api_url, url.package_name,
+                        **(dict(auth_user=url.platform_slug.auth_login_id,
+                                auth_token=url.platform_slug.auth_token_key))
                     )
                     if project_details_resp_dict:
                         try:
-                            Packages.objects.filter(transplatform_url=url.transplatform_url).update(
-                                package_details_json=project_details_resp_dict,
-                                details_json_lastupdated=timezone.now()
+                            Package.objects.filter(platform_url=url.platform_url).update(
+                                package_details_json_str=json.dumps(project_details_resp_dict),
+                                details_json_last_updated=timezone.now()
                             )
                         except Exception as e:
                             self.job_manager.log_json['Project-Details'].update(
@@ -350,7 +354,7 @@ class ReleaseScheduleSyncManager(BaseManager):
         self.job_manager.log_json[SUBJECT] = OrderedDict()
 
         try:
-            relbranches = StreamBranches.objects.only('relbranch_slug', 'relstream_slug', 'calendar_url') \
+            relbranches = Release.objects.only('release_slug', 'product_slug', 'calendar_url') \
                 .filter(sync_calendar=True).all()
         except Exception as e:
             self.job_manager.log_json[SUBJECT].update(
@@ -362,28 +366,29 @@ class ReleaseScheduleSyncManager(BaseManager):
                 {str(datetime.now()): str(len(relbranches)) + ' release branches fetched from db.'}
             )
             for relbranch in relbranches:
+                product_slug = relbranch.product_slug.product_slug
                 ical_events = self.release_branch_manager.get_calendar_events_dict(
-                    relbranch.calendar_url, relbranch.relstream_slug)
+                    relbranch.calendar_url, product_slug)
                 release_stream = self.release_branch_manager.get_release_streams(
-                    stream_slug=relbranch.relstream_slug).get()
+                    stream_slug=product_slug).get()
                 required_events = release_stream.major_milestones
                 schedule_dict = \
                     self.release_branch_manager.parse_events_for_required_milestones(
-                        relbranch.relstream_slug, relbranch.relbranch_slug, ical_events, required_events
+                        product_slug, relbranch.release_slug, ical_events, required_events
                     )
                 if schedule_dict:
-                    relbranch_update_result = StreamBranches.objects.filter(
-                        relbranch_slug=relbranch.relbranch_slug
-                    ).update(schedule_json=schedule_dict)
+                    relbranch_update_result = Release.objects.filter(
+                        release_slug=relbranch.release_slug
+                    ).update(schedule_json_str=json.dumps(schedule_dict))
                     if relbranch_update_result:
                         self.job_manager.log_json[SUBJECT].update(
-                            {str(datetime.now()): 'Release schedule for ' + relbranch.relbranch_slug +
+                            {str(datetime.now()): 'Release schedule for ' + relbranch.release_slug +
                                                   ' branch updated in db.'}
                         )
                         self.job_manager.job_result = True
                 else:
                     self.job_manager.log_json[SUBJECT].update(
-                        {str(datetime.now()): 'Release schedule for ' + relbranch.relbranch_slug +
+                        {str(datetime.now()): 'Release schedule for ' + relbranch.release_slug +
                                               ' failed to get saved in db.'}
                     )
                     self.job_manager.job_result = False
@@ -437,28 +442,28 @@ class BuildTagsSyncManager(BaseManager):
         )
 
         for relstream in active_release_streams or []:
-            hub_server_url = relstream.relstream_server
+            hub_server_url = relstream.product_server
             # # for brew several configuration needs to be set
             # # before we access its hub for info, #todo
-            # if relstream.relstream_built == 'koji':
+            # if relstream.product_build_system == 'koji':
             try:
                 tags = self.api_resources.build_tags(hub_url=hub_server_url)
             except Exception as e:
                 self.job_manager.log_json[SUBJECT].update(
                     {str(datetime.now()): 'Failed to fetch build tags of %s. Details: %s' %
-                                          (relstream.relstream_built, str(e))}
+                                          (relstream.product_build_system, str(e))}
                 )
                 self.job_manager.job_result = False
             else:
                 if tags:
-                    relbranch_update_result = ReleaseStream.objects.filter(
-                        relstream_slug=relstream.relstream_slug
-                    ).update(relstream_built_tags=tags,
-                             relstream_built_tags_lastupdated=timezone.now())
+                    relbranch_update_result = Product.objects.filter(
+                        product_slug=relstream.product_slug
+                    ).update(product_build_tags=tags,
+                             product_build_tags_last_updated=timezone.now())
                     if relbranch_update_result:
                         self.job_manager.log_json[SUBJECT].update(
                             {str(datetime.now()): '%s build tags of %s saved in db.' %
-                                                  (str(len(tags)), relstream.relstream_built)}
+                                                  (str(len(tags)), relstream.product_build_system)}
                         )
                         self.job_manager.job_result = True
         return self.job_manager.job_result
@@ -489,6 +494,11 @@ class YMLBasedJobManager(BaseManager):
             [getattr(self, param, '') for param in self.params]
         )
 
+    def _get_package(self):
+        package_details = \
+            self.package_manager.get_packages([self.package])
+        return package_details.get()
+
     def _bootstrap(self, package=None, build_system=None):
         if build_system:
             try:
@@ -501,17 +511,15 @@ class YMLBasedJobManager(BaseManager):
                 )
                 raise Exception('Build Server URL could NOT be located for %s.' % build_system)
             else:
-                self.hub_url = release_stream.relstream_server
+                self.hub_url = release_stream.product_server
         if package:
             try:
-                package_details = \
-                    self.package_manager.get_packages([package], ['upstream_url'])
-                package_detail = package_details.get()
+                package_detail = self._get_package()
             except Exception as e:
                 self.app_logger(
                     'ERROR', "Package could not be found, details: " + str(e)
                 )
-                raise Exception('Upstream URL could NOT be located for %s.' % package)
+                raise Exception('Upstream URL could NOT be located for %s package.' % package)
             else:
                 self.upstream_repo_url = package_detail.upstream_url \
                     if package_detail.upstream_url.endswith('.git') \
@@ -519,6 +527,12 @@ class YMLBasedJobManager(BaseManager):
                 t_ext = package_detail.translation_file_ext
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
+                self.pkg_upstream_name = package_detail.upstream_name
+                self.pkg_tp_engine = package_detail.platform_slug.engine_name
+                self.pkg_tp_url = package_detail.platform_slug.api_url
+                self.pkg_tp_auth_usr = package_detail.platform_slug.auth_login_id
+                self.pkg_tp_auth_token = package_detail.platform_slug.auth_token_key
+                self.pkg_branch_map = package_detail.release_branch_mapping_json
 
     def _save_result_in_db(self, stats_dict):
         """
@@ -535,16 +549,16 @@ class YMLBasedJobManager(BaseManager):
 
         try:
             self.package_manager.syncstats_manager.save_version_stats(
-                self.package, stats_version, stats_dict, stats_source
+                self._get_package(), stats_version, stats_dict, stats_source
             )
             if stats_source == 'upstream':
                 self.package_manager.update_package(self.package, {
-                    'upstream_lastupdated': timezone.now()
+                    'upstream_last_updated': timezone.now()
                 })
             # If its for rawhide, update downstream sync time for the package
-            if getattr(self, 'tag', '') == 'rawhide':
+            if getattr(self, 'tag', ''):
                 self.package_manager.update_package(self.package, {
-                    'downstream_lastupdated': timezone.now()
+                    'downstream_last_updated': timezone.now()
                 })
         except Exception as e:
             self.app_logger(
@@ -604,8 +618,9 @@ class YMLBasedJobManager(BaseManager):
         if self.type != yml_job.job_type:
             raise Exception('Selected job type differs to that of YML.')
 
-        if self.type == TS_JOB_TYPES[2] and self.package:
+        if (self.type == TS_JOB_TYPES[2] or self.type == TS_JOB_TYPES[5]) and self.package:
             self._bootstrap(package=self.package)
+            self.release = yml_job.release
         elif self.type == TS_JOB_TYPES[3] and self.buildsys:
             self._bootstrap(build_system=self.buildsys)
         # for sequential jobs, tasks should be pushed to linked list
@@ -634,8 +649,15 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'package', ''),
             getattr(self, 'hub_url', ''),
             getattr(self, 'buildsys', ''),
+            getattr(self, 'release', ''),
             getattr(self, 'upstream_repo_url', ''),
             getattr(self, 'trans_file_ext', ''),
+            getattr(self, 'pkg_upstream_name', ''),
+            getattr(self, 'pkg_branch_map', {}),
+            getattr(self, 'pkg_tp_engine', ''),
+            getattr(self, 'pkg_tp_auth_usr', ''),
+            getattr(self, 'pkg_tp_auth_token', ''),
+            getattr(self, 'pkg_tp_url', ''),
             log_file
         )
         action_mapper.set_actions()

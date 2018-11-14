@@ -27,6 +27,7 @@ if DEBUG:
     MIDDLEWARE += ('debug_toolbar.middleware.DebugToolbarMiddleware', )
 
 INTERNAL_IPS = ('127.0.0.1', )
+ALLOWED_HOSTS = ['*']
 
 LOGGING = {
     'version': 1,
@@ -57,7 +58,7 @@ LOGGING = {
         'app': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'transtats/logs/app.log',
+            'filename': os.path.join(BASE_DIR, 'logs/app.log'),
             'maxBytes': 1024 * 1024 * 5,
             'backupCount': 5,
             'formatter': 'standard',
@@ -65,7 +66,7 @@ LOGGING = {
         'db': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'transtats/logs/db.log',
+            'filename': os.path.join(BASE_DIR, 'logs/db.log'),
             'maxBytes': 1024 * 1024 * 5,
             'backupCount': 5,
             'formatter': 'standard',
@@ -73,7 +74,7 @@ LOGGING = {
         'django': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'transtats/logs/django.log',
+            'filename': os.path.join(BASE_DIR, 'logs/django.log'),
             'maxBytes': 1024 * 1024 * 5,
             'backupCount': 5,
             'formatter': 'standard',

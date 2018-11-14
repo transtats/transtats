@@ -5,13 +5,12 @@
 <script src="/static/js/waiting.dialog.js"></script>
 <script src="/static/js/csrf.js"></script>
 <script type="text/javascript">
-    function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}function refresh_packages_summary(){$.ajax({beforeSend:function(e,a){csrfSafeMethod(a.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitingDialog.show()},type:"POST",url:"{% url 'ajax-releases-report' %}",data:{subject:"packages"},success:function(e){waitingDialog.hide(),$("#div-packages-summary").html(e)},error:function(e,a,t){waitingDialog.hide(),$("#div-packages-summary").html("<div class='alert alert-warning' role='alert'>Some unexpected error occurred.</div>")}})}$(document).ready(function(){$("#tab-translation-status").addClass("active"),$("#tab-trans-status-packages").addClass("active"),$("#btn-tabular").addClass("active"),$("#hideLocaleGraph").hide(),$("#langName").selectpicker("hide"),$("#packageName").change(function(e){window.location.replace("/translation-status/package/"+$(this).val())}),$("#refresh-packages-summary").click(function(e){return e.preventDefault(),refresh_packages_summary(),!1})});
+    function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}function refresh_packages_summary(){$.ajax({beforeSend:function(e,a){csrfSafeMethod(a.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitingDialog.show()},type:"POST",url:"{% url 'ajax-releases-report' %}",data:{subject:"packages"},success:function(e){waitingDialog.hide(),$("#div-packages-summary").html(e)},error:function(e,a,t){waitingDialog.hide(),$("#div-packages-summary").html("<div class='alert alert-warning' role='alert'>Some unexpected error occurred.</div>")}})}$(document).ready(function(){$("#tab-translation-completeness").addClass("active"),$("#btn-tabular").addClass("active"),$("#hideLocaleGraph").hide(),$("#langName").selectpicker("hide"),$("#packageName").change(function(e){window.location.replace("/translation-status/package/"+$(this).val())}),$("#refresh-packages-summary").click(function(e){return e.preventDefault(),refresh_packages_summary(),!1})});
 </script>
 {% endblock %}
 
 {% block navigation %}
     <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
-    <a href="{% url 'trans-status' %}" class="btn btn-default">Translation Status</a>
     <a href="{% url 'trans-status-packages' %}" class="btn btn-default">Packages</a>
 {% endblock %}
 

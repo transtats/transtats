@@ -66,20 +66,20 @@
                 <td width="28%">
                     <a href="{{ package.upstream_url }}" target="_blank">{{ package.upstream_url }}</a>
                     <span class="glyphicon glyphicon-link" aria-hidden="true"></span><br/>
-                    {% if package.upstream_lastupdated %}
-                        <span class="text-muted">Last Sync:</span> {{ package.upstream_lastupdated|timesince }}
+                    {% if package.upstream_last_updated %}
+                        <span class="text-muted">Last Sync:</span> {{ package.upstream_last_updated|timesince }}
                         <span class="text-muted">ago</span>.
                     {% endif %}
                 </td>
                 <td width="28%">
-                    <a href="{{ package.transplatform_url }}" target="_blank">{{ package.transplatform_url }}</a>
+                    <a href="{{ package.platform_url }}" target="_blank">{{ package.platform_url }}</a>
                     <span class="glyphicon glyphicon-link" aria-hidden="true"></span><br/>
-                    {% if package.transtats_lastupdated %}
+                    {% if package.platform_last_updated %}
                         <span class="text-muted">Last Sync:</span>
-                        {{ package.transtats_lastupdated|timesince }} <span class="text-muted">ago</span>.
+                        {{ package.platform_last_updated|timesince }} <span class="text-muted">ago</span>.
                     {% endif %}
                 </td>
-                <td width="12%">{{ package.release_streams|join:", " }}</td>
+                <td width="12%">{{ package.products|join:", " }}</td>
                 <td align="center" width="5%">
                     {% if package.release_branch_mapping %}
                         <span class="glyphicon glyphicon-ok-sign" style="color:green; font-size:22px"></span>

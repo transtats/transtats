@@ -15,5 +15,7 @@ job:
     - load: Spec file
     - unpack: tarball
     - apply: patch
-    - filter: PO files
+    - filter:
+      - name: files
+      - ext: PO
     - calculate: Stats

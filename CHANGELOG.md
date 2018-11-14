@@ -1,3 +1,10 @@
+##### Sat Nov 10 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6-rc.2
+* PostgreSQL database 9.2 back port and bug fixes
+* Package exist API and Job commands ACL, better docs
+* Add translation platform auth in jobs, bug fixes
+* String change job implementation and diff UI
+* Provision to pass kwargs for tasks in YML jobs
+
 ##### Tue Jul 03 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6-rc.1
 * Language shortcuts in release summary page
 * YML Job trigger through API. API Authentication

@@ -3,7 +3,7 @@ $(function(){$(".dropdown-menu a").click(function(){console.log($(this).attr("da
 </script>
 <div class="input-group dropdown">
     <input id="buildTag" type="text" class="form-control options dropdown-toggle" placeholder="Select Build Tag">
-    <ul class="dropdown-menu">
+    <ul class="dropdown-menu scrollable-menu">
         {% for build_tag in build_tags %}
             <li><a href="#" data-value="{{ build_tag }}">{{ build_tag }}</a></li>
         {% endfor %}

@@ -1,214 +1,218 @@
-- model: dashboard.languages
+- model: dashboard.language
   pk: af_ZA
   fields: {lang_name: Afrikaans, locale_alias: af, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ar_EG
   fields: {lang_name: Arabic, locale_alias: ar, locale_script: Arab, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: as_IN
   fields: {lang_name: Assamese, locale_alias: as, locale_script: Beng, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: be_BY
   fields: {lang_name: Belarusian, locale_alias: be, locale_script: Cyrl, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: bg_BG
   fields: {lang_name: Bulgarian, locale_alias: bg, locale_script: Cyrl, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: bn_BD
   fields: {lang_name: Bengali, locale_alias: bn, locale_script: Beng, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ca_ES
   fields: {lang_name: Catalan, locale_alias: ca, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: cs_CZ
   fields: {lang_name: Czech, locale_alias: cs, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: da_DK
   fields: {lang_name: Danish, locale_alias: da, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: de_DE
   fields: {lang_name: German, locale_alias: de, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: el_GR
   fields: {lang_name: Greek, locale_alias: el, locale_script: Grek, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: en_GB
   fields: {lang_name: English (UK), locale_alias: null, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: es_ES
   fields: {lang_name: Spanish, locale_alias: es, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: eu_ES
   fields: {lang_name: Basque, locale_alias: eu, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: fa_IR
   fields: {lang_name: Persian, locale_alias: fa, locale_script: Arab, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: fi_FI
   fields: {lang_name: Finnish, locale_alias: fi, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: fr_FR
   fields: {lang_name: French, locale_alias: fr, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: fur_IT
   fields: {lang_name: Friulian, locale_alias: fur, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: gd_GB
   fields: {lang_name: Scottish Gaelic, locale_alias: gd, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: gl_ES
   fields: {lang_name: Galician, locale_alias: gl, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: gu_IN
   fields: {lang_name: Gujarati, locale_alias: gu, locale_script: Gujr, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: he_IL
   fields: {lang_name: Hebrew, locale_alias: he, locale_script: Hebr, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: hi_IN
   fields: {lang_name: Hindi, locale_alias: hi, locale_script: Deva, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: hr_HR
   fields: {lang_name: Croatian, locale_alias: hr, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: hu_HU
   fields: {lang_name: Hungarian, locale_alias: hu, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: id_ID
   fields: {lang_name: Indonesian, locale_alias: id, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: it_IT
   fields: {lang_name: Italian, locale_alias: it, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ja_JP
   fields: {lang_name: Japanese, locale_alias: ja, locale_script: Hani, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ka_GE
   fields: {lang_name: Georgian, locale_alias: ka, locale_script: Geor, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: kk_KZ
   fields: {lang_name: Kazakh, locale_alias: kk, locale_script: Cyrl, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: km_KH
   fields: {lang_name: Khmer, locale_alias: km, locale_script: Khmr, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: kn_IN
   fields: {lang_name: Kannada, locale_alias: kn, locale_script: Knda, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ko_KR
   fields: {lang_name: Korean, locale_alias: ko, locale_script: Hang, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: lt_LT
   fields: {lang_name: Lithuanian, locale_alias: lt, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: mai_IN
   fields: {lang_name: Maithili, locale_alias: mai, locale_script: Deva, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: mk_MK
   fields: {lang_name: Macedonian, locale_alias: mk, locale_script: Cyrl, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ml_IN
   fields: {lang_name: Malayalam, locale_alias: ml, locale_script: Mlym, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: mn_MN
   fields: {lang_name: Mongolian, locale_alias: mn, locale_script: Cyrl, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: mr_IN
   fields: {lang_name: Marathi, locale_alias: mr, locale_script: Deva, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ms_MY
   fields: {lang_name: Malay, locale_alias: ms, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: my_MM
   fields: {lang_name: Burmese, locale_alias: my, locale_script: Mymr, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: nb_NO
   fields: {lang_name: Norwegian Bokmal, locale_alias: nb, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ne_NP
   fields: {lang_name: Nepali, locale_alias: ne, locale_script: Deva, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: nl_NL
   fields: {lang_name: Dutch, locale_alias: nl, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: nn_NO
   fields: {lang_name: Norwegian Nynorsk, locale_alias: nn, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: or_IN
   fields: {lang_name: Odia, locale_alias: or, locale_script: Odia, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: pa_IN
   fields: {lang_name: Punjabi, locale_alias: pa, locale_script: Guru, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: pa_PK
   fields: {lang_name: Punjabi (Arabic), locale_alias: null, locale_script: Arab, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: pl_PL
   fields: {lang_name: Polish, locale_alias: pl, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: pt_BR
+  fields: {lang_name: Portuguese (Brazil), locale_alias: null, locale_script: Latn,
+    lang_status: true}
+- model: dashboard.language
+  pk: pt_PT
   fields: {lang_name: Portuguese, locale_alias: pt, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ro_RO
   fields: {lang_name: Romanian, locale_alias: ro, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ru_RU
   fields: {lang_name: Russian, locale_alias: ru, locale_script: Cyrl, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: si_LK
   fields: {lang_name: Sinhala, locale_alias: si, locale_script: Sinh, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: sk_SK
   fields: {lang_name: Slovak, locale_alias: sk, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: sq_AL
   fields: {lang_name: Albanian, locale_alias: sq, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: sr_RS
   fields: {lang_name: Serbian, locale_alias: sr, locale_script: Cyrl, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: sr_RS@latin
   fields: {lang_name: Serbian (Latin), locale_alias: sr@latin, locale_script: Latn,
     lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: sv_SE
   fields: {lang_name: Swedish, locale_alias: sv, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ta_IN
   fields: {lang_name: Tamil, locale_alias: ta, locale_script: Taml, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: te_IN
   fields: {lang_name: Telugu, locale_alias: te, locale_script: Telu, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: th_TH
   fields: {lang_name: Thai, locale_alias: th, locale_script: Thai, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: tr_TR
   fields: {lang_name: Turkish, locale_alias: tr, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: uk_UA
   fields: {lang_name: Ukrainian, locale_alias: uk, locale_script: Cyrl, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: ur_PK
   fields: {lang_name: Urdu, locale_alias: ur, locale_script: Arab, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: vi_VN
   fields: {lang_name: Vietnamese, locale_alias: vi, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: xh_ZA
   fields: {lang_name: Xhosa, locale_alias: xh, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: yo_NG
   fields: {lang_name: Yoruba, locale_alias: yo, locale_script: Latn, lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: zh_CN
   fields: {lang_name: Chinese (Simplified), locale_alias: zh-Hans, locale_script: Hans,
     lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: zh_TW
   fields: {lang_name: Chinese (Traditional), locale_alias: zh-Hant, locale_script: Hant,
     lang_status: true}
-- model: dashboard.languages
+- model: dashboard.language
   pk: zu_ZA
   fields: {lang_name: Zulu, locale_alias: zu, locale_script: Latn, lang_status: true}
 - model: dashboard.languageset
@@ -219,9 +223,10 @@
       "fi_FI", "fr_FR", "fur_IT", "gl_ES", "de_DE", "ka_GE", "el_GR", "gu_IN", "he_IL",
       "hi_IN", "hu_HU", "id_ID", "it_IT", "ja_JP", "kn_IN", "kk_KZ", "km_KH", "ko_KR",
       "lt_LT", "mk_MK", "mai_IN", "ms_MY", "ml_IN", "mr_IN", "mn_MN", "ne_NP", "nb_NO",
-      "nn_NO", "or_IN", "fa_IR", "pl_PL", "pt_BR", "pa_IN", "pa_PK", "ro_RO", "ru_RU",
-      "sr_RS", "sr_RS@latin", "gd_GB", "si_LK", "sk_SK", "es_ES", "sv_SE", "ta_IN",
-      "te_IN", "th_TH", "tr_TR", "uk_UA", "ur_PK", "vi_VN", "xh_ZA", "yo_NG", "zu_ZA"]'}
+      "nn_NO", "or_IN", "fa_IR", "pl_PL", "pt_PT", "pt_BR", "pa_IN", "pa_PK", "ro_RO",
+      "ru_RU", "sr_RS", "sr_RS@latin", "gd_GB", "si_LK", "sk_SK", "es_ES", "sv_SE",
+      "ta_IN", "te_IN", "th_TH", "tr_TR", "uk_UA", "ur_PK", "vi_VN", "xh_ZA", "yo_NG",
+      "zu_ZA"]'}
 - model: dashboard.languageset
   pk: 2
   fields: {lang_set_name: All Enabled, lang_set_slug: all-enabled, lang_set_color: LightSeaGreen,
@@ -230,75 +235,70 @@
       "fi_FI", "fr_FR", "fur_IT", "gl_ES", "de_DE", "ka_GE", "el_GR", "gu_IN", "he_IL",
       "hi_IN", "hu_HU", "id_ID", "it_IT", "ja_JP", "kn_IN", "kk_KZ", "km_KH", "ko_KR",
       "lt_LT", "mk_MK", "mai_IN", "ms_MY", "ml_IN", "mr_IN", "mn_MN", "ne_NP", "nb_NO",
-      "nn_NO", "or_IN", "fa_IR", "pl_PL", "pt_BR", "pa_IN", "pa_PK", "ro_RO", "ru_RU",
-      "sr_RS", "sr_RS@latin", "gd_GB", "si_LK", "sk_SK", "es_ES", "sv_SE", "ta_IN",
-      "te_IN", "th_TH", "tr_TR", "uk_UA", "ur_PK", "vi_VN", "xh_ZA", "yo_NG", "zu_ZA"]'}
+      "nn_NO", "or_IN", "fa_IR", "pl_PL", "pt_PT", "pt_BR", "pa_IN", "pa_PK", "ro_RO",
+      "ru_RU", "sr_RS", "sr_RS@latin", "gd_GB", "si_LK", "sk_SK", "es_ES", "sv_SE",
+      "ta_IN", "te_IN", "th_TH", "tr_TR", "uk_UA", "ur_PK", "vi_VN", "xh_ZA", "yo_NG",
+      "zu_ZA"]'}
 - model: dashboard.languageset
   pk: 3
   fields: {lang_set_name: Internal, lang_set_slug: internal, lang_set_color: MediumPurple,
-    locale_ids: '["de_DE", "es_ES", "fr_FR", "it_IT", "ja_JP", "ko_KR", "pt_BR", "ru_RU",
+    locale_ids: '["de_DE", "es_ES", "fr_FR", "it_IT", "ja_JP", "ko_KR", "pt_PT", "ru_RU",
       "zh_CN", "zh_TW"]'}
-- model: dashboard.transplatform
+- model: dashboard.languageset
+  pk: 4
+  fields: {lang_set_name: Some Lang Set, lang_set_slug: custom-set-2, lang_set_color: Peru,
+    locale_ids: '["fr_FR", "ja_JP"]'}
+- model: dashboard.platform
   pk: 1
-  fields: {engine_name: zanata, subject: public, api_url: 'https://translate.zanata.org',
-    platform_slug: ZNTAPUB, server_status: true, projects_json: null, projects_lastupdated: null,
+  fields: {engine_name: damnedlies, subject: public, api_url: 'https://l10n.gnome.org',
+    platform_slug: DMLSPUB, server_status: true, projects_json_str: null, projects_last_updated: null,
     auth_login_id: null, auth_token_key: null}
-- model: dashboard.transplatform
+- model: dashboard.platform
   pk: 2
-  fields: {engine_name: zanata, subject: fedora, api_url: 'https://fedora.zanata.org',
-    platform_slug: ZNTAFED, server_status: true, projects_json: null, projects_lastupdated: null,
+  fields: {engine_name: zanata, subject: public, api_url: 'https://translate.zanata.org',
+    platform_slug: ZNTAPUB, server_status: true, projects_json_str: null, projects_last_updated: null,
     auth_login_id: null, auth_token_key: null}
-- model: dashboard.transplatform
+- model: dashboard.platform
   pk: 3
-  fields: {engine_name: damnedlies, subject: public, api_url: 'http://l10n.gnome.org',
-    platform_slug: DMLSPUB, server_status: true, projects_json: null, projects_lastupdated: null,
+  fields: {engine_name: zanata, subject: fedora, api_url: 'https://fedora.zanata.org',
+    platform_slug: ZNTAFED, server_status: true, projects_json_str: null, projects_last_updated: null,
     auth_login_id: null, auth_token_key: null}
-- model: dashboard.releasestream
+- model: dashboard.product
   pk: 1
-  fields: {relstream_name: Fedora, relstream_slug: fedora, relstream_server: 'https://koji.fedoraproject.org/kojihub',
-    relstream_built: koji, relstream_built_tags: null, relstream_built_tags_lastupdated: null,
-    srcpkg_format: srpm, top_url: 'https://kojipkgs.fedoraproject.org', web_url: 'https://koji.fedoraproject.org/koji/',
+  fields: {product_name: Fedora, product_slug: fedora, product_server: 'https://koji.fedoraproject.org/kojihub',
+    product_build_system: koji, product_build_tags: null, product_build_tags_last_updated: null,
+    src_pkg_format: srpm, top_url: 'https://kojipkgs.fedoraproject.org', web_url: 'https://koji.fedoraproject.org/koji/',
     krb_service: null, auth_type: FAS, amqp_server: null, msgbus_exchange: fedmsg,
     major_milestones: '["Testing Phase", "Alpha Release", "String Freeze", "Translation
-      Deadline", "Beta Release", "Launch Phase", "GA"]', relstream_phases: '["Planning",
-      "Development", "Freeze", "Release", "Maintenance", "Unsupported"]', relstream_status: true}
-- model: dashboard.jobtemplates
+      Deadline", "Beta Release", "Launch Phase", "GA"]', product_phases: '["Planning",
+      "Development", "Freeze", "Release", "Maintenance", "Unsupported"]', product_status: true}
+- model: dashboard.jobtemplate
   pk: 1
-  fields:
-    job_template_type: syncupstream
-    job_template_name: Sync Package Upstream
-    job_template_desc: Clone package upstream repository, filter translations and
-      calculate translation statistics.
-    job_template_params: '["package_name"]'
-    job_template_json:
-      job:
-        exception: raise
-        execution: sequential
-        name: upstream stats
-        package: '%PACKAGE_NAME%'
-        return_type: json
-        tasks: ['clone: git repo', 'filter: PO files', 'calculate: Stats']
-        type: syncupstream
-    job_template_last_accessed: null
-- model: dashboard.jobtemplates
+  fields: {job_template_type: syncupstream, job_template_name: Sync Package Upstream,
+    job_template_desc: 'Clone package upstream repository, filter translations and
+      calculate translation statistics.', job_template_params: '["package_name"]',
+    job_template_json_str: '{"job":{"name":"upstream stats","type":"syncupstream","exception":"raise","execution":"sequential","package":"%PACKAGE_NAME%","return_type":"json","tasks":["clone:
+      git repo","filter: PO files","calculate: Stats"]}}', job_template_last_accessed: null}
+- model: dashboard.jobtemplate
   pk: 2
-  fields:
-    job_template_type: syncdownstream
-    job_template_name: Sync Package Build System
-    job_template_desc: Download and Unpack SRPM from latest build, filter translations
-      and calculate statistics.
-    job_template_params: '["package_name", "build_system", "build_tag"]'
-    job_template_json:
-      job:
-        buildsys: '%BUILD_SYSTEM%'
-        exception: raise
-        execution: sequential
-        name: downstream stats
-        package: '%PACKAGE_NAME%'
-        return_type: json
-        tags: '%BUILD_TAG%'
-        tasks: ['get: latest build info', 'download: SRPM', 'unpack: SRPM', 'load:
-            Spec file', 'unpack: tarball', 'apply: patch', 'filter: PO files', 'calculate:
-            Stats']
-        type: syncdownstream
-    job_template_last_accessed: null
+  fields: {job_template_type: syncdownstream, job_template_name: Sync Package Build
+      System, job_template_desc: 'Download and Unpack SRPM from latest build, filter
+      translations and calculate statistics.', job_template_params: '["package_name",
+      "build_system", "build_tag"]', job_template_json_str: '{"job":{"name":"downstream
+      stats","type":"syncdownstream","buildsys":"%BUILD_SYSTEM%","exception":"raise","execution":"sequential","package":"%PACKAGE_NAME%","return_type":"json",
+
+      "tags":"%BUILD_TAG%","tasks":["get: latest build info","download: SRPM","unpack:
+      SRPM","load: Spec file","unpack: tarball","apply: patch","filter: PO files","calculate:
+      Stats"]}}', job_template_last_accessed: null}
+- model: dashboard.jobtemplate
+  pk: 3
+  fields: {job_template_type: stringchange, job_template_name: Track String Change,
+    job_template_desc: Generate translation template from source and compare it with
+      translation platform., job_template_params: '["package_name", "release_slug"]',
+    job_template_json_str: '{"job":{"release":"%RELEASE_SLUG%","exception":"raise","execution":"sequential","name":"string
+      change","package":"%PACKAGE_NAME%","return_type":"json","tasks":[{"clone":[{"name":"git
+      repo"},{"branch":"master"},{"recursive":"true"}]},
+
+      {"generate":[{"name":"POT file"},{"domain":"%PACKAGE_NAME%"},{"cmd":"cd po &&
+      intltool-update --pot --gettext-package=%PACKAGE_NAME%"}]},{"download":[{"name":
+      "Platform POT file"}]},{"calculate":"Diff"}],"type":"stringchange"}}', job_template_last_accessed: null}

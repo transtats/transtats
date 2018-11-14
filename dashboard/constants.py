@@ -13,9 +13,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# Application description
-APP_DESC = "Language translation status of packages across releases"
-
 # Supported translation platforms
 TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata')
 DAMNEDLIES_SLUGS = ('DMLSPUB', )
@@ -31,8 +28,8 @@ DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
                'DATABASE_HOST', 'TRANSIFEX_USER', 'TRANSIFEX_PASSWD')
 
 # Job Types
-TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream',
-                'syncdownstream', 'syncbuildtags', 'stringchange')
+TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream', 'syncdownstream',
+                'syncbuildtags', 'stringchange', 'verifytrans')
 
 # Branch Mapping Keys
 BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys', 'buildsys_tag', 'upstream_release')

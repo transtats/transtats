@@ -15,6 +15,7 @@
 
 import ast
 import csv
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -32,7 +33,7 @@ from django.views.generic import (
 from django.urls import reverse
 
 # dashboard
-from dashboard.constants import (APP_DESC, TS_JOB_TYPES)
+from dashboard.constants import TS_JOB_TYPES
 from dashboard.forms import (
     NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
 )
@@ -47,7 +48,7 @@ from dashboard.managers.jobs import (
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
-from dashboard.models import Jobs, Visitor
+from dashboard.models import Job, Visitor
 
 
 class ManagersMixin(object):
@@ -119,7 +120,6 @@ class TranStatusPackagesView(ManagersMixin, TemplateView):
         Build the Context Data
         """
         context = super(TemplateView, self).get_context_data(**kwargs)
-        context['description'] = APP_DESC
         packages = self.packages_manager.get_package_name_tuple()
         langs = self.inventory_manager.get_locale_lang_tuple()
         if packages:
@@ -161,7 +161,6 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         Build the Context Data
         """
         context = super(TemplateView, self).get_context_data(**kwargs)
-        context['description'] = APP_DESC
         relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
         langs = self.inventory_manager.get_locale_lang_tuple()
         context['releases'] = relbranches
@@ -183,9 +182,9 @@ class TranStatusReleaseView(TranStatusReleasesView):
                 kwargs.get('release_branch', '')):
             raise Http404("Release does not exist.")
         release_stream = self.release_branch_manager.get_release_branches(
-            relbranch=kwargs.get('release_branch'), fields=['relstream_slug']).get()
+            relbranch=kwargs.get('release_branch'), fields=['product_slug']).get()
         if release_stream:
-            context['release_stream'] = release_stream.relstream_slug
+            context['release_stream'] = release_stream.product_slug.product_slug
         return context
 
 
@@ -200,7 +199,6 @@ class TransCoverageView(ManagersMixin, TemplateView):
         Build the Context Data
         """
         context = super(TemplateView, self).get_context_data(**kwargs)
-        context['description'] = APP_DESC
         graph_rules = self.graph_manager.get_graph_rules(only_active=True)
         if graph_rules:
             context['rules'] = graph_rules
@@ -323,8 +321,8 @@ class NewReleaseBranchView(ManagersMixin, FormView):
         kwargs = {}
         release_stream = self._get_relstream()
         lang_sets = self._get_langsets()
-        kwargs.update({'action_url': reverse('settings-stream-branches-new', args=[release_stream.relstream_slug])})
-        kwargs.update({'phases_choices': tuple([(phase, phase) for phase in release_stream.relstream_phases])})
+        kwargs.update({'action_url': reverse('settings-stream-branches-new', args=[release_stream.product_slug])})
+        kwargs.update({'phases_choices': tuple([(phase, phase) for phase in release_stream.product_phases])})
         kwargs.update({'langset_choices': tuple([(set.lang_set_slug, set.lang_set_name) for set in lang_sets])})
         kwargs.update({'initial': self.get_initial()})
         if data:
@@ -337,7 +335,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
         post_params = form.cleaned_data
         relstream = kwargs.get('stream_slug')
         # Check for required params
-        required_params = ('relbranch_name', 'current_phase', 'lang_set', 'calendar_url')
+        required_params = ('release_name', 'current_phase', 'lang_set', 'calendar_url')
         if not set(required_params) <= set(post_params.keys()):
             return render(request, self.template_name, {'form': form})
         relbranch_slug, schedule_json = \
@@ -347,8 +345,8 @@ class NewReleaseBranchView(ManagersMixin, FormView):
             errors.append("Please check calendar URL, could not parse required dates!")
         if schedule_json:
             success_url = reverse('settings-stream-branches-new', args=[relstream])
-            post_params['schedule_json'] = schedule_json
-            post_params['relbranch_slug'] = relbranch_slug
+            post_params['schedule_json_str'] = json.dumps(schedule_json)
+            post_params['release_slug'] = relbranch_slug
             active_user = getattr(request, 'user', None)
             if active_user:
                 post_params['created_by'] = active_user.email
@@ -531,7 +529,7 @@ class JobsView(ManagersMixin, TemplateView):
 
 class JobsLogsView(ManagersMixin, ListView):
     """
-    Logs Settings View
+    Logs List View
     """
     template_name = "jobs/logs.html"
     context_object_name = 'logs'
@@ -541,9 +539,24 @@ class JobsLogsView(ManagersMixin, ListView):
         return job_logs[:15]
 
 
+class JobsLogsPackageView(ManagersMixin, ListView):
+    """
+    Logs List per Package View
+    """
+    template_name = "jobs/logs.html"
+    context_object_name = 'logs'
+
+    def get_queryset(self):
+        job_logs = []
+        pkg_name = self.request.resolver_match.kwargs.get('package_name')
+        if pkg_name:
+            job_logs = self.jobs_log_manager.get_job_logs(remarks=pkg_name)
+        return job_logs
+
+
 class JobsArchiveView(ManagersMixin, ListView):
     """
-    Logs Settings View
+    Archive List View
     """
     template_name = "jobs/archive.html"
     context_object_name = 'logs'
@@ -559,7 +572,7 @@ class JobDetailView(ManagersMixin, DetailView):
     """
     template_name = "jobs/log_detail.html"
     context_object_name = 'log'
-    model = Jobs
+    model = Job
     slug_field = 'job_uuid'
     slug_url_kwarg = 'job_id'
 
@@ -592,7 +605,7 @@ def schedule_job(request):
                 relschedule_sync_manager.sync_release_schedule()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
-        elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], 'YMLbasedJob'):
+        elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5], TS_JOB_TYPES[6], 'YMLbasedJob'):
             job_params = request.POST.dict().get('params')
             if not job_params:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Job params missing.</span>"
@@ -766,8 +779,8 @@ def export_packages(request, **kwargs):
     if request.method == 'GET' and kwargs.get('format', '') == 'csv':
         file_name = "ts-packages-%s.csv" % datetime.today().strftime('%d-%m-%Y')
         packages_manager = PackagesManager()
-        required_fields = ['package_name', 'upstream_url', 'transplatform_url',
-                           'release_streams', 'release_branch_mapping']
+        required_fields = ['package_name', 'upstream_url', 'platform_url',
+                           'products', 'release_branch_mapping']
         packages = packages_manager.get_packages(pkg_params=required_fields)
         response = HttpResponse(content_type='text/csv', status=200)
         response['Content-Disposition'] = 'attachment; filename="' + file_name + '"'
@@ -776,7 +789,7 @@ def export_packages(request, **kwargs):
         for package in packages:
             writer.writerow(
                 [package.package_name, package.upstream_url,
-                 package.transplatform_url, ', '.join(package.release_streams),
+                 package.platform_url, ', '.join(package.products),
                  package.release_branch_mapping if package.release_branch_mapping
                  else ''])
         return response

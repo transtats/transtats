@@ -47,7 +47,7 @@ class YMLJobParser(object):
     """
     Parse YML and build objects
     """
-    test_yml_path = 'dashboard/tests/testdata/test.yml'
+    test_yml_path = 'dashboard/tests/testdata/job-templates/stringchange.yml'
 
     def __init__(self, yml_stream=None):
 
@@ -64,6 +64,10 @@ class YMLJobParser(object):
     @property
     def buildsys(self):
         return self.data.get('buildsys', '')
+
+    @property
+    def release(self):
+        return self.data.get('release', '')
 
     @property
     def exception(self):

@@ -1,6 +1,6 @@
 gitdb2
 GitPython
-Django
+Django==2.0.8
 django-crispy-forms
 django-debug-toolbar
 djangorestframework

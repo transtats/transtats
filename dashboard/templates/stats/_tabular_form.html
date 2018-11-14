@@ -32,6 +32,8 @@
                 <td>
                     {% if stat and stat == 100 %}
                         <span class="text-success">{{ stat }}%</span>
+                    {% elif stat == 0 %}
+                        <span class="text-warning">{{ stat }}%</span>
                     {% elif stat %}
                         {{ stat }}%
                     {% else %}

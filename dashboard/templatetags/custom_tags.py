@@ -14,6 +14,7 @@
 # under the License.
 
 import os
+import json
 import yaml
 from collections import OrderedDict
 from django import template
@@ -22,6 +23,7 @@ from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
 from dashboard.managers.graphs import GraphManager, ReportsManager
 from dashboard.managers.jobs import JobTemplateManager
 from dashboard.managers.packages import PackagesManager
+from dashboard.managers.inventory import ReleaseBranchManager
 
 
 register = template.Library()
@@ -29,6 +31,8 @@ register = template.Library()
 
 @register.filter
 def get_item(dict_object, key):
+    if not isinstance(dict_object, dict):
+        return ''
     return dict_object.get(key)
 
 
@@ -75,8 +79,8 @@ def tag_branch_mapping(package):
     else:
         return_value.update(
             {'package_name': package_details.package_name,
-             'branch_mapping': package_details.release_branch_mapping,
-             'mapping_lastupdated': package_details.mapping_lastupdated,
+             'branch_mapping': package_details.release_branch_mapping_json,
+             'mapping_lastupdated': package_details.release_branch_map_last_updated,
              'mapping_keys': BRANCH_MAPPING_KEYS}
         )
     return return_value
@@ -94,7 +98,7 @@ def tag_stats_diff(package):
         # log event, passing for now
         pass
     else:
-        stats_diff = package_details.stats_diff or {}
+        stats_diff = package_details.stats_diff_json or {}
         langs_out_of_sync = {}
         for branch, diff in stats_diff.items():
             langs_out_of_sync[branch] = {}
@@ -170,7 +174,8 @@ def tag_releases_summary():
     reports_manager = ReportsManager()
     releases_summary = reports_manager.get_reports('releases')
     if releases_summary:
-        release_report_json = releases_summary.get().report_json
+        report = releases_summary.get().report_json_str
+        release_report_json = json.loads(report) if isinstance(report, str) else {}
         pkg_manager = PackagesManager()
         lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
         for release, summary in release_report_json.items():
@@ -194,7 +199,7 @@ def tag_packages_summary():
     packages_summary = reports_manager.get_reports('packages')
     if packages_summary:
         return_value.update(dict(
-            pkgsummary=packages_summary.get().report_json,
+            pkgsummary=json.loads(packages_summary.get().report_json_str),
             last_updated=packages_summary.get().report_updated
         ))
     return return_value
@@ -221,16 +226,20 @@ def tag_job_form(template_type):
     package_manager = PackagesManager()
     release_streams = \
         package_manager.get_release_streams(
-            only_active=True, fields=('relstream_built',)
+            only_active=True, fields=('product_build_system',)
         )
     available_build_systems = []
     for relstream in release_streams:
-        available_build_systems.append(relstream.relstream_built)
+        available_build_systems.append(relstream.product_build_system)
     if available_build_systems:
         return_value['build_systems'] = available_build_systems
-    packages = package_manager.get_package_name_tuple()
+    packages = package_manager.get_package_name_tuple(check_mapping=True)
     if packages:
         return_value['packages'] = packages
+    relbranch_manager = ReleaseBranchManager()
+    release_branches = relbranch_manager.get_relbranch_name_slug_tuple()
+    if release_branches:
+        return_value['releases'] = release_branches
     return return_value
 
 
