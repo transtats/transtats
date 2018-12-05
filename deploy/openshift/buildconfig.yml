@@ -44,6 +44,11 @@ spec:
           secretKeyRef:
             name: transtats-secret
             key: admin-password
+      - name: OIDC_BASE_DOMAIN
+        valueFrom:
+          secretKeyRef:
+            name: transtats-secret
+            key: oidc_url
       - name: OIDC_RP_CLIENT_ID
         valueFrom:
           secretKeyRef:

@@ -10,6 +10,12 @@ then
     export DJANGO_SECRET_KEY="111ioii2!n7dv+p@kq905a1m7zs7%_5%j9zw@%8qw20z&*k+b_"
 fi
 
+if [ -z "$OIDC_BASE_DOMAIN" ]
+then
+    echo "OIDC_BASE_DOMAIN is not set. Using default value."
+    export OIDC_BASE_DOMAIN="iddev.fedorainfracloud.org"
+fi
+
 if [ -z "$OIDC_RP_CLIENT_ID" ]
 then
     echo "OIDC_RP_CLIENT_ID is not set. Using default value."
