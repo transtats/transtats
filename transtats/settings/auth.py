@@ -20,7 +20,7 @@ ADMIN_INITIAL_PASSWORD = app_config_vars('ADMIN_PASSWORD')
 # NOTE: This client ID only works on localhost:8080.
 INSTALLED_APPS += ('mozilla_django_oidc', 'rest_framework.authtoken')
 AUTHENTICATION_BACKENDS += ('transtats.utils.TranstatsOIDCBackend', )
-OIDC_RP_CLIENT_ID = 'transtatsdev'
+OIDC_RP_CLIENT_ID = app_config_vars('OIDC_RP_CLIENT_ID')
 OIDC_RP_CLIENT_SECRET = app_config_vars('OIDC_RP_CLIENT_SECRET')
 OIDC_OP_AUTHORIZATION_ENDPOINT = 'https://iddev.fedorainfracloud.org/openidc/Authorization'
 OIDC_OP_TOKEN_ENDPOINT = 'https://iddev.fedorainfracloud.org/openidc/Token'
