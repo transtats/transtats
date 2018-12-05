@@ -14,6 +14,7 @@ ADMINS = (
     ('transtats', 'admin@transtats.org'),
 )
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 ADMIN_INITIAL_PASSWORD = app_config_vars('ADMIN_PASSWORD')
 
 # OpenID Connect
