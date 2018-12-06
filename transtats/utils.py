@@ -16,6 +16,8 @@
 """
 Some base utilities/classes.
 """
+import logging
+
 # third party
 from mozilla_django_oidc.auth import OIDCAuthenticationBackend
 
@@ -29,6 +31,9 @@ class TranstatsOIDCBackend(OIDCAuthenticationBackend):
     """
     OIDC Authentication Backend Wrapper
     """
+
+    logger = logging.getLogger(__name__)
+
     def filter_users_by_claims(self, claims):
         """Find users by matching username=sub."""
         # The claims.get and None-case were dropped, since if there is no sub,
@@ -45,8 +50,9 @@ class TranstatsOIDCBackend(OIDCAuthenticationBackend):
         """Handles SuspiciousOperation, route to the OIDC code flow."""
 
         try:
-            return super(TranstatsOIDCBackend, self).authenticate(
-                request, **kwargs
-            )
+            return super(TranstatsOIDCBackend, self).authenticate(request, **kwargs)
         except SuspiciousOperation:
             HttpResponseRedirect(reverse('admin:index'))
+        except Exception as e:
+            self.logger.log(40, str(e))
+            raise Exception(str(e))

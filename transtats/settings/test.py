@@ -46,8 +46,8 @@ LOGGING = {
         },
         'console': {
             'level': 'ERROR',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler'
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
         },
         'app': {
             'level': 'ERROR',
@@ -93,7 +93,7 @@ LOGGING = {
         'django.request': {
             'handlers': ['app', 'console'],
             'level': 'ERROR',
-            'propagate': False,
+            'propagate': True,
         },
     }
 }
