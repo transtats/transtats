@@ -45,8 +45,8 @@ class TranstatsOIDCBackend(OIDCAuthenticationBackend):
         """Handles SuspiciousOperation, route to the OIDC code flow."""
 
         try:
-            if request and not kwargs.get('request'):
-                kwargs['request'] = request
-            return super(TranstatsOIDCBackend, self).authenticate(**kwargs)
+            return super(TranstatsOIDCBackend, self).authenticate(
+                request, **kwargs
+            )
         except SuspiciousOperation:
             HttpResponseRedirect(reverse('admin:index'))
