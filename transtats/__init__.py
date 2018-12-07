@@ -3,7 +3,7 @@ import os
 import sys
 
 __appname__ = "Transtats"
-__version__ = '0.1.6-rc.2'
+__version__ = '0.1.6'
 
 __all__ = ['__appname__', '__version__']
 

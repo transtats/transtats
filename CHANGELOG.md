@@ -1,3 +1,6 @@
+##### Fri Dec 07 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6
+* Auth and OpenShift deployment config changes
+
 ##### Sat Nov 10 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6-rc.2
 * PostgreSQL database 9.2 back port and bug fixes
 * Package exist API and Job commands ACL, better docs
