@@ -513,7 +513,7 @@ class Apply(JobCommandBase):
         file_ext = '.po'
         prep_steps = []
         relevant_prep_steps = {}
-        po_related_sources =  {i: j for i, j in input['spec_obj'].sources_dict.items() if file_ext in j}
+        po_related_sources = {i: j for i, j in input['spec_obj'].sources_dict.items() if file_ext in j}
 
         for i, j in po_related_sources.items():
             source_step = [step for step in prep_section if i.upper() in step]

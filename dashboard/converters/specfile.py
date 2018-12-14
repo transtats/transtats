@@ -22,20 +22,18 @@
 
 __author__ = "Harald Hoyer <harald@redhat.com>"
 
-import string
 
 class RpmSpecFile:
     """Class for parsing an rpm specfile
     """
-    sections = [ "description",
-                 "package",
-                 "prep",
-                 "build",
-                 "install",
-                 "clean",
-                 "files",
-                 "changelog" ]
-
+    sections = ["description",
+                "package",
+                "prep",
+                "build",
+                "install",
+                "clean",
+                "files",
+                "changelog"]
 
     def __init__(self, filename=None, lines=None, packagename=None):
         """filename: filename of the specfile
@@ -84,7 +82,6 @@ class RpmSpecFile:
         self.section[section] = dict()
         self.section[section][package] = list()
 
-
         # Now split into sections
         for line in self.lines:
             if line.startswith("%"):
@@ -126,7 +123,6 @@ class RpmSpecFile:
         else:
             return [self.Name]
 
-
     def getSection(self, section, package=None):
         """Returns the section from package
         If package is not specified, the section from all packages will be
@@ -136,8 +132,8 @@ class RpmSpecFile:
         """
         if not package:
             if section in self.section:
-                if len(self.section[section].keys()) == 1 and \
-                                list(self.section[section].keys())[0] == self.Name:
+                if len(self.section[section].keys()) == 1 \
+                        and list(self.section[section].keys())[0] == self.Name:
                     return self.section[section][self.Name]
         else:
             if section in self.section and package in self.section[section]:
