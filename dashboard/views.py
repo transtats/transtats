@@ -37,7 +37,7 @@ from django.urls import reverse
 # dashboard
 
 from dashboard.constants import (
-    APP_DESC, TS_JOB_TYPES, TRANSPLATFORM_ENGINES
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
@@ -56,7 +56,7 @@ from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
 from dashboard.models import (
-    Job, Languages, LanguageSet, Platform, Visitor, Packages
+    Job, Language, LanguageSet, Platform, Visitor, Package
 )
 
 
@@ -406,8 +406,9 @@ class NewPackageView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
-        initials.update(dict(transplatform_slug='ZNTAFED'))
-        initials.update(dict(release_streams='RHEL'))
+        initials.update(dict(platform_slug='ZNTAFED'))
+        # TODO: should be configurable?
+        initials.update(dict(products='RHEL'))
         return initials
 
     def get_form(self, form_class=None, data=None):
@@ -415,8 +416,8 @@ class NewPackageView(ManagersMixin, FormView):
         active_platforms = \
             self.inventory_manager.get_transplatform_slug_url()
         active_streams = self.inventory_manager.get_relstream_slug_name()
-        kwargs.update({'transplatform_choices': active_platforms})
-        kwargs.update({'relstream_choices': active_streams})
+        kwargs.update({'platform_choices': active_platforms})
+        kwargs.update({'products_choices': active_streams})
         kwargs.update({'initial': self.get_initial()})
         if data:
             kwargs.update({'data': data})
@@ -457,7 +458,7 @@ class UpdatePackageView(SuccessMessageMixin, UpdateView):
     Update Package view
     """
     template_name = 'packages/package_update.html'
-    model = Packages
+    model = Package
     slug_field = 'package_name'
     form_class = UpdatePackageForm
     success_message = '%(package_name)s was updated successfully!'
@@ -632,7 +633,7 @@ class UpdateLanguageView(SuccessMessageMixin, UpdateView):
     Update language view
     """
     template_name = 'languages/language_update.html'
-    model = Languages
+    model = Language
     form_class = UpdateLanguageForm
     success_message = '%(lang_name)s was updated successfully!'
 
@@ -685,7 +686,7 @@ class UpdateTransPlatformView(SuccessMessageMixin, UpdateView):
     template_name = "platforms/platform_update.html"
     form_class = UpdateTransPlatformForm
     success_message = '%(platform_slug)s was updated successfully!'
-    model = TransPlatform
+    model = Platform
     slug_field = 'platform_slug'
 
     def get_success_url(self):

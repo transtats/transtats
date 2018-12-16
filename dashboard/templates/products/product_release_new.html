@@ -3,10 +3,10 @@
 <script src="/static/node_modules/bootstrap-select/dist/js/bootstrap-select.js"></script>
 {% endblock %}
 {% block formtitle %}
-Add a new {{ relstream.relstream_name|capfirst }} release
+Add a new {{ relstream.product_name|capfirst }} release
 {% endblock %}
 {% block formreturnurl %}
-{% url 'settings-stream-branches' relstream.relstream_slug %}
+{% url 'settings-stream-branches' relstream.product_slug %}
 {% endblock %}
 {% block formscript %}
 <script>
