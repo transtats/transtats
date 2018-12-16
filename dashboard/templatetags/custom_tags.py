@@ -41,6 +41,11 @@ def join_by(sequence, delimiter):
     return delimiter.join(sequence)
 
 
+@register.filter
+def js_id_safe(id_value):
+    return id_value.replace("@", "-at-")
+
+
 @register.inclusion_tag(
     os.path.join("packages", "_package_details.html")
 )
