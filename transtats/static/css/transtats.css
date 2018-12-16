@@ -54,6 +54,12 @@
     background-repeat: no-repeat;
 }
 
+.card-pf-view-edit-ts {
+    position: absolute;
+    top: 11px;
+    right: 15px;
+}
+
 /*
 body {
     padding-top: 50px;
