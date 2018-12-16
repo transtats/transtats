@@ -137,11 +137,40 @@
 
         </a>
       </li>
-      <li class="list-group-item" id="li-jobs">
+      <li class="list-group-item secondary-nav-item-pf" id="li-jobs" data-target="div-jobs-secondary-nav">
+	<!-- TODO: change this link to #0 as it creates problem on touch devices -->
         <a href="{% url 'jobs' %}">
           <span class="fa fa-bolt" data-toggle="tooltip" title="Jobs"></span>
           <span class="list-group-item-value">Jobs</span>
         </a>
+	<div class="nav-pf-secondary-nav" id="div-jobs-secondary-nav">
+	  <div class="nav-item-pf-header">
+	    <a href="#0" class="secondary-collapse-toggle-pf" data-toggle="collapse-secondary-nav"></a>
+	    <span>Jobs</span>
+	  </div>
+	  <ul class="list-group">
+	    <li class="list-group-item" id="li-jobs-jobs" data-toggle="tooltip" title="Predefined Jobs">
+	      <a href="{% url 'jobs' %}">
+		<span class="list-group-item-value">Predefined Jobs</span>
+	      </a>
+	    </li>
+	    <li class="list-group-item" id="li-jobs-yaml-based" data-toggle="tooltip" title="YAML based Jobs">
+	      <a href="{% url 'jobs-yml-based' %}">
+		<span class="list-group-item-value">YAML based Jobs</span>
+	      </a>
+	    </li>
+	    <li class="list-group-item" id="li-jobs-logs" data-toggle="tooltip" title="Inspect Logs">
+	      <a href="{% url 'jobs-logs' %}">
+		<span class="list-group-item-value">Inspect Logs</span>
+	      </a>
+	    </li>
+	    <li class="list-group-item" id="li-jobs-archive" data-toggle="tooltip" title="Archive">
+	      <a href="{% url 'jobs-archive' %}">
+		<span class="list-group-item-value">Archive</span>
+	      </a>
+	    </li>
+	  </ul>
+	</div>
       </li>
       <li class="list-group-item" id="li-languages">
         <a href="{% url 'settings-languages' %}">
