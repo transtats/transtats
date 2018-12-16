@@ -37,8 +37,9 @@ from dashboard.views import (
     TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
     JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView,
     NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobsYMLBasedView, NewLanguageView,
-    UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, refresh_package, release_graph, schedule_job,
-    graph_data, tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status
+    UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, UpdateTransPlatformView,
+    refresh_package, release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports,
+    read_file_logs, get_build_tags, change_lang_status
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -72,7 +73,7 @@ app_jobs_urls = [
 app_setting_urls = [
     url(r'^$', RedirectView.as_view(permanent=False, url='/settings/languages'), name="settings"),
     url(r'^languages$', RedirectView.as_view(permanent=True, url='/languages')),
-    url(r'^translation-platforms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
+    url(r'^translation-platforms$', RedirectView.as_view(permanent=True, url='/translation-platforms')),
     url(r'^product/(?P<stream_slug>\w+)/', include([
         url(r'^releases$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches"),
         url(r'^releases/new$', staff_member_required(NewReleaseBranchView.as_view()),
@@ -112,6 +113,12 @@ languages_urls = [
         name="language-set-update"),
 ]
 
+transplatforms_urls = [
+    url(r'^new$', login_required(NewTransPlatformView.as_view(), login_url=LOGIN_URL), name="transplatform-new"),
+    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdateTransPlatformView.as_view(), login_url=LOGIN_URL),
+        name="transplatform-update"),
+]
+
 urlpatterns = [
     url(r'^api/', include(api_urls)),
     url(r'^ajax/', include(ajax_urls)),
@@ -126,4 +133,7 @@ urlpatterns = [
     # languages section urls
     url(r'^languages$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^languages/', include(languages_urls)),
+    # trans platforms section urls
+    url(r'^translation-platforms$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
+    url(r'^translation-platforms/', include(transplatforms_urls)),
 ]
