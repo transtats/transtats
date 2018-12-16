@@ -155,6 +155,12 @@
           <span class="list-group-item-value">Platforms</span>
         </a>
       </li>
+      <li class="list-group-item" id="li-custom-graphs">
+        <a href="{% url 'settings-graph-rules' %}">
+          <span class="fa fa-bar-chart" data-toggle="tooltip" title="Custom Graphs"></span>
+          <span class="list-group-item-value">Custom Graphs</span>
+        </a>
+      </li>
 
       {% if user.is_authenticated %}
       <li class="list-group-item secondary-nav-item-pf mobile-nav-item-pf visible-xs-block">
@@ -255,6 +261,8 @@
         $("#li-languages").addClass("active");
       } else if (currentSection === "translation-platforms") {
         $("#li-translation-platforms").addClass("active");
+      } else if (currentSection === "graph-rules") {
+        $("#li-custom-graphs").addClass("active");
       }
     }
 
@@ -272,7 +280,7 @@
       // Initialize the vertical navigation
       $().setupVerticalNavigation(true);
       // Workaround to make the modal work on mobile devices
-      $("#button-about-secondary").on("click",function(e){
+      $("#button-about-secondary").on("click", function(e){
         e.preventDefault();
         $('#about-modal').modal('show');
       });
