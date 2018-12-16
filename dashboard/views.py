@@ -41,7 +41,7 @@ from dashboard.constants import (
     APP_DESC, TS_JOB_TYPES, RELSTREAM_SLUGS, TRANSPLATFORM_ENGINES
 )
 from dashboard.forms import (
-    NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm,
+    NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
     NewLanguageForm, UpdateLanguageForm, LanguageSetForm,
     NewTransPlatformForm, UpdateTransPlatformForm
 )
@@ -57,7 +57,7 @@ from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
 from dashboard.models import (
-    Job, Languages, LanguageSet, Platform, Visitor
+    Job, Languages, LanguageSet, Platform, Visitor, Packages
 )
 
 
@@ -442,6 +442,20 @@ class NewPackageView(ManagersMixin, FormView):
                 ))
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
+
+
+class UpdatePackageView(SuccessMessageMixin, UpdateView):
+    """
+    Update Package view
+    """
+    template_name = 'packages/package_update.html'
+    model = Packages
+    slug_field = 'package_name'
+    form_class = UpdatePackageForm
+    success_message = '%(package_name)s was updated successfully!'
+
+    def get_success_url(self):
+        return reverse('package-update', args=[self.object.package_name])
 
 
 class GraphRulesSettingsView(ManagersMixin, ListView):

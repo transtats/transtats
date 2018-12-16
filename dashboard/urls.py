@@ -35,11 +35,11 @@ from dashboard.views import (
     NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobDetailView, refresh_package, job_template,
     release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
     TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
-    JobsView, JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView,
-    NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobsYMLBasedView, NewLanguageView,
-    UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, UpdateTransPlatformView,
-    refresh_package, release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports,
-    read_file_logs, get_build_tags, change_lang_status
+    JobsView, JobsLogsView, JobsArchiveView, NewPackageView, UpdatePackageView, TransCoverageView,
+    StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobsYMLBasedView,
+    NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView,
+    UpdateTransPlatformView, refresh_package, release_graph, schedule_job, graph_data, tabular_data, export_packages,
+    generate_reports, read_file_logs, get_build_tags, change_lang_status
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -101,6 +101,8 @@ packages_urls = [
     url(r'^$', PackageSettingsView.as_view(), name="settings-packages"),
     url(r'^new$', login_required(NewPackageView.as_view(), login_url=LOGIN_URL), name="package-new"),
     url(r'^view/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(), name="package-view"),
+    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdatePackageView.as_view(), login_url=LOGIN_URL),
+        name="package-update"),
     url(r'^export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
 ]
 
