@@ -707,7 +707,7 @@ def schedule_job(request):
             transplatform_sync_manager = TransplatformSyncManager(**{'active_user_email': active_user_email})
             job_uuid = transplatform_sync_manager.syncstats_initiate_job()
             if job_uuid:
-                message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
                           "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
                 transplatform_sync_manager.sync_trans_stats()
             else:
@@ -716,7 +716,7 @@ def schedule_job(request):
             relschedule_sync_manager = ReleaseScheduleSyncManager(**{'active_user_email': active_user_email})
             job_uuid = relschedule_sync_manager.syncschedule_initiate_job()
             if job_uuid:
-                message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
                           "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
                 relschedule_sync_manager.sync_release_schedule()
             else:
@@ -755,7 +755,7 @@ def schedule_job(request):
             buildtags_sync_manager = BuildTagsSyncManager(**{'active_user_email': active_user_email})
             job_uuid = buildtags_sync_manager.syncbuildtags_initiate_job()
             if job_uuid:
-                message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
                           "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
                 buildtags_sync_manager.sync_build_tags()
             else:

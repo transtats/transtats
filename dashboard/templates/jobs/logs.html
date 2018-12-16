@@ -6,12 +6,6 @@
 </script>
 {% endblock %}
 
-{% block navigation %}
-    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
-    <a href="{% url 'jobs' %}" class="btn btn-default">Jobs</a>
-    <a href="{% url 'jobs-logs' %}" class="btn btn-default">Logs</a>
-{% endblock %}
-
 {% block tabcontent %}
 <div class="panel-group" id="accordion">
     {% for log in logs %}
@@ -35,13 +29,13 @@
             </div>
             <div id="{{ log.job_uuid }}" class="panel-collapse collapse {% if forloop.counter == 1 %}in{% endif %}">
                 <div class="panel-body">
-                    <p><span class="glyphicon glyphicon-time" aria-hidden="true"></span><span class="text-info">
+                    <p><span class="fa fa-clock-o" aria-hidden="true"></span><span class="text-info">
                         {% if log.job_start_time %}Started at <strong>{{ log.job_start_time|time:"H:i:s" }}</strong>{% endif %}
                         {% if log.job_end_time %} and completed at <strong>{{ log.job_end_time|time:"H:i:s" }}</strong>
                         &nbsp;&nbsp;<em>({{ log.duration|floatformat:"0" }} seconds)</em>{% endif %}</span>
                         {% if log.job_visible_on_url %}
                             <span class="pull-right"><a href="{% url 'log-detail' log.job_uuid %}">Job Details</a>&nbsp;
-                            <span class="glyphicon glyphicon-share"></span></span>
+                            <span class="fa fa-external-link"></span></span>
                         {% endif %}
                     </p>
                     <hr/>
