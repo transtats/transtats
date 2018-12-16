@@ -1,0 +1,53 @@
+{% if package_desc %}
+<h5>
+  <strong>Description: </strong><span id="span-package-desc">{{ package_desc }}</span>
+</h5>
+{% endif %}
+<h5>
+  <strong>Upstream Repository URL: </strong>
+  <a href="{{ package.upstream_url }}" target="_blank">{{ package.upstream_url }}</a>
+  {% if package.upstream_lastupdated %} &emsp;
+  <span class="text-muted">Last Sync:</span> {{ package.upstream_lastupdated|timesince }}
+  <span class="text-muted">ago</span>
+  {% endif %}
+</h5>
+<h5>
+  <strong>Translation Platform Project URL: </strong>
+  <a href="{{ package.transplatform_url }}" target="_blank">{{ package.transplatform_url }}</a>
+  {% if package.transtats_lastupdated %} &emsp;
+  <span class="text-muted">Last Sync:</span>
+  {{ package.transtats_lastupdated|timesince }}
+  <span class="text-muted">ago</span>
+  {% endif %}
+</h5>
+<h5>
+  <strong>Being tracked for Release Streams: </strong>
+  <span class="text-info">{{ package.release_streams|join:", " }}</span>
+  {% if package.downstream_lastupdated %} &emsp;
+  <span class="text-muted">Sync with Build System:</span>
+  {{ package.downstream_lastupdated|timesince }}
+  <span class="text-muted">ago</span>
+  {% endif %}
+  {% if package.created_by and user.is_authenticated %} &emsp;
+  <strong>Maintainer: </strong>
+  <span class="text-info">{{ package.created_by }}</span>
+  {% endif %}
+</h5>
+
+{% if not package.transtats_lastupdated and not package.upstream_latest_stats %}
+<div class="blank-slate-pf" id="blank-state-translation-stats">
+  <div class="blank-slate-pf-icon">
+    <span class="fa fa-refresh"></span>
+  </div>
+  <h1>
+    Package never synced!
+  </h1>
+  <p>
+    Please sync <strong>{{ package.package_name }}</strong> with platform and/or upstream repository to get translation stats.
+  </p>
+  <p>
+    Learn more about this
+    <a href="#">on the documentation</a>.
+  </p>
+</div>
+{% endif %}
