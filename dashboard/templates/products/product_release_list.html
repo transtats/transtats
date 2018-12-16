@@ -6,9 +6,9 @@
 <div class="panel panel-default" id="panel-product-releases">
   <div class="panel-heading">
     <h3 class="panel-title">
-      {{ relstream.relstream_name }} releases
+      {{ relstream.product_slug }} releases
       {% if user.is_staff %}
-      <a class="pull-right btn btn-default btn-xs" id="button-add-release" type="button" href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}">
+      <a class="pull-right btn btn-default btn-xs" id="button-add-release" type="button" href="{% url 'settings-stream-branches-new' relstream.product_slug %}">
         <span class="pficon pficon-add-circle-o"></span> Add release
       </a>
       {% endif %}
@@ -20,8 +20,8 @@
       <div class="col-xs-12 col-sm-6 col-md-4">
         <div class="card-pf card-pf-utilization card-pf-accented card-releases-ts">
           <h2 class="card-pf-title">
-            <a href="{% url 'trans-status-release' relbranch.relbranch_slug %}" data-toggle="tooltip" title="Stats of {{ relbranch.relbranch_slug }}">
-              {{ relbranch.relbranch_name }}
+            <a href="{% url 'trans-status-release' relbranch.release_slug %}" data-toggle="tooltip" title="Stats of {{ relbranch.release_name }}">
+              {{ relbranch.release_name }}
             </a>
           </h2>
           <div class="card-pf-body">
@@ -100,7 +100,7 @@
           <a href="#">on the documentation</a>.
         </p>
         <div class="blank-slate-pf-main-action">
-          <a class="btn btn-primary btn-lg" href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}">
+          <a class="btn btn-primary btn-lg" href="{% url 'settings-stream-branches-new' relstream.product_slug %}">
             <i class="pficon pficon-add-circle-o"></i> Add a {{ relstream.relstream_name }} release</a>
         </div>
       </div>

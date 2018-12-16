@@ -46,6 +46,9 @@
   </div>
   {% else %}
   <div class="panel-body">
+    <div id="div-legend-area" class="legend-area-ts"></div>
+  </div>
+  <div class="panel-body">
     <div id="div-graph-area" class="graph-area-ts">
       <div class="blank-slate-pf blank-state-ts" id="empty-state-graph-rule-not-selected">
         <div class="blank-slate-pf-icon">
@@ -125,9 +128,9 @@
               tickDecimals: 2
             },
             legend: {
-              noColumns: 0,
+	      noColumns: Math.ceil(t.length / 6),
               labelBoxBorderColor: "#000000",
-              position: "ne"
+	      container: $("#div-legend-area")
             },
             grid: {
               margin: 10,

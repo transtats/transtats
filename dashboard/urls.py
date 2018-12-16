@@ -24,18 +24,8 @@ from django.views.generic.base import TemplateView, RedirectView
 from dashboard.services.urls import api_urls
 from dashboard.views import (
     TranStatusPackagesView, TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
-    # TODO: To be removed
-    # TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
-    # JobsView, JobsLogsView, JobsLogsPackageView, JobsArchiveView, NewPackageView, TransCoverageView,
-    # StreamBranchesSettingsView, get_build_tags, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView,
-    # JobDetailView, refresh_package, job_template, release_graph, schedule_job, graph_data, tabular_data,
-    # export_packages, generate_reports, read_file_logs
-    # TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView, JobsView,
-    # JobsLogsView, JobsArchiveView, NewPackageView, TransCoverageView, StreamBranchesSettingsView, get_build_tags,
-    # NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, JobDetailView, refresh_package, job_template,
-    # release_graph, schedule_job, graph_data, tabular_data, export_packages, generate_reports, read_file_logs,
     TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
-    JobsView, JobsLogsView, JobsArchiveView, NewPackageView, UpdatePackageView, TransCoverageView,
+    JobsView, JobsLogsView, JobsArchiveView, JobsLogsPackageView, NewPackageView, UpdatePackageView, TransCoverageView,
     StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView,
     NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView,
     UpdateTransPlatformView, JobDetailView, refresh_package, release_graph, schedule_job, graph_data, tabular_data,

@@ -35,8 +35,8 @@
         </h4>
         <h4>
           <p class="card-pf-info text-center">
-            {% if platform.projects_lastupdated %}
-            <span class="text-muted">Last synced</span> {{ platform.projects_lastupdated|timesince }}
+            {% if platform.projects_last_updated %}
+            <span class="text-muted">Last synced</span> {{ platform.projects_last_updated|timesince }}
             <span class="text-muted">ago</span>.
             <span class="fa fa-clock-o" aria-hidden="true"></span>
             {% else %}
