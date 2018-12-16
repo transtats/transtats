@@ -139,22 +139,22 @@
         <a href="{{ package.upstream_url }}" target="_blank">{{ package.upstream_url }}</a>
         <span class="fa fa-external-link" aria-hidden="true"></span>
         <br/> 
-        {% if package.upstream_lastupdated %}
-        <span class="text-muted">Last Sync:</span> {{ package.upstream_lastupdated|timesince }}
+        {% if package.upstream_last_updated %}
+        <span class="text-muted">Last Sync:</span> {{ package.upstream_last_updated|timesince }}
         <span class="text-muted">ago</span>. 
         {% endif %}
       </td>
       <td>
-        <a href="{{ package.transplatform_url }}" target="_blank">{{ package.transplatform_url }}</a>
+        <a href="{{ package.platform_url }}" target="_blank">{{ package.platform_url }}</a>
         <span class="fa fa-external-link" aria-hidden="true"></span>
         <br/> 
-        {% if package.transtats_lastupdated %}
+        {% if package.platform_last_updated %}
         <span class="text-muted">Last Sync:</span>
-        {{ package.transtats_lastupdated|timesince }}
+        {{ package.platform_last_updated|timesince }}
         <span class="text-muted">ago</span>. 
         {% endif %}
       </td>
-      <td>{{ package.release_streams|join:", " }}</td>
+      <td>{{ package.products|join:", " }}</td>
       <td align="center">
         {% if package.release_branch_mapping %}
         <span class="pficon pficon-ok fa-2x"></span>
