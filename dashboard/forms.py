@@ -26,8 +26,9 @@ from crispy_forms.bootstrap import (
 from django import forms
 
 # dashboard
-from dashboard.models import (Languages, LanguageSet, TransPlatform)
+from dashboard.models import (Languages, LanguageSet, TransPlatform, Packages)
 from dashboard.managers.inventory import InventoryManager
+from dashboard.managers.packages import PackagesManager
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES,
     TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS
@@ -113,6 +114,62 @@ class NewPackageForm(forms.Form):
 
     def is_valid(self):
         return False if len(self.errors) >= 1 else True
+
+
+class UpdatePackageForm(forms.ModelForm):
+    """
+    Update package form
+    """
+    release_streams = TextArrayField(widget=forms.CheckboxSelectMultiple)
+
+    def __init__(self, *args, **kwargs):
+        super(UpdatePackageForm, self).__init__(*args, **kwargs)
+        inventory_manager = InventoryManager()
+        self.fields['transplatform_slug'].choices = inventory_manager.get_transplatform_slug_url()
+        self.fields['release_streams'].choices = inventory_manager.get_relstream_slug_name()
+
+    class Meta:
+        model = Packages
+        fields = ['package_name', 'upstream_url', 'transplatform_slug', 'release_streams', 'release_branch_mapping']
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('package_name', css_class='form-control', readonly=True),
+            Field('upstream_url', css_class='form-control'),
+            Field('transplatform_slug', css_class='selectpicker'),
+            InlineCheckboxes('release_streams'),
+            Field('release_branch_mapping', css_class='form-control', rows=4),
+            FormActions(
+                Submit('updatePackage', 'Update Package'), Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+    def clean_package_name(self):
+        """
+        Don't allow to override the value of 'package_name' as it is readonly field
+        """
+        package_name = getattr(self.instance, 'package_name', None)
+        if package_name:
+            return package_name
+        else:
+            return self.cleaned_data.get('package_name', None)
+
+    def clean(self):
+        """
+        Check if the package name exist on the selected translation platform, if not add error message for package_name
+        """
+        cleaned_data = super().clean()
+        package_name = cleaned_data['package_name']
+        transplatform_slug = getattr(cleaned_data['transplatform_slug'], 'platform_slug', None)
+        packages_manager = PackagesManager()
+        validate_package = packages_manager.validate_package(package_name=package_name,
+                                                             transplatform_slug=transplatform_slug)
+        if not validate_package:
+            self.add_error('package_name', "Not found at selected translation platform")
 
 
 class NewReleaseBranchForm(forms.Form):
