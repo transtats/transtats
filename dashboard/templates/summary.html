@@ -1,15 +1,70 @@
-<hr/>
-<h3><span class="text-muted">{{ locales_len }}</span>
-  <small><a href="{% url 'settings-languages' %}">Languages</a></small>&nbsp;&nbsp;&nbsp;
-<span class="text-muted">{{ platforms_len }}</span>
-  <small><a href="{% url 'settings-trans-platforms' %}">Translation Platforms</a></small>&nbsp;&nbsp;&nbsp;
-<span class="text-muted">{{ products_len }}</span>
-  <small><a href="{% url 'settings-release-streams' %}">Products</a></small>&nbsp;&nbsp;&nbsp;
-<span class="text-muted">{{ releases_len }}</span>
-  <small>Releases</small>&nbsp;&nbsp;&nbsp;
-<span class="text-muted">{{ packages_len }}</span>
-  <small><a href="{% url 'settings-packages' %}">Packages</a></small>&nbsp;&nbsp;&nbsp;
-<span class="text-muted">{{ jobs_len }}</span>
-  <small><a href="{% url 'jobs-logs' %}">Jobs</a></small>&nbsp;&nbsp;&nbsp;
-<span class="text-muted">{{ graph_rules_len }}</span>
-  <small><a href="{% url 'settings-graph-rules' %}">Graph Rules</a></small></h3>
+<div class="row row-cards-pf" id="row-status-cards">
+  <div class="col-xs-12 col-sm-6 col-md-3">
+    <div class="card-pf card-pf-accented card-pf-aggregate-status card-pf-aggregate-status-mini">
+      <h2 class="card-pf-title">
+        <a href="{% url 'settings-languages' %}">
+          <span class="fa fa-language"></span>
+          <span class="card-pf-aggregate-status-count">{{ locales_len }}</span> Languages
+      </a>
+      </h2>
+      <div class="card-pf-body">
+        <p class="card-pf-aggregate-status-notifications">
+          <span class="card-pf-aggregate-status-notification">
+            <span class="pficon pficon-ok"></span>
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-xs-12 col-sm-6 col-md-3">
+    <div class="card-pf card-pf-accented card-pf-aggregate-status card-pf-aggregate-status-mini">
+      <h2 class="card-pf-title">
+        <a href="{% url 'settings-trans-platforms' %}">
+          <span class="fa fa-server"></span>
+          <span class="card-pf-aggregate-status-count">{{ platforms_len }}</span> Translation Platforms
+        </a>
+      </h2>
+      <div class="card-pf-body">
+        <p class="card-pf-aggregate-status-notifications">
+          <span class="card-pf-aggregate-status-notification">
+            <span class="pficon pficon-ok"></span>
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-xs-12 col-sm-6 col-md-3">
+    <div class="card-pf card-pf-accented card-pf-aggregate-status card-pf-aggregate-status-mini">
+      <h2 class="card-pf-title">
+        <a href="{% url 'settings-packages' %}">
+          <span class="fa fa-file-zip-o"></span>
+          <span class="card-pf-aggregate-status-count">{{ packages_len }}</span> Packages
+        </a>
+      </h2>
+      <div class="card-pf-body">
+        <p class="card-pf-aggregate-status-notifications">
+          <span class="card-pf-aggregate-status-notification">
+            <span class="pficon pficon-ok"></span>
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-xs-12 col-sm-6 col-md-3">
+    <div class="card-pf card-pf-accented card-pf-aggregate-status card-pf-aggregate-status-mini">
+      <h2 class="card-pf-title">
+        <a href="{% url 'jobs' %}">
+          <span class="fa fa-bolt"></span>
+          <span class="card-pf-aggregate-status-count">{{ jobs_len }}</span> Jobs
+        </a>
+      </h2>
+      <div class="card-pf-body">
+        <p class="card-pf-aggregate-status-notifications">
+          <span class="card-pf-aggregate-status-notification">
+            <span class="pficon pficon-ok"></span>
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
