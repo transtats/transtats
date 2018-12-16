@@ -392,7 +392,9 @@ class NewPackageView(ManagersMixin, FormView):
     New Package Form View
     """
     template_name = "packages/package_new.html"
-    success_url = "/settings/packages/new"
+
+    def get_success_url(self):
+        return reverse('package-new')
 
     def get_initial(self):
         initials = {}
@@ -438,7 +440,7 @@ class NewPackageView(ManagersMixin, FormView):
                 messages.add_message(request, messages.SUCCESS, (
                     'Great! Package added successfully.'
                 ))
-            return HttpResponseRedirect(self.success_url)
+            return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
 
