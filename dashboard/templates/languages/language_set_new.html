@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block extrascript %}
+<script src="/static/node_modules/bootstrap-switch/dist/js/bootstrap-switch.js"></script>
+<script src="/static/node_modules/bootstrap-select/dist/js/bootstrap-select.js"></script>
+{% endblock %}
+{% block pagecontent %}
+<div class="col-md-2"></div>
+<div class="col-md-8">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Add a new Language Set
+        <a class="pull-right" href="{% url 'settings-languages' %}">
+          <i class="pficon-close"></i>
+        </a>
+      </h3>
+    </div>
+    <div class="panel-body">
+      {% for message in messages %}
+      {% if 'success' in message.tags %}
+      <div class="alert alert-success alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+          <span class="pficon pficon-close"></span>
+        </button>
+        <span class="pficon pficon-ok"></span>
+        {{ message }}
+      </div>
+      {% endif %}
+      {% if 'error' in message.tags %}
+      <div class="alert alert-danger alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+          <span class="pficon pficon-close"></span>
+        </button>
+        <span class="pficon pficon-error-circle-o"></span>
+        {{ message }}
+      </div>
+      {% endif %}
+      {% endfor %}
+      <div style="padding-left:0.5em; padding-right:0.5em">
+        {% crispy form %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(function () {
+    $(".bootstrap-switch").bootstrapSwitch();
+    $("#id_lang_set_color").prop("type", "color");
+    $('.selectpicker').selectpicker();
+  });
+</script>
+{% endblock %}
