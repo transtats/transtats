@@ -72,7 +72,7 @@
           <ul class="dropdown-menu" aria-labelledby="dropdownkebab-{{ langset.lang_set_slug }}">
             <li>
               <!-- TODO: find a better way to call applyFilter() -->
-              <a href="#" onClick="applyFilter($('#table-languages').DataTable(), 3, 'Sets', '{{ langset.lang_set_slug }}')">Filter languages</a>
+              <a href="#" onClick="applyFilter($('#table-languages').DataTable(), 4, 'Sets', '{{ langset.lang_set_slug }}')">Filter languages</a>
             </li>
             {% if user.is_staff %}
             <li role="separator" class="divider"></li>
@@ -130,6 +130,9 @@
                   </li>
                   <li>
                     <a href="#" id="filter-locale">Locale</a>
+                  </li>
+                  <li>
+                    <a href="#" id="filter-script">Script</a>
                   </li>
                   <li>
                     <a href="#" id="filter-alias">Alias</a>
@@ -198,6 +201,7 @@
         <tr>
           <th>Language</th>
           <th>Locale</th>
+          <th>Script</th>
           <th>Alias</th>
           <th>Sets</th>
           {% if user.is_staff %}
@@ -217,6 +221,9 @@
             {{ lang.locale_id }}
           </td>
           <td>
+            {{ lang.locale_script }}
+          </td>
+          <td>
             {{ lang.locale_alias }}
           </td>
           <td>
@@ -225,7 +232,7 @@
             <span hidden>{{ lang_set }}</span>&nbsp;
             {% endfor %}
           </td>
-          <td align="center" id="td-status-{{ lang.locale_id }}">
+          <td align="center" id="td-status-{{ lang.locale_id|js_id_safe }}">
             {% if lang.lang_status %}
             <span class="pficon pficon-ok fa-2x" data-toggle="tooltip" title="Enabled"></span>
             <span hidden>Enabled</span>
@@ -246,7 +253,7 @@
                 <li>
                   <a href="{% url 'language-update' lang.locale_id %}">Edit</a>
                 </li>
-                <li id="li-status-change-{{ lang.locale_id }}">
+                <li id="li-status-change-{{ lang.locale_id|js_id_safe }}">
                   {% if lang.lang_status %}
                   <a href="#" onclick="changeLangStatus('{{ lang.locale_id }}', 'disable')">Disable</a>
                   {% else %}
@@ -350,6 +357,7 @@
       columns: [
         { data: "language" },
         { data: "locale" },
+        { data: "script" },
         { data: "alias" },
         { data: "sets" },
         {
@@ -367,7 +375,7 @@
     language: {
       zeroRecords: "No records found"
     },
-    order: [[4, 'dec']],
+    order: [[5, 'dec']],
     responsive: true,
     pfConfig: {
       pageSize: 15,
@@ -381,6 +389,9 @@
         }, {
           optionSelector: "#filter-locale",
           placeholder: "Filter By Locale..."
+        }, {
+          optionSelector: "#filter-script",
+          placeholder: "Filter By Script..."
         }, {
           optionSelector: "#filter-alias",
           placeholder: "Filter By Alias..."
@@ -416,10 +427,10 @@
     // Initialize find util
     new findTableViewUtil();
     $("#span-enabled-languages").on("click", function () {
-      applyFilter(languagesTable, 4, "Status", "enable");
+      applyFilter(languagesTable, 5, "Status", "enable");
     });
     $("#span-disabled-languages").on("click", function () {
-      applyFilter(languagesTable, 4, "Status", "disable")
+      applyFilter(languagesTable, 5, "Status", "disable")
     });
   });
 
@@ -455,12 +466,12 @@
         // TODO: make bootstrap alerts disappear after certain amount of time
         $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>' + langLocale + ':</strong> ' + e + ' </div>')
         if (langStatus === "enable") {
-          $("#td-status-" + langLocale).html('<span class="pficon pficon-ok fa-2x" data-toggle="tooltip" title="Enabled"></span><span hidden>Enabled</span><span hidden>On</span>')
-          $("#li-status-change-" + langLocale).html('<a href="#" onclick="changeLangStatus(\'' + langLocale + '\', \'disable\')">Disable</a>')
+          $("#td-status-" + jsIdSafe(langLocale)).html('<span class="pficon pficon-ok fa-2x" data-toggle="tooltip" title="Enabled"></span><span hidden>Enabled</span><span hidden>On</span>')
+          $("#li-status-change-" + jsIdSafe(langLocale)).html('<a href="#" onclick="changeLangStatus(\'' + langLocale + '\', \'disable\')">Disable</a>')
         }
         else {
-          $("#td-status-" + langLocale).html('<span class="fa fa-ban fa-2x icon-disabled-ts" data-toggle="tooltip" title="Disabled"></span><span hidden>Disabled</span><span hidden>Off</span>')
-          $("#li-status-change-" + langLocale).html('<a href="#" onclick="changeLangStatus(\'' + langLocale + '\', \'enable\')">Enable</a>')
+          $("#td-status-" + jsIdSafe(langLocale)).html('<span class="fa fa-ban fa-2x icon-disabled-ts" data-toggle="tooltip" title="Disabled"></span><span hidden>Disabled</span><span hidden>Off</span>')
+          $("#li-status-change-" + jsIdSafe(langLocale)).html('<a href="#" onclick="changeLangStatus(\'' + langLocale + '\', \'enable\')">Enable</a>')
         }
       },
       error: function(e) {

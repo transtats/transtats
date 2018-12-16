@@ -1,3 +1,4 @@
+{% load get_item from custom_tags %}
 {% if relsummary %}
 <div class="panel-body">
   <div class="row row-cards-pf">
@@ -5,7 +6,9 @@
     <div class="col-xs-12 col-sm-6 col-md-4">
       <div class="card-pf card-pf-utilization card-pf-accented card-releases-ts">
         <h2 class="card-pf-title">
-          {{ release }}
+          <a href="{% url 'trans-status-release' summary.slug %}" data-toggle="tooltip" title="Show stats for {{ release }}">
+            {{ release }}
+          </a>
         </h2>
         <div class="card-pf-body">
           <p class="card-pf-utilization-details">
@@ -28,7 +31,11 @@
               <tbody>
                 {% for lang, untranslated in summary.languages.items %}
                 <tr>
-                  <td>{{ lang }}</td>
+                  <td>
+                    <a href="{% url 'trans-status-release' summary.slug %}?locale={{ lang_locale|get_item:lang }}" data-toggle="tooltip" title="Show stats for {{ lang }}">
+                      {{ lang }}
+                    </a>
+                  </td>
                   <td align="right" class="text-info">{{ untranslated }}</td>
                 </tr>
                 {% endfor %}

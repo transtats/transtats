@@ -93,6 +93,11 @@
             <span class="caret"></span>
           </a>
           <ul class="dropdown-menu" aria-labelledby="dropdown-user">
+            {% if user.auth_token %}
+            <li>
+              <a href="#" data-toggle="modal" data-target="#modal-auth-token">Auth Token</a>
+            </li>
+            {% endif %}
             {% if user.is_staff %}
             <li>
               <a href="{% url 'admin:index' %}">Admin Panel</a>
@@ -105,7 +110,7 @@
         </li>
         {% else %}
         <li>
-          <a class="nav-item-iconic" href="{% url 'admin:login' %}">
+          <a class="nav-item-iconic" href="{% if auth == 'fas' %}{% url 'oidc_authentication_init' %}{% else %}{% url 'admin:login' %}{% endif %}">
             <span title="Login" class="fa pficon-user"></span>
             Login
           </a>
@@ -172,21 +177,16 @@
             </li>
             {% endif %}
             {% if user.auth_token %}
-              <li>
-                  <a href="#" data-toggle="modal" data-target="#authToken">
-                      <span class="glyphicon glyphicon-paperclip" aria-hidden="true"></span> Auth Token</a>
-              </li>
+            <li class="list-group-item">
+              <a id="button-auth-token-secondary" href="#" data-toggle="modal" data-target="#modal-auth-token">
+                <span class="list-group-item-value">Auth Token</span>
+              </a>
+            </li>
             {% endif %}
-            <li>
-              {% if auth == 'fas' %}
-                  <a href="{% url 'oidc_authentication_init' %}">
-                  <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                  &nbsp;Fedora Login</a>
-              {% else %}
-                  <a href="{% url 'admin:login' %}">
-                  <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                  &nbsp;Admin Login</a>
-              {% endif %}
+            <li class="list-group-item">
+              <a href="{% if auth == 'fas' %}{% url 'oidc_authentication_init' %}{% else %}{% url 'admin:login' %}{% endif %}">
+                <span class="list-group-item-value">Login</span>
+              </a>
             </li>
           </ul>
         </div>
@@ -237,6 +237,7 @@
     {% block navigation %}{% endblock %}
     {% block pagecontent %}{% endblock %}
     <div class="spinner spinner-lg spinner-wait-ts" style="display:none"></div>
+    {% include '_auth_token.html' %}
   </div>
 
   <script>
@@ -263,6 +264,10 @@
         waitSpinner = $('.spinner-wait-ts');
       }
     }
+
+    function jsIdSafe(idString) {
+      return idString.replace("@", "-at-")
+    }
     $(document).ready(function () {
       // Initialize the vertical navigation
       $().setupVerticalNavigation(true);
@@ -271,31 +276,13 @@
         e.preventDefault();
         $('#about-modal').modal('show');
       });
+      $("#button-auth-token-secondary").on("click", function (e) {
+        e.preventDefault();
+        $("#modal-auth-token").modal("show");
+      });
       waitSpinner = $('.spinner-wait-ts')
       activateSection();
     });
   </script>
-
-    {% block footer %}
-        <hr/>
-        <footer>
-            <div class="container">
-                <p>
-                  <span><a href="{% url 'home' %}">Dashboard</a> | <a href="{% url 'howto' %}" target="_blank">Get Started</a> |
-                    <a href="{% url 'jobs' %}">Jobs</a> |
-                    <a href="{% url 'settings' %}">Settings</a> |
-                    <a href="http://transtats.org/terms.html" target="_blank">Terms of Use</a> |
-                    <a href="https://github.com/transtats/transtats/issues/new" target="_blank">Report Issue</a>
-                  </span>
-                  <span class="pull-right">{{ app_name }} {{ app_version }} | Copyright &copy; {% now 'Y' %}
-                    <a href="https://www.redhat.com/" target="_blank">Red Hat, Inc</a>
-                  </span>
-                </p>
-            </div>
-        </footer>
-    {% endblock %}
-    {% block extrafooter %}{% endblock %}
-
-    {% include '_auth_token.html' %}
   </body>
 </html>
