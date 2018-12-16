@@ -1,3 +1,4 @@
+/* TODO: to be removed
 .nav-tabs { border-bottom: 2px solid #DDD; }
     .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover { border-width: 0; }
     .nav-tabs > li > a { border: none; color: #666; }
@@ -8,6 +9,25 @@
 .tab-pane { padding: 15px 0; }
 .tab-content{padding:20px}
 
+*/
+
+/* Transtats custom CSS */
+.cards-ts {
+    background: #f0f0f0;
+}
+.container-cards-pf {
+    margin-bottom: 20px;
+}
+
+/* TODO: May not be required */
+.scrollable-menu {
+    height: auto;
+    max-height: 300px;
+    overflow-x: hidden;
+}
+
+/*
+>>>>>>> [UI] Modify base.html to use PatternFly
 body {
     padding-top: 50px;
     padding-bottom: 10px
@@ -38,8 +58,5 @@ body {
     text-decoration: none
 }
 
-.scrollable-menu {
-    height: auto;
-    max-height: 300px;
-    overflow-x: hidden;
-}
+*/
+>>>>>>> [UI] Modify base.html to use PatternFly
