@@ -186,6 +186,8 @@ class NewReleaseBranchForm(forms.Form):
     release_name = forms.CharField(
         label='Release Branch Name', help_text='Version of the release stream.', required=True,
     )
+    # Placeholder field for showing the slug on the form, this will be disabled
+    relbranch_slug = forms.CharField(label='Release Branch Slug')
     current_phase = forms.ChoiceField(
         label='Current Phase', choices=phases_choices, required=True,
         help_text='Phase in which this version/branch is running.'
@@ -222,13 +224,14 @@ class NewReleaseBranchForm(forms.Form):
     helper.layout = Layout(
         Div(
             Field('release_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
+            Field('release_slug', disabled=True),
             Field('current_phase', css_class='selectpicker'),
             Field('lang_set', css_class='selectpicker'),
             Field('calendar_url', css_class='form-control'),
             InlineCheckboxes('enable_flags'),
             HTML("<hr/>"),
             FormActions(
-                Submit('addrelbranch', 'Add Release Branch'), Reset('reset', 'Reset')
+                Submit('addrelbranch', 'Add Release Branch'), Reset('reset', 'Reset', css_class='btn-danger')
             )
         )
     )
