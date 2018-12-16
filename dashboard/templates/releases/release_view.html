@@ -3,7 +3,6 @@
 <script src="/static/js/jquery.flot.js"></script>
 <script src="/static/js/excanvas.min.js"></script>
 <script src="/static/js/jquery.flot.pie.js"></script>
-<script src="/static/js/waiting.dialog.js"></script>
 <script src="/static/js/csrf.js"></script>
 <script src="/static/node_modules/bootstrap-select/dist/js/bootstrap-select.js"></script>
 <style type="text/css">
@@ -86,7 +85,7 @@
   function ajax_combined() {
     return $.ajax({
       beforeSend: function (e, a) {
-        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), waitingDialog.show()
+        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), waitSpinner.show()
       },
       type: "POST",
       url: "{% url 'ajax-release-graph' %}",
@@ -95,7 +94,7 @@
         combine: !0
       },
       success: function (e) {
-        waitingDialog.hide()
+        waitSpinner.hide()
         $("#releasegraph").html(e)
         $("#span-graph-disclaimer").html("Percentage is calculated on messages. Accuracy largely depends upon branch mapping")
         $("#span-legends").html("")
@@ -106,7 +105,7 @@
   function ajax_detailed() {
     return $.ajax({
       beforeSend: function (e, a) {
-        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), waitingDialog.show()
+        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), waitSpinner.show()
       },
       type: "POST",
       url: "{% url 'ajax-release-graph' %}",
@@ -115,7 +114,7 @@
         detail: !0
       },
       success: function (e) {
-        waitingDialog.hide()
+        waitSpinner.hide()
         $("#releasegraph").html(e)
         $("#span-graph-disclaimer").html("Percentage is calculated on messages. Accuracy largely depends upon *branch mapping")
         $("#span-legends").html('<span class="text-danger">0-30%</span> | <span class="text-warning">31-60% </span> | <span class="text-primary">61-90%</span> | <span class="text-success">91-100%</span>')
@@ -131,7 +130,7 @@
     var r = $("#select-release-branch").val();
     return $.ajax({
       beforeSend: function (e, a) {
-        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), $("#showPercentage").html(""), $("#button-hide-locale-graph").hide(), $("#select-lang-name").selectpicker("hide"), $("#select-lang-name").empty().append("<option selected disabled>Select Language</option>").selectpicker("val", "Select Language"), waitingDialog.show()
+        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), $("#showPercentage").html(""), $("#button-hide-locale-graph").hide(), $("#select-lang-name").selectpicker("hide"), $("#select-lang-name").empty().append("<option selected disabled>Select Language</option>").selectpicker("val", "Select Language"), waitSpinner.show()
       },
       type: "POST",
       url: "{% url 'ajax-release-graph' %}",
@@ -139,7 +138,7 @@
         relbranch: r
       },
       success: function (e) {
-        waitingDialog.hide();
+        waitSpinner.hide();
         var a = e.graph_data,
           n = e.select_options,
           t = {
@@ -183,7 +182,7 @@
       a = $("#select-lang-name").val();
     return $.ajax({
       beforeSend: function (e, a) {
-        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), $("#showPercentage").html(""), waitingDialog.show()
+        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), $("#showPercentage").html(""), waitSpinner.show()
       },
       type: "POST",
       url: "{% url 'ajax-release-graph' %}",
@@ -192,7 +191,7 @@
         lang: a
       },
       success: function (e) {
-        waitingDialog.hide()
+        waitSpinner.hide()
         $("#grapharea").hide()
         $("#localegraph").show()
         $("#button-hide-locale-graph").show()
@@ -203,6 +202,7 @@
     })
   }
   $(document).ready(function () {
+    getWaitSpinner();
     $("#button-combined").addClass("active"), $("#localegraph").hide(), $("#grapharea").hide(), $("#button-hide-locale-graph").hide(), $("#select-lang-name").selectpicker("hide"), $("#select-release-branch").val("{{ release_branch }}"), getUrlVars().locale && $("#select-lang-name").selectpicker("show") && $("#select-lang-name").val(getUrlVars().locale) && $("#select-lang-name").selectpicker("refresh") && $("#button-combined").removeClass("active") && $("#button-detailed").removeClass("active") && $("#button-lang-wise").addClass("active") && $("#releasegraph").hide() && ajax_one_lang(), $("#select-release-branch").change(function (e) {
       window.location.replace("/releases/view/" + $(this).val())
     }), $("#select-lang-name").change(function (e) {
