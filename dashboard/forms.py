@@ -99,13 +99,14 @@ class NewPackageForm(forms.Form):
     helper.layout = Layout(
         Div(
             Field('package_name', css_class='form-control', onkeyup="showPackageSlug()"),
-            Field('upstream_url', css_class='form-control', onkeyup="showUpstreamName()"),
-            Field('transplatform_slug', css_class='selectpicker', onchange="showTransplatformId()"),
+            Field('upstream_url', css_class='form-control'),
+            Field('transplatform_slug', css_class='selectpicker'),
             InlineCheckboxes('release_streams'),
             HTML("<hr/>"),
             HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),
             FormActions(
-                Submit('addPackage', 'Add Package'), Reset('reset', 'Reset')
+                Submit('addPackage', 'Add Package'),
+                Reset('reset', 'Reset', css_class='btn-danger')
             )
         )
     )
