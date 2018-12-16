@@ -342,7 +342,6 @@
     </div>
   </div>
 </div>
-<div class="spinner spinner-lg" style="display:none"></div>
 
 <script>
   $(document).ready(function () {
@@ -439,7 +438,7 @@
     return /^(GET|HEAD|OPTIONS|TRACE)$/.test(e)
   }
   function changeLangStatus(langLocale, langStatus) {
-    $(".spinner").show()
+    waitSpinner.show()
     $.ajax({
       beforeSend: function(e, a) {
         csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}"))
@@ -451,7 +450,7 @@
         status: langStatus
       },
       success: function(e) {
-        $(".spinner").hide()
+        waitSpinner.hide()
         console.log(e)
         // TODO: make bootstrap alerts disappear after certain amount of time
         $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>' + langLocale + ':</strong> ' + e + ' </div>')
@@ -465,7 +464,7 @@
         }
       },
       error: function(e) {
-        $(".spinner").hide()
+        waitSpinner.hide()
         console.error(e.status, e.responseText)
         $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>' + langLocale + ':</strong> update failed! ' + e.responseText + ' </div>')
       }
