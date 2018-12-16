@@ -91,7 +91,7 @@ class NewPackageForm(forms.Form):
 
     helper = FormHelper()
     helper.form_method = 'POST'
-    helper.form_action = '/settings/packages/new'
+    helper.form_action = '/packages/new'
     helper.form_class = 'dynamic-form'
     helper.error_text_inline = True
     helper.form_show_errors = True
