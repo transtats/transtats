@@ -1,0 +1,23 @@
+{% extends "form_base.html" %}
+{% block extrascript %}
+<script src="/static/node_modules/bootstrap-select/dist/js/bootstrap-select.js"></script>
+{% endblock %}
+{% block formtitle %}
+Add a new {{ relstream.relstream_name|capfirst }} release
+{% endblock %}
+{% block formreturnurl %}
+{% url 'settings-stream-branches' relstream.relstream_slug %}
+{% endblock %}
+{% block formscript %}
+<script>
+  $(function () {
+    $('.selectpicker').selectpicker();
+  });
+  function slugify(e) {
+    return e.toString().toLowerCase().replace(/\s+/g, "-").replace(/\./g, "-").replace(/[^\w\-]+/g, "").replace(/\-\-+/g, "-").replace(/^-+/, "").replace(/-+$/, "")
+  }
+  function showBranchNameSlug() {
+    document.getElementById("id_relbranch_slug").value = slugify(document.getElementById("id_relbranch_name").value)
+  }
+</script>
+{% endblock %}
