@@ -26,7 +26,7 @@ from crispy_forms.bootstrap import (
 from django import forms
 
 # dashboard
-from dashboard.models import (Languages, LanguageSet, TransPlatform, Packages)
+from dashboard.models import (Language, LanguageSet, Platform, Package)
 from dashboard.managers.inventory import InventoryManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.constants import (
@@ -64,8 +64,8 @@ class NewPackageForm(forms.Form):
     """
     Add new package to package list
     """
-    transplatform_choices = ()
-    relstream_choices = ()
+    platform_choices = ()
+    products_choices = ()
 
     package_name = forms.CharField(
         label='Package Name', help_text='Package id as-in translation platform. Use hyphen (-) to separate words.', required=True,
@@ -73,21 +73,21 @@ class NewPackageForm(forms.Form):
     upstream_url = forms.URLField(
         label='Upstream URL', help_text='Source repository location (Bitbucket, GitHub, Pagure etc).', required=True
     )
-    transplatform_slug = forms.ChoiceField(
+    platform_slug = forms.ChoiceField(
         label='Translation Platform',
-        choices=transplatform_choices, help_text='Translation statistics will be fetched from this server.'
+        choices=platform_choices, help_text='Translation statistics will be fetched from this server.'
     )
-    release_streams = TextArrayField(
-        label='Products', widget=forms.CheckboxSelectMultiple, choices=relstream_choices,
+    products = TextArrayField(
+        label='Products', widget=forms.CheckboxSelectMultiple, choices=products_choices,
         help_text="Translation progress for selected products will be tracked."
     )
 
     def __init__(self, *args, **kwargs):
-        self.transplatform_choices = kwargs.pop('transplatform_choices')
-        self.relstream_choices = kwargs.pop('relstream_choices')
+        self.platform_choices = kwargs.pop('platform_choices')
+        self.products_choices = kwargs.pop('products_choices')
         super(NewPackageForm, self).__init__(*args, **kwargs)
-        self.fields['transplatform_slug'].choices = self.transplatform_choices
-        self.fields['release_streams'].choices = self.relstream_choices
+        self.fields['platform_slug'].choices = self.platform_choices
+        self.fields['products'].choices = self.products_choices
         super(NewPackageForm, self).full_clean()
 
     helper = FormHelper()
@@ -101,8 +101,8 @@ class NewPackageForm(forms.Form):
         Div(
             Field('package_name', css_class='form-control', onkeyup="showPackageSlug()"),
             Field('upstream_url', css_class='form-control'),
-            Field('transplatform_slug', css_class='selectpicker'),
-            InlineCheckboxes('release_streams'),
+            Field('platform_slug', css_class='selectpicker'),
+            InlineCheckboxes('products'),
             HTML("<hr/>"),
             HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),
             FormActions(
@@ -120,17 +120,17 @@ class UpdatePackageForm(forms.ModelForm):
     """
     Update package form
     """
-    release_streams = TextArrayField(widget=forms.CheckboxSelectMultiple)
+    products = TextArrayField(widget=forms.CheckboxSelectMultiple)
 
     def __init__(self, *args, **kwargs):
         super(UpdatePackageForm, self).__init__(*args, **kwargs)
         inventory_manager = InventoryManager()
-        self.fields['transplatform_slug'].choices = inventory_manager.get_transplatform_slug_url()
-        self.fields['release_streams'].choices = inventory_manager.get_relstream_slug_name()
+        self.fields['platform_slug'].choices = inventory_manager.get_transplatform_slug_url()
+        self.fields['products'].choices = inventory_manager.get_relstream_slug_name()
 
     class Meta:
-        model = Packages
-        fields = ['package_name', 'upstream_url', 'transplatform_slug', 'release_streams', 'release_branch_mapping']
+        model = Package
+        fields = ['package_name', 'upstream_url', 'platform_slug', 'products', 'release_branch_mapping']
 
     helper = FormHelper()
     helper.form_method = 'POST'
@@ -139,8 +139,8 @@ class UpdatePackageForm(forms.ModelForm):
         Div(
             Field('package_name', css_class='form-control', readonly=True),
             Field('upstream_url', css_class='form-control'),
-            Field('transplatform_slug', css_class='selectpicker'),
-            InlineCheckboxes('release_streams'),
+            Field('platform_slug', css_class='selectpicker'),
+            InlineCheckboxes('products'),
             Field('release_branch_mapping', css_class='form-control', rows=4),
             FormActions(
                 Submit('updatePackage', 'Update Package'), Reset('reset', 'Reset', css_class='btn-danger')
@@ -164,10 +164,10 @@ class UpdatePackageForm(forms.ModelForm):
         """
         cleaned_data = super().clean()
         package_name = cleaned_data['package_name']
-        transplatform_slug = getattr(cleaned_data['transplatform_slug'], 'platform_slug', None)
+        platform_slug = getattr(cleaned_data['platform_slug'], 'platform_slug', None)
         packages_manager = PackagesManager()
         validate_package = packages_manager.validate_package(package_name=package_name,
-                                                             transplatform_slug=transplatform_slug)
+                                                             transplatform_slug=platform_slug)
         if not validate_package:
             self.add_error('package_name', "Not found at selected translation platform")
 
@@ -315,7 +315,7 @@ class NewLanguageForm(forms.ModelForm):
         super(NewLanguageForm, self).__init__(*args, **kwargs)
 
     class Meta:
-        model = Languages
+        model = Language
         fields = '__all__'
 
     locale_id = forms.SlugField(label='Locale ID')
@@ -344,7 +344,7 @@ class UpdateLanguageForm(forms.ModelForm):
         super(UpdateLanguageForm, self).__init__(*args, **kwargs)
 
     class Meta:
-        model = Languages
+        model = Language
         fields = '__all__'
 
     helper = FormHelper()
@@ -415,7 +415,7 @@ class NewTransPlatformForm(forms.ModelForm):
         super(NewTransPlatformForm, self).__init__(*args, **kwargs)
 
     class Meta:
-        model = TransPlatform
+        model = Platform
         fields = ['engine_name', 'subject', 'api_url', 'platform_slug', 'server_status', 'server_status',
                   'auth_login_id', 'auth_token_key']
 
@@ -454,7 +454,7 @@ class UpdateTransPlatformForm(forms.ModelForm):
         super(UpdateTransPlatformForm, self).__init__(*args, **kwargs)
 
     class Meta:
-        model = TransPlatform
+        model = Platform
         fields = ['engine_name', 'subject', 'api_url', 'platform_slug', 'server_status',
                   'auth_login_id', 'auth_token_key']
 

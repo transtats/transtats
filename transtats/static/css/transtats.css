@@ -78,6 +78,16 @@
     min-height:600px
 }
 
+.legend-area-ts {
+    border-bottom-color: #ddd;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.legend-area-ts, td {
+    padding: 1px 3px 3px 1px;
+}
+
 .panel-border-ts {
     overflow-x: auto;
     border-color: #39a5dc;
