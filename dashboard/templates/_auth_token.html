@@ -1,25 +1,29 @@
-<div id="authToken" class="modal fade" role="dialog">
+<div id="modal-auth-token" class="modal fade" role="dialog">
   <div class="modal-dialog">
-
-    <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" aria-label="Close">
+          <span class="pficon pficon-close"></span>
+        </button>
         <h4 class="modal-title">API Authentication Token</h4>
       </div>
       <div class="modal-body">
-          <p>
-              <h4>Your token is <span class="text-info">{{ user.auth_token.pk }}</span></h4><hr/>
-              Add this token to <strong>{{ client_config_file }}</strong> file. For API calls, add HTTP Header: <br/>&nbsp;&nbsp;&nbsp;&nbsp;
-              <span class="text-warning">Authorization: Token {{ user.auth_token.pk }}</span><br/><br/>
-              <span class="text-muted"><span class="glyphicon glyphicon-info-sign"></span>
-                   Authentication is required for write operations.</span>
-          </p>
+        <p>
+          <h4>
+            Your token is <span class="text-info">{{ user.auth_token.pk }}</span>
+          </h4>
+          <p>Add this token to <strong>{{ client_config_file }}</strong> file.</p>
+          <hr/>
+          <h4>For API calls, add HTTP Header:</h4>
+          <pre>Authorization: Token {{ user.auth_token.pk }}</pre>
+        </p>
       </div>
       <div class="modal-footer">
+        <span class="text-muted pull-left">
+          <span class="pficon pficon-info"></span> Authentication is required for write operations.
+        </span>
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
-
   </div>
 </div>
