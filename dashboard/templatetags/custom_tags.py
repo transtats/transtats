@@ -129,7 +129,7 @@ def tag_tabular_form(package):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_workload_combined.html")
+    os.path.join("releases", "_workload_combined.html")
 )
 def tag_workload_per_lang(relbranch, lang_id):
     return_value = OrderedDict()
@@ -143,7 +143,7 @@ def tag_workload_per_lang(relbranch, lang_id):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_workload_combined.html")
+    os.path.join("releases", "_workload_combined.html")
 )
 def tag_workload_combined(relbranch):
     return_value = OrderedDict()
@@ -155,7 +155,7 @@ def tag_workload_combined(relbranch):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_workload_detailed.html")
+    os.path.join("releases", "_workload_detailed.html")
 )
 def tag_workload_detailed(relbranch):
     return_value = OrderedDict()
