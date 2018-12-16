@@ -1,7 +1,5 @@
-{% extends "base.html" %}
-{% load crispy_forms_tags %}
+{% extends "form_base.html" %}
 {% block extrascript %}
-<!-- bootstrap-select -->
 <script src="/static/node_modules/bootstrap-select/js/bootstrap-select.js"></script>
 <script type="text/javascript">
     function slugify(e) {
@@ -13,46 +11,16 @@
     }
 </script>
 {% endblock %}
-{% block pagecontent %}
-<div class="col-md-2"></div>
-<div class="col-md-8">
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h3 class="panel-title">Register a new package
-                <a class="pull-right" href="{% url 'settings-packages' %}">
-                    <i class="pficon-close"></i>
-                </a>
-            </h3>
-        </div>
-        <div class="panel-body">
-            {% for message in messages %}
-            {% if 'success' in message.tags %}
-            <div class="alert alert-success alert-dismissable">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
-                    <span class="pficon pficon-close"></span>
-                </button>
-                <span class="pficon pficon-ok"></span>
-                {{ message }}
-            </div>
-            {% endif %} {% if 'error' in message.tags %}
-            <div class="alert alert-danger alert-dismissable">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
-                    <span class="pficon pficon-close"></span>
-                </button>
-                <span class="pficon pficon-error-circle-o"></span>
-                {{ message }}
-            </div>
-            {% endif %}
-            {% endfor %}
-            <div style="padding-left:0.5em; padding-right:0.5em">
-                {% crispy form %}
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block formtitle %}
+Add a new package
+{% endblock %}
+{% block formreturnurl %}
+{% url 'settings-packages' %}
+{% endblock %}
+{% block formscript %}
 <script>
-    // Initialize Boostrap-select
+  $(function () {
     $('.selectpicker').selectpicker();
+  });
 </script>
 {% endblock %}
