@@ -97,6 +97,15 @@
     }
 }
 
+.card-pf-footer {
+    overflow: auto;
+}
+
+.vert-scroll-div-ts {
+    max-height: 470px;
+    overflow-y: auto;
+}
+
 /*
 body {
     padding-top: 50px;

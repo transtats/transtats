@@ -23,16 +23,18 @@
             </span>
             languages!
           </p>
-          <table class="table table-bordered table-striped">
-            <tbody>
-              {% for lang, untranslated in summary.languages.items %}
-              <tr>
-                <td>{{ lang }}</td>
-                <td align="right" class="text-info">{{ untranslated }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          <div class="vert-scroll-div-ts">
+            <table class="table table-bordered table-striped">
+              <tbody>
+                {% for lang, untranslated in summary.languages.items %}
+                <tr>
+                  <td>{{ lang }}</td>
+                  <td align="right" class="text-info">{{ untranslated }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
