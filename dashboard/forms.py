@@ -257,7 +257,7 @@ class NewGraphRuleForm(forms.Form):
         required=True
     )
     rule_packages = TextArrayField(
-        label='Packages', widget=forms.CheckboxSelectMultiple, choices=rule_packages_choices,
+        label='Packages', widget=forms.SelectMultiple, choices=rule_packages_choices,
         help_text="Selected packages will be included in this rule.", required=True
     )
     lang_selection = forms.ChoiceField(
@@ -268,7 +268,7 @@ class NewGraphRuleForm(forms.Form):
         help_text="Either pick language set associated with selected release branch or choose languages."
     )
     rule_langs = TextArrayField(
-        label='Languages', widget=forms.CheckboxSelectMultiple, choices=rule_langs_choices,
+        label='Languages', widget=forms.SelectMultiple, choices=rule_langs_choices,
         help_text="Selected languages will be included in this rule.", required=False
     )
 
@@ -284,7 +284,6 @@ class NewGraphRuleForm(forms.Form):
 
     helper = FormHelper()
     helper.form_method = 'POST'
-    helper.form_action = '/settings/graph-rules/new'
     helper.form_class = 'dynamic-form'
     helper.error_text_inline = True
     helper.form_show_errors = True
@@ -293,12 +292,13 @@ class NewGraphRuleForm(forms.Form):
         Div(
             Field('rule_name', css_class="form-control", onkeyup="showRuleSlug()"),
             Field('rule_relbranch', css_class="selectpicker"),
-            InlineCheckboxes('rule_packages', css_class="checkbox"),
+            Field('rule_packages', css_class="selectpicker"),
             InlineRadios('lang_selection', id="lang_selection_id"),
-            InlineCheckboxes('rule_langs', css_class="checkbox"),
+            Field('rule_langs', css_class="selectpicker"),
             HTML("<hr/>"),
             FormActions(
-                Submit('addRule', 'Add Graph Rule'), Reset('reset', 'Reset')
+                Submit('addRule', 'Add Graph Rule'),
+                Reset('reset', 'Reset', css_class='btn-danger')
             )
         )
     )
