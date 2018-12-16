@@ -30,6 +30,15 @@
     color: #363636;
     font-size: 1.168em;
 }
+.spinner{
+    position: fixed;
+    top:0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    margin: auto;
+    z-index: 1000;
+}
 
 /* TODO: May not be required */
 .scrollable-menu {
