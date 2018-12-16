@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block extrascript %}
+<script src="/static/js/waiting.dialog.js"></script>
+<script src="/static/js/csrf.js"></script>
+<script src="/static/node_modules/bootstrap-select/dist/js/bootstrap-select.js"></script>
+{% endblock %}
+{% block pagebanner %}
+{% include 'summary.html' %}
+{% endblock %}
+
+{% block pagecontent %}
+<!-- Products list panel -->
+<div class="panel panel-default" id="panel-product-list">
+  <div class="panel-heading">
+    <h3 class="panel-title">
+      Products
+      {% if user.is_staff %}
+      <a class="pull-right btn btn-default btn-xs" id="button-add-product" type="button" href="{% url 'admin:dashboard_releasestream_add' %}">
+        <span class="pficon pficon-add-circle-o"></span> Add product
+      </a>
+      {% endif %}
+    </h3>
+  </div>
+  {% if not relstreams %}
+  <div class="panel-body">
+    <div class="blank-slate-pf blank-state-ts" id="empty-state-product-list">
+      <div class="blank-slate-pf-icon">
+        <span class="pficon pficon pficon-add-circle-o"></span>
+      </div>
+      <h1>
+        No products available!
+      </h1>
+      <p>
+        Seems like no products are available, would like to add one?
+      </p>
+      <p>
+        Learn more about this
+        <a href="#">on the documentation</a>.
+      </p>
+      <div class="blank-slate-pf-main-action">
+        <a class="btn btn-primary btn-lg" href="{% url 'admin:dashboard_releasestream_add' %}">
+          <i class="pficon pficon-add-circle-o"></i> Add product</a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div id="pf-list-products" class="list-group list-view-pf list-view-pf-equalized-column">
+    {% for relstream in relstreams %}
+    <div class="list-group-item">
+      <div class="list-view-pf-actions">
+        <a class="btn btn-default" href="{% url 'settings-stream-branches' relstream.relstream_slug %}">Show releases</a>
+        {% if user.is_staff %}
+        <div class="dropdown pull-right dropdown-kebab-pf">
+          <button class="btn btn-link dropdown-toggle" type="button" id="dropdown-product-list" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="true">
+            <span class="fa fa-ellipsis-v"></span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-product-list">
+            <li>
+              <a href="{% url 'admin:dashboard_releasestream_changelist' %}">Edit product</a>
+            </li>
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+      <div class="list-view-pf-main-info">
+        <div class="list-view-pf-left">
+          {% if relstream.relstream_status %}
+          <span class="pficon pficon-ok list-view-pf-icon-md list-view-pf-icon-success" data-toggle="tooltip" title="Enabled"></span>
+          {% else %}
+          <span class="fa fa-ban list-view-pf-icon-md list-view-pf-icon-info" data-toggle="tooltip" title="Disabled"></span>
+          {% endif %}
+        </div>
+        <div class="list-view-pf-body">
+          <div class="list-view-pf-description">
+            <div class="list-group-item-heading">
+              {{ relstream.relstream_name }}
+            </div>
+            <div class="list-group-item-text">
+              <a href="{{ relstream.web_url }}" target="_blank">{{ relstream.web_url }}</a>
+              <span class="fa fa-external-link" aria-hidden="true"></span>
+            </div>
+          </div>
+          <div class="list-view-pf-additional-info">
+            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Build system">
+              <span class="fa fa-server"></span>
+              <strong>{{ relstream.relstream_built }}</strong>
+            </div>
+            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Authentication type">
+              <span class="pficon pficon-locked"></span>
+              <strong>{{ relstream.auth_type|capfirst }}</strong>
+            </div>
+            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Source package format">
+              <span class="fa fa-file-zip-o"></span>
+              <strong>{{ relstream.srcpkg_format|upper }}</strong>
+            </div>
+            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Message bus">
+              <span class="fa fa-envelope"></span>
+              <strong>{{ relstream.msgbus_exchange }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Releases panel -->
+<div class="panel panel-default" id="panel-release-list">
+  <div class="panel-heading">
+    <h3 class="panel-title">
+      Product releases
+      {% if releases %}
+      <select id="relBranch" class="selectpicker" data-live-search="true">
+        <option selected disabled>Select Release</option>
+        {% for release in releases %}
+        <option value="{{ release.0 }}">{{ release.1 }}</option>
+        {% endfor %}
+      </select>
+      <span class="pull-right">
+        <a id="refresh-releases-summary" class="btn btn-default btn-small" data-toggle="tooltip" title="Refresh Summary">
+          <span class="fa fa-refresh" aria-hidden="true"></span>
+        </a>
+      </span>
+      {% endif %}
+    </h3>
+  </div>
+  {% if releases %}
+  <div id="div-releases-summary">{% tag_releases_summary %}</div>
+  {% else %}
+  <div class="panel-body">
+    <div class="blank-slate-pf blank-state-ts" id="empty-state-product-releases">
+        <div class="blank-slate-pf-icon">
+          <span class="pficon pficon pficon-add-circle-o"></span>
+        </div>
+        <h1>
+          No releases available!
+        </h1>
+        <p>
+          Seems like no releases are available, would like to add one?
+        </p>
+        <p>
+          Learn more about this
+          <a href="#">on the documentation</a>.
+        </p>
+        <div class="blank-slate-pf-main-action">
+          {% for relstream in relstreams %}
+          <a class="btn btn-primary btn-lg" href="{% url 'settings-stream-branches-new' relstream.relstream_slug %}">
+            <i class="pficon pficon-add-circle-o"></i> Add a {{ relstream.relstream_name }} release</a>
+          {% endfor %}
+        </div>
+      </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<script type="text/javascript">
+  function csrfSafeMethod(e) {
+  return /^(GET|HEAD|OPTIONS|TRACE)$/.test(e)
+  }
+
+  function refresh_releases_summary() {
+    $.ajax({
+      beforeSend: function(e, a) {
+        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), waitingDialog.show()
+      },
+      type: "POST",
+      url: "{% url 'ajax-releases-report' %}",
+      data: {
+        subject: "releases"
+      },
+      success: function(e) {
+        waitingDialog.hide(), $("#div-releases-summary").html(e)
+      },
+      error: function(e, a, s) {
+        waitingDialog.hide(), $("#div-releases-summary").html("<div class='alert alert-warning' role='alert'>Some unexpected error occurred.</div>")
+      }
+    })
+  }
+  $(document).ready(function() {
+    $("#relBranch").change(function(e) {
+      window.location.replace("/translation-status/release/" + $(this).val())
+    }), $("#refresh-releases-summary").on("click", function(e) {
+      return e.preventDefault(), refresh_releases_summary(), !1
+    })
+  });
+</script>
+{% endblock %}
