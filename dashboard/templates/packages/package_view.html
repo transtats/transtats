@@ -57,10 +57,10 @@
               <input type="hidden" value="syncPlatform" id="sync-package-identifier" />Translation Platform</a>
           </li>
           <li>
-            <a href="{% url 'jobs' %}?package={{ package_name }}" data-toggle="tooltip" title="Sync with {{ package_name }} source repo">Upstream Repository</a>
+            <a href="{% url 'jobs-yml-based' %}?template=syncupstream&package={{ package_name }}" data-toggle="tooltip" title="Sync with {{ package_name }} source repo">Upstream Repository</a>
           </li>
           <li>
-            <a href="{% url 'jobs-yml-based' %}?package={{ package_name }}" data-toggle="tooltip" title="Sync with build system">Release Build System</a>
+            <a href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package_name }}" data-toggle="tooltip" title="Sync with build system">Release Build System</a>
           </li>
         </ul>
       </span>

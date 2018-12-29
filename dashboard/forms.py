@@ -73,11 +73,11 @@ class NewPackageForm(forms.Form):
     upstream_url = forms.URLField(
         label='Upstream URL', help_text='Source repository location (Bitbucket, GitHub, Pagure etc).', required=True
     )
-    platform_slug = forms.ChoiceField(
+    transplatform_slug = forms.ChoiceField(
         label='Translation Platform',
         choices=platform_choices, help_text='Translation statistics will be fetched from this server.'
     )
-    products = TextArrayField(
+    release_streams = TextArrayField(
         label='Products', widget=forms.CheckboxSelectMultiple, choices=products_choices,
         help_text="Translation progress for selected products will be tracked."
     )
@@ -86,8 +86,8 @@ class NewPackageForm(forms.Form):
         self.platform_choices = kwargs.pop('platform_choices')
         self.products_choices = kwargs.pop('products_choices')
         super(NewPackageForm, self).__init__(*args, **kwargs)
-        self.fields['platform_slug'].choices = self.platform_choices
-        self.fields['products'].choices = self.products_choices
+        self.fields['transplatform_slug'].choices = self.platform_choices
+        self.fields['release_streams'].choices = self.products_choices
         super(NewPackageForm, self).full_clean()
 
     helper = FormHelper()
@@ -101,8 +101,8 @@ class NewPackageForm(forms.Form):
         Div(
             Field('package_name', css_class='form-control', onkeyup="showPackageSlug()"),
             Field('upstream_url', css_class='form-control'),
-            Field('platform_slug', css_class='selectpicker'),
-            InlineCheckboxes('products'),
+            Field('transplatform_slug', css_class='selectpicker'),
+            InlineCheckboxes('release_streams'),
             HTML("<hr/>"),
             HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),
             FormActions(
