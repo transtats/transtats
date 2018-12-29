@@ -406,9 +406,9 @@ class NewPackageView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
-        initials.update(dict(platform_slug='ZNTAFED'))
+        initials.update(dict(transplatform_slug='ZNTAFED'))
         # TODO: should be configurable?
-        initials.update(dict(products='RHEL'))
+        initials.update(dict(release_streams='RHEL'))
         return initials
 
     def get_form(self, form_class=None, data=None):
@@ -430,6 +430,8 @@ class NewPackageView(ManagersMixin, FormView):
         # Check for required fields
         required_params = ('package_name', 'upstream_url', 'transplatform_slug', 'release_streams')
         if not set(required_params) <= set(post_params.keys()):
+            messages.add_message(request, messages.ERROR, (
+                'One of the required fields is missing.'))
             return render(request, self.template_name, {'form': form})
         # Validate package with translation platform
         validate_package = self.packages_manager.validate_package(**post_params)
