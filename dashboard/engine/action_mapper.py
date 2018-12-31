@@ -36,6 +36,7 @@ from dashboard.constants import (
     TRANSPLATFORM_ENGINES,
     BRANCH_MAPPING_KEYS, BUILD_SYSTEMS
 )
+from dashboard.converters.specfile import RpmSpecFile
 from dashboard.managers import BaseManager
 
 __all__ = ['ActionMapper']
@@ -438,9 +439,11 @@ class Unpack(JobCommandBase):
                 src_tar_dir = self._determine_tar_dir(input)
             task_log.update(self._log_task(
                 input['log_f'], task_subject, os.listdir(src_tar_dir),
-                text_prefix='Tarball Extracted Successfully'
+                text_prefix='Tarball [ %s ] Extracted Successfully' % input['src_tar_file'].split('/')[-1]
             ))
-            return {'src_tar_dir': src_tar_dir}, {task_subject: task_log}
+            return {'src_tar_dir': src_tar_dir, 'src_translations': input['src_translations'],
+                    'spec_obj': input['spec_obj'], 'spec_sections': input['spec_sections']},\
+                   {task_subject: task_log}
 
 
 class Load(JobCommandBase):
@@ -456,16 +459,35 @@ class Load(JobCommandBase):
         task_log = OrderedDict()
 
         try:
+            root_dir = ''
             spec_file = ''
+            tarballs = []
+            src_translations = []
             src_tar_file = None
             for root, dirs, files in os.walk(input['extract_dir']):
+                root_dir = root
                 for file in files:
                     if file.endswith('.spec') and not file.startswith('.'):
                         spec_file = os.path.join(root, file)
                     zip_ext = ('.tar', '.tar.gz', '.tar.bz2', '.tar.xz')
                     if file.endswith(zip_ext):
-                        src_tar_file = os.path.join(root, file)
+                        tarballs.append(file)
+                    translation_ext = ('.po', )
+                    if file.endswith(translation_ext):
+                        src_translations.append(file)
             spec_obj = Spec.from_file(spec_file)
+            if len(tarballs) > 0:
+                probable_tarball = spec_obj.sources[0].split('/')[-1].replace(
+                    "%{version}", spec_obj.version)
+                src_tar_file = os.path.join(root_dir, probable_tarball) \
+                    if probable_tarball in tarballs \
+                    else os.path.join(root_dir, tarballs[0])
+
+            if len(src_translations) > 0:
+                src_translations = map(
+                    lambda x: os.path.join(root_dir, x), src_translations
+                )
+            spec_sections = RpmSpecFile(os.path.join(input['base_dir'], spec_file))
         except Exception as e:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
@@ -477,8 +499,8 @@ class Load(JobCommandBase):
                 text_prefix='Spec file loaded, Sources'
             ))
             return {
-                'spec_file': spec_file, 'src_tar_file': src_tar_file,
-                'spec_obj': spec_obj
+                'spec_file': spec_file, 'src_tar_file': src_tar_file, 'spec_obj': spec_obj,
+                'src_translations': [i for i in src_translations], 'spec_sections': spec_sections
             }, {task_subject: task_log}
 
 
@@ -487,23 +509,59 @@ class Apply(JobCommandBase):
     Handles all operations for APPLY Command
     """
 
+    def _apply_prep(self, input, prep_section, tar_dir, w_log, sub):
+        file_ext = '.po'
+        prep_steps = []
+        relevant_prep_steps = {}
+        po_related_sources = {i: j for i, j in input['spec_obj'].sources_dict.items() if file_ext in j}
+
+        for i, j in po_related_sources.items():
+            source_step = [step for step in prep_section if i.upper() in step]
+            if len(source_step) > 0:
+                relevant_prep_steps[j] = source_step[0]
+
+        for i, j in relevant_prep_steps.items():
+            src_po = [po for po in input['src_translations'] if i in po]
+            if len(src_po) > 0:
+                cmd_parts = j.split()
+                if cmd_parts[0] in ('cp', 'install') and file_ext in cmd_parts[-1]:
+                    copy_args = src_po[0], os.path.join(tar_dir, cmd_parts[-1])
+                    prep_steps.append("{0} {1} {2}".format(cmd_parts[0], *copy_args))
+                    copy2(*copy_args)
+
+        if len(prep_steps) > 0:
+            w_log.update(self._log_task(
+                input['log_f'], sub, prep_steps,
+                text_prefix='%s prep command(s) ran' % len(prep_steps)
+            ))
+
     def patch(self, input, kwargs):
 
         task_subject = "Apply Patches"
         task_log = OrderedDict()
 
         tar_dir = {'src_tar_dir': input['src_tar_dir']}
+
+        if input['src_translations']:
+            s_sections = input['spec_sections']
+            self._apply_prep(
+                input, s_sections.getSection('prep'), input['src_tar_dir'],
+                task_log, task_subject
+            )
+
         try:
             patches = []
+            src_trans = input['src_translations']
             for root, dirs, files in os.walk(input['extract_dir']):
                     for file in files:
                         if file.endswith('.patch'):
                             patches.append(os.path.join(root, file))
 
-            if not patches:
+            if not patches and not src_trans:
                 task_log.update(self._log_task(input['log_f'], task_subject, 'No patches found.'))
                 return tar_dir
 
+            # apply patches
             [copy2(patch, input['src_tar_dir']) for patch in patches]
             os.chdir(input['src_tar_dir'])
             for patch in patches:

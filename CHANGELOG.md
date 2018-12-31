@@ -1,4 +1,5 @@
-##### Fri Dec 07 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6
+##### Tue Dec 18 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6
+* Implement Spec's file %prep section in Jobs, improve tarball selection
 * Auth and OpenShift deployment config changes
 
 ##### Sat Nov 10 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6-rc.2
