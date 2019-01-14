@@ -429,6 +429,12 @@ class Unpack(JobCommandBase):
                         input['extract_dir'], tar_members[0].get_info().get('name', '')
                     )
                 tar_file.extractall(path=input['extract_dir'])
+
+            if input['related_tarballs']:
+                for r_tarball in input['related_tarballs']:
+                    with tarfile.open(r_tarball) as tar_file:
+                        tar_file.extractall(path=src_tar_dir)
+
         except Exception as e:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
@@ -464,6 +470,7 @@ class Load(JobCommandBase):
             tarballs = []
             src_translations = []
             src_tar_file = None
+            related_tarballs = []
             for root, dirs, files in os.walk(input['extract_dir']):
                 root_dir = root
                 for file in files:
@@ -478,7 +485,7 @@ class Load(JobCommandBase):
             spec_obj = Spec.from_file(spec_file)
             if len(tarballs) > 0:
                 probable_tarball = spec_obj.sources[0].split('/')[-1].replace(
-                    "%{version}", spec_obj.version)
+                    "%{name}", spec_obj.name).replace("%{version}", spec_obj.version)
                 src_tar_file = os.path.join(root_dir, probable_tarball) \
                     if probable_tarball in tarballs \
                     else os.path.join(root_dir, tarballs[0])
@@ -488,6 +495,12 @@ class Load(JobCommandBase):
                     lambda x: os.path.join(root_dir, x), src_translations
                 )
             spec_sections = RpmSpecFile(os.path.join(input['base_dir'], spec_file))
+
+            version_release = spec_obj.release[0]
+            release_related_tarballs = [tarball for tarball in tarballs
+                                        if version_release in tarball and tarball in spec_obj.sources]
+            if release_related_tarballs:
+                related_tarballs = [os.path.join(root_dir, x) for x in release_related_tarballs]
         except Exception as e:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
@@ -500,7 +513,8 @@ class Load(JobCommandBase):
             ))
             return {
                 'spec_file': spec_file, 'src_tar_file': src_tar_file, 'spec_obj': spec_obj,
-                'src_translations': [i for i in src_translations], 'spec_sections': spec_sections
+                'src_translations': [i for i in src_translations], 'spec_sections': spec_sections,
+                'related_tarballs': related_tarballs
             }, {task_subject: task_log}
 
 
@@ -610,7 +624,7 @@ class Filter(JobCommandBase):
 
         try:
             trans_files = []
-            for root, dirs, files in os.walk(input['src_tar_dir']):
+            for root, dirs, files in os.walk(input['extract_dir']):
                     for file in files:
                         if file.endswith('.%s' % file_ext):
                             trans_files.append(os.path.join(root, file))
