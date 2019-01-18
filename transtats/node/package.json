@@ -1,6 +1,6 @@
 {
   "name": "transtats",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Translation statistics dashboard",
   "homepage": "http://transtats.org",
   "license": "Apache-2.0",
