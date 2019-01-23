@@ -228,7 +228,7 @@
           </td>
           <td>
             {% for lang_set in locale_groups|get_item:lang.locale_id %}
-            <span class="glyphicon glyphicon-tag fa-2x" aria-hidden="true" style="color:{{ langset_color_dict|get_item:lang_set }}" data-toggle="tooltip" title="{{ lang_set }}"></span>
+            <span class="glyphicon glyphicon-tag fa-x" aria-hidden="true" style="color:{{ langset_color_dict|get_item:lang_set }}" data-toggle="tooltip" title="{{ lang_set }}"></span>
             <span hidden>{{ lang_set }}</span>&nbsp;
             {% endfor %}
           </td>

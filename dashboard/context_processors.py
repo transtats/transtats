@@ -25,6 +25,7 @@ def app_info(request):
     return {
         "app_name": __appname__,
         "app_version": __version__,
+        "app_desc": 'Track Translation Completeness',
         "auth": "fas" if settings.FAS_AUTH else "default",
         "client_config_file": "transtats.conf"
     }

@@ -5,11 +5,11 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Track Translation Completeness">
+  <meta name="description" content="{{ app_desc }}">
   <meta name="author" content="suanand@redhat.com">
   <link rel="icon" href="/static/img/favicon.ico">
 
-  <title>{{ app_name }}</title>
+  <title>{{ app_name }} - {{ app_desc }}</title>
   <!-- PatternFly CSS -->
   <link rel="stylesheet" type="text/css" href="/static/patternfly/dist/css/patternfly.css">
   <link rel="stylesheet" type="text/css" href="/static/patternfly/dist/css/patternfly-additions.css">
@@ -61,8 +61,8 @@
         <span class="icon-bar"></span>
       </button>
       <a href="/" class="navbar-brand">
-        <img class="navbar-brand-icon" src="" alt="" />
-        <img class="navbar-brand-name" src="" alt="{{ app_name }}" />
+        <!--<img class="navbar-brand-icon" src="" alt="" />-->
+        <img class="navbar-brand-name" src="/static/img/tslogo.png" alt="{{ app_name }}" />
       </a>
     </div>
     <nav class="collapse navbar-collapse">

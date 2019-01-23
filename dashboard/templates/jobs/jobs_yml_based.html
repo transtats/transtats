@@ -12,29 +12,48 @@
 </script>
 {% endblock %}
 
-{% block tabcontent %}
-    <div class="stepwizard col-md-offset-3">
-        <div class="stepwizard-row setup-panel">
-          <div class="stepwizard-step">
-            <a href="#step-1" type="button" class="btn btn-primary btn-circle">1</a>
-            <p>Pick Template</p>
-          </div>
-          <div class="stepwizard-step">
-            <a href="#step-2" type="button" class="btn btn-default btn-circle" disabled="disabled">2</a>
-            <p>Define Tasks</p>
-          </div>
-          <div class="stepwizard-step">
-            <a href="#step-3" type="button" class="btn btn-default btn-circle" disabled="disabled">3</a>
-            <p>Set Values</p>
-          </div>
-          <div class="stepwizard-step">
-            <a href="#step-4" type="button" class="btn btn-default btn-circle" disabled="disabled">4</a>
-            <p>Trigger Job</p>
-          </div>
+{% block pagecontent %}
+<div class="row row-cards-pf">
+  <div class="col-xs-12">
+    <div class="card-pf card-pf-utilization" id="card-packages-summary">
+      <div class="card-pf-heading">
+        <h2 class="card-pf-title">YML Based Jobs
+            <span class="pull-right">
+            {% if jobs_count > 0 and job_last_ran_on %}
+                <h5 class="text-muted">Last successful job ran on <span class="text-info">{{ job_last_ran_on }}</span>
+                    of type <span class="text-info">{{ job_last_ran_type }}</span>.</h5>
+            {% endif %}
+        </span></h2>
+      </div>
+      <div class="card-pf-body">
+
+        <div class="stepwizard col-md-offset-3">
+            <div class="stepwizard-row setup-panel">
+              <div class="stepwizard-step">
+                <a href="#step-1" type="button" class="btn btn-primary btn-circle">1</a>
+                <p>Pick Template</p>
+              </div>
+              <div class="stepwizard-step">
+                <a href="#step-2" type="button" class="btn btn-default btn-circle" disabled="disabled">2</a>
+                <p>Define Tasks</p>
+              </div>
+              <div class="stepwizard-step">
+                <a href="#step-3" type="button" class="btn btn-default btn-circle" disabled="disabled">3</a>
+                <p>Set Values</p>
+              </div>
+              <div class="stepwizard-step">
+                <a href="#step-4" type="button" class="btn btn-default btn-circle" disabled="disabled">4</a>
+                <p>Trigger Job</p>
+              </div>
+            </div>
         </div>
+        <hr/>
+        <div id="jobTemplate" style="min-height:400px">
+            {% tag_job_form 'dummy' %}
+        </div>
+
+      </div>
     </div>
-    <hr/>
-    <div id="jobTemplate" style="min-height:400px">
-        {% tag_job_form 'dummy' %}
-    </div>
+  </div>
+</div>
 {% endblock %}
