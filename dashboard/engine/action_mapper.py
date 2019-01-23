@@ -624,7 +624,8 @@ class Filter(JobCommandBase):
 
         try:
             trans_files = []
-            for root, dirs, files in os.walk(input['extract_dir']):
+            search_dir = input['extract_dir'] if 'extract_dir' in input else input['src_tar_dir']
+            for root, dirs, files in os.walk(search_dir):
                     for file in files:
                         if file.endswith('.%s' % file_ext):
                             trans_files.append(os.path.join(root, file))
