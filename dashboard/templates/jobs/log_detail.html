@@ -18,88 +18,100 @@
 </script>
 {% endblock %}
 
-{% block tabcontent %}
-<h4>Job ID: {{ log.job_uuid }}&nbsp;&nbsp;<small>{{ log.job_start_time|date }}</small></h4>
-<p>
-    <span class="text-info">Type#</span> {{ log.job_type|title }}
-    {% if log.job_remarks %}&nbsp;&nbsp;<span class="text-info">Remarks#</span> {{ log.job_remarks }}{% endif %}
-    {% if log.job_params_json %}<br/><span class="text-info">Params#</span>
-        {% for param, value in log.job_params_json.items %}
-            <span class="text-muted">{{ param|title }}: </span>{{ value }}&nbsp;&nbsp;
-        {% endfor %}
-    {% endif %}
-    <span class="pull-right">
-        {% if log.job_result %}
-            <span class="text-success"><span class="pficon pficon-ok"></span> Succeed</span>
-        {% else %}
-            <span class="text-danger"><span class="pficon pficon-error-circle-o"></span> Failed</span>
-        {% endif %}
-    </span>
-</p>
-<hr/>
-<div class="panel-body">
-    <p><span class="fa fa-clock-o" aria-hidden="true"></span><span class="text-info">
-        {% if log.job_start_time %}Started at <strong>{{ log.job_start_time|time:"H:i:s" }}</strong>{% endif %}
-        {% if log.job_end_time %} and completed at <strong>{{ log.job_end_time|time:"H:i:s" }}</strong>
-        &nbsp;&nbsp;<em>({{ log.duration|floatformat:"0" }} seconds)</em>{% endif %}</span>
-        {% if log.job_visible_on_url %}
+{% block pagecontent %}
+
+<div class="row row-cards-pf">
+  <div class="col-xs-12">
+    <div class="card-pf card-pf-utilization" id="card-packages-summary">
+      <div class="card-pf-heading">
+        <h2 class="card-pf-title">Job ID: {{ log.job_uuid }}&nbsp;&nbsp;<small>{{ log.job_start_time|date }}</small></h2>
+      </div>
+      <div class="card-pf-body">
+
+        <p class="lead">
+            <span class="text-info">Type#</span> {{ log.job_type|title }}
+            {% if log.job_remarks %}&nbsp;&nbsp;<span class="text-info">Remarks#</span> {{ log.job_remarks }}{% endif %}
+            {% if log.job_params_json %}<br/><span class="text-info">Params#</span>
+                {% for param, value in log.job_params_json.items %}
+                    <span class="text-muted">{{ param|title }}: </span>{{ value }}&nbsp;&nbsp;
+                {% endfor %}
+            {% endif %}
             <span class="pull-right">
-                <span class="input-group">
-                  <span class="input-group-btn">
-                    <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
-                            data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
-                            title="Copy to clipboard">Copy Job URL
-                        <span class="fa fa-share-alt"></span></button>
-                  </span>
-                </span>
-            </span>
-        {% endif %}
-    </p>
-    <hr/>
-    <div class="container">
-        <div class="row">
-            <div class="col-sm-6 col-md-3">
-                {% if log.job_yml_text %}
-                    <h4>Job YML <small>(input)</small></h4>
-                    <textarea class="form-control" rows="20" readonly>{{ log.job_yml_text }}</textarea>
+                {% if log.job_result %}
+                    <span class="text-success"><span class="pficon pficon-ok"></span> Succeed</span>
+                {% else %}
+                    <span class="text-danger"><span class="pficon pficon-error-circle-o"></span> Failed</span>
                 {% endif %}
-            </div>
-            <div class="col-sm-6 col-md-8">
-                <div class="list-group">
-                    <h4>Job Log <small>(output)</small></h4>
-                    {% for task, details in log.job_log_json.items %}
-                    <a href="#" class="list-group-item">
-                      <h4 class="list-group-item-heading">{{ task }}</h4>
-                        {% for datetime, event in details.items|dictsortreversed:0 %}
-                            <p class="list-group-item-text">
-                                <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
-                                <span class="text-muted"><pre>{{ event|pprint }}</pre></span>
-                            </p>
-                        {% endfor %}
-                    </a>
-                    {% endfor %}
+            </span>
+        </p>
+        <hr/>
+        <div class="panel-body">
+            <p><span class="fa fa-clock-o" aria-hidden="true"></span><span class="text-info">
+                {% if log.job_start_time %}Started at <strong>{{ log.job_start_time|time:"H:i:s" }}</strong>{% endif %}
+                {% if log.job_end_time %} and completed at <strong>{{ log.job_end_time|time:"H:i:s" }}</strong>
+                &nbsp;&nbsp;<em>({{ log.duration|floatformat:"0" }} seconds)</em>{% endif %}</span>
+                {% if log.job_visible_on_url %}
+                    <span class="pull-right">
+                        <span class="input-group">
+                          <span class="input-group-btn">
+                            <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
+                                    data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
+                                    title="Copy to clipboard">Copy Job URL
+                                <span class="fa fa-share-alt"></span></button>
+                          </span>
+                        </span>
+                    </span>
+                {% endif %}
+            </p>
+            <hr/>
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6 col-md-3">
+                        {% if log.job_yml_text %}
+                            <h2>Job YML <small>(input)</small></h2>
+                            <textarea class="form-control" style="background:DimGrey;color:white" rows="25" readonly>{{ log.job_yml_text }}</textarea>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm-6 col-md-8">
+                        <div class="list-group">
+                            <h2>Job Log <small>(output)</small></h2>
+                            {% for task, details in log.job_log_json.items %}
+                            <div class="list-group-item">
+                              <h3 class="list-group-item-heading">{{ task }}</h3>
+                                {% for datetime, event in details.items|dictsortreversed:0 %}
+                                    <p class="list-group-item-text">
+                                        <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
+                                        <span class="text-muted"><pre>{{ event|pprint }}</pre></span>
+                                    </p>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
             </div>
+            {% if 'full_diff' in log.job_output_json %}
+                <div class="col-sm-6 col-md-12">
+                    <hr/>{% if log.job_output_json|get_item:'diff_count' == 0 %}
+                        <h4 class="text-success">&nbsp;&nbsp;{{ log.job_output_json|get_item:'diff_count' }} <small>messages differ!</small></h4>
+                    {% else %}
+                        <h4 class="text-danger">&nbsp;&nbsp;{{ log.job_output_json|get_item:'diff_count' }} <small>messages differ! <i class="pull-right">May be new or updated.</i></small></h4>
+                        {% if 'pot_diff' in log.job_output_json %}
+                            <pre>{{ log.job_output_json|get_item:'pot_diff' }}</pre>
+                        {% endif %}
+                    {% endif %}<hr/>
+                    <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#diff">Show Full Diff</button>
+                    <span class="text-muted pull-right">
+                    <span class="pficon pficon-info" aria-hidden="true"></span>
+                        POT at Translation Platform <strong>vs</strong> POT created from Source</span>
+                    <div id="diff" class="collapse">
+                        <br/><div id="diffDiv"></div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
+      </div>
     </div>
-    {% if 'full_diff' in log.job_output_json %}
-        <div class="col-sm-6 col-md-12">
-            <hr/>{% if log.job_output_json|get_item:'diff_count' == 0 %}
-                <h4 class="text-success">&nbsp;&nbsp;{{ log.job_output_json|get_item:'diff_count' }} <small>messages differ!</small></h4>
-            {% else %}
-                <h4 class="text-danger">&nbsp;&nbsp;{{ log.job_output_json|get_item:'diff_count' }} <small>messages differ! <i class="pull-right">May be new or updated.</i></small></h4>
-                {% if 'pot_diff' in log.job_output_json %}
-                    <pre>{{ log.job_output_json|get_item:'pot_diff' }}</pre>
-                {% endif %}
-            {% endif %}<hr/>
-            <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#diff">Show Full Diff</button>
-            <span class="text-muted pull-right">
-            <span class="pficon pficon-info" aria-hidden="true"></span>
-                POT at Translation Platform <strong>vs</strong> POT created from Source</span>
-            <div id="diff" class="collapse">
-                <br/><div id="diffDiv"></div>
-            </div>
-        </div>
-    {% endif %}
+  </div>
 </div>
 {% endblock %}
