@@ -41,7 +41,7 @@
                 <a href="#" id="filter-upstream">Upstream</a>
               </li>
               <li>
-                <a href="#" id="filter-platforms">Translation Platform (s)</a>
+                <a href="#" id="filter-platforms">Translation Platform</a>
               </li>
               <li>
                 <a href="#" id="filter-products">Products</a>
@@ -125,7 +125,7 @@
       {% if user.is_staff %}
       <th colspan="2">Health</th>
       {% else %}
-      <th>Health</th>
+      <th>Mapping</th>
       {% endif %}
     </tr>
   </thead>
@@ -157,9 +157,9 @@
       <td>{{ package.products|join:", " }}</td>
       <td align="center">
         {% if package.release_branch_mapping %}
-        <span class="pficon pficon-ok fa-2x"></span>
+          <span class="pficon pficon-ok fa-2x"></span>
         {% else %}
-        <span class="pficon pficon-warning-triangle-o fa-2x"></span>
+          <span class="pficon pficon-warning-triangle-o fa-2x"></span>
         {% endif %}
       </td>
       {% if user.is_staff %}

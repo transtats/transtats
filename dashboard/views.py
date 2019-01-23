@@ -551,7 +551,7 @@ class NewGraphRuleView(ManagersMixin, FormView):
 
 class JobsView(ManagersMixin, TemplateView):
     """
-    Logs Settings View
+    Predefined Jobs View
     """
     template_name = "jobs/jobs_home.html"
 
@@ -568,6 +568,13 @@ class JobsView(ManagersMixin, TemplateView):
         return context
 
 
+class YMLBasedJobs(JobsView):
+    """
+    YML Based Jobs View
+    """
+    template_name = "jobs/jobs_yml_based.html"
+
+
 class JobsLogsView(ManagersMixin, ListView):
     """
     Logs List View
@@ -577,7 +584,7 @@ class JobsLogsView(ManagersMixin, ListView):
 
     def get_queryset(self):
         job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[:15]
+        return job_logs[:25]
 
 
 class JobsLogsPackageView(ManagersMixin, ListView):
@@ -604,7 +611,7 @@ class JobsArchiveView(ManagersMixin, ListView):
 
     def get_queryset(self):
         job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[15:]
+        return job_logs[25:]
 
 
 class JobDetailView(ManagersMixin, DetailView):
