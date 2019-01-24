@@ -15,7 +15,7 @@
   <div class="panel-heading">
     <h3 class="panel-title">
       Products
-      {% if user.is_staff %}
+      {% if user.is_authenticated and user.is_staff %}
       <a class="pull-right btn btn-default btn-xs" id="button-add-product" type="button" href="{% url 'admin:dashboard_product_add' %}">
         <span class="pficon pficon-add-circle-o"></span> Add product
       </a>
@@ -38,10 +38,12 @@
         Learn more about this
         <a href="#">on the documentation</a>.
       </p>
+      {% if user.is_authenticated and user.is_staff %}
       <div class="blank-slate-pf-main-action">
         <a class="btn btn-primary btn-lg" href="{% url 'admin:dashboard_product_add' %}">
           <i class="pficon pficon-add-circle-o"></i> Add product</a>
       </div>
+      {% endif %}
     </div>
   </div>
   {% else %}
@@ -50,7 +52,7 @@
     <div class="list-group-item">
       <div class="list-view-pf-actions">
         <a class="btn btn-default" href="{% url 'settings-stream-branches' relstream.product_slug %}">Show releases</a>
-        {% if user.is_staff %}
+        {% if user.is_authenticated and user.is_staff %}
         <div class="dropdown pull-right dropdown-kebab-pf">
           <button class="btn btn-link dropdown-toggle" type="button" id="dropdown-product-list" data-toggle="dropdown" aria-haspopup="true"
             aria-expanded="true">
@@ -58,7 +60,7 @@
           </button>
           <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-product-list">
             <li>
-              <a href="{% url 'admin:dashboard_product_changelist' %}">Edit product</a>
+              <a href="{% url 'admin:dashboard_product_changelist' %}">Edit {{ relstream.product_name }} Details</a>
             </li>
           </ul>
         </div>
@@ -78,14 +80,14 @@
               {{ relstream.product_name }}
             </div>
             <div class="list-group-item-text">
-              <a href="{{ relstream.web_url }}" target="_blank">{{ relstream.web_url }}</a>
+              <a href="{{ relstream.product_url }}" target="_blank" class="lead">{{ relstream.product_url|url_parse }}</a>
               <span class="fa fa-external-link" aria-hidden="true"></span>
             </div>
           </div>
           <div class="list-view-pf-additional-info">
             <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Build system">
               <span class="fa fa-server"></span>
-              <strong>{{ relstream.product_build_system }}</strong>
+                <strong><a href="{{ relstream.web_url }}" target="_blank">{{ relstream.product_build_system }}</a></strong>
             </div>
             <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Authentication type">
               <span class="pficon pficon-locked"></span>
@@ -145,12 +147,14 @@
           Learn more about this
           <a href="#">on the documentation</a>.
         </p>
+        {% if user.is_authenticated and user.is_staff %}
         <div class="blank-slate-pf-main-action">
           {% for relstream in relstreams %}
           <a class="btn btn-primary btn-lg" href="{% url 'settings-stream-branches-new' relstream.product_slug %}">
-            <i class="pficon pficon-add-circle-o"></i> Add a {{ relstream.relstream_name }} release</a>
+            <i class="pficon pficon-add-circle-o"></i> Add a {{ relstream.product_name }} release</a>
           {% endfor %}
         </div>
+        {% endif %}
       </div>
   </div>
   {% endif %}

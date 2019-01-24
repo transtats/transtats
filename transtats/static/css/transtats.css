@@ -116,7 +116,6 @@
     overflow-y: auto;
 }
 
-/*
 body {
     padding-top: 50px;
     padding-bottom: 10px
@@ -140,11 +139,15 @@ body {
 }
 .btn-logout {
     width: 100%;
-    padding: 3px 20px!important;
-    text-align: left!important
+    text-align: left!important;
+    text-decoration: none;
+    background-color: Transparent;
+    background-repeat:no-repeat;
+    border: none;
+    cursor:pointer;
+    overflow: hidden;
+    outline:none
 }
 .nounderline {
     text-decoration: none
 }
-
-*/
