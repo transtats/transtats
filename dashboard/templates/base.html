@@ -9,7 +9,7 @@
   <meta name="author" content="suanand@redhat.com">
   <link rel="icon" href="/static/img/favicon.ico">
 
-  <title>{{ app_name }} - {{ app_desc }}</title>
+  <title>{{ app_desc }}</title>
   <!-- PatternFly CSS -->
   <link rel="stylesheet" type="text/css" href="/static/patternfly/dist/css/patternfly.css">
   <link rel="stylesheet" type="text/css" href="/static/patternfly/dist/css/patternfly-additions.css">
@@ -78,7 +78,7 @@
               <a href="{% url 'howto' %}">Help</a>
             </li>
             <li>
-              <a href="http://docs.transtats.org">Project Docs</a>
+              <a href="http://docs.transtats.org" target="_blank">Project Docs</a>
             </li>
             <li>
               <a data-toggle="modal" data-target="#about-modal">About</a>
@@ -104,7 +104,17 @@
             </li>
             {% endif %}
             <li>
-              <a href="{% url 'admin:logout' %}">Logout</a>
+              {% if auth == 'fas' %}
+                  <form id="logout" action="{% url 'oidc_logout' %}" method="post">{% csrf_token %}
+                      <button type="submit" class="btn btn-logout">
+                  <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
+                  <span class="nounderline">&nbsp;Logout</span></button>
+              </form>
+              {% else %}
+                <a href="{% url 'admin:logout' %}">
+                    <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
+                    Logout</a>
+              {% endif %}
             </li>
           </ul>
         </li>

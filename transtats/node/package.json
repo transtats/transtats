@@ -1,7 +1,7 @@
 {
   "name": "transtats",
-  "version": "0.1.6",
-  "description": "Translation statistics dashboard",
+  "version": "0.1.7-rc.1",
+  "description": "Track Translation Completeness",
   "homepage": "http://transtats.org",
   "license": "Apache-2.0",
   "repository": {

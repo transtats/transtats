@@ -221,10 +221,16 @@
             {{ lang.locale_id }}
           </td>
           <td>
-            {{ lang.locale_script }}
+            {% if lang.locale_script %}
+                {{ lang.locale_script }}
+            {% endif %}
           </td>
           <td>
-            {{ lang.locale_alias }}
+            {% if lang.locale_alias %}
+                {{ lang.locale_alias }}
+            {% else %}
+                &nbsp;
+            {% endif %}
           </td>
           <td>
             {% for lang_set in locale_groups|get_item:lang.locale_id %}
@@ -462,9 +468,9 @@
       },
       success: function(e) {
         waitSpinner.hide()
-        console.log(e)
+        <!--console.log(e)-->
         // TODO: make bootstrap alerts disappear after certain amount of time
-        $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>' + langLocale + ':</strong> ' + e + ' </div>')
+        $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>' + langLocale + ':</strong> ' + e + ' </div>')
         if (langStatus === "enable") {
           $("#td-status-" + jsIdSafe(langLocale)).html('<span class="pficon pficon-ok fa-2x" data-toggle="tooltip" title="Enabled"></span><span hidden>Enabled</span><span hidden>On</span>')
           $("#li-status-change-" + jsIdSafe(langLocale)).html('<a href="#" onclick="changeLangStatus(\'' + langLocale + '\', \'disable\')">Disable</a>')
@@ -477,7 +483,7 @@
       error: function(e) {
         waitSpinner.hide()
         console.error(e.status, e.responseText)
-        $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>' + langLocale + ':</strong> update failed! ' + e.responseText + ' </div>')
+        $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>' + langLocale + ':</strong> update failed! ' + e.responseText + ' </div>')
       }
     })
   }
