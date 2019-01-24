@@ -55,8 +55,10 @@
         </div>
       </div>
       <div class="form-group">
+        {% if user.is_authenticated %}
         <a class="btn btn-default" type="button" id="button-add-package" href="{% url 'package-new' %}">
           <i class="pficon pficon-add-circle-o"></i> Add package</a>
+        {% endif %}
         <a class="btn btn-default" type="button" id="button-export" href="{% url 'packages-export' 'csv' %}">
           <i class="pficon pficon-export"></i> Export to CSV</a>
         <!-- TODO: add sections here when needed  
@@ -244,10 +246,12 @@
     Learn more about this
     <a href="#">on the documentation</a>.
   </p>
+  {% if user.is_authenticated %}
   <div class="blank-slate-pf-main-action">
     <a class="btn btn-primary btn-lg" href="{% url 'package-new' %}">
       <i class="pficon pficon-add-circle-o"></i> Add package </a>
   </div>
+  {% endif %}
 </div>
 
 <script>

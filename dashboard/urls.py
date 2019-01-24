@@ -45,7 +45,7 @@ ajax_urls = [
     url(r'^read-file-logs$', read_file_logs, name="ajax-read-logs"),
     url(r'^build-tags$', get_build_tags, name="ajax-build-tags"),
     url(r'^job-template$', job_template, name="ajax-job-template"),
-    url(r'^change-lang-status$', login_required(change_lang_status, login_url=LOGIN_URL),
+    url(r'^change-lang-status$', staff_member_required(change_lang_status),
         name="ajax-change-lang-status"),
 ]
 
@@ -103,20 +103,20 @@ packages_urls = [
 
 languages_urls = [
     url(r'^$', LanguagesSettingsView.as_view(), name="settings-languages"),
-    url(r'^new$', login_required(NewLanguageView.as_view(), login_url=LOGIN_URL),
+    url(r'^new$', staff_member_required(NewLanguageView.as_view()),
         name="language-new"),
-    url(r'^edit/(?P<pk>[\w@-]+)$', login_required(UpdateLanguageView.as_view(), login_url=LOGIN_URL),
+    url(r'^edit/(?P<pk>[\w@-]+)$', staff_member_required(UpdateLanguageView.as_view()),
         name="language-update"),
-    url(r'^set/new$', login_required(NewLanguageSetView.as_view(), login_url=LOGIN_URL),
+    url(r'^set/new$', staff_member_required(NewLanguageSetView.as_view()),
         name="language-set-new"),
-    url(r'^set/edit/(?P<slug>[\w-]+)$', login_required(UpdateLanguageSetView.as_view(), login_url=LOGIN_URL),
+    url(r'^set/edit/(?P<slug>[\w-]+)$', staff_member_required(UpdateLanguageSetView.as_view()),
         name="language-set-update"),
 ]
 
 transplatforms_urls = [
     url(r'^$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
-    url(r'^new$', login_required(NewTransPlatformView.as_view(), login_url=LOGIN_URL), name="transplatform-new"),
-    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdateTransPlatformView.as_view(), login_url=LOGIN_URL),
+    url(r'^new$', staff_member_required(NewTransPlatformView.as_view()), name="transplatform-new"),
+    url(r'^edit/(?P<slug>[\w-]+)$', staff_member_required(UpdateTransPlatformView.as_view()),
         name="transplatform-update"),
 ]
 

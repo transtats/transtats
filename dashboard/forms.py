@@ -16,11 +16,12 @@
 # third party
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (
-    Submit, Layout, Field, HTML, Reset
+    Submit, Layout, Field, HTML, Reset, Row
 )
 from crispy_forms.bootstrap import (
     FormActions, InlineRadios, Div, InlineCheckboxes
 )
+from slugify import slugify
 
 # django
 from django import forms
@@ -390,7 +391,7 @@ class LanguageSetForm(forms.ModelForm):
                                                    for locale in inventory_manager.get_locales()])
 
     lang_set_slug = forms.SlugField(label='Language Set SLUG')
-    locale_ids = TextArrayField(label='Locale IDs', widget=forms.SelectMultiple,)
+    locale_ids = TextArrayField(label='Languages', widget=forms.SelectMultiple,)
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.form_class = 'dynamic-form'
@@ -398,13 +399,22 @@ class LanguageSetForm(forms.ModelForm):
         Div(
             Field('lang_set_name', css_class='form-control'),
             Field('lang_set_slug', css_class='form-control'),
-            Field('lang_set_color', css_class='form-control'),
             Field('locale_ids', css_class='selectpicker'),
-            FormActions(
-                Submit('addLanguageSet', 'Add Language Set'), Reset('reset', 'Reset', css_class='btn-danger')
-            )
+            Row(
+                Field('lang_set_color', css_class='form-control'),
+                FormActions(
+                    Submit('addLanguageSet', 'Add Language Set'), Reset('reset', 'Reset', css_class='btn-danger')
+                ),
+                css_class='col-xs-3'
+            ),
         )
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        lang_set = cleaned_data['lang_set_name']
+        cleaned_data['lang_set_slug'] = slugify(lang_set)
+        return cleaned_data
 
 
 class NewTransPlatformForm(forms.ModelForm):

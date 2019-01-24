@@ -3,7 +3,7 @@
 <div class="panel-body">
   <div class="row row-cards-pf">
     {% for release, summary in relsummary.items %}
-    <div class="col-xs-12 col-sm-6 col-md-4">
+    <div class="col-xs-12 col-sm-4 col-md-3">
       <div class="card-pf card-pf-utilization card-pf-accented card-releases-ts">
         <h2 class="card-pf-title">
           <a href="{% url 'trans-status-release' summary.slug %}" data-toggle="tooltip" title="Show stats for {{ release }}">
@@ -49,6 +49,7 @@
   </div>
 </div>
 <div class="panel-footer">
+  <span class="text-muted">Select a release or a language to get into insights!</span>
   <span class="pull-right text-muted">Updated {{ last_updated|timesince }} ago</span>
 </div>
 {% else %}

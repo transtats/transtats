@@ -18,6 +18,7 @@ import json
 import yaml
 from collections import OrderedDict
 from django import template
+from urllib.parse import urlparse
 
 from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
 from dashboard.managers.graphs import GraphManager, ReportsManager
@@ -44,6 +45,11 @@ def join_by(sequence, delimiter):
 @register.filter
 def js_id_safe(id_value):
     return id_value.replace("@", "-at-")
+
+
+@register.filter
+def url_parse(url_value):
+    return urlparse(url_value).netloc
 
 
 @register.inclusion_tag(

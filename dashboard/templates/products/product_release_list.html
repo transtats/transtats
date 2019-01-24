@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block extrascript %}
-<script src="/static/jquery-match-height/dist/jquery.matchHeight.js"></script>
+  <script src="/static/jquery-match-height/dist/jquery.matchHeight.js"></script>
 {% endblock %}
+
 {% block pagecontent %}
 <div class="panel panel-default" id="panel-product-releases">
   <div class="panel-heading">
@@ -30,7 +31,7 @@
                 <span class="text-muted"><strong>Status: </strong></span>{{ relbranch.current_phase|capfirst }}
               </div>
               <div>
-                <span class="text-muted"><strong>Language Set: </strong></span>{{ relbranch.lang_set|capfirst }}
+                <span class="text-muted"><strong>Language Set: </strong></span>{{ relbranch.language_set_slug.lang_set_name|capfirst }}
               </div>
               <div>
                 <span class="text-muted"><strong>Sync Calendar: </strong></span>
@@ -43,9 +44,9 @@
               <div>
                 <span class="text-muted"><strong>Notifications: </strong></span>
                 {% if relbranch.notifications_flag %}
-                <span class="pficon pficon-ok"></span>
+                 <span class="pficon pficon-ok"></span>
                 {% else %}
-                <span class="fa fa-ban"></span>
+                 <span class="fa fa-ban"></span>
                 {% endif %}
               </div>
               <div>
@@ -78,7 +79,7 @@
             <span>{{ relbranch.scm_branch }}</span>
             {% endif %}
             <span class="pull-right">
-              <a href="{{ relbranch.calendar_url }}" target="_blank">iCal</a>
+              <a href="{{ relbranch.calendar_url }}" target="_blank">iCal URL</a>
               <span class="fa fa-external-link" aria-hidden="true"></span>
             </span>
           </div>
@@ -99,10 +100,12 @@
           Learn more about this
           <a href="#">on the documentation</a>.
         </p>
+        {% if user.is_staff %}
         <div class="blank-slate-pf-main-action">
           <a class="btn btn-primary btn-lg" href="{% url 'settings-stream-branches-new' relstream.product_slug %}">
-            <i class="pficon pficon-add-circle-o"></i> Add a {{ relstream.relstream_name }} release</a>
+            <i class="pficon pficon-add-circle-o"></i> Add a {{ relstream.product_name }} release</a>
         </div>
+        {% endif %}
       </div>
       {% endfor %}
     </div>

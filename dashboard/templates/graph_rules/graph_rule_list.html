@@ -221,10 +221,12 @@
         Learn more about this
         <a href="#">on the documentation</a>.
       </p>
+      {% if user.is_authenticated %}
       <div class="blank-slate-pf-main-action">
         <a class="btn btn-primary btn-lg" href="{% url 'settings-graph-rules-new' %}">
           <i class="pficon pficon-add-circle-o"></i> Create graph rule </a>
       </div>
+      {% endif %}
     </div>
   </div>
 </div>
