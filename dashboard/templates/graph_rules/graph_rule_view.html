@@ -19,8 +19,7 @@
       </select>
       {% endif %}
     </div>
-    <span class="text-muted" id="span-coverage-info">Translation coverage of a package list for a specific release in selected languages</span>
-    <span class="text-info pull-right" id="span-release-branch"></span>
+    <p style="padding-top:10px"><span class="lead" id="span-coverage-info">Translation coverage of a package list for a specific release in selected languages.</span></p>
   </div>
   {% if not rules %}
   <div class="panel-body">
@@ -145,7 +144,7 @@
               content: "%s | %y translated"
             }
           };
-        $.plot($("#div-graph-area"), t, n), $("#span-coverage-info").html("Translation coverage of <strong>" + r.length + "</strong> packages for <strong>" + e + "</strong> release in <strong>" + t.length + "</strong> languages"), $("#span-release-branch").html("Release [ " + e + " ]"), $("#p-graph-disclaimer").html("<span class='pull-right text-muted'>Graph is based on branch mapping. And %age is calculated on messages</span>")
+        $.plot($("#div-graph-area"), t, n), $("#span-coverage-info").html("Translation coverage of <span class='text-primary'>" + r.length + "</span> packages for <span class='text-primary'>" + e + "</span> release in <span class='text-primary'>" + t.length + "</span> languages."), $("#span-release-branch").html("Release [ " + e + " ]"), $("#p-graph-disclaimer").html("<span class='pull-right text-muted'>Graph is based on branch mapping. And %age is calculated on messages.</span>")
       }
     })
   }
