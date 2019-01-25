@@ -1,8 +1,4 @@
-{% if package_desc %}
-<h5>
-  <strong>Description: </strong><span id="span-package-desc">{{ package_desc }}</span>
-</h5>
-{% endif %}
+<h1>{{ package.package_name }}{% if package_desc %}<small>&nbsp;&nbsp;&nbsp;{{ package_desc }}</small>{% endif %}</h1>
 <h5>
   <strong>Upstream Repository URL: </strong>
   <a href="{{ package.upstream_url }}" target="_blank">{{ package.upstream_url }}</a>

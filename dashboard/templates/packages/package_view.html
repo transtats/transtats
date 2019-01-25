@@ -8,6 +8,9 @@
 <script src="/static/jquery.flot.tooltip/js/jquery.flot.tooltip.js"></script>
 <script src="/static/js/csrf.js"></script>
 <script src="/static/bootstrap-select/js/bootstrap-select.js"></script>
+<style type="text/css">
+    .table-area{width:100%;min-height:250px;height:100%}.graph-area{width:100%;min-height:600px}.table-scroll{position:relative;max-width:100%;margin:auto;overflow:hidden}.table-wrap{width:100%;overflow:auto}.table-scroll table{width:100%;margin:auto;border-collapse:separate;border-spacing:0}.table-scroll td,.table-scroll th{padding:5px 10px;background:0 0;white-space:nowrap;vertical-align:top}.table-scroll tfoot,.table-scroll thead{background:0 0}.clone{position:absolute;top:0;left:0;pointer-events:none}.clone td,.clone th{visibility:hidden;border-color:transparent}.clone tbody th{visibility:visible;color:red}.clone .fixed-side{background:Snow;visibility:visible}.clone tfoot,.clone thead{background:0 0}.flot-x-axis .flot-tick-label{white-space:nowrap;transform:translate(-9px,0) rotate(-60deg);text-indent:-100%;transform-origin:top right;text-align:right!important}
+</style>
 {% endblock %}
 
 {% block pagecontent %}
@@ -98,7 +101,7 @@
     <div id="div-stats-diff">
       {% tag_stats_diff package_name %}
     </div>
-    <div id="div-table-area">
+    <div id="div-table-area"  class="table-area">
       {% tag_tabular_form package_name %}
     </div>
     <div id="div-graph-group" class="panel panel-default">
@@ -106,8 +109,8 @@
           <h3 class="panel-title">Graphs</h3>
           <span id="span-graph-info"></span>
       </div>
-      <div id="div-locale-graph" class="graph-area-ts"></div>
-      <div id="div-graph-area" class="graph-area-ts"></div>
+      <div id="div-locale-graph" class="graph-area-ts graph-area"></div>
+      <div id="div-graph-area" class="graph-area-ts graph-area"></div>
       <div id="div-graph-disclaimer" class="panel-footer"></div>
     </div>
     <div id="div-branch-mapping">
@@ -374,6 +377,7 @@
   function load_table() {
     $("#button-graph").removeClass("active"), $("#button-tabular").addClass("active"), ajax_tabular(), $("#button-hide-locale-graph").hide(), $("#select-lang-name").selectpicker("hide"), $("#div-graph-group").hide(), $("#div-table-area").show()
   }
+
   $(document).ready(function () {
     $("#button-tabular").addClass("active"), $("#div-graph-group").hide(), $("#div-locale-graph").hide(), $("#button-hide-locale-graph").hide(), $("#select-lang-name").selectpicker("hide"), $("#select-package-name").val("{{ package_name }}"), $("#span-alerts").html(""), $("#select-package-name").change(function (a) {
       window.location.replace("/packages/view/" + $(this).val())
@@ -391,7 +395,7 @@
       ajax_locale()
     }), $("#button-hide-locale-graph").on('click', function (a) {
       return a.preventDefault(), $("#div-locale-graph").hide(), $("#select-lang-name").selectpicker("val", "Select Language"), $("#span-graph-info").html("&nbsp;"), $("#div-graph-area").show(), $(this).hide()
-    })
+    }), jQuery(".main-table").clone(!0).appendTo("#table-scroll").addClass("clone");
     $('.selectpicker').selectpicker();
   });
 </script>
