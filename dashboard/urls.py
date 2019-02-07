@@ -73,8 +73,7 @@ app_setting_urls = [
 trans_status_urls = [
     url(r'^$', RedirectView.as_view(permanent=False, url='/releases'),
         name="trans-status"),
-    # TODO: redirect this to /packages
-    url(r'^packages$', TranStatusPackagesView.as_view(), name="trans-status-packages"),
+    url(r'^packages$', RedirectView.as_view(permanent=True, url='/packages')),
     url(r'^releases$', RedirectView.as_view(permanent=True, url='/releases')),
 ]
 
@@ -84,7 +83,7 @@ releases_urls = [
 ]
 
 products_urls = [
-    url(r'^$', ReleaseStreamSettingsView.as_view(), name="settings-release-streams"),
+    url(r'^$', RedirectView.as_view(permanent=False, url='/releases'), name="settings-release-streams"),
     url(r'^(?P<stream_slug>\w+)/', include([
         url(r'^releases$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches"),
         url(r'^releases/new$', staff_member_required(NewReleaseBranchView.as_view()),
