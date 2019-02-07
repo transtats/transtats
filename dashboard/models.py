@@ -143,8 +143,14 @@ class Product(models.Model):
     product_slug = models.CharField(
         max_length=400, unique=True, verbose_name="Product SLUG"
     )
+    product_url = models.URLField(
+        max_length=500, unique=True, verbose_name="Product URL", null=True
+    )
+    product_api_url = models.URLField(
+        max_length=500, verbose_name="Product API URL", null=True
+    )
     product_server = models.URLField(
-        max_length=500, unique=True, verbose_name="Product Server"
+        max_length=500, verbose_name="Product Server"
     )
     product_build_system = models.CharField(
         max_length=200, null=True, verbose_name="Release Build System"
@@ -157,8 +163,8 @@ class Product(models.Model):
     src_pkg_format = models.CharField(
         max_length=50, null=True, verbose_name="Source Package Format"
     )
-    top_url = models.URLField(max_length=500, unique=True, verbose_name="Top URL")
-    web_url = models.URLField(max_length=500, unique=True, null=True, verbose_name="Web URL")
+    top_url = models.URLField(max_length=500, verbose_name="Top URL")
+    web_url = models.URLField(max_length=500, null=True, verbose_name="Web URL")
     krb_service = models.CharField(
         max_length=200, null=True, blank=True, verbose_name="Kerberos Service"
     )
