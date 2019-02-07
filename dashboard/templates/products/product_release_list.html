@@ -9,10 +9,11 @@
     <h3 class="panel-title">
       {{ relstream.product_slug }} releases
       {% if user.is_staff %}
-      <a class="pull-right btn btn-default btn-xs" id="button-add-release" type="button" href="{% url 'settings-stream-branches-new' relstream.product_slug %}">
-        <span class="pficon pficon-add-circle-o"></span> Add release
+      <a class="btn btn-default btn-xs" id="button-add-release" type="button" href="{% url 'settings-stream-branches-new' relstream.product_slug %}">
+        <span class="pficon pficon-add-circle-o"></span> Add Release
       </a>
       {% endif %}
+      <a href="{{request.META.HTTP_REFERER}}" class="pull-right btn btn-default btn-xs">Go Back</a>
     </h3>
   </div>
   <div class="panel-body">
@@ -28,7 +29,7 @@
           <div class="card-pf-body">
             <div class="card-pf-utilization-details">
               <div>
-                <span class="text-muted"><strong>Status: </strong></span>{{ relbranch.current_phase|capfirst }}
+                <span class="text-muted"><strong>Phase: </strong></span>{{ relbranch.current_phase|capfirst }}
               </div>
               <div>
                 <span class="text-muted"><strong>Language Set: </strong></span>{{ relbranch.language_set_slug.lang_set_name|capfirst }}

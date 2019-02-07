@@ -47,11 +47,6 @@ def js_id_safe(id_value):
     return id_value.replace("@", "-at-")
 
 
-@register.filter
-def url_parse(url_value):
-    return urlparse(url_value).netloc
-
-
 @register.inclusion_tag(
     os.path.join("packages", "_package_details.html")
 )
