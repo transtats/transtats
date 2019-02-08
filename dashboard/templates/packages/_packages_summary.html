@@ -11,7 +11,7 @@
         <div class="row">
           {% if pkgsummary %}
           <div class="col-xs-12 col-sm-4 col-md-4">
-            <h3 class="card-pf-subtitle">Improper branch mapping</h3>
+            <h3 class="card-pf-subtitle">Improper Branch Mapping</h3>
             <p class="card-pf-utilization-details">
               <span class="card-pf-utilization-card-details-count" id="not-affected-count-1">0</span>
               <span class="card-pf-utilization-card-details-description">
@@ -66,9 +66,9 @@
             </script>
           </div>
           <div class="col-xs-12 col-sm-4 col-md-4">
-            <h3 class="card-pf-subtitle">Packages out of sync</h3>
+            <h3 class="card-pf-subtitle">Packages Out of Sync <small>Platform vs Build System stats</small></h3>
             <p class="card-pf-utilization-details">
-              <span class="card-pf-utilization-card-details-count" id="not-affected-count-3">0</span>
+              <span class="card-pf-utilization-card-details-count" id="not-affected-count-2">0</span>
               <span class="card-pf-utilization-card-details-description">
                 <span class="card-pf-utilization-card-details-line-1">Not affected</span>
                 <span class="card-pf-utilization-card-details-line-2">of {{ package_count }}</span>
@@ -78,7 +78,7 @@
             <div class="chart-pf-sparkline" id="chart-sparkline-packages-2"></div>
             <script>
               var notAffectedCount = {{ package_count }} - {{ pkgsummary.pkg_having_stats_diff|default:0 }}
-              $('#not-affected-count-3').text(notAffectedCount)
+              $('#not-affected-count-2').text(notAffectedCount)
               var donutConfig = $().c3ChartDefaults().getDefaultDonutConfig('A');
               donutConfig.bindto = '#chart-donut-packages-2';
               donutConfig.color = {
@@ -88,7 +88,7 @@
                 type: "donut",
                 columns: [
                   ["affected", {{ pkgsummary.pkg_having_stats_diff|default:0 }}],
-                  ["not affected", 34]
+                  ["not affected", notAffectedCount]
                 ],
                 groups: [
                   ["affected", "notaffected"]
@@ -121,9 +121,9 @@
             </script>
           </div>
           <div class="col-xs-12 col-sm-4 col-md-4">
-            <h3 class="card-pf-subtitle">Latest translations not pulled</h3>
+            <h3 class="card-pf-subtitle">Packages not sync'd with Platform <small>this week</small></h3>
             <p class="card-pf-utilization-details">
-              <span class="card-pf-utilization-card-details-count">14</span>
+              <span class="card-pf-utilization-card-details-count" id="not-affected-count-3">0</span>
               <span class="card-pf-utilization-card-details-description">
                 <span class="card-pf-utilization-card-details-line-1">Not affected</span>
                 <span class="card-pf-utilization-card-details-line-2">of {{ package_count }}</span>
@@ -132,6 +132,8 @@
             <div id="chart-donut-packages-3"></div>
             <div class="chart-pf-sparkline" id="chart-sparkline-packages-3"></div>
             <script>
+              var notAffectedCount = {{ package_count }} - {{ pkgsummary.pkg_transtats_week_old|default:0 }}
+              $('#not-affected-count-3').text(notAffectedCount)
               var donutConfig = $().c3ChartDefaults().getDefaultDonutConfig('A');
               donutConfig.bindto = '#chart-donut-packages-3';
               donutConfig.color = {
@@ -140,8 +142,8 @@
               donutConfig.data = {
                 type: "donut",
                 columns: [
-                  ["affected", 20],
-                  ["not affected", 14]
+                  ["affected", {{ pkgsummary.pkg_transtats_week_old|default:0 }}],
+                  ["not affected", notAffectedCount]
                 ],
                 groups: [
                   ["affected", "notaffected"]
@@ -159,7 +161,7 @@
               var chart3 = c3.generate(donutConfig);
               var donutChartTitle = d3.select("#chart-donut-packages-3").select('text.c3-chart-arcs-title');
               donutChartTitle.text("");
-              donutChartTitle.insert('tspan').text("20").classed('donut-title-big-pf', true).attr('dy', 0).attr('x', 0);
+              donutChartTitle.insert('tspan').text("{{ pkgsummary.pkg_transtats_week_old|default:0 }}").classed('donut-title-big-pf', true).attr('dy', 0).attr('x', 0);
               donutChartTitle.insert('tspan').text("Affected").classed('donut-title-small-pf', true).attr('dy', 23).attr('x', 0);
 
               // var sparklineConfig = $().c3ChartDefaults().getDefaultSparklineConfig();

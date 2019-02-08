@@ -177,7 +177,13 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         context['releases'] = relbranches
         # if langs:
         #     context['languages'] = sorted(langs, key=lambda x: x[1])
-        context['relstreams'] = self.inventory_manager.get_release_streams()
+        products = self.inventory_manager.get_release_streams()
+        context['relstreams'] = products
+        product_releases = self.release_branch_manager.get_branches_of_relstreams(products)
+        p_releases_dict = {}
+        for product, releases in product_releases.items():
+            p_releases_dict[product.product_slug] = len(releases)
+        context['p_releases_dict'] = p_releases_dict
         context.update(self.get_summary())
         return context
 
