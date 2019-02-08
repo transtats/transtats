@@ -48,4 +48,4 @@ test:
 
 .PHONY: ui-deps
 ui-deps:
-	npm --prefix transtats/node install transtats/node
+	npm --no-cache --prefix transtats/node install transtats/node

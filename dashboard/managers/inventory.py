@@ -489,10 +489,12 @@ class ReleaseBranchManager(InventoryManager):
             if relbranches:
                 stream_branches = [{i.product_slug.product_slug: i.release_slug} for i in relbranches]
                 for r_stream in release_streams:
+                    if not isinstance(r_stream, str):
+                        r_stream = r_stream.product_slug
                     branches_of_relstreams[r_stream] = []
                     for relbranch in stream_branches:
                         branches_of_relstreams[r_stream].extend(
-                            [branch for stream, branch in relbranch.items() if stream == r_stream.product_slug]
+                            [branch for stream, branch in relbranch.items() if stream == r_stream]
                         )
         return branches_of_relstreams
 

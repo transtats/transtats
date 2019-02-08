@@ -76,6 +76,7 @@ freeze.txt
 dashboard/sandbox/*
 staticfiles/
 package-lock.json
+transtats/node/cache/
 transtats/node/node_modules/
 
 # IDE

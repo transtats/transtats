@@ -171,18 +171,14 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         Build the Context Data
         """
         context = super(TemplateView, self).get_context_data(**kwargs)
-        # context['description'] = APP_DESC
         relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
-        # langs = self.inventory_manager.get_locale_lang_tuple()
         context['releases'] = relbranches
-        # if langs:
-        #     context['languages'] = sorted(langs, key=lambda x: x[1])
         products = self.inventory_manager.get_release_streams()
         context['relstreams'] = products
         product_releases = self.release_branch_manager.get_branches_of_relstreams(products)
         p_releases_dict = {}
         for product, releases in product_releases.items():
-            p_releases_dict[product.product_slug] = len(releases)
+            p_releases_dict[product] = len(releases)
         context['p_releases_dict'] = p_releases_dict
         context.update(self.get_summary())
         return context

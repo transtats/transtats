@@ -85,24 +85,24 @@
             </div>
           </div>
           <div class="list-view-pf-additional-info">
-            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Build system">
-              <span class="fa fa-server"></span>
+            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Build System">
+              <span class="pficon pficon-build"></span>
                 <strong><a href="{{ relstream.web_url }}" target="_blank">{{ relstream.product_build_system }}</a></strong>
             </div>
-            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Authentication type">
+            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Authentication Type">
               <span class="pficon pficon-locked"></span>
               <strong>{{ relstream.auth_type|capfirst }}</strong>
             </div>
-            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Source package format">
+            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Source Package Format">
               <span class="fa fa-file-zip-o"></span>
               <strong>{{ relstream.src_pkg_format|upper }}</strong>
             </div>
-            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Message bus">
+            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Message Bus">
               <span class="fa fa-envelope"></span>
               <strong>{{ relstream.msgbus_exchange }}</strong>
             </div>
-            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Releases">
-              <span class="pficon pficon-build"></span>
+            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="{{ relstream.product_slug }} Releases">
+              <span class="pficon pficon-builder-image"></span>
               <strong>{{ p_releases_dict|get_item:relstream.product_slug }} Releases</strong>
             </div>
           </div>
