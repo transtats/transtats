@@ -492,7 +492,7 @@ class ReleaseBranchManager(InventoryManager):
                     branches_of_relstreams[r_stream] = []
                     for relbranch in stream_branches:
                         branches_of_relstreams[r_stream].extend(
-                            [branch for stream, branch in relbranch.items() if stream == r_stream]
+                            [branch for stream, branch in relbranch.items() if stream == r_stream.product_slug]
                         )
         return branches_of_relstreams
 

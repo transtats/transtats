@@ -101,6 +101,10 @@
               <span class="fa fa-envelope"></span>
               <strong>{{ relstream.msgbus_exchange }}</strong>
             </div>
+            <div class="list-view-pf-additional-info-item" data-toggle="tooltip" title="Releases">
+              <span class="pficon pficon-build"></span>
+              <strong>{{ p_releases_dict|get_item:relstream.product_slug }} Releases</strong>
+            </div>
           </div>
         </div>
       </div>

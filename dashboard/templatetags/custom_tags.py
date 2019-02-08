@@ -236,9 +236,9 @@ def tag_job_form(template_type):
         package_manager.get_release_streams(
             only_active=True, fields=('product_build_system',)
         )
-    available_build_systems = []
+    available_build_systems = {}
     for relstream in release_streams:
-        available_build_systems.append(relstream.product_build_system)
+        available_build_systems.update({relstream.product_slug: relstream.product_build_system})
     if available_build_systems:
         return_value['build_systems'] = available_build_systems
     packages = package_manager.get_package_name_tuple(check_mapping=True)
