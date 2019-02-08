@@ -99,8 +99,8 @@ function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}var poll_t
                 {% if build_systems %}
                 <select id="buildSystem" class="selectpicker">
                     <option selected disabled>Select Build System</option>
-                    {% for build_system in build_systems %}
-                        <option>{{ build_system }}</option>
+                    {% for product, build_system in build_systems.items %}
+                        <option value="{{ build_system }}">{{ product }} - {{ build_system }}</option>
                     {% endfor %}
                 </select>
                 {% else %}

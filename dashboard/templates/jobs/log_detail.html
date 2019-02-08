@@ -81,7 +81,10 @@
                                 {% for datetime, event in details.items|dictsortreversed:0 %}
                                     <p class="list-group-item-text">
                                         <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
-                                        <span class="text-muted"><pre>{{ event|pprint }}</pre></span>
+                                        <span class="text-muted">
+                                            <pre style="background:#212121;color:white;max-height:400px;overflow:scroll !important;">
+                                                {{ event|pprint }}</pre>
+                                        </span>
                                     </p>
                                 {% endfor %}
                             </div>
