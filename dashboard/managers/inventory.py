@@ -469,7 +469,7 @@ class ReleaseBranchManager(InventoryManager):
         return tuple([(branch.release_slug, branch.release_name)
                       for branch in release_branches if branch.track_trans_flag])
 
-    def get_branches_of_relstreams(self, release_streams):
+    def get_branches_of_relstreams(self, release_streams, track_trans_flag=None):
         """
         Retrieve all branches of input release streams (products)
         :param release_streams: release stream slugs
@@ -479,9 +479,12 @@ class ReleaseBranchManager(InventoryManager):
             return
         branches_of_relstreams = {}
         fields = ('product_slug', 'release_slug')
+        filters = {}
+        filters.update(dict(product_slug__in=release_streams))
+        if track_trans_flag:
+            filters.update(dict(track_trans_flag=True))
         try:
-            relbranches = Release.objects.only(*fields).filter(
-                product_slug__in=release_streams).all()
+            relbranches = Release.objects.only(*fields).filter(**filters).all()
         except Exception as e:
             self.app_logger(
                 'ERROR', "Releases of product could not be fetched, details: " + str(e))

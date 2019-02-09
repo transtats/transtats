@@ -570,7 +570,8 @@ class PackageBranchMapping(object):
                 pkg_stat.project_version.lower() for pkg_stat in self.syncstats_manager.get_sync_stats(
                     pkgs=[package_name], fields=('project_version',), sources=TRANSPLATFORM_ENGINES
                 ) if isinstance(pkg_stat.project_version, str)]
-            self.release_branches_dict = self.relbranch_manager.get_branches_of_relstreams(self.package.products)
+            self.release_branches_dict = self.relbranch_manager.get_branches_of_relstreams(
+                self.package.products, track_trans_flag=True)
             self.release_branches_list = []
             self.release_streams_list = []
             self.release_build_tags_dict = {}
