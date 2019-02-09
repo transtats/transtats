@@ -178,7 +178,7 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         product_releases = self.release_branch_manager.get_branches_of_relstreams(products)
         p_releases_dict = {}
         for product, releases in product_releases.items():
-            p_releases_dict[product] = len(releases)
+            p_releases_dict[product] = len(releases) or 0
         context['p_releases_dict'] = p_releases_dict
         context.update(self.get_summary())
         return context
