@@ -24,7 +24,7 @@ env-info:
 
 .PHONY: lint
 lint:
-	flake8 --ignore=E501,F401,F403,F405 transtats dashboard
+	flake8 --ignore=E501,E722,F401,F403,F405,F841,W504 transtats dashboard
 
 .PHONY: migrations
 migrations:
