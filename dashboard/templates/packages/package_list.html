@@ -59,8 +59,10 @@
         <a class="btn btn-default" type="button" id="button-add-package" href="{% url 'package-new' %}">
           <i class="pficon pficon-add-circle-o"></i> Add package</a>
         {% endif %}
+        {% if packages %}
         <a class="btn btn-default" type="button" id="button-export" href="{% url 'packages-export' 'csv' %}">
           <i class="pficon pficon-export"></i> Export to CSV</a>
+        {% endif %}
         <!-- TODO: add sections here when needed  
           <div class="dropdown btn-group  dropdown-kebab-pf">
           <button class="btn btn-link dropdown-toggle" type="button" id="dropdownKebab" data-toggle="dropdown" aria-haspopup="true"

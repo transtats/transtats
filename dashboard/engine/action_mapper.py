@@ -332,7 +332,7 @@ class Generate(JobCommandBase):
                 po_dir, '%s.pot' % kwargs.get('domain', input['package'])
             )
             if os.path.exists(pot_file) and kwargs.get('overwrite'):
-                    os.unlink(pot_file)
+                os.unlink(pot_file)
             try:
                 os.chdir(input['src_tar_dir'])
                 generate_pot = Popen(command, stdout=PIPE, shell=True)
@@ -567,9 +567,9 @@ class Apply(JobCommandBase):
             patches = []
             src_trans = input['src_translations']
             for root, dirs, files in os.walk(input['extract_dir']):
-                    for file in files:
-                        if file.endswith('.patch'):
-                            patches.append(os.path.join(root, file))
+                for file in files:
+                    if file.endswith('.patch'):
+                        patches.append(os.path.join(root, file))
 
             if not patches and not src_trans:
                 task_log.update(self._log_task(input['log_f'], task_subject, 'No patches found.'))
@@ -626,9 +626,9 @@ class Filter(JobCommandBase):
             trans_files = []
             search_dir = input['extract_dir'] if 'extract_dir' in input else input['src_tar_dir']
             for root, dirs, files in os.walk(search_dir):
-                    for file in files:
-                        if file.endswith('.%s' % file_ext):
-                            trans_files.append(os.path.join(root, file))
+                for file in files:
+                    if file.endswith('.%s' % file_ext):
+                        trans_files.append(os.path.join(root, file))
         except Exception as e:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,

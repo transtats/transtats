@@ -179,7 +179,8 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         p_releases_dict = {}
         for product, releases in product_releases.items():
             p_releases_dict[product] = len(releases) or 0
-        context['p_releases_dict'] = p_releases_dict
+        context['p_releases_dict'] = p_releases_dict if p_releases_dict \
+            else {p.product_slug: 0 for p in products}
         context.update(self.get_summary())
         return context
 
