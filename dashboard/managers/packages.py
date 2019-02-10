@@ -710,8 +710,10 @@ class PackageBranchMapping(object):
                     if not branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]] \
                             and self.package.platform_slug_id in DAMNEDLIES_SLUGS:
                         release_stream = self.relbranch_manager.get_release_streams(
+                            stream_slug=stream,
                             built=branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[1]],
-                            fields=('product_server',))
+                            fields=('product_server',)
+                        )
                         if release_stream:
                             release_stream_hub_url = release_stream.get().product_server or ''
                             build_info = self.relbranch_manager.api_resources.build_info(

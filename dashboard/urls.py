@@ -20,6 +20,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.generic.base import TemplateView, RedirectView
 
+# third-party
+from rest_framework.documentation import include_docs_urls
+
 # dashboard
 from dashboard.services.urls import api_urls
 from dashboard.views import (
@@ -95,8 +98,7 @@ packages_urls = [
     url(r'^$', PackageSettingsView.as_view(), name="settings-packages"),
     url(r'^new$', login_required(NewPackageView.as_view(), login_url=LOGIN_URL), name="package-new"),
     url(r'^view/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(), name="package-view"),
-    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdatePackageView.as_view(), login_url=LOGIN_URL),
-        name="package-update"),
+    url(r'^edit/(?P<slug>[\w-]+)$', staff_member_required(UpdatePackageView.as_view()), name="package-update"),
     url(r'^export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
 ]
 
@@ -128,6 +130,7 @@ graph_rules_urls = [
 
 urlpatterns = [
     url(r'^api/', include(api_urls)),
+    url(r'^api-docs/', include_docs_urls(title='Transtats APIs')),
     url(r'^ajax/', include(ajax_urls)),
     url(r'^settings/', include(app_setting_urls)),
     url(r'^jobs/', include(app_jobs_urls)),
