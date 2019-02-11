@@ -504,7 +504,7 @@ class YMLBasedJobManager(BaseManager):
             try:
                 release_streams = \
                     self.package_manager.get_release_streams(built=build_system)
-                release_stream = release_streams.get()
+                release_stream = release_streams.first()
             except Exception as e:
                 self.app_logger(
                     'ERROR', "Release stream could not be found, details: " + str(e)
