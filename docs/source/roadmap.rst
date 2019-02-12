@@ -7,17 +7,12 @@ As the project evolves, a roadmap will be published for each major release. Comm
 Transtats 0.1.7
 ===============
 
-We are currently working on :code:`0.1.7` release.
-
-:code:`0.1.7-rc.1`
-Integration of PatternFLY UI.
+| We are currently working on :code:`0.1.7` release.
+| :code:`0.1.7-rc.1` Integration of PatternFLY UI.
 
 Target delivery: By mid of March 2019
 
-
-For features list please look `issues <https://github.com/transtats/transtats/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_0.1.7>`_.
-
-Backlog is `here <https://github.com/transtats/transtats/issues>`_.
+Backlog is `here <https://github.com/transtats/transtats/issues>`_. For release features list please look at `milestone <https://github.com/transtats/transtats/milestone/10>`_.
 
 To Do
 =====
@@ -46,7 +41,7 @@ To Do
 - Transtats Engagements
 
     - Interactions
-        - Dashboard: Integration of new PatternFly UI (In Progress)
+        - Dashboard: Integration of new PatternFly UI (**In Progress**)
         - Better stats representation
             - Release, Package and Job Details Page
         - More sub-commands and flags in CLI
@@ -60,5 +55,5 @@ To Do
     - Translation Platform
         - Weblate
     - Translation File Format in Jobs
-        - Java files
+        - Java files (``properties``, ``dtd``)
     - More YML Job Templates
