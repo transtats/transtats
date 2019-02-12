@@ -1,3 +1,38 @@
+##### Fri Feb 15 2019 Sundeep Anand <suanand@redhat.com>
+* Many bug fixes, API docs and integration of PatternFLY UI
+* [UI] fix NewPackage form and view ([bhavin192](https://github.com/bhavin192))
+* [UI] Fix name 'Languages' is not defined error ([bhavin192](https://github.com/bhavin192))
+* Update CONTRIBUTING.md to include intltool ([bhavin192](https://github.com/bhavin192))
+* [UI] Some initial efforts for Jobs section ([bhavin192](https://github.com/bhavin192))
+* [UI] Fixing things after resolving conflicts ([bhavin192](https://github.com/bhavin192))
+* [UI] Update PatternFly version to 3.58.0 ([bhavin192](https://github.com/bhavin192))
+* Add navbar background image ([akshay196](https://github.com/akshay196))
+* Add about modal background ([akshay196](https://github.com/akshay196))
+* [UI] Modify base.html to use PatternFly ([bhavin192](https://github.com/bhavin192))
+* [UI] Add languages_list.html ([bhavin192](https://github.com/bhavin192))
+* [UI] Add change_lang_status function in views ([bhavin192](https://github.com/bhavin192))
+* [UI] Add forms for language and language set ([bhavin192](https://github.com/bhavin192))
+* [UI] Update urls in base.html ([bhavin192](https://github.com/bhavin192))
+* [UI] Add form_base.html ([bhavin192](https://github.com/bhavin192))
+* [UI] Update the logo for disabled language ([bhavin192](https://github.com/bhavin192))
+* [UI] new ui for translation platforms section ([bhavin192](https://github.com/bhavin192))
+* [UI] Add packages section template ([bhavin192](https://github.com/bhavin192))
+* [UI] Update Add new package template ([bhavin192](https://github.com/bhavin192))
+* [UI] New url structure for packages section ([bhavin192](https://github.com/bhavin192))
+* [UI] Use form_base.html for new package form ([bhavin192](https://github.com/bhavin192))
+* [UI] packages summary as a template tag ([bhavin192](https://github.com/bhavin192))
+* [UI] have the spinner in base.html ([bhavin192](https://github.com/bhavin192))
+* [UI] Add package_view.html ([bhavin192](https://github.com/bhavin192))
+* [UI] Add edit package section ([bhavin192](https://github.com/bhavin192))
+* [UI] new landing page ([bhavin192](https://github.com/bhavin192))
+* [UI] Use form_base.html for new product release ([bhavin192](https://github.com/bhavin192))
+* [UI] New url structure for dashboard ([bhavin192](https://github.com/bhavin192))
+* [UI] Modify product_release_list.html ([bhavin192](https://github.com/bhavin192))
+* [UI] Modify release_view.html ([bhavin192](https://github.com/bhavin192))
+* [UI] activate navbar buttons according to url ([bhavin192](https://github.com/bhavin192))
+* [UI] Modifications after rebase ([bhavin192](https://github.com/bhavin192))
+* [UI] Add custom graphs section ([bhavin192](https://github.com/bhavin192))
+
 ##### Tue Dec 18 2018 Sundeep Anand <suanand@redhat.com> - release_0.1.6
 * Implement Spec's file %prep section in Jobs, improve tarball selection
 * Auth and OpenShift deployment config changes
