@@ -131,7 +131,8 @@ class UpdatePackageForm(forms.ModelForm):
 
     class Meta:
         model = Package
-        fields = ['package_name', 'upstream_url', 'platform_slug', 'products', 'release_branch_mapping']
+        fields = ['package_name', 'upstream_url', 'platform_slug', 'platform_url',
+                  'products', 'release_branch_mapping']
 
     helper = FormHelper()
     helper.form_method = 'POST'
@@ -141,6 +142,7 @@ class UpdatePackageForm(forms.ModelForm):
             Field('package_name', css_class='form-control', readonly=True),
             Field('upstream_url', css_class='form-control'),
             Field('platform_slug', css_class='selectpicker'),
+            Field('platform_url', css_class='form-control'),
             InlineCheckboxes('products'),
             Field('release_branch_mapping', css_class='form-control', rows=4),
             FormActions(

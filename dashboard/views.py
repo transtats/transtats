@@ -205,6 +205,7 @@ class TranStatusReleaseView(ManagersMixin, TemplateView):
             relbranch=kwargs.get('release_branch'), fields=['product_slug']).get()
         if release_stream:
             context['release_stream'] = release_stream.product_slug.product_slug
+        context['release_branch'] = kwargs.get('release_branch')
         return context
 
 

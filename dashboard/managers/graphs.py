@@ -437,7 +437,8 @@ class GraphManager(BaseManager):
             # flag incorrect branch mapping
             if len([i for i in temp_stat_list if i == 0]) == len(temp_stat_list):
                 package += "*"
-            workload_combined[package] = temp_stat_list
+            if temp_stat_list:
+                workload_combined[package] = temp_stat_list
         return headers, OrderedDict(sorted(workload_combined.items()))
 
     def get_workload_combined_detailed(self, release_branch):

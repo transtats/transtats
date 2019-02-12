@@ -144,7 +144,7 @@
               content: "%s | %y translated"
             }
           };
-        $.plot($("#div-graph-area"), t, n), $("#span-coverage-info").html("Translation coverage of <span class='text-primary'>" + r.length + "</span> packages for <span class='text-primary'>" + e + "</span> release in <span class='text-primary'>" + t.length + "</span> languages."), $("#span-release-branch").html("Release [ " + e + " ]"), $("#p-graph-disclaimer").html("<span class='pull-right text-muted'>Graph is based on branch mapping. And %age is calculated on messages.</span>")
+        $.plot($("#div-graph-area"), t, n), $("#span-coverage-info").html($("#select-graph-rule-name").val() + ": Translation coverage of <span class='text-primary'>" + r.length + "</span> packages for <span class='text-primary'>" + e + "</span> release in <span class='text-primary'>" + t.length + "</span> languages."), $("#span-release-branch").html("Release [ " + e + " ]"), $("#p-graph-disclaimer").html("<span class='pull-right text-muted'>Graph is based on branch mapping. And %age is calculated on messages.</span>")
       }
     })
   }
