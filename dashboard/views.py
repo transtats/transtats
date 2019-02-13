@@ -118,11 +118,40 @@ class ManagersMixin(object):
             pass
 
 
-class TranStatusPackagesView(ManagersMixin, TemplateView):
+# class TranStatusPackagesView(ManagersMixin, TemplateView):
+#     """
+#     Translation Status Packages View
+#     """
+#     template_name = "stats/status_packages.html"
+#
+#     def get_context_data(self, **kwargs):
+#         """
+#         Build the Context Data
+#         """
+#         context = super(TemplateView, self).get_context_data(**kwargs)
+#         packages = self.packages_manager.get_package_name_tuple()
+#         langs = self.inventory_manager.get_locale_lang_tuple()
+#         if packages:
+#             context['packages'] = packages
+#         if langs:
+#             context['languages'] = sorted(langs, key=lambda x: x[1])
+#         context.update(self.get_summary())
+#         return context
+
+
+class TranStatusPackageView(ManagersMixin, TemplateView):
     """
-    Translation Status Packages View
+    Translation Status Package View
     """
-    template_name = "stats/status_packages.html"
+    template_name = "packages/package_view.html"
+
+    def get(self, request, *args, **kwargs):
+        response = super(TranStatusPackageView, self).get(
+            request, *args, **kwargs)
+        if not self.packages_manager.is_package_exist(
+                kwargs.get('package_name', '')):
+            raise Http404("Package does not exist.")
+        return response
 
     def get_context_data(self, **kwargs):
         """
@@ -137,21 +166,6 @@ class TranStatusPackagesView(ManagersMixin, TemplateView):
             context['languages'] = sorted(langs, key=lambda x: x[1])
         context.update(self.get_summary())
         return context
-
-
-class TranStatusPackageView(TranStatusPackagesView):
-    """
-    Translation Status Package View
-    """
-    template_name = "packages/package_view.html"
-
-    def get(self, request, *args, **kwargs):
-        response = super(TranStatusPackageView, self).get(
-            request, *args, **kwargs)
-        if not self.packages_manager.is_package_exist(
-                kwargs.get('package_name', '')):
-            raise Http404("Package does not exist.")
-        return response
 
 
 class TranStatusReleasesView(ManagersMixin, TemplateView):
@@ -278,23 +292,23 @@ class TransPlatformSettingsView(ManagersMixin, ListView):
         return context
 
 
-class ReleaseStreamSettingsView(ManagersMixin, ListView):
-    """
-    Marked for removal
-    Release Streams Settings View
-    """
-    template_name = "products/product_list.html"
-    context_object_name = 'relstreams'
-
-    def get_queryset(self):
-        return self.inventory_manager.get_release_streams()
+# class ReleaseStreamSettingsView(ManagersMixin, ListView):
+#     """
+#     Marked for removal
+#     Release Streams Settings View
+#     """
+#     template_name = "products/product_list.html"
+#     context_object_name = 'relstreams'
+#
+#     def get_queryset(self):
+#         return self.inventory_manager.get_release_streams()
 
 
 class StreamBranchesSettingsView(ManagersMixin, TemplateView):
     """
     Stream Branches Settings View
     """
-    template_name = "products/product_release_list.html"
+    template_name = "releases/product_release_list.html"
 
     def get_context_data(self, **kwargs):
         context = super(StreamBranchesSettingsView, self).get_context_data(**kwargs)
@@ -315,7 +329,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
     """
     New Release Branch View
     """
-    template_name = "products/product_release_new.html"
+    template_name = "releases/product_release_new.html"
 
     def _get_relstream(self):
         try:

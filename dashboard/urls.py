@@ -26,8 +26,8 @@ from rest_framework.documentation import include_docs_urls
 # dashboard
 from dashboard.services.urls import api_urls
 from dashboard.views import (
-    TranStatusPackagesView, TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
-    TransPlatformSettingsView, LanguagesSettingsView, ReleaseStreamSettingsView, PackageSettingsView,
+    TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
+    TransPlatformSettingsView, LanguagesSettingsView, PackageSettingsView,
     JobsView, JobsLogsView, JobsArchiveView, JobsLogsPackageView, NewPackageView, UpdatePackageView, TransCoverageView,
     StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, YMLBasedJobs,
     NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView,
