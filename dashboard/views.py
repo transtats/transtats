@@ -20,6 +20,7 @@ from datetime import datetime
 from pathlib import Path
 
 # django
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.forms.utils import ErrorList
@@ -37,7 +38,7 @@ from django.urls import reverse
 # dashboard
 
 from dashboard.constants import (
-    TS_JOB_TYPES, TRANSPLATFORM_ENGINES
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, ZANATA_SLUGS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
@@ -118,27 +119,6 @@ class ManagersMixin(object):
             pass
 
 
-# class TranStatusPackagesView(ManagersMixin, TemplateView):
-#     """
-#     Translation Status Packages View
-#     """
-#     template_name = "stats/status_packages.html"
-#
-#     def get_context_data(self, **kwargs):
-#         """
-#         Build the Context Data
-#         """
-#         context = super(TemplateView, self).get_context_data(**kwargs)
-#         packages = self.packages_manager.get_package_name_tuple()
-#         langs = self.inventory_manager.get_locale_lang_tuple()
-#         if packages:
-#             context['packages'] = packages
-#         if langs:
-#             context['languages'] = sorted(langs, key=lambda x: x[1])
-#         context.update(self.get_summary())
-#         return context
-
-
 class TranStatusPackageView(ManagersMixin, TemplateView):
     """
     Translation Status Package View
@@ -164,7 +144,6 @@ class TranStatusPackageView(ManagersMixin, TemplateView):
             context['packages'] = packages
         if langs:
             context['languages'] = sorted(langs, key=lambda x: x[1])
-        context.update(self.get_summary())
         return context
 
 
@@ -191,8 +170,9 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         context['relstreams'] = products
         product_releases = self.release_branch_manager.get_branches_of_relstreams(products)
         p_releases_dict = {}
-        for product, releases in product_releases.items():
-            p_releases_dict[product] = len(releases) or 0
+        if product_releases is not None and isinstance(product_releases, dict):
+            for product, releases in product_releases.items():
+                p_releases_dict[product] = len(releases) or 0
         context['p_releases_dict'] = p_releases_dict if p_releases_dict \
             else {p.product_slug: 0 for p in products}
         context.update(self.get_summary())
@@ -237,7 +217,6 @@ class TransCoverageView(ManagersMixin, TemplateView):
         graph_rules = self.graph_manager.get_graph_rules(only_active=True)
         if graph_rules:
             context['rules'] = graph_rules
-        context.update(self.get_summary())
         return context
 
 
@@ -290,18 +269,6 @@ class TransPlatformSettingsView(ManagersMixin, ListView):
         # Join supported platform names with ',' and make it titlecase
         context['transplatform_engines'] = ', '.join(TRANSPLATFORM_ENGINES).title()
         return context
-
-
-# class ReleaseStreamSettingsView(ManagersMixin, ListView):
-#     """
-#     Marked for removal
-#     Release Streams Settings View
-#     """
-#     template_name = "products/product_list.html"
-#     context_object_name = 'relstreams'
-#
-#     def get_queryset(self):
-#         return self.inventory_manager.get_release_streams()
 
 
 class StreamBranchesSettingsView(ManagersMixin, TemplateView):
@@ -424,9 +391,9 @@ class NewPackageView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
-        initials.update(dict(transplatform_slug='ZNTAFED'))
-        # TODO: should be configurable?
-        initials.update(dict(release_streams='RHEL'))
+        initials.update(dict(transplatform_slug=ZANATA_SLUGS[1]))
+        default_product = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0]
+        initials.update(dict(release_streams=default_product))
         return initials
 
     def get_form(self, form_class=None, data=None):

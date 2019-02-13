@@ -294,50 +294,7 @@
   </div>
 
   <script>
-    var waitSpinner = null
-    function activateSection() {
-      var currentPath = window.location.pathname;
-      var currentSection = currentPath.substring(1, currentPath.indexOf("/", 1))
-      if (currentSection === "releases" || currentSection === "products"){
-        $("#li-dashboard").addClass("active");
-      } else if (currentSection === "packages"){
-        $("#li-packages").addClass("active");
-      } else if (currentSection === "jobs"){
-        $("#li-jobs").addClass("active");
-      } else if (currentSection === "languages") {
-        $("#li-languages").addClass("active");
-      } else if (currentSection === "translation-platforms") {
-        $("#li-translation-platforms").addClass("active");
-      } else if (currentSection === "graph-rules") {
-        $("#li-custom-graphs").addClass("active");
-      }
-    }
-
-    // Check if the waitSpinner is initialized or not
-    function getWaitSpinner() {
-      if (waitSpinner === null) {
-        waitSpinner = $('.spinner-wait-ts');
-      }
-    }
-
-    function jsIdSafe(idString) {
-      return idString.replace("@", "-at-")
-    }
-    $(document).ready(function () {
-      // Initialize the vertical navigation
-      $().setupVerticalNavigation(true);
-      // Workaround to make the modal work on mobile devices
-      $("#button-about-secondary").on("click", function(e){
-        e.preventDefault();
-        $('#about-modal').modal('show');
-      });
-      $("#button-auth-token-secondary").on("click", function (e) {
-        e.preventDefault();
-        $("#modal-auth-token").modal("show");
-      });
-      waitSpinner = $('.spinner-wait-ts')
-      activateSection();
-    });
+    var waitSpinner=null;function activateSection(){var a=window.location.pathname,t=a.substring(1,a.indexOf("/",1));"releases"===t||"products"===t?$("#li-dashboard").addClass("active"):"packages"===t?$("#li-packages").addClass("active"):"jobs"===t?$("#li-jobs").addClass("active"):"languages"===t?$("#li-languages").addClass("active"):"translation-platforms"===t?$("#li-translation-platforms").addClass("active"):"graph-rules"===t&&$("#li-custom-graphs").addClass("active")}function getWaitSpinner(){null===waitSpinner&&(waitSpinner=$(".spinner-wait-ts"))}function jsIdSafe(a){return a.replace("@","-at-")}$(document).ready(function(){$().setupVerticalNavigation(!0),$("#button-about-secondary").on("click",function(a){a.preventDefault(),$("#about-modal").modal("show")}),$("#button-auth-token-secondary").on("click",function(a){a.preventDefault(),$("#modal-auth-token").modal("show")}),waitSpinner=$(".spinner-wait-ts"),activateSection()});
   </script>
   </body>
 </html>

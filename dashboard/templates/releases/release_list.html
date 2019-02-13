@@ -166,39 +166,6 @@
 {% endif %}
 
 <script type="text/javascript">
-  function csrfSafeMethod(e) {
-  return /^(GET|HEAD|OPTIONS|TRACE)$/.test(e)
-  }
-
-  function refresh_releases_summary() {
-    $.ajax({
-      beforeSend: function(e, a) {
-        csrfSafeMethod(a.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), waitSpinner.show()
-      },
-      type: "POST",
-      url: "{% url 'ajax-releases-report' %}",
-      data: {
-        subject: "releases"
-      },
-      success: function(e) {
-        waitSpinner.hide(), $("#div-releases-summary").html(e)
-      },
-      error: function(e, a, s) {
-        waitSpinner.hide()
-        $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span>Some unexpected error occurred!</div>')
-      }
-    })
-  }
-  $(document).ready(function() {
-    $("#relBranch").change(function(e) {
-      window.location.replace("/releases/view/" + $(this).val())
-    }), $("#refresh-releases-summary").on("click", function(e) {
-      return e.preventDefault(), refresh_releases_summary(), !1
-    })
-    $(".row-cards-pf > [class*='col'] > .card-pf .card-pf-title").matchHeight();
-    $(".row-cards-pf > [class*='col'] > .card-pf > .card-pf-body").matchHeight();
-    $(".row-cards-pf > [class*='col'] > .card-pf > .card-pf-footer").matchHeight();
-    $(".row-cards-pf > [class*='col'] > .card-pf").matchHeight();
-  });
+  function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}function refresh_releases_summary(){$.ajax({beforeSend:function(e,r){csrfSafeMethod(r.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitSpinner.show()},type:"POST",url:"{% url 'ajax-releases-report' %}",data:{subject:"releases"},success:function(e){waitSpinner.hide(),$("#div-releases-summary").html(e)},error:function(e,r,s){waitSpinner.hide(),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span>Some unexpected error occurred!</div>')}})}$(document).ready(function(){$("#relBranch").change(function(e){window.location.replace("/releases/view/"+$(this).val())}),$("#refresh-releases-summary").on("click",function(e){return e.preventDefault(),refresh_releases_summary(),!1}),$(".row-cards-pf > [class*='col'] > .card-pf .card-pf-title").matchHeight(),$(".row-cards-pf > [class*='col'] > .card-pf > .card-pf-body").matchHeight(),$(".row-cards-pf > [class*='col'] > .card-pf > .card-pf-footer").matchHeight(),$(".row-cards-pf > [class*='col'] > .card-pf").matchHeight()});
 </script>
 {% endblock %}

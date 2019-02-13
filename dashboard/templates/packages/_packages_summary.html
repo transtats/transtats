@@ -207,26 +207,3 @@
 
   </div>
 </div><!-- /row -->
-
-{% comment %}
-{% if pkgsummary %}
-      {% if pkgsummary.RHEL %}
-      {{ pkgsummary.RHEL }}
-        Packages tracking for RHEL
-      {% endif %}
-      {% if pkgsummary.fedora %}
-      {{ pkgsummary.fedora }}
-        Packages tracking for Fedora
-      {% endif %}
-      {{ pkgsummary.pkg_having_stats_diff }}
-        Packages out of sync. <code>Latest translations may not be pulled and packaged</code>.
-      {{ pkgsummary.pkg_improper_branch_mapping }}
-        Packages having improper branch mapping.
-      {{ pkgsummary.pkg_transtats_week_old }}
-        Packages sync&apos;d with translation platform more than a week ago.
-      {{ pkgsummary.pkg_upstream_week_old }}
-        Packages which were sync&apos;d with upstream repository more than a week back.
-{% else %}
-  Package&apos;s reports are not generated yet.
-{% endif %}
-{% endcomment %}

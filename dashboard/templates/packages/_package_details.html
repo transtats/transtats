@@ -30,7 +30,7 @@
   {% endif %}
 </h5>
 
-{% if not package.platform_last_updated and not package.upstream_last_updated %}
+{% if not package.platform_last_updated and not package.upstream_last_updated and not package.downstream_last_updated %}
 <div class="blank-slate-pf" id="blank-state-translation-stats">
   <div class="blank-slate-pf-icon">
     <span class="fa fa-refresh"></span>

@@ -11,11 +11,6 @@ Update Language Set
 {% endblock %}
 {% block formscript %}
 <script>
-  $(function () {
-    $(".bootstrap-switch").bootstrapSwitch();
-    $("#id_lang_set_color").prop("type", "color");
-    $(".selectpicker").selectpicker();
-    $("#submit-id-addlanguage").prop("value", "Update Language Set");
-  });
+  $(function(){$(".bootstrap-switch").bootstrapSwitch(),$("#id_lang_set_color").prop("type","color"),$(".selectpicker").selectpicker(),$("#submit-id-addlanguage").prop("value","Update Language Set")});
 </script>
 {% endblock %}
