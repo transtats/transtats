@@ -18,6 +18,7 @@ import json
 import yaml
 from collections import OrderedDict
 from django import template
+from urllib.parse import urlparse
 
 from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
 from dashboard.managers.graphs import GraphManager, ReportsManager
@@ -41,8 +42,13 @@ def join_by(sequence, delimiter):
     return delimiter.join(sequence)
 
 
+@register.filter
+def js_id_safe(id_value):
+    return id_value.replace("@", "-at-")
+
+
 @register.inclusion_tag(
-    os.path.join("stats", "_package_details.html")
+    os.path.join("packages", "_package_details.html")
 )
 def tag_package_details(package_name, user):
     package_manager = PackagesManager()
@@ -66,7 +72,7 @@ def tag_package_details(package_name, user):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_branch_mapping.html")
+    os.path.join("packages", "_branch_mapping.html")
 )
 def tag_branch_mapping(package):
     package_manager = PackagesManager()
@@ -87,7 +93,7 @@ def tag_branch_mapping(package):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_stats_diff.html")
+    os.path.join("packages", "_stats_diff.html")
 )
 def tag_stats_diff(package):
     package_manager = PackagesManager()
@@ -112,7 +118,7 @@ def tag_stats_diff(package):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_tabular_form.html")
+    os.path.join("packages", "_tabular_form.html")
 )
 def tag_tabular_form(package):
     return_value = OrderedDict()
@@ -129,7 +135,7 @@ def tag_tabular_form(package):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_workload_combined.html")
+    os.path.join("releases", "_workload_combined.html")
 )
 def tag_workload_per_lang(relbranch, lang_id):
     return_value = OrderedDict()
@@ -143,7 +149,7 @@ def tag_workload_per_lang(relbranch, lang_id):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_workload_combined.html")
+    os.path.join("releases", "_workload_combined.html")
 )
 def tag_workload_combined(relbranch):
     return_value = OrderedDict()
@@ -155,7 +161,7 @@ def tag_workload_combined(relbranch):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_workload_detailed.html")
+    os.path.join("releases", "_workload_detailed.html")
 )
 def tag_workload_detailed(relbranch):
     return_value = OrderedDict()
@@ -167,7 +173,7 @@ def tag_workload_detailed(relbranch):
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_releases_summary.html")
+    os.path.join("releases", "_releases_summary.html")
 )
 def tag_releases_summary():
     return_value = OrderedDict()
@@ -191,16 +197,18 @@ def tag_releases_summary():
 
 
 @register.inclusion_tag(
-    os.path.join("stats", "_packages_summary.html")
+    os.path.join("packages", "_packages_summary.html")
 )
 def tag_packages_summary():
     return_value = OrderedDict()
+    package_manager = PackagesManager()
     reports_manager = ReportsManager()
     packages_summary = reports_manager.get_reports('packages')
     if packages_summary:
         return_value.update(dict(
             pkgsummary=json.loads(packages_summary.get().report_json_str),
-            last_updated=packages_summary.get().report_updated
+            last_updated=packages_summary.get().report_updated,
+            package_count=package_manager.count_packages(),
         ))
     return return_value
 
@@ -228,9 +236,9 @@ def tag_job_form(template_type):
         package_manager.get_release_streams(
             only_active=True, fields=('product_build_system',)
         )
-    available_build_systems = []
+    available_build_systems = {}
     for relstream in release_streams:
-        available_build_systems.append(relstream.product_build_system)
+        available_build_systems.update({relstream.product_slug: relstream.product_build_system})
     if available_build_systems:
         return_value['build_systems'] = available_build_systems
     packages = package_manager.get_package_name_tuple(check_mapping=True)

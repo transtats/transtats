@@ -7,7 +7,7 @@ LABEL maintainer="suanand@redhat.com, bhavin7392@gmail.com"
 USER root
 RUN useradd -ms /bin/bash tsuser
 RUN dnf -y update && \
-    dnf -y install git make cpio koji file patch intltool libtool gtk3-devel && \
+    dnf -y install git make cpio koji file patch intltool libtool gtk3-devel npm && \
     dnf clean all
 
 RUN mkdir /workspace
@@ -18,7 +18,7 @@ RUN pip3 install -r /workspace/requirements/base.txt
 RUN cp deploy/docker-compose/transtats/launch.sh /usr/bin/transtats.sh
 RUN cp deploy/docker-compose/transtats/wait-for-it.sh /usr/bin/wait-for-it.sh
 RUN mkdir staticfiles
-RUN chmod g+w transtats/logs dashboard/sandbox staticfiles
+RUN chmod g+w transtats/logs transtats/node dashboard/sandbox staticfiles false
 RUN chown -R tsuser /workspace
 EXPOSE 8080
 USER tsuser

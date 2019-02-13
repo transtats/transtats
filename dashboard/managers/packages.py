@@ -570,7 +570,8 @@ class PackageBranchMapping(object):
                 pkg_stat.project_version.lower() for pkg_stat in self.syncstats_manager.get_sync_stats(
                     pkgs=[package_name], fields=('project_version',), sources=TRANSPLATFORM_ENGINES
                 ) if isinstance(pkg_stat.project_version, str)]
-            self.release_branches_dict = self.relbranch_manager.get_branches_of_relstreams(self.package.products)
+            self.release_branches_dict = self.relbranch_manager.get_branches_of_relstreams(
+                self.package.products, track_trans_flag=True)
             self.release_branches_list = []
             self.release_streams_list = []
             self.release_build_tags_dict = {}
@@ -709,8 +710,10 @@ class PackageBranchMapping(object):
                     if not branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[0]] \
                             and self.package.platform_slug_id in DAMNEDLIES_SLUGS:
                         release_stream = self.relbranch_manager.get_release_streams(
+                            stream_slug=stream,
                             built=branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[1]],
-                            fields=('product_server',))
+                            fields=('product_server',)
+                        )
                         if release_stream:
                             release_stream_hub_url = release_stream.get().product_server or ''
                             build_info = self.relbranch_manager.api_resources.build_info(

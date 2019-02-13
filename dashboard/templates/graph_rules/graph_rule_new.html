@@ -1,0 +1,37 @@
+{% extends "form_base.html" %}
+{% block extrascript %}
+<script src="/static/bootstrap-select/js/bootstrap-select.js"></script>
+<script type="text/javascript">
+  function slugify(e) {
+    return e.toString().toLowerCase().replace(/\s+/g, "-").replace(/\-\-+/g, "-").replace(/\./g, "-").replace(/^-+/, "")
+    //.replace(/[^\w\-]+/g, "").replace(/-+$/, "")
+  }
+
+  function showRuleSlug() {
+    $("#id_rule_name").val(slugify($("#id_rule_name").val()))
+  }
+
+  $(document).ready(function () {
+    "pick" == $('input[name="lang_selection"]:checked').val() && $("#div_id_rule_langs").hide(), $("#lang_selection_id").on("change", function () {
+      var e = $('input[name="lang_selection"]:checked').val();
+      "pick" == e ? $("#div_id_rule_langs").hide() : "select" == e && $("#div_id_rule_langs").show()
+    })
+  });
+</script>
+{% endblock %}
+{% block formtitle %}
+Create a new graph rule
+{% endblock %}
+{% block formreturnurl %}
+{% url 'settings-graph-rules' %}
+{% endblock %}
+{% block formscript %}
+<script>
+  $(function () {
+    $('.selectpicker').selectpicker({
+      dropupAuto: false,
+      liveSearch: true,
+    });
+  });
+</script>
+{% endblock %}

@@ -108,7 +108,15 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 
 #### Virtualenv
 
-- Prerequisites `py3.6`, `koji`, `cpio`, `patch`
+- Prerequisites `Python 3.6`, `koji`, `cpio`, `patch`, `intltool`, `npm`
+  ```console
+  # Python version should be 3.6+
+  $ python3 --version
+  Python 3.7.1
+
+  # Installing other dependencies
+  $ sudo dnf install koji cpio patch intltool npm
+  ```
 
 - This will create virtualenv and setup devel env
   ```shell

@@ -176,9 +176,9 @@ class GraphManager(BaseManager):
                 if index:
                     index.append(stats_tuple[1] or 0.0)
                     new_stats_list.append(index)
-            graph_data_dict[version] = self._normalize_stats(
-                sorted(new_stats_list), indexes
-            )
+            normalized_stats = self._normalize_stats(sorted(new_stats_list), indexes)
+            if len(list(filter(lambda x: x[1] > 0.0, normalized_stats))) > 0:
+                graph_data_dict[version] = normalized_stats
         stats_for_graphs_dict['graph_data'] = OrderedDict(sorted(graph_data_dict.items()))
         return stats_for_graphs_dict
 
@@ -437,7 +437,8 @@ class GraphManager(BaseManager):
             # flag incorrect branch mapping
             if len([i for i in temp_stat_list if i == 0]) == len(temp_stat_list):
                 package += "*"
-            workload_combined[package] = temp_stat_list
+            if temp_stat_list:
+                workload_combined[package] = temp_stat_list
         return headers, OrderedDict(sorted(workload_combined.items()))
 
     def get_workload_combined_detailed(self, release_branch):

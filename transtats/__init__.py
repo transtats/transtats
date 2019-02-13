@@ -3,9 +3,10 @@ import os
 import sys
 
 __appname__ = "Transtats"
-__version__ = '0.1.6'
+__version__ = '0.1.7-rc.1'
+__description__ = "Track Translation Completeness"
 
-__all__ = ['__appname__', '__version__']
+__all__ = ['__appname__', '__version__', '__description__']
 
 MODE = os.getenv('TS_APP_MODE', 'dev')
 

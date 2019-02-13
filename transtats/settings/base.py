@@ -165,6 +165,8 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    # TODO: find some method to serve only specific files downloaded from npm possible solutions gulp, grunt
+    os.path.join(BASE_DIR, "node/node_modules/"),
     os.path.join(BASE_DIR, "static"),
 )
 
@@ -174,7 +176,7 @@ STATICFILES_DIRS = (
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'staticfiles')
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

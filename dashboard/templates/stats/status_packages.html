@@ -1,57 +1,58 @@
-{% extends "stats/translation_status.html" %}
-{% load custom_tags %}
+<!-- Marked for deletion -->
+<!--{% extends "stats/translation_status.html" %}-->
+<!--{% load custom_tags %}-->
 
-{% block extrascript %}
-<script src="/static/js/waiting.dialog.js"></script>
-<script src="/static/js/csrf.js"></script>
-<script type="text/javascript">
-    function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}function refresh_packages_summary(){$.ajax({beforeSend:function(e,a){csrfSafeMethod(a.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitingDialog.show()},type:"POST",url:"{% url 'ajax-releases-report' %}",data:{subject:"packages"},success:function(e){waitingDialog.hide(),$("#div-packages-summary").html(e)},error:function(e,a,t){waitingDialog.hide(),$("#div-packages-summary").html("<div class='alert alert-warning' role='alert'>Some unexpected error occurred.</div>")}})}$(document).ready(function(){$("#tab-translation-completeness").addClass("active"),$("#btn-tabular").addClass("active"),$("#hideLocaleGraph").hide(),$("#langName").selectpicker("hide"),$("#packageName").change(function(e){window.location.replace("/translation-status/package/"+$(this).val())}),$("#refresh-packages-summary").click(function(e){return e.preventDefault(),refresh_packages_summary(),!1})});
-</script>
-{% endblock %}
+<!--{% block extrascript %}-->
+<!--<script src="/static/js/waiting.dialog.js"></script>-->
+<!--<script src="/static/js/csrf.js"></script>-->
+<!--<script type="text/javascript">-->
+    <!--function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}function refresh_packages_summary(){$.ajax({beforeSend:function(e,a){csrfSafeMethod(a.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitingDialog.show()},type:"POST",url:"{% url 'ajax-releases-report' %}",data:{subject:"packages"},success:function(e){waitingDialog.hide(),$("#div-packages-summary").html(e)},error:function(e,a,t){waitingDialog.hide(),$("#div-packages-summary").html("<div class='alert alert-warning' role='alert'>Some unexpected error occurred.</div>")}})}$(document).ready(function(){$("#tab-translation-completeness").addClass("active"),$("#btn-tabular").addClass("active"),$("#hideLocaleGraph").hide(),$("#langName").selectpicker("hide"),$("#packageName").change(function(e){window.location.replace("/packages/view/"+$(this).val())}),$("#refresh-packages-summary").click(function(e){return e.preventDefault(),refresh_packages_summary(),!1})});-->
+<!--</script>-->
+<!--{% endblock %}-->
 
-{% block navigation %}
-    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
-    <a href="{% url 'trans-status-packages' %}" class="btn btn-default">Packages</a>
-{% endblock %}
+<!--{% block navigation %}-->
+    <!--<a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>-->
+    <!--<a href="{% url 'trans-status-packages' %}" class="btn btn-default">Packages</a>-->
+<!--{% endblock %}-->
 
-{% block viewcontent %}
-    <div style="padding:20px">
-        <div class="row" style="padding-bottom:20px">
-            <div class="col-xs-12">
-                {% if packages %}
-                <select id="packageName" class="selectpicker" data-live-search="true" data-size="15">
-                    <option selected disabled>Select Package</option>
-                    {% for package_name, upstream_name in packages %}
-                        <option>{{ package_name }}</option>
-                    {% endfor %}
-                </select>
-                {% else %}
-                    <br/><p>No package configured. Add <a href="{% url 'settings-packages-new' %}">one</a> now.</p>
-                {% endif %}
-                {% if languages %}
-                <select id="langName" class="selectpicker" data-live-search="true">
-                    <option selected disabled>Select Language</option>
-                    {% for locale, lang in languages %}
-                        <option value="{{ locale }}">{{ lang }}</option>
-                    {% endfor %}
-                </select>
-                <a id="hideLocaleGraph" type="button" class="btn btn-default btn-small">
-                    <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
-                </a>
-                {% endif %}
-                {% block dataviews %}
-                    {% if packages %}
-                    <span class="pull-right">
-                        <a id="refresh-packages-summary" class="btn btn-default btn-small" data-toggle="tooltip" title="Refresh Summary">
-                            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
-                        </a>
-                    </span>
-                    {% endif %}
-                {% endblock %}
-            </div>
-        </div>
-        {% block datacontent %}
-            <div id="div-packages-summary">{% tag_packages_summary %}</div>
-        {% endblock %}
-    </div>
-{% endblock %}
+<!--{% block viewcontent %}-->
+    <!--<div style="padding:20px">-->
+        <!--<div class="row" style="padding-bottom:20px">-->
+            <!--<div class="col-xs-12">-->
+                <!--{% if packages %}-->
+                <!--<select id="packageName" class="selectpicker" data-live-search="true" data-size="15">-->
+                    <!--<option selected disabled>Select Package</option>-->
+                    <!--{% for package_name, upstream_name in packages %}-->
+                        <!--<option>{{ package_name }}</option>-->
+                    <!--{% endfor %}-->
+                <!--</select>-->
+                <!--{% else %}-->
+                    <!--<br/><p>No package configured. Add <a href="{% url 'package-new' %}">one</a> now.</p>-->
+                <!--{% endif %}-->
+                <!--{% if languages %}-->
+                <!--<select id="langName" class="selectpicker" data-live-search="true">-->
+                    <!--<option selected disabled>Select Language</option>-->
+                    <!--{% for locale, lang in languages %}-->
+                        <!--<option value="{{ locale }}">{{ lang }}</option>-->
+                    <!--{% endfor %}-->
+                <!--</select>-->
+                <!--<a id="hideLocaleGraph" type="button" class="btn btn-default btn-small">-->
+                    <!--<span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>-->
+                <!--</a>-->
+                <!--{% endif %}-->
+                <!--{% block dataviews %}-->
+                    <!--{% if packages %}-->
+                    <!--<span class="pull-right">-->
+                        <!--<a id="refresh-packages-summary" class="btn btn-default btn-small" data-toggle="tooltip" title="Refresh Summary">-->
+                            <!--<span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>-->
+                        <!--</a>-->
+                    <!--</span>-->
+                    <!--{% endif %}-->
+                <!--{% endblock %}-->
+            <!--</div>-->
+        <!--</div>-->
+        <!--{% block datacontent %}-->
+            <!--<div id="div-packages-summary">{% tag_packages_summary %}</div>-->
+        <!--{% endblock %}-->
+    <!--</div>-->
+<!--{% endblock %}-->

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block extrascript %}
+<script src="/static/jquery-match-height/dist/jquery.matchHeight.js"></script>
+{% endblock %}
+{% block pagecontent %}
+{% if platforms %}
+<div class="row row-cards-pf" id="cards-transplatforms">
+  {% for platform in platforms %}
+  <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+    <div class="card-pf card-pf-view card-pf-view-select card-pf-view-multi-select">
+      <div class="card-pf-body">
+        <div class="card-pf-top-element">
+          <span class="fa fa-server card-pf-icon-circle"></span>
+        </div>
+        <h2 class="card-pf-title text-center">
+          {{ platform.engine_name|capfirst }}
+        </h2>
+        <div class="card-pf-items text-center">
+          <div class="card-pf-item">
+            {{ platform.subject }}
+          </div>
+          <div class="card-pf-item">
+            {% if platform.server_status %}
+            <span class="pficon pficon-ok fa-lg" data-toggle="tooltip" title="Enabled"></span>
+            {% else %}
+            <span class="fa fa-ban fa-lg icon-disabled-ts" data-toggle="tooltip" title="Disabled"></span>
+            {% endif %}
+          </div>
+        </div>
+        <h4>
+          <p class="card-pf-info text-center">
+            <a href="{{ platform.api_url }}" target="_blank">{{ platform.api_url }}</a>
+            <span class="fa fa-external-link" aria-hidden="true"></span>
+          </p>
+        </h4>
+        <h4>
+          <p class="card-pf-info text-center">
+            {% if platform.projects_last_updated %}
+            <span class="text-muted">Last synced</span> {{ platform.projects_last_updated|timesince }}
+            <span class="text-muted">ago</span>.
+            <span class="fa fa-clock-o" aria-hidden="true"></span>
+            {% else %}
+            <span class="text-muted">Last synced</span> Never
+            {% endif %}
+          </p>
+        </h4>
+        </p>
+      </div>
+      {% if user.is_staff %}
+      <a class="card-pf-view-edit-ts" data-toggle="tooltip" title="Edit translation platform" href="{% url 'transplatform-update' platform.platform_slug %}">
+        <i class="pficon pficon-edit"></i>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% if user.is_staff %}
+  <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4" id="card-add-transplatforms">
+    <div class="card-pf card-pf-view card-pf-view-select card-pf-view-multi-select">
+      <div class="card-pf-body">
+        <a href="{% url 'transplatform-new' %}">
+          <div class="card-pf-top-element">
+            <span class="fa fa-plus card-pf-icon-circle"></span>
+          </div>
+          <h2 class="card-pf-title text-center">
+            Add Platform
+          </h2>
+        </a>
+        <div class="card-pf-items text-center">
+          <div class="card-pf-item" data-toggle="tooltip" title="Active translation platforms">
+            {{ active_platforms_len }}
+            <span class="pficon pficon-ok fa-lg"></span>
+          </div>
+          <div class="card-pf-item" data-toggle="tooltip" title="Inactive translation platforms">
+            {{ inactive_platforms_len }}
+            <span class="fa fa-ban fa-lg icon-disabled-ts"></span>
+          </div>
+        </div>
+        <h4>
+          <p class="card-pf-info text-center">
+            Supported Translation Platforms:
+          </p>
+        </h4>
+        <h4>
+          <p class="card-pf-info text-center">
+            {{ transplatform_engines }}
+          </p>
+        </h4>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% else %}
+<div class="blank-slate-pf table-view-pf-empty" id="empty-state-transplatforms">
+  <div class="blank-slate-pf-icon">
+    <span class="pficon pficon pficon-add-circle-o"></span>
+  </div>
+  <h1>
+    No translation platforms available!
+  </h1>
+  <p>
+    Seems like no translation platforms are available, would like to add one?
+  </p>
+  <p>
+    Learn more about this
+    <a href="#">on the documentation</a>.
+  </p>
+  <div class="blank-slate-pf-main-action">
+    <a class="btn btn-primary btn-lg" href="{% url 'transplatform-new' %}">
+      <i class="pficon pficon-add-circle-o"></i> Add translation platform</a>
+  </div>
+</div>
+{% endif %}
+<!-- /row -->
+<script>
+  $(function () {
+    // matchHeight the contents of each .card-pf and then the .card-pf itself
+    $(".row-cards-pf > [class*='col'] > .card-pf > .card-pf-body").matchHeight();
+  });
+</script>
+{% endblock %}
