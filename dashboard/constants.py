@@ -13,6 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# == always append tuples with new values ==
+
 # Supported translation platforms
 TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata')
 DAMNEDLIES_SLUGS = ('DMLSPUB', )
@@ -21,7 +23,7 @@ TRANSIFEX_SLUGS = ('TNFXPUB', )
 ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTAVDR')
 
 # Supported products
-RELSTREAM_SLUGS = ('RHEL', 'fedora')
+RELSTREAM_SLUGS = ('RHEL', 'fedora', 'RHV', 'oVirt')
 
 # Environment variables
 DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
