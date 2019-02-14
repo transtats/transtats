@@ -18,7 +18,7 @@ RUN pip3 install -r /workspace/requirements/base.txt
 RUN cp deploy/docker-compose/transtats/launch.sh /usr/bin/transtats.sh
 RUN cp deploy/docker-compose/transtats/wait-for-it.sh /usr/bin/wait-for-it.sh
 RUN mkdir staticfiles
-RUN chmod g+w transtats/logs transtats/node dashboard/sandbox staticfiles false
+RUN chmod -R g+w transtats/logs transtats/node dashboard/sandbox staticfiles false
 RUN chown -R tsuser /workspace
 EXPOSE 8080
 USER tsuser
