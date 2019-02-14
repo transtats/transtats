@@ -1,12 +1,19 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
 import os
 import sys
+
+# This will make sure the app is always imported when
+# Django starts so that shared_task will use this app.
+from .celery import app as celery_app
+
 
 __appname__ = "Transtats"
 __version__ = '0.1.7-rc.1'
 __description__ = "Track Translation Completeness"
 
-__all__ = ['__appname__', '__version__', '__description__']
+
+__all__ = ['__appname__', '__version__', '__description__', 'celery_app']
 
 MODE = os.getenv('TS_APP_MODE', 'dev')
 
