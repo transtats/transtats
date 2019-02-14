@@ -464,6 +464,8 @@ class ReportsManager(GraphManager):
     Manage Reports Generations
     """
 
+    package_manager = PackagesManager()
+
     def get_reports(self, report_subject):
         """
         Fetch reports from db
@@ -506,6 +508,11 @@ class ReportsManager(GraphManager):
         else:
             return True
 
+    def _filter_disabled_languages(self, lang_stats_dict):
+        active_locales = self.package_manager.get_locales(only_active=True)
+        active_languages = [locale.lang_name for locale in active_locales]
+        return {k: v for k, v in lang_stats_dict.items() if k in active_languages}
+
     def analyse_releases_status(self):
         """
         Summarize Releases Status
@@ -523,7 +530,9 @@ class ReportsManager(GraphManager):
                 relbranch_report[branch_name]['packages_need_attention'] = packages_need_attention
                 total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_messages)) or 0
                 relbranch_report[branch_name]['total_untranslated_msgs'] = total_untranslated_msgs
-                lang_stats_report = self.get_workload_combined_detailed(branch_slug)
+                lang_stats_report = self._filter_disabled_languages(
+                    self.get_workload_combined_detailed(branch_slug)
+                )
                 relbranch_report[branch_name]['languages'] = {}
                 for lang, pkg_stats in lang_stats_report.items():
                     untranslated_msgs = []
