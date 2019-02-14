@@ -1,6 +1,7 @@
 gitdb2
 GitPython
 Django==2.0.8
+django-celery-beat
 django-crispy-forms
 django-debug-toolbar
 djangorestframework
@@ -12,6 +13,7 @@ python-rpm-spec
 python-slugify
 pytz
 pyyaml
+redis
 requests
 six
 smmap2

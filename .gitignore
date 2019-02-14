@@ -64,6 +64,10 @@ target/
 #Ipython Notebook
 .ipynb_checkpoints
 
+# celery
+celerybeat-schedule
+celerybeat.pid
+
 # db related
 *sqlite3*
 alembic.ini
