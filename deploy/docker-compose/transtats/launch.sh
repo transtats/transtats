@@ -78,7 +78,7 @@ python3 manage.py initlogin
 # start celery to run tasks
 redis-server &
 celery -A transtats worker -l info -f transtats/logs/celery/transtats_worker.log &
-celery -A transtats beat -l info --pidfile run/celerybeat.pid -s run/celerybeat-schedule -f transtats/logs/celery/transtats_beat.log &
+celery -A transtats beat -l info -S django_celery_beat.schedulers:DatabaseScheduler --pidfile run/celerybeat.pid -s run/celerybeat-schedule -f transtats/logs/celery/transtats_beat.log &
 
 # launch application
 gunicorn transtats.wsgi:application

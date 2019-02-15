@@ -5,7 +5,7 @@ celeryd:
 
 .PHONY: celery
 celery:
-	celery -A transtats beat -l info
+	celery -A transtats beat -l info -S django_celery_beat.schedulers:DatabaseScheduler
 
 .PHONY: clean-pyc
 clean-pyc:
