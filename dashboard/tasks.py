@@ -31,7 +31,7 @@ logger = get_task_logger(__name__)
 
 
 @periodic_task(
-    run_every=(crontab(hour='*/23')),
+    run_every=(crontab(hour='*/1')),
     name="sync_packages_with_platform",
     ignore_result=True
 )
