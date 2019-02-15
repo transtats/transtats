@@ -108,14 +108,14 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 
 #### Virtualenv
 
-- Prerequisites `Python 3.6`, `koji`, `cpio`, `patch`, `intltool`, `npm`
+- Prerequisites `Python 3.6`, `koji`, `cpio`, `patch`, `intltool`, `npm`, `redis`
   ```console
   # Python version should be 3.6+
   $ python3 --version
   Python 3.7.1
 
   # Installing other dependencies
-  $ sudo dnf install koji cpio patch intltool npm
+  $ sudo dnf install koji cpio patch intltool npm redis
   ```
 
 - This will create virtualenv and setup devel env
@@ -150,6 +150,14 @@ Use `python3 manage.py initlogin` command. And login with `transtats:transtats`.
 #### Generate Docs
 
 If your code changes involves something to add in docs, go ahead and generate new docs using `make docs` command. This shall appear at `docs.transtats.org`.
+
+#### Run celery worker
+
+Use `make celeryd` to invoke celery worker. Make sure you're getting a PONG from `redis-cli ping` command.
+
+#### Run celery beat
+
+To run async dashboard tasks fire `make celery`. *This will create pid and schedule files.*
 
 ## What should I start with?
 
