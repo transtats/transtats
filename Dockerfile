@@ -21,7 +21,7 @@ RUN echo 'root:root' | chpasswd
 RUN dnf -y update && \
     dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel \
     sudo postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel \
-    redhat-rpm-config file patch intltool libtool gtk3-devel supervisor redis && \
+    redhat-rpm-config file patch intltool libtool gtk3-devel npm supervisor redis && \
     dnf clean all
 
 RUN /usr/bin/ssh-keygen -A
