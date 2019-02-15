@@ -147,10 +147,6 @@ When you switch `DEBUG` setting to `OFF`, run `make static` to generate static c
 
 Use `python3 manage.py initlogin` command. And login with `transtats:transtats`.
 
-#### Load demo data
-
-Run `python3 manage.py loaddata deploy/docker-compose/transtats/initialdata.yaml`
-
 #### Generate Docs
 
 If your code changes involves something to add in docs, go ahead and generate new docs using `make docs` command. This shall appear at `docs.transtats.org`.
