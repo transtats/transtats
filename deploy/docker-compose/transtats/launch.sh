@@ -70,7 +70,13 @@ then
     export GUNICORN_CMD_ARGS="--workers 3 --bind 0.0.0.0:8080 --timeout 300"
 fi
 
+# set environment
 make static
 make migrate
 python3 manage.py initlogin
+
+# start celery to run tasks
+supervisord -c /etc/supervisord.conf &
+
+# launch application
 gunicorn transtats.wsgi:application
