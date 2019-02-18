@@ -20,7 +20,9 @@ from datetime import datetime
 from pathlib import Path
 
 # django
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 from django.forms.utils import ErrorList
 from django.http import (
     HttpResponse, HttpResponseRedirect, JsonResponse, Http404
@@ -30,12 +32,18 @@ from django.template import Context, Template
 from django.views.generic import (
     TemplateView, ListView, FormView, DetailView
 )
+from django.views.generic.edit import (CreateView, UpdateView)
 from django.urls import reverse
 
 # dashboard
-from dashboard.constants import TS_JOB_TYPES
+
+from dashboard.constants import (
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, ZANATA_SLUGS
+)
 from dashboard.forms import (
-    NewPackageForm, NewReleaseBranchForm, NewGraphRuleForm
+    NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
+    NewLanguageForm, UpdateLanguageForm, LanguageSetForm,
+    NewTransPlatformForm, UpdateTransPlatformForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager
@@ -48,7 +56,9 @@ from dashboard.managers.jobs import (
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
-from dashboard.models import Job, Visitor
+from dashboard.models import (
+    Job, Language, LanguageSet, Platform, Visitor, Package
+)
 
 
 class ManagersMixin(object):
@@ -71,16 +81,16 @@ class ManagersMixin(object):
             if isinstance(locales_set, tuple) and len(locales_set) > 0 else 0
         platforms = self.inventory_manager.get_transplatform_slug_url()
         summary['platforms_len'] = len(platforms) if platforms else 0
-        relstreams = self.inventory_manager.get_relstream_slug_name()
-        summary['products_len'] = len(relstreams) if relstreams else 0
-        relbranches = self.release_branch_manager.get_release_branches()
-        summary['releases_len'] = relbranches.count() if relbranches else 0
+        # relstreams = self.inventory_manager.get_relstream_slug_name()
+        # summary['products_len'] = len(relstreams) if relstreams else 0
+        # relbranches = self.release_branch_manager.get_release_branches()
+        # summary['releases_len'] = relbranches.count() if relbranches else 0
         summary['packages_len'] = self.packages_manager.count_packages()
         jobs_count, last_ran_on, last_ran_type = \
             self.jobs_log_manager.get_joblog_stats()
         summary['jobs_len'] = jobs_count
-        graph_rules = self.graph_manager.get_graph_rules(only_active=True)
-        summary['graph_rules_len'] = graph_rules.count() if graph_rules else 0
+        # graph_rules = self.graph_manager.get_graph_rules(only_active=True)
+        # summary['graph_rules_len'] = graph_rules.count() if graph_rules else 0
         return summary
 
     @staticmethod
@@ -109,11 +119,19 @@ class ManagersMixin(object):
             pass
 
 
-class TranStatusPackagesView(ManagersMixin, TemplateView):
+class TranStatusPackageView(ManagersMixin, TemplateView):
     """
-    Translation Status Packages View
+    Translation Status Package View
     """
-    template_name = "stats/status_packages.html"
+    template_name = "packages/package_view.html"
+
+    def get(self, request, *args, **kwargs):
+        response = super(TranStatusPackageView, self).get(
+            request, *args, **kwargs)
+        if not self.packages_manager.is_package_exist(
+                kwargs.get('package_name', '')):
+            raise Http404("Package does not exist.")
+        return response
 
     def get_context_data(self, **kwargs):
         """
@@ -126,30 +144,15 @@ class TranStatusPackagesView(ManagersMixin, TemplateView):
             context['packages'] = packages
         if langs:
             context['languages'] = sorted(langs, key=lambda x: x[1])
-        context.update(self.get_summary())
         return context
-
-
-class TranStatusPackageView(TranStatusPackagesView):
-    """
-    Translation Status Package View
-    """
-    template_name = "stats/trans_status_package.html"
-
-    def get(self, request, *args, **kwargs):
-        response = super(TranStatusPackageView, self).get(
-            request, *args, **kwargs)
-        if not self.packages_manager.is_package_exist(
-                kwargs.get('package_name', '')):
-            raise Http404("Package does not exist.")
-        return response
 
 
 class TranStatusReleasesView(ManagersMixin, TemplateView):
     """
     Translation Status Releases View
+    This view is for current landing page.
     """
-    template_name = "stats/status_releases.html"
+    template_name = "releases/release_list.html"
 
     def get(self, request, *args, **kwargs):
         http_meta = self.request.META.copy()
@@ -162,29 +165,41 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         """
         context = super(TemplateView, self).get_context_data(**kwargs)
         relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
-        langs = self.inventory_manager.get_locale_lang_tuple()
         context['releases'] = relbranches
-        if langs:
-            context['languages'] = sorted(langs, key=lambda x: x[1])
+        products = self.inventory_manager.get_release_streams()
+        context['relstreams'] = products
+        product_releases = self.release_branch_manager.get_branches_of_relstreams(products)
+        p_releases_dict = {}
+        if product_releases is not None and isinstance(product_releases, dict):
+            for product, releases in product_releases.items():
+                p_releases_dict[product] = len(releases) or 0
+        context['p_releases_dict'] = p_releases_dict if p_releases_dict \
+            else {p.product_slug: 0 for p in products}
         context.update(self.get_summary())
         return context
 
 
-class TranStatusReleaseView(TranStatusReleasesView):
+class TranStatusReleaseView(ManagersMixin, TemplateView):
     """
     Translation Status Release View
     """
-    template_name = "stats/trans_status_release.html"
+    template_name = "releases/release_view.html"
 
     def get_context_data(self, **kwargs):
         context = super(TranStatusReleaseView, self).get_context_data(**kwargs)
         if not self.release_branch_manager.is_relbranch_exist(
                 kwargs.get('release_branch', '')):
             raise Http404("Release does not exist.")
+        langs = self.inventory_manager.get_locale_lang_tuple()
+        if langs:
+            context['languages'] = sorted(langs, key=lambda x: x[1])
+        relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
+        context['releases'] = relbranches
         release_stream = self.release_branch_manager.get_release_branches(
             relbranch=kwargs.get('release_branch'), fields=['product_slug']).get()
         if release_stream:
             context['release_stream'] = release_stream.product_slug.product_slug
+        context['release_branch'] = kwargs.get('release_branch')
         return context
 
 
@@ -192,7 +207,7 @@ class TransCoverageView(ManagersMixin, TemplateView):
     """
     Translation Coverage View
     """
-    template_name = "stats/custom_graph.html"
+    template_name = "graph_rules/graph_rule_view.html"
 
     def get_context_data(self, **kwargs):
         """
@@ -202,7 +217,6 @@ class TransCoverageView(ManagersMixin, TemplateView):
         graph_rules = self.graph_manager.get_graph_rules(only_active=True)
         if graph_rules:
             context['rules'] = graph_rules
-        context.update(self.get_summary())
         return context
 
 
@@ -210,7 +224,7 @@ class LanguagesSettingsView(ManagersMixin, ListView):
     """
     Languages Settings View
     """
-    template_name = "settings/languages.html"
+    template_name = "languages/language_list.html"
     context_object_name = 'locales'
 
     def get_queryset(self):
@@ -239,7 +253,7 @@ class TransPlatformSettingsView(ManagersMixin, ListView):
     """
     Translation Platform Settings View
     """
-    template_name = "settings/transplatforms.html"
+    template_name = "platforms/platform_list.html"
     context_object_name = 'platforms'
 
     def get_queryset(self):
@@ -247,30 +261,21 @@ class TransPlatformSettingsView(ManagersMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(TransPlatformSettingsView, self).get_context_data(**kwargs)
-        platforms_set = self.inventory_manager.get_translation_platforms()
+        platforms_set = self.inventory_manager.get_transplatforms_set()
         if isinstance(platforms_set, tuple):
             active_platforms, inactive_platforms = platforms_set
             context['active_platforms_len'] = len(active_platforms)
             context['inactive_platforms_len'] = len(inactive_platforms)
+        # Join supported platform names with ',' and make it titlecase
+        context['transplatform_engines'] = ', '.join(TRANSPLATFORM_ENGINES).title()
         return context
-
-
-class ReleaseStreamSettingsView(ManagersMixin, ListView):
-    """
-    Release Streams Settings View
-    """
-    template_name = "settings/release_streams.html"
-    context_object_name = 'relstreams'
-
-    def get_queryset(self):
-        return self.inventory_manager.get_release_streams()
 
 
 class StreamBranchesSettingsView(ManagersMixin, TemplateView):
     """
     Stream Branches Settings View
     """
-    template_name = "settings/stream_branches.html"
+    template_name = "releases/product_release_list.html"
 
     def get_context_data(self, **kwargs):
         context = super(StreamBranchesSettingsView, self).get_context_data(**kwargs)
@@ -291,7 +296,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
     """
     New Release Branch View
     """
-    template_name = "settings/relbranch_new.html"
+    template_name = "releases/product_release_new.html"
 
     def _get_relstream(self):
         try:
@@ -368,7 +373,7 @@ class PackageSettingsView(ManagersMixin, ListView):
     """
     Packages Settings View
     """
-    template_name = "settings/packages.html"
+    template_name = "packages/package_list.html"
     context_object_name = 'packages'
 
     def get_queryset(self):
@@ -379,13 +384,16 @@ class NewPackageView(ManagersMixin, FormView):
     """
     New Package Form View
     """
-    template_name = "settings/package_new.html"
-    success_url = "/settings/packages/new"
+    template_name = "packages/package_new.html"
+
+    def get_success_url(self):
+        return reverse('package-new')
 
     def get_initial(self):
         initials = {}
-        initials.update(dict(transplatform_slug='ZNTAFED'))
-        initials.update(dict(release_streams='RHEL'))
+        initials.update(dict(transplatform_slug=ZANATA_SLUGS[1]))
+        default_product = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0]
+        initials.update(dict(release_streams=default_product))
         return initials
 
     def get_form(self, form_class=None, data=None):
@@ -393,8 +401,8 @@ class NewPackageView(ManagersMixin, FormView):
         active_platforms = \
             self.inventory_manager.get_transplatform_slug_url()
         active_streams = self.inventory_manager.get_relstream_slug_name()
-        kwargs.update({'transplatform_choices': active_platforms})
-        kwargs.update({'relstream_choices': active_streams})
+        kwargs.update({'platform_choices': active_platforms})
+        kwargs.update({'products_choices': active_streams})
         kwargs.update({'initial': self.get_initial()})
         if data:
             kwargs.update({'data': data})
@@ -407,6 +415,8 @@ class NewPackageView(ManagersMixin, FormView):
         # Check for required fields
         required_params = ('package_name', 'upstream_url', 'transplatform_slug', 'release_streams')
         if not set(required_params) <= set(post_params.keys()):
+            messages.add_message(request, messages.ERROR, (
+                'One of the required fields is missing.'))
             return render(request, self.template_name, {'form': form})
         # Validate package with translation platform
         validate_package = self.packages_manager.validate_package(**post_params)
@@ -426,15 +436,29 @@ class NewPackageView(ManagersMixin, FormView):
                 messages.add_message(request, messages.SUCCESS, (
                     'Great! Package added successfully.'
                 ))
-            return HttpResponseRedirect(self.success_url)
+            return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
+
+
+class UpdatePackageView(SuccessMessageMixin, UpdateView):
+    """
+    Update Package view
+    """
+    template_name = 'packages/package_update.html'
+    model = Package
+    slug_field = 'package_name'
+    form_class = UpdatePackageForm
+    success_message = '%(package_name)s was updated successfully!'
+
+    def get_success_url(self):
+        return reverse('package-update', args=[self.object.package_name])
 
 
 class GraphRulesSettingsView(ManagersMixin, ListView):
     """
     Graph Rules Settings View
     """
-    template_name = "settings/graph_rules.html"
+    template_name = "graph_rules/graph_rule_list.html"
     context_object_name = 'rules'
 
     def get_queryset(self):
@@ -445,8 +469,10 @@ class NewGraphRuleView(ManagersMixin, FormView):
     """
     New Graph Rule View
     """
-    template_name = "settings/graphrule_new.html"
-    success_url = "/settings/graph-rules/new"
+    template_name = "graph_rules/graph_rule_new.html"
+
+    def get_success_url(self):
+        return reverse('settings-graph-rules-new')
 
     def get_initial(self):
         initials = {}
@@ -504,13 +530,13 @@ class NewGraphRuleView(ManagersMixin, FormView):
                 messages.add_message(request, messages.SUCCESS, (
                     'Great! Graph rule added successfully.'
                 ))
-            return HttpResponseRedirect(self.success_url)
+            return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
 
 class JobsView(ManagersMixin, TemplateView):
     """
-    Logs Settings View
+    Predefined Jobs View
     """
     template_name = "jobs/jobs_home.html"
 
@@ -527,6 +553,13 @@ class JobsView(ManagersMixin, TemplateView):
         return context
 
 
+class YMLBasedJobs(JobsView):
+    """
+    YML Based Jobs View
+    """
+    template_name = "jobs/jobs_yml_based.html"
+
+
 class JobsLogsView(ManagersMixin, ListView):
     """
     Logs List View
@@ -536,7 +569,7 @@ class JobsLogsView(ManagersMixin, ListView):
 
     def get_queryset(self):
         job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[:15]
+        return job_logs[:25]
 
 
 class JobsLogsPackageView(ManagersMixin, ListView):
@@ -563,7 +596,7 @@ class JobsArchiveView(ManagersMixin, ListView):
 
     def get_queryset(self):
         job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[15:]
+        return job_logs[25:]
 
 
 class JobDetailView(ManagersMixin, DetailView):
@@ -575,6 +608,83 @@ class JobDetailView(ManagersMixin, DetailView):
     model = Job
     slug_field = 'job_uuid'
     slug_url_kwarg = 'job_id'
+
+
+class NewLanguageView(SuccessMessageMixin, CreateView):
+    """
+    New language view
+    """
+    template_name = "languages/language_new.html"
+    form_class = NewLanguageForm
+    success_message = '%(lang_name)s was added successfully!'
+
+    def get_success_url(self):
+        return reverse('language-new')
+
+
+class UpdateLanguageView(SuccessMessageMixin, UpdateView):
+    """
+    Update language view
+    """
+    template_name = 'languages/language_update.html'
+    model = Language
+    form_class = UpdateLanguageForm
+    success_message = '%(lang_name)s was updated successfully!'
+
+    def get_success_url(self):
+        return reverse('language-update', args=[self.object.locale_id])
+
+
+class NewLanguageSetView(SuccessMessageMixin, CreateView):
+    """
+    New language set view
+    """
+    template_name = "languages/language_set_new.html"
+    form_class = LanguageSetForm
+    success_message = '%(lang_set_name)s was added successfully!'
+
+    def get_success_url(self):
+        return reverse('language-set-new')
+
+
+class UpdateLanguageSetView(SuccessMessageMixin, UpdateView):
+    """
+    Update language set view
+    """
+    template_name = "languages/language_set_update.html"
+    model = LanguageSet
+    form_class = LanguageSetForm
+    slug_field = 'lang_set_slug'
+    success_message = '%(lang_set_name)s was updated successfully!'
+
+    def get_success_url(self):
+        return reverse('language-set-update', args=[self.object.lang_set_slug])
+
+
+class NewTransPlatformView(SuccessMessageMixin, CreateView):
+    """
+    New TransPlatform view
+    """
+    template_name = "platforms/platform_new.html"
+    form_class = NewTransPlatformForm
+    success_message = '%(platform_slug)s was added successfully!'
+
+    def get_success_url(self):
+        return reverse('transplatform-new')
+
+
+class UpdateTransPlatformView(SuccessMessageMixin, UpdateView):
+    """
+    Update TransPlatform view
+    """
+    template_name = "platforms/platform_update.html"
+    form_class = UpdateTransPlatformForm
+    success_message = '%(platform_slug)s was updated successfully!'
+    model = Platform
+    slug_field = 'platform_slug'
+
+    def get_success_url(self):
+        return reverse('transplatform-update', args=[self.object.platform_slug])
 
 
 def schedule_job(request):
@@ -591,7 +701,7 @@ def schedule_job(request):
             transplatform_sync_manager = TransplatformSyncManager(**{'active_user_email': active_user_email})
             job_uuid = transplatform_sync_manager.syncstats_initiate_job()
             if job_uuid:
-                message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
                           "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
                 transplatform_sync_manager.sync_trans_stats()
             else:
@@ -600,7 +710,7 @@ def schedule_job(request):
             relschedule_sync_manager = ReleaseScheduleSyncManager(**{'active_user_email': active_user_email})
             job_uuid = relschedule_sync_manager.syncschedule_initiate_job()
             if job_uuid:
-                message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
                           "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
                 relschedule_sync_manager.sync_release_schedule()
             else:
@@ -639,7 +749,7 @@ def schedule_job(request):
             buildtags_sync_manager = BuildTagsSyncManager(**{'active_user_email': active_user_email})
             job_uuid = buildtags_sync_manager.syncbuildtags_initiate_job()
             if job_uuid:
-                message = "&nbsp;&nbsp;<span class='glyphicon glyphicon-check' style='color:green'></span>" + \
+                message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
                           "&nbsp;Job created and logged! UUID: <a href='/jobs/logs'>" + str(job_uuid) + "</a>"
                 buildtags_sync_manager.sync_build_tags()
             else:
@@ -920,3 +1030,38 @@ def job_template(request):
                         """
         return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)
+
+
+def change_lang_status(request):
+    """
+    Enable or disable language. Checks the given parameters, if all parameters are correct then changes status
+    of the language. The request should be an ajax call having data in following format,
+
+        {'language': <locale_id>, 'status': <'enable'/'disable'>}
+
+    :param request: Request object
+    :returns: HttpResponse object
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        language = post_params.get('language', '')
+        new_lang_status = post_params.get('status', '')
+        inventory_manager = InventoryManager()
+        available_languages = [language.locale_id for language in inventory_manager.get_locales()]
+        if language and new_lang_status:
+            if language not in available_languages:
+                return HttpResponse('Language not available', status=422)
+            if new_lang_status not in ['enable', 'disable']:
+                return HttpResponse("Status should be 'enable' or 'disable'", status=422)
+            try:
+                language_object = Language.objects.get(locale_id=language)
+                language_object.lang_status = True if new_lang_status == 'enable' else False
+                language_object.save()
+            except Exception as status_change_error:
+                return HttpResponse(str(status_change_error), status=500)
+            else:
+                return HttpResponse("language {0}d successfully!".format(new_lang_status), status=202)
+        else:
+            return HttpResponse("Parameters missing", status=422)
+    else:
+        return HttpResponse("Not an ajax call", status=400)

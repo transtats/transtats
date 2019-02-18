@@ -1,6 +1,6 @@
 import os
 from setuptools import find_packages, setup
-from transtats import __version__
+from transtats import __appname__, __version__, __description__
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
@@ -12,13 +12,13 @@ with open(os.path.join(os.path.dirname(__file__), "requirements", "base.txt"), '
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
-    name='transtats',
+    name=__appname__,
     version=__version__,
     packages=find_packages(),
     include_package_data=True,
     install_requires=REQUIRE,
     license='Apache License 2.0',
-    description='translation completeness across packages for releases',
+    description=__description__,
     long_description=README,
     url='http://transtats.org/',
     author='Sundeep Anand',

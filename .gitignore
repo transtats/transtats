@@ -75,6 +75,9 @@ freeze.txt
 *.patch
 dashboard/sandbox/*
 staticfiles/
+package-lock.json
+false/
+transtats/node/node_modules/
 
 # IDE
 .idea/

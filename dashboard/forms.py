@@ -16,17 +16,35 @@
 # third party
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (
-    Submit, Layout, Field, HTML, Reset
+    Submit, Layout, Field, HTML, Reset, Row
 )
 from crispy_forms.bootstrap import (
     FormActions, InlineRadios, Div, InlineCheckboxes
 )
+from slugify import slugify
 
 # django
 from django import forms
 
+# dashboard
+from dashboard.models import (Language, LanguageSet, Platform, Package)
+from dashboard.managers.inventory import InventoryManager
+from dashboard.managers.packages import PackagesManager
+from dashboard.constants import (
+    TRANSPLATFORM_ENGINES,
+    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS
+)
 
 __all__ = ['NewPackageForm', 'NewReleaseBranchForm', 'NewGraphRuleForm']
+
+ENGINE_CHOICES = tuple([(engine, engine.upper())
+                        for engine in TRANSPLATFORM_ENGINES])
+
+all_platform_slugs = []
+all_platform_slugs.extend(TRANSIFEX_SLUGS)
+all_platform_slugs.extend(ZANATA_SLUGS)
+all_platform_slugs.extend(DAMNEDLIES_SLUGS)
+SLUG_CHOICES = tuple([(slug, slug) for slug in all_platform_slugs])
 
 
 class TextArrayField(forms.MultipleChoiceField):
@@ -47,8 +65,8 @@ class NewPackageForm(forms.Form):
     """
     Add new package to package list
     """
-    transplatform_choices = ()
-    relstream_choices = ()
+    platform_choices = ()
+    products_choices = ()
 
     package_name = forms.CharField(
         label='Package Name', help_text='Package id as-in translation platform. Use hyphen (-) to separate words.', required=True,
@@ -58,24 +76,24 @@ class NewPackageForm(forms.Form):
     )
     transplatform_slug = forms.ChoiceField(
         label='Translation Platform',
-        choices=transplatform_choices, help_text='Translation statistics will be fetched from this server.'
+        choices=platform_choices, help_text='Translation statistics will be fetched from this server.'
     )
     release_streams = TextArrayField(
-        label='Products', widget=forms.CheckboxSelectMultiple, choices=relstream_choices,
+        label='Products', widget=forms.CheckboxSelectMultiple, choices=products_choices,
         help_text="Translation progress for selected products will be tracked."
     )
 
     def __init__(self, *args, **kwargs):
-        self.transplatform_choices = kwargs.pop('transplatform_choices')
-        self.relstream_choices = kwargs.pop('relstream_choices')
+        self.platform_choices = kwargs.pop('platform_choices')
+        self.products_choices = kwargs.pop('products_choices')
         super(NewPackageForm, self).__init__(*args, **kwargs)
-        self.fields['transplatform_slug'].choices = self.transplatform_choices
-        self.fields['release_streams'].choices = self.relstream_choices
+        self.fields['transplatform_slug'].choices = self.platform_choices
+        self.fields['release_streams'].choices = self.products_choices
         super(NewPackageForm, self).full_clean()
 
     helper = FormHelper()
     helper.form_method = 'POST'
-    helper.form_action = '/settings/packages/new'
+    helper.form_action = '/packages/new'
     helper.form_class = 'dynamic-form'
     helper.error_text_inline = True
     helper.form_show_errors = True
@@ -83,19 +101,78 @@ class NewPackageForm(forms.Form):
     helper.layout = Layout(
         Div(
             Field('package_name', css_class='form-control', onkeyup="showPackageSlug()"),
-            Field('upstream_url', css_class='form-control', onkeyup="showUpstreamName()"),
-            Field('transplatform_slug', css_class='selectpicker', onchange="showTransplatformId()"),
+            Field('upstream_url', css_class='form-control'),
+            Field('transplatform_slug', css_class='selectpicker'),
             InlineCheckboxes('release_streams'),
             HTML("<hr/>"),
             HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),
             FormActions(
-                Submit('addPackage', 'Add Package'), Reset('reset', 'Reset')
+                Submit('addPackage', 'Add Package'),
+                Reset('reset', 'Reset', css_class='btn-danger')
             )
         )
     )
 
     def is_valid(self):
         return False if len(self.errors) >= 1 else True
+
+
+class UpdatePackageForm(forms.ModelForm):
+    """
+    Update package form
+    """
+    products = TextArrayField(widget=forms.CheckboxSelectMultiple)
+
+    def __init__(self, *args, **kwargs):
+        super(UpdatePackageForm, self).__init__(*args, **kwargs)
+        inventory_manager = InventoryManager()
+        self.fields['platform_slug'].choices = inventory_manager.get_transplatform_slug_url()
+        self.fields['products'].choices = inventory_manager.get_relstream_slug_name()
+
+    class Meta:
+        model = Package
+        fields = ['package_name', 'upstream_url', 'platform_slug', 'platform_url',
+                  'products', 'release_branch_mapping']
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('package_name', css_class='form-control', readonly=True),
+            Field('upstream_url', css_class='form-control'),
+            Field('platform_slug', css_class='selectpicker'),
+            Field('platform_url', css_class='form-control'),
+            InlineCheckboxes('products'),
+            Field('release_branch_mapping', css_class='form-control', rows=4),
+            FormActions(
+                Submit('updatePackage', 'Update Package'), Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+    def clean_package_name(self):
+        """
+        Don't allow to override the value of 'package_name' as it is readonly field
+        """
+        package_name = getattr(self.instance, 'package_name', None)
+        if package_name:
+            return package_name
+        else:
+            return self.cleaned_data.get('package_name', None)
+
+    def clean(self):
+        """
+        Check if the package name exist on the selected translation platform, if not add error message for package_name
+        """
+        cleaned_data = super().clean()
+        package_name = cleaned_data['package_name']
+        platform_slug = getattr(cleaned_data['platform_slug'], 'platform_slug', None)
+        packages_manager = PackagesManager()
+        validate_package = packages_manager.validate_package(package_name=package_name,
+                                                             transplatform_slug=platform_slug)
+        if not validate_package:
+            self.add_error('package_name', "Not found at selected translation platform")
 
 
 class NewReleaseBranchForm(forms.Form):
@@ -112,6 +189,8 @@ class NewReleaseBranchForm(forms.Form):
     release_name = forms.CharField(
         label='Release Branch Name', help_text='Version of the release stream.', required=True,
     )
+    # Placeholder field for showing the slug on the form, this will be disabled
+    relbranch_slug = forms.CharField(label='Release Branch Slug')
     current_phase = forms.ChoiceField(
         label='Current Phase', choices=phases_choices, required=True,
         help_text='Phase in which this version/branch is running.'
@@ -148,13 +227,14 @@ class NewReleaseBranchForm(forms.Form):
     helper.layout = Layout(
         Div(
             Field('release_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
+            Field('release_slug', disabled=True),
             Field('current_phase', css_class='selectpicker'),
             Field('lang_set', css_class='selectpicker'),
             Field('calendar_url', css_class='form-control'),
             InlineCheckboxes('enable_flags'),
             HTML("<hr/>"),
             FormActions(
-                Submit('addrelbranch', 'Add Release Branch'), Reset('reset', 'Reset')
+                Submit('addrelbranch', 'Add Release Branch'), Reset('reset', 'Reset', css_class='btn-danger')
             )
         )
     )
@@ -180,7 +260,7 @@ class NewGraphRuleForm(forms.Form):
         required=True
     )
     rule_packages = TextArrayField(
-        label='Packages', widget=forms.CheckboxSelectMultiple, choices=rule_packages_choices,
+        label='Packages', widget=forms.SelectMultiple, choices=rule_packages_choices,
         help_text="Selected packages will be included in this rule.", required=True
     )
     lang_selection = forms.ChoiceField(
@@ -191,7 +271,7 @@ class NewGraphRuleForm(forms.Form):
         help_text="Either pick language set associated with selected release branch or choose languages."
     )
     rule_langs = TextArrayField(
-        label='Languages', widget=forms.CheckboxSelectMultiple, choices=rule_langs_choices,
+        label='Languages', widget=forms.SelectMultiple, choices=rule_langs_choices,
         help_text="Selected languages will be included in this rule.", required=False
     )
 
@@ -207,7 +287,6 @@ class NewGraphRuleForm(forms.Form):
 
     helper = FormHelper()
     helper.form_method = 'POST'
-    helper.form_action = '/settings/graph-rules/new'
     helper.form_class = 'dynamic-form'
     helper.error_text_inline = True
     helper.form_show_errors = True
@@ -216,15 +295,216 @@ class NewGraphRuleForm(forms.Form):
         Div(
             Field('rule_name', css_class="form-control", onkeyup="showRuleSlug()"),
             Field('rule_relbranch', css_class="selectpicker"),
-            InlineCheckboxes('rule_packages', css_class="checkbox"),
+            Field('rule_packages', css_class="selectpicker"),
             InlineRadios('lang_selection', id="lang_selection_id"),
-            InlineCheckboxes('rule_langs', css_class="checkbox"),
+            Field('rule_langs', css_class="selectpicker"),
             HTML("<hr/>"),
             FormActions(
-                Submit('addRule', 'Add Graph Rule'), Reset('reset', 'Reset')
+                Submit('addRule', 'Add Graph Rule'),
+                Reset('reset', 'Reset', css_class='btn-danger')
             )
         )
     )
 
     def is_valid(self):
         return False if len(self.errors) >= 1 else True
+
+
+class NewLanguageForm(forms.ModelForm):
+    """
+    Add new language form
+    """
+    def __init__(self, *args, **kwargs):
+        super(NewLanguageForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Language
+        fields = '__all__'
+
+    locale_id = forms.SlugField(label='Locale ID')
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('lang_name', css_class='form-control'),
+            Field('locale_id', css_class='form-control'),
+            Field('locale_script', css_class='form-control'),
+            Field('locale_alias', css_class='form-control'),
+            Field('lang_status', css_class='bootstrap-switch'),
+            FormActions(
+                Submit('addLanguage', 'Add Language'), Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+
+class UpdateLanguageForm(forms.ModelForm):
+    """
+    Update language form
+    """
+    def __init__(self, *args, **kwargs):
+        super(UpdateLanguageForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Language
+        fields = '__all__'
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('locale_id', css_class='form-control', readonly=True),
+            Field('lang_name', css_class='form-control'),
+            Field('locale_script', css_class='form-control'),
+            Field('locale_alias', css_class='form-control'),
+            Field('lang_status', css_class='bootstrap-switch'),
+            FormActions(
+                Submit('updateLanguage', 'Update Language'), Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+    def clean_locale_id(self):
+        """
+        Set the original value of locale_id even if POST has new value. Retrieves value from instance of Languages
+        being updated. If it's None, then returns the value entered by user.
+        """
+        locale_id = getattr(self.instance, 'locale_id', None)
+        if locale_id:
+            return locale_id
+        else:
+            return self.cleaned_data.get('locale_id', None)
+
+
+class LanguageSetForm(forms.ModelForm):
+    """
+    Language set form, for new language set and update language set
+    """
+    class Meta:
+        model = LanguageSet
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(LanguageSetForm, self).__init__(*args, **kwargs)
+        inventory_manager = InventoryManager()
+        self.fields['locale_ids'].choices = tuple([(locale.locale_id, locale.lang_name)
+                                                   for locale in inventory_manager.get_locales()])
+
+    lang_set_slug = forms.SlugField(label='Language Set SLUG')
+    locale_ids = TextArrayField(label='Languages', widget=forms.SelectMultiple,)
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('lang_set_name', css_class='form-control'),
+            Field('lang_set_slug', css_class='form-control'),
+            Field('locale_ids', css_class='selectpicker'),
+            Row(
+                Field('lang_set_color', css_class='form-control'),
+                FormActions(
+                    Submit('addLanguageSet', 'Add Language Set'), Reset('reset', 'Reset', css_class='btn-danger')
+                ),
+                css_class='col-xs-3'
+            ),
+        )
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        lang_set = cleaned_data['lang_set_name']
+        cleaned_data['lang_set_slug'] = slugify(lang_set)
+        return cleaned_data
+
+
+class NewTransPlatformForm(forms.ModelForm):
+    """
+    Add new TransPlatform form
+    """
+    def __init__(self, *args, **kwargs):
+        super(NewTransPlatformForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Platform
+        fields = ['engine_name', 'subject', 'api_url', 'platform_slug', 'server_status', 'server_status',
+                  'auth_login_id', 'auth_token_key']
+
+    engine_name = forms.ChoiceField(
+        choices=ENGINE_CHOICES, label="Platform Engine",
+        help_text="Platform engine helps system to determine specific API/tasks."
+    )
+    platform_slug = forms.ChoiceField(
+        choices=SLUG_CHOICES, label="Platform SLUG",
+        help_text="Please identify SLUG carefully. Example: ZNTAPUB should be for zanata public instance.",
+    )
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('engine_name', css_class='form-control'),
+            Field('subject', css_class='form-control'),
+            Field('api_url', css_class='form-control'),
+            Field('platform_slug', css_class='form-control'),
+            Field('server_status', css_class='bootstrap-switch'),
+            Field('auth_login_id', css_class='form-control'),
+            Field('auth_token_key', css_class='form-control'),
+            FormActions(
+                Submit('addTransPlatform', 'Add Translation Platform'), Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+
+class UpdateTransPlatformForm(forms.ModelForm):
+    """
+    Update TransPlatform form
+    """
+    def __init__(self, *args, **kwargs):
+        super(UpdateTransPlatformForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Platform
+        fields = ['engine_name', 'subject', 'api_url', 'platform_slug', 'server_status',
+                  'auth_login_id', 'auth_token_key']
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('engine_name', css_class='form-control', readonly=True),
+            Field('subject', css_class='form-control'),
+            Field('api_url', css_class='form-control'),
+            Field('platform_slug', css_class='form-control', readonly=True),
+            Field('server_status', css_class='bootstrap-switch'),
+            Field('auth_login_id', css_class='form-control'),
+            Field('auth_token_key', css_class='form-control'),
+            FormActions(
+                Submit('updateTransPlatform', 'Update Translation Platform'),
+                Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+    def clean_engine_name(self):
+        """
+        Don't allow to override the value of 'engine_name' as it is readonly field
+        """
+        engine_name = getattr(self.instance, 'engine_name', None)
+        if engine_name:
+            return engine_name
+        else:
+            return self.cleaned_data.get('engine_name', None)
+
+    def clean_platform_slug(self):
+        """
+        Don't allow to override the value of 'platform_slug' as it is readonly field
+        """
+        platform_slug = getattr(self.instance, 'platform_slug', None)
+        if platform_slug:
+            return platform_slug
+        else:
+            return self.cleaned_data.get('platform_slug', None)

@@ -6,40 +6,54 @@
     li{margin-left:2px}.stepwizard-step p{margin-top:10px}.stepwizard-row{display:table-row}.stepwizard{display:table;width:50%;position:relative}.stepwizard-step button[disabled]{opacity:1!important;filter:alpha(opacity=100)!important}.stepwizard-row:before{top:14px;bottom:0;position:absolute;content:" ";width:100%;height:1px;background-color:#ccc;z-order:0}.stepwizard-step{display:table-cell;text-align:center;position:relative}.btn-circle{width:30px;height:30px;text-align:center;padding:6px 0;font-size:12px;line-height:1.428571429;border-radius:15px}.scrollable-panel{height:600px;overflow-y:scroll;width:100%}
 </style>
 <script src="/static/js/csrf.js"></script>
+<script src="/static/bootstrap-select/js/bootstrap-select.js"></script>
 <script type="text/javascript">
     function csrfSafeMethod(t){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(t)}function getUrlVars(){for(var t,e=[],a=window.location.href.slice(window.location.href.indexOf("?")+1).split("&"),r=0;r<a.length;r++)t=a[r].split("="),e.push(t[0]),e[t[0]]=t[1];return e}function ajax_job_template(t){$.ajax({beforeSend:function(t,e){csrfSafeMethod(e.type)||this.crossDomain||(csrftoken?t.setRequestHeader("X-CSRFToken",csrftoken):t.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-job-template' %}",data:{template:t},success:function(t){t&&$("#jobTemplate").html(t)}})}$(document).ready(function(){$("#tab-yml-based").addClass("active"),getUrlVars().template&&ajax_job_template(getUrlVars().template);var r=$("div.setup-panel div a"),n=$(".setup-content"),t=$(".nextBtn"),e=$(".prevBtn");n.hide(),r.click(function(t){t.preventDefault();var e=$($(this).attr("href")),a=$(this);a.hasClass("disabled")||(r.removeClass("btn-primary").addClass("btn-default"),a.addClass("btn-primary"),n.hide(),e.show(),e.find("input:eq(0)").focus())}),e.click(function(){var t=$(this).closest(".setup-content").attr("id");$('div.setup-panel div a[href="#'+t+'"]').parent().prev().children("a").removeAttr("disabled").trigger("click")}),t.click(function(){var t=$(this).closest(".setup-content"),e=t.attr("id"),a=$('div.setup-panel div a[href="#'+e+'"]').parent().next().children("a"),r=t.find("input[type='text'],input[type='url']"),n=!0;$(".form-group").removeClass("has-error");for(var i=0;i<r.length;i++)r[i].validity.valid||(n=!1,$(r[i]).closest(".form-group").addClass("has-error"));n&&a.removeAttr("disabled").trigger("click")}),$("div.setup-panel div a.btn-primary").trigger("click"),$(function(){$(".dropdown-menu a").click(function(){console.log($(this).attr("data-value")),$(this).closest(".dropdown").find("input.options").val($(this).attr("data-value"))})})});
 </script>
 {% endblock %}
 
-{% block navigation %}
-    <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
-    <a href="{% url 'jobs' %}" class="btn btn-default">Jobs</a>
-    <a href="{% url 'jobs-yml-based' %}" class="btn btn-default">YML based Jobs</a>
-{% endblock %}
+{% block pagecontent %}
+<div class="row row-cards-pf">
+  <div class="col-xs-12">
+    <div class="card-pf card-pf-utilization" id="card-packages-summary">
+      <div class="card-pf-heading">
+        <h2 class="card-pf-title">YML Based Jobs
+            <span class="pull-right">
+            {% if jobs_count > 0 and job_last_ran_on %}
+                <h5 class="text-muted">Last successful job ran on <span class="text-info">{{ job_last_ran_on }}</span>
+                    of type <span class="text-info">{{ job_last_ran_type }}</span>.</h5>
+            {% endif %}
+        </span></h2>
+      </div>
+      <div class="card-pf-body">
 
-{% block tabcontent %}
-    <div class="stepwizard col-md-offset-3">
-        <div class="stepwizard-row setup-panel">
-          <div class="stepwizard-step">
-            <a href="#step-1" type="button" class="btn btn-primary btn-circle">1</a>
-            <p>Pick Template</p>
-          </div>
-          <div class="stepwizard-step">
-            <a href="#step-2" type="button" class="btn btn-default btn-circle" disabled="disabled">2</a>
-            <p>Define Tasks</p>
-          </div>
-          <div class="stepwizard-step">
-            <a href="#step-3" type="button" class="btn btn-default btn-circle" disabled="disabled">3</a>
-            <p>Set Values</p>
-          </div>
-          <div class="stepwizard-step">
-            <a href="#step-4" type="button" class="btn btn-default btn-circle" disabled="disabled">4</a>
-            <p>Trigger Job</p>
-          </div>
+        <div class="stepwizard col-md-offset-3">
+            <div class="stepwizard-row setup-panel">
+              <div class="stepwizard-step">
+                <a href="#step-1" type="button" class="btn btn-primary btn-circle">1</a>
+                <p>Pick Template</p>
+              </div>
+              <div class="stepwizard-step">
+                <a href="#step-2" type="button" class="btn btn-default btn-circle" disabled="disabled">2</a>
+                <p>Define Tasks</p>
+              </div>
+              <div class="stepwizard-step">
+                <a href="#step-3" type="button" class="btn btn-default btn-circle" disabled="disabled">3</a>
+                <p>Set Values</p>
+              </div>
+              <div class="stepwizard-step">
+                <a href="#step-4" type="button" class="btn btn-default btn-circle" disabled="disabled">4</a>
+                <p>Trigger Job</p>
+              </div>
+            </div>
         </div>
+        <hr/>
+        <div id="jobTemplate" style="min-height:400px">
+            {% tag_job_form 'dummy' %}
+        </div>
+
+      </div>
     </div>
-    <hr/>
-    <div id="jobTemplate" style="min-height:400px">
-        {% tag_job_form 'dummy' %}
-    </div>
+  </div>
+</div>
 {% endblock %}

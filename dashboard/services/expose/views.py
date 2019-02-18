@@ -64,9 +64,7 @@ class PingServer(APIView):
 
     def get(self, request):
         """
-        GET response
-        :param request: Request object
-        :return: Custom JSON
+        Ping Transtats Server.
         """
         response_text = {"server": "Transtats " + __version__}
         if 'callback' in request.query_params and request.query_params.get('callback'):
@@ -81,10 +79,7 @@ class PackageExist(GraphManagerMixin, APIView):
     """
     def get(self, request, **kwargs):
         """
-        GET response
-        :param request: Request object
-        :param kwargs: Keyword Arguments
-        :return: Custom JSON
+        Determine, if the package exist in Transtats or not.
         """
         response_text = {}
         if kwargs.get('package_name'):
@@ -124,10 +119,7 @@ class PackageStatus(GraphManagerMixin, APIView):
 
     def get(self, request, **kwargs):
         """
-        GET response
-        :param request: Request object
-        :param kwargs: Keyword Arguments
-        :return: Custom JSON
+        Translation status of a package at various places.
         """
         response_text = {}
         if kwargs.get('package_name'):
@@ -175,10 +167,7 @@ class GraphRuleCoverage(GraphManagerMixin, APIView):
 
     def get(self, request, **kwargs):
         """
-        GET response
-        :param request: Request object
-        :param kwargs: Keyword Arguments
-        :return: Custom JSON
+        Translation coverage of multiple packages for a product release in selected languages.
         """
         response_text = {}
         if kwargs.get('graph_rule'):
@@ -212,10 +201,7 @@ class ReleaseStatus(InventoryManagerMixin, GraphManagerMixin, APIView):
 
     def get(self, request, **kwargs):
         """
-        GET response
-        :param request: Request object
-        :param kwargs: Keyword Arguments
-        :return: Custom JSON
+        Translation status of a product release for linked packages.
         """
         response_text = {}
         if kwargs.get('release_stream'):
@@ -239,10 +225,7 @@ class ReleaseStatusDetail(ReleaseStatus):
 
     def get(self, request, **kwargs):
         """
-        GET response
-        :param request: Request object
-        :param kwargs: Keyword Arguments
-        :return: Custom JSON
+        Detailed (language-wise) translation status of a product release.
         """
         response_text = {}
         if kwargs.get('release_stream'):
@@ -268,10 +251,7 @@ class ReleaseStatusLocale(ReleaseStatus):
 
     def get(self, request, **kwargs):
         """
-        GET response
-        :param request: Request object
-        :param kwargs: Keyword Arguments
-        :return: Custom JSON
+        Translation status of a product release in a particular language.
         """
         response_text = {}
         if kwargs.get('release_stream') and kwargs.get('locale'):
@@ -308,10 +288,7 @@ class RunJob(JobManagerMixin, APIView):
 
     def post(self, request, **kwargs):
         """
-        POST response
-        :param request: Request object
-        :param kwargs: Keyword Arguments
-        :return: Custom JSON
+        API to run YML Jobs. Requires authentication token.
         """
         data_received = self.request.data.copy()
         active_user = getattr(request, 'user', None)
@@ -379,10 +356,7 @@ class JobLog(JobManagerMixin, APIView):
 
     def get(self, request, **kwargs):
         """
-        GET response
-        :param request: Request object
-        :param kwargs: Keyword Arguments
-        :return: Custom JSON
+        Fetch details about a YML job ran successfully in Transtats.
         """
         response_text = {}
         response_code = None
