@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Route
 metadata:
   annotations:
-    haproxy.router.openshift.io/timeout: 7m
+    haproxy.router.openshift.io/timeout: 8m
   name: transtats-web
   labels:
     app: transtats
