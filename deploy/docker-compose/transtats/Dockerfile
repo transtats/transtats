@@ -17,7 +17,12 @@ RUN git clone -b master https://github.com/transtats/transtats.git .
 RUN pip3 install -r /workspace/requirements/base.txt
 RUN cp deploy/docker-compose/transtats/launch.sh /usr/bin/transtats.sh
 RUN cp deploy/docker-compose/transtats/wait-for-it.sh /usr/bin/wait-for-it.sh
+RUN cp deploy/docker/conf/redis.ini /etc/supervisord.d/
+RUN cp deploy/docker/conf/transtats_celery.ini /etc/supervisord.d/
+RUN cp deploy/docker/conf/transtats_celerybeat.ini /etc/supervisord.d/
 RUN mkdir staticfiles false run transtats/logs/celery
+RUN touch /workspace/transtats/logs/celery/redis.log
+RUN touch /workspace/transtats/logs/celery/redis_err.log
 RUN touch /workspace/transtats/logs/celery/transtats_worker.log
 RUN touch /workspace/transtats/logs/celery/transtats_beat.log
 RUN chmod -R g+w transtats/logs transtats/node dashboard/sandbox staticfiles false run
