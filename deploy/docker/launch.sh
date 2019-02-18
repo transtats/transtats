@@ -30,6 +30,11 @@ if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw $DATABASE_NAME; then
     sudo -u postgres psql -c "CREATE DATABASE $DATABASE_NAME ENCODING = 'UTF-8' LC_CTYPE = 'en_US.utf8' LC_COLLATE = 'en_US.utf8' template = template0;"
 fi
 
+if [ -e run/celerybeat.pid ]
+then
+    rm -f run/celerybeat.pid
+fi
+
 # configure db, activate celery and start application
 make migrate && python3 manage.py initlogin && make static
 supervisord -c /etc/supervisord.conf -j run/supervisord.pid --user root &
