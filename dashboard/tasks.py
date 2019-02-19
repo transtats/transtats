@@ -58,4 +58,5 @@ def task_sync_packages_with_platform():
         time.sleep(2)
 
     reports_manager.analyse_releases_status()
+    reports_manager.analyse_packages_status()
     logger.info("%s Packages sync'd with Translation Platform" % len(all_packages))
