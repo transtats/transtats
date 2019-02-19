@@ -12,3 +12,6 @@
 
 - name: Setup DB Schema
   shell: cd /workspace; make migrate
+
+- name: Setup Static Files
+  shell: cd /workspace; make static

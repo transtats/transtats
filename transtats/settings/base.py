@@ -57,6 +57,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'crispy_forms',
     'rest_framework',
+    'django_celery_beat',
     'dashboard.apps.DashboardConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -108,7 +109,7 @@ SESSION_COOKIE_SECURE = False
 WSGI_APPLICATION = 'transtats.wsgi.application'
 
 LOGIN_REDIRECT_URL = '/'
-
+BROKER_URL = 'redis://localhost:6379'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases

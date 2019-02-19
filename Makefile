@@ -1,4 +1,12 @@
 
+.PHONY: celeryd
+celeryd:
+	celery -A transtats worker -l info
+
+.PHONY: celery
+celery:
+	celery -A transtats beat -l info -S django_celery_beat.schedulers:DatabaseScheduler
+
 .PHONY: clean-pyc
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +

@@ -10,7 +10,7 @@ This directory contains files required to deploy Transtats on [OpenShift](https:
 - Run the following commands after you login to your cluster on terminal
 
   ```sh
-  $ oc new-project transtats-deployment
+  $ oc new-project transtats
   $ oc create -f deploy/openshift
   $ oc start-build transtats-build
   ```

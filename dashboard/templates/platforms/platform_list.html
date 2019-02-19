@@ -106,10 +106,12 @@
     Learn more about this
     <a href="#">on the documentation</a>.
   </p>
+  {% if user.is_staff %}
   <div class="blank-slate-pf-main-action">
     <a class="btn btn-primary btn-lg" href="{% url 'transplatform-new' %}">
       <i class="pficon pficon-add-circle-o"></i> Add translation platform</a>
   </div>
+  {% endif %}
 </div>
 {% endif %}
 <!-- /row -->

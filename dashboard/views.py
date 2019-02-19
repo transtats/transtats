@@ -583,7 +583,9 @@ class JobsLogsPackageView(ManagersMixin, ListView):
         job_logs = []
         pkg_name = self.request.resolver_match.kwargs.get('package_name')
         if pkg_name:
-            job_logs = self.jobs_log_manager.get_job_logs(remarks=pkg_name)
+            job_logs = self.jobs_log_manager.get_job_logs(
+                remarks=pkg_name, result=True
+            )
         return job_logs
 
 
@@ -728,6 +730,7 @@ def schedule_job(request):
                 return HttpResponse(message, status=500)
             else:
                 fields.append('DRY_RUN')
+                fields.append('SCRATCH')
                 job_manager = YMLBasedJobManager(
                     **{field: request.POST.dict().get(field) for field in fields},
                     **{'params': req_params, 'type': job_type},
@@ -741,10 +744,13 @@ def schedule_job(request):
                               "&nbsp;&nbsp;<small class='text-danger'>" + error_msg + " </small></span>"
                     return HttpResponse(message, status=500)
                 else:
-                    message = "&nbsp;&nbsp;<span class='text-success'>Success. Job URL: " \
-                              "<a href='/jobs/log/" + str(job_uuid) + "/detail'" \
-                              " data-toggle='tooltip' title='Copy this link to share!'>" + \
-                              str(job_uuid) + "</a></span>"
+                    if not request.POST.dict().get('SCRATCH', '') == 'ScratchRun':
+                        message = "&nbsp;&nbsp;<span class='text-success'>Success. Job URL: " \
+                                  "<a href='/jobs/log/" + str(job_uuid) + "/detail'" \
+                                  " data-toggle='tooltip' title='Copy this link to share!'>" + \
+                                  str(job_uuid) + "</a></span>"
+                    else:
+                        message = "&nbsp;&nbsp;<span class='text-success'>Success.</span>"
         elif job_type == TS_JOB_TYPES[4]:
             buildtags_sync_manager = BuildTagsSyncManager(**{'active_user_email': active_user_email})
             job_uuid = buildtags_sync_manager.syncbuildtags_initiate_job()
