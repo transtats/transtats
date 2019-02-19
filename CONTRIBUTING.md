@@ -20,6 +20,8 @@ Transtats server is a simple django application. If you have any questions on th
      * [Create superuser](#create-superuser)
      * [Load demo data](#load-demo-data)
      * [Generate Docs](#generate-docs)
+     * [Run celery worker](#run-celery-worker)
+     * [Run celery beat](#run-celery-beat)
 * [What should I start with?](#what-should-i-start-with)
 * [Submitting Pull Requests](#submitting-pull-requests)
 * [Reporting Issues](#reporting-issues)
@@ -123,7 +125,7 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
   $ git clone https://github.com/transtats/transtats.git; cd transtats
   $ mkvirtualenv transtats --python=`which python3.6` --system-site-packages
   $ echo `pwd` > /path/to/virtualenvs/transtats/.project
-  $ workon transtats; make devel; make migrate; make cache
+  $ workon transtats; make devel; make migrate; make static
   ```
 
 - Run application
@@ -153,7 +155,7 @@ If your code changes involves something to add in docs, go ahead and generate ne
 
 #### Run celery worker
 
-Use `make celeryd` to invoke celery worker. Make sure you're getting a PONG from `redis-cli ping` command.
+Use `make celeryd` to invoke celery worker. Make sure you're getting a `PONG` from `redis-cli ping` command.
 
 #### Run celery beat
 
