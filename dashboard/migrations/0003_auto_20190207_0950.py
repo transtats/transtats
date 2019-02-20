@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
 
         if settings.FAS_AUTH:
             Product.objects.filter(product_slug="fedora").update(
-                product_url='https://getfedora.org/'
+                product_url='https://getfedora.org/', msgbus_exchange="fedora-messaging"
             )
 
     def add_language(apps, schema_editor):
