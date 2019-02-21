@@ -24,10 +24,11 @@ To Do
 
 - Translation Status of Packages, sync with:
     - Translation Platform (Done)
-        - DamnedLies
-        - Zanata
+        - `DamnedLies <https://wiki.gnome.org/DamnedLies>`_
+        - `Transifex <https://www.transifex.com/>`_
+        - `Zanata <http://zanata.org/>`_
     - Upstream Repository (Done)
-        - git
+        - `git <https://git-scm.com/>`_
 
 - Transtats Jobs
     - YML Based Jobs
@@ -37,12 +38,12 @@ To Do
 
 - Translation Status of Packages, sync with:
     - Build System (Done)
-        - koji
+        - `koji <https://koji.fedoraproject.org/koji/>`_
 
 - Transtats Engagements
 
     - Interactions
-        - Dashboard: Integration of PatternFly UI (**In Progress**)
+        - Dashboard: Integration of `PatternFly <https://www.patternfly.org/>`_ UI (**In Progress**)
         - Better stats representation in
             - Release, Package and Job Details
         - Use-case based UI designs
@@ -55,7 +56,7 @@ To Do
 
 - Expanding Support
     - Translation Platform
-        - Weblate
+        - `Weblate <https://weblate.org>`_
     - Translation File Format *in Jobs*
         - Java files (``properties``, ``dtd``)
         - PHP, JS (``ini``, ``json``)
