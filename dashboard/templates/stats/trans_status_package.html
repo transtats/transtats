@@ -2,8 +2,8 @@
 {% load custom_tags %}
 
 {% block extrascript %}
-<script src="/static/js/jquery.flot.js"></script>
-<script src="/static/js/jquery.flot.tooltip.js"></script>
+<script src="/static/jquery.flot/jquery.flot.js"></script>
+<script src="/static/jquery.flot/jquery.flot.tooltip.js"></script>
 <script src="/static/js/waiting.dialog.js"></script>
 <script src="/static/js/csrf.js"></script>
 <style type="text/css">
@@ -17,7 +17,7 @@
 {% block navigation %}
     <a href="{% url 'home' %}" class="btn btn-default"><i class="glyphicon glyphicon-dashboard"></i></a>
     <a href="{% url 'trans-status-packages' %}" class="btn btn-default">Packages</a>
-    <a href="{% url 'trans-status-package' package_name %}" class="btn btn-default">{{ package_name }}</a>
+    <a href="{% url 'package-view' package_name %}" class="btn btn-default">{{ package_name }}</a>
 {% endblock %}
 
 {% block right-navigation %}

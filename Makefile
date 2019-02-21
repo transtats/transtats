@@ -1,4 +1,12 @@
 
+.PHONY: celeryd
+celeryd:
+	celery -A transtats worker -l info
+
+.PHONY: celery
+celery:
+	celery -A transtats beat -l info -S django_celery_beat.schedulers:DatabaseScheduler
+
 .PHONY: clean-pyc
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
@@ -24,7 +32,7 @@ env-info:
 
 .PHONY: lint
 lint:
-	flake8 --ignore=E501,F401,F403,F405 transtats dashboard
+	flake8 --ignore=E501,E722,F401,F403,F405,F841,W504 transtats dashboard
 
 .PHONY: migrations
 migrations:
@@ -39,9 +47,13 @@ run:
 	python3 manage.py runserver 0:8014
 
 .PHONY: static
-static:
+static: ui-deps 
 	python3 manage.py collectstatic --noinput
 
 .PHONY: test
 test:
 	python3 manage.py test dashboard.tests -v 2 --settings=transtats.settings.test
+
+.PHONY: ui-deps
+ui-deps:
+	npm --no-cache --prefix transtats/node install transtats/node

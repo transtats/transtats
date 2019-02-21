@@ -1,0 +1,46 @@
+<script>
+    var a = "<span>&nbsp;</span><span class='pull-right text-muted'>Stats are based on synced data and percentage is calculated on messages</span>";
+    $("#span-package-desc").html("{{ pkg_desc }}"); $("#div-graph-disclaimer").html(a);
+</script>
+{% if stats_data %}
+<div class="panel panel-default panel-border-ts">
+  <div class="panel-heading">
+    <h3 class="panel-title">Statistics</h3>
+    <span class="text-info">Stats coming from Upstream has AliceBlue background color whereas Downstream has Ivory color, and its transparent for Translation Platforms.</span>
+  </div>
+  <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>&nbsp;</th>
+          {% for lang in headers %}
+              <th>{{ lang }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for version, stats in stats_data.items %}
+        {% if version|lower == 'upstream' %}
+        <tr style="background-color:AliceBlue">
+        {% elif 'brew' in version|lower or 'koji' in version|lower%}
+        <tr style="background-color:Ivory">
+        {% else %}
+        <tr>
+        {% endif %}
+          <td><span class="text-info">{{ version }}</span></td>
+          {% for index, stat in stats %}
+              <td>
+                  {% if stat and stat == 100 %}
+                      <span class="text-success">{{ stat }}%</span>
+                  {% elif stat %}
+                      {{ stat }}%
+                  {% else %}
+                      <span class="text-muted">N/A</span>
+                  {% endif %}
+              </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+  </table>
+</div>
+{% endif %}

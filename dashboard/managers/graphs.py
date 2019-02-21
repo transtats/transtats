@@ -176,9 +176,9 @@ class GraphManager(BaseManager):
                 if index:
                     index.append(stats_tuple[1] or 0.0)
                     new_stats_list.append(index)
-            graph_data_dict[version] = self._normalize_stats(
-                sorted(new_stats_list), indexes
-            )
+            normalized_stats = self._normalize_stats(sorted(new_stats_list), indexes)
+            if len(list(filter(lambda x: x[1] > 0.0, normalized_stats))) > 0:
+                graph_data_dict[version] = normalized_stats
         stats_for_graphs_dict['graph_data'] = OrderedDict(sorted(graph_data_dict.items()))
         return stats_for_graphs_dict
 
@@ -437,7 +437,8 @@ class GraphManager(BaseManager):
             # flag incorrect branch mapping
             if len([i for i in temp_stat_list if i == 0]) == len(temp_stat_list):
                 package += "*"
-            workload_combined[package] = temp_stat_list
+            if temp_stat_list:
+                workload_combined[package] = temp_stat_list
         return headers, OrderedDict(sorted(workload_combined.items()))
 
     def get_workload_combined_detailed(self, release_branch):
@@ -462,6 +463,8 @@ class ReportsManager(GraphManager):
     """
     Manage Reports Generations
     """
+
+    package_manager = PackagesManager()
 
     def get_reports(self, report_subject):
         """
@@ -505,6 +508,11 @@ class ReportsManager(GraphManager):
         else:
             return True
 
+    def _filter_disabled_languages(self, lang_stats_dict):
+        active_locales = self.package_manager.get_locales(only_active=True)
+        active_languages = [locale.lang_name for locale in active_locales]
+        return {k: v for k, v in lang_stats_dict.items() if k in active_languages}
+
     def analyse_releases_status(self):
         """
         Summarize Releases Status
@@ -522,7 +530,9 @@ class ReportsManager(GraphManager):
                 relbranch_report[branch_name]['packages_need_attention'] = packages_need_attention
                 total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_messages)) or 0
                 relbranch_report[branch_name]['total_untranslated_msgs'] = total_untranslated_msgs
-                lang_stats_report = self.get_workload_combined_detailed(branch_slug)
+                lang_stats_report = self._filter_disabled_languages(
+                    self.get_workload_combined_detailed(branch_slug)
+                )
                 relbranch_report[branch_name]['languages'] = {}
                 for lang, pkg_stats in lang_stats_report.items():
                     untranslated_msgs = []

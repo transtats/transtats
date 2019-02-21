@@ -47,3 +47,4 @@ class Command(BaseCommand):
             time.sleep(2)
 
         self.reports_manager.analyse_releases_status()
+        self.reports_manager.analyse_packages_status()

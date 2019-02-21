@@ -61,7 +61,7 @@ def parse_ical_file(ical_content, relstream_slug):
     EVENT_BEGIN_SYMBOL = ""
     EVENT_END_SYMBOL = ""
 
-    if relstream_slug == RELSTREAM_SLUGS[0]:
+    if relstream_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2]):
         EVENT_BEGIN_SYMBOL = "BEGIN:VEVENT"
         EVENT_END_SYMBOL = "END:VEVENT"
     elif relstream_slug == RELSTREAM_SLUGS[1]:

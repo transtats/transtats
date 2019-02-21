@@ -1,0 +1,18 @@
+{% extends "form_base.html" %}
+{% block extrascript %}
+<script src="/static/bootstrap-switch/dist/js/bootstrap-switch.js"></script>
+{% endblock %}
+{% block formtitle %}
+Update translation platform
+{% endblock %}
+{% block formreturnurl %}
+{% url 'settings-trans-platforms' %}
+{% endblock %}
+{% block formscript %}
+<script>
+  $(function () {
+    $(".bootstrap-switch").bootstrapSwitch();
+    $(".bootstrap-switch").parent().css("padding-left", "0px");
+  });
+</script>
+{% endblock %}

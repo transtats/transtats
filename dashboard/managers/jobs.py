@@ -117,22 +117,25 @@ class JobManager(object):
         else:
             return True
 
-    def mark_job_finish(self):
+    def mark_job_finish(self, remove=None):
         """
         Update job with finish details
         """
         try:
-            Job.objects.filter(job_uuid=self.uuid).update(
-                job_end_time=timezone.now(),
-                job_log_json_str=json.dumps(self.log_json),
-                job_result=self.job_result,
-                job_remarks=self.job_remarks,
-                job_output_json_str=json.dumps(self.output_json),
-                job_template=self.job_template,
-                job_yml_text=self.job_yml,
-                job_params_json_str=json.dumps(self.job_params),
-                job_visible_on_url=self.visible_on_url
-            )
+            if remove:
+                Job.objects.filter(job_uuid=self.uuid).delete()
+            else:
+                Job.objects.filter(job_uuid=self.uuid).update(
+                    job_end_time=timezone.now(),
+                    job_log_json_str=json.dumps(self.log_json),
+                    job_result=self.job_result,
+                    job_remarks=self.job_remarks,
+                    job_output_json_str=json.dumps(self.output_json),
+                    job_template=self.job_template,
+                    job_yml_text=self.job_yml,
+                    job_params_json_str=json.dumps(self.job_params),
+                    job_visible_on_url=self.visible_on_url
+                )
         except:
             return False
         else:
@@ -144,7 +147,7 @@ class JobsLogManager(BaseManager):
     Maintains Job Logs
     """
 
-    def get_job_logs(self, remarks=None):
+    def get_job_logs(self, remarks=None, result=None):
         """
         Fetch all job logs from the db
         """
@@ -152,6 +155,8 @@ class JobsLogManager(BaseManager):
         filters = {}
         if remarks:
             filters.update(dict(job_remarks=remarks))
+        if result:
+            filters.update(dict(job_result=True))
         try:
             job_logs = Job.objects.filter(**filters).order_by('-job_start_time')
         except:
@@ -504,7 +509,7 @@ class YMLBasedJobManager(BaseManager):
             try:
                 release_streams = \
                     self.package_manager.get_release_streams(built=build_system)
-                release_stream = release_streams.get()
+                release_stream = release_streams.first()
             except Exception as e:
                 self.app_logger(
                     'ERROR', "Release stream could not be found, details: " + str(e)
@@ -685,7 +690,10 @@ class YMLBasedJobManager(BaseManager):
             job_manager.job_yml = yml_preprocessed
             job_manager.log_json = action_mapper.log
             action_mapper.clean_workspace()
-            job_manager.mark_job_finish()
+            if not getattr(self, 'SCRATCH', None):
+                job_manager.mark_job_finish()
+            else:
+                job_manager.mark_job_finish(remove=True)
             time.sleep(4)
         # if not a dry run, save results is db
         if action_mapper.result and not getattr(self, 'DRY_RUN', None):

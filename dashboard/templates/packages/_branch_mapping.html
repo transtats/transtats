@@ -1,0 +1,44 @@
+{% load get_item from custom_tags %}
+{% if branch_mapping %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Branch Mapping</h3>
+    <span class="text-info">This mapping is basis to comparision of statistics (<i>diff</i>).</span>
+  </div>
+  <table class="table table-hover table-bordered" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Release Stream Branch</th>
+        <th>Translation Platform Project Version</th>
+        <th>Build System Tag</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for branch, version in branch_mapping.items %}
+      <tr>
+        <td>{{ branch }}</td>
+        <td>{{ version|get_item:mapping_keys.0 }}</td>
+        <td>
+          {{ version|get_item:mapping_keys.2 }}&nbsp;
+          {%if version|get_item:mapping_keys.1 and version|get_item:mapping_keys.2 %}
+          <a type="button" class="btn btn-small pull-right" data-toggle="tooltip" title="Sync with {{ version|get_item:mapping_keys.1 }}"
+            href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package_name }}&buildsys={{ version|get_item:mapping_keys.1 }}&tag={{ version|get_item:mapping_keys.2 }}">
+            <span class="fa fa-refresh" aria-hidden="true"></span>
+          </a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if mapping_lastupdated %}
+  <div class="panel-footer">
+    <span>&nbsp;</span>
+    <span class="pull-right text-muted">Updated {{ mapping_lastupdated|timesince }} ago</span>
+  </div>
+  {% endif %}
+</div>
+{% else %}
+No mapping found.
+<span class="text-muted">Please check release branch(es) and create branch mapping.</span>
+{% endif %}

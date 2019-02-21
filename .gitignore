@@ -64,6 +64,10 @@ target/
 #Ipython Notebook
 .ipynb_checkpoints
 
+# celery
+celerybeat-schedule
+celerybeat.pid
+
 # db related
 *sqlite3*
 alembic.ini
@@ -75,6 +79,9 @@ freeze.txt
 *.patch
 dashboard/sandbox/*
 staticfiles/
+package-lock.json
+false/
+transtats/node/node_modules/
 
 # IDE
 .idea/

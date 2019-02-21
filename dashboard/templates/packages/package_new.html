@@ -1,0 +1,26 @@
+{% extends "form_base.html" %}
+{% block extrascript %}
+<script src="/static/bootstrap-select/js/bootstrap-select.js"></script>
+<script type="text/javascript">
+  function slugify(e) {
+    return e.toString().toLowerCase().replace(/\s+/g, "-").replace(/\-\-+/g, "-").replace(/\./g, "-").replace(/^-+/, "")
+    //.replace(/[^\w\-]+/g, "").replace(/-+$/, "")
+  }
+  function showPackageSlug() {
+    $("#id_package_name").val(slugify($("#id_package_name").val()))
+  }
+</script>
+{% endblock %}
+{% block formtitle %}
+Add a new package
+{% endblock %}
+{% block formreturnurl %}
+{% url 'settings-packages' %}
+{% endblock %}
+{% block formscript %}
+<script>
+  $(function () {
+    $('.selectpicker').selectpicker();
+  });
+</script>
+{% endblock %}

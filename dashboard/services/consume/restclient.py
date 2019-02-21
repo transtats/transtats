@@ -299,7 +299,8 @@ class RestClient(object):
         auth_tuple = None
         if kwargs.get('auth_user') and kwargs.get('auth_token'):
             if self.service == TRANSPLATFORM_ENGINES[1]:
-                auth_tuple = (kwargs['auth_user'], kwargs['auth_token'])
+                # auth_tuple = (kwargs['auth_user'], kwargs['auth_token'])
+                auth_tuple = ('api', kwargs['auth_token'])
             elif self.service == TRANSPLATFORM_ENGINES[2]:
                 headers['X-Auth-User'] = kwargs['auth_user']
                 headers['X-Auth-Token'] = kwargs['auth_token']

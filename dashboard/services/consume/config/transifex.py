@@ -22,7 +22,7 @@ media_types = ('application/json', 'application/xml')
 # please add, modify resource details here, and make entry in service-to-resource mappings and in services
 resource_config_dict = {
     'ProjectResource': OrderedDict([
-        ('/project/{project_slug}', {
+        ('/project/{project_slug}/', {
             http_methods[0]: {
                 'path_params': ('project_slug',),
                 'query_params': ('details',),

@@ -20,6 +20,8 @@ Transtats server is a simple django application. If you have any questions on th
      * [Create superuser](#create-superuser)
      * [Load demo data](#load-demo-data)
      * [Generate Docs](#generate-docs)
+     * [Run celery worker](#run-celery-worker)
+     * [Run celery beat](#run-celery-beat)
 * [What should I start with?](#what-should-i-start-with)
 * [Submitting Pull Requests](#submitting-pull-requests)
 * [Reporting Issues](#reporting-issues)
@@ -108,14 +110,22 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 
 #### Virtualenv
 
-- Prerequisites `py3.6`, `koji`, `cpio`, `patch`
+- Prerequisites `Python 3.6`, `koji`, `cpio`, `patch`, `intltool`, `npm`, `redis`
+  ```console
+  # Python version should be 3.6+
+  $ python3 --version
+  Python 3.7.1
+
+  # Installing other dependencies
+  $ sudo dnf install koji cpio patch intltool npm redis
+  ```
 
 - This will create virtualenv and setup devel env
   ```shell
   $ git clone https://github.com/transtats/transtats.git; cd transtats
   $ mkvirtualenv transtats --python=`which python3.6` --system-site-packages
   $ echo `pwd` > /path/to/virtualenvs/transtats/.project
-  $ workon transtats; make devel; make migrate; make cache
+  $ workon transtats; make devel; make migrate; make static
   ```
 
 - Run application
@@ -139,13 +149,17 @@ When you switch `DEBUG` setting to `OFF`, run `make static` to generate static c
 
 Use `python3 manage.py initlogin` command. And login with `transtats:transtats`.
 
-#### Load demo data
-
-Run `python3 manage.py loaddata deploy/docker-compose/transtats/initialdata.yaml`
-
 #### Generate Docs
 
 If your code changes involves something to add in docs, go ahead and generate new docs using `make docs` command. This shall appear at `docs.transtats.org`.
+
+#### Run celery worker
+
+Use `make celeryd` to invoke celery worker. Make sure you're getting a `PONG` from `redis-cli ping` command.
+
+#### Run celery beat
+
+To run async dashboard tasks fire `make celery`. *This will create pid and schedule files.*
 
 ## What should I start with?
 
