@@ -25,7 +25,6 @@ To Do
 - Translation Status of Packages, sync with:
     - Translation Platform (Done)
         - `DamnedLies <https://wiki.gnome.org/DamnedLies>`_
-        - `Transifex <https://www.transifex.com/>`_
         - `Zanata <http://zanata.org/>`_
     - Upstream Repository (Done)
         - `git <https://git-scm.com/>`_
