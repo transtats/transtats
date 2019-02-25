@@ -178,6 +178,8 @@ class Download(JobCommandBase):
         platform_pot_urls = {
             TRANSPLATFORM_ENGINES[0]:
                 '{platform_url}/POT/{project}.{version}/{project}.{version}.pot',
+            TRANSPLATFORM_ENGINES[1]:
+                '{platform_url}/api/2/project/{project}/resource/{version}/content/',
             TRANSPLATFORM_ENGINES[2]:
                 '{platform_url}/rest/file/source/{project}/{version}/pot?docId={domain}'
         }
@@ -236,6 +238,10 @@ class Download(JobCommandBase):
                     while_loop_counter += 1
                 if platform_pot_path == '404':
                     raise Exception('POT file could not be located at platform.')
+                try:
+                    polib.pofile(platform_pot_path)
+                except Exception:
+                    raise
             except Exception as e:
                 err_msg = 'POT download failed. Details: %s' % str(e)
                 task_log.update(self._log_task(input['log_f'], task_subject, err_msg))

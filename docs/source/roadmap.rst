@@ -5,14 +5,14 @@ Roadmap
 | As the project evolves, a roadmap will be published for each major release. Comments, suggestions, and requests to the current roadmap are welcome. Our goal in publishing a roadmap is transparency and community inclusion.
 | A roadmap is the team's best guess based on experience, community requests, and feedback.
 
-Transtats 0.1.7
+Transtats 0.8.0
 ===============
 
-| We are currently working on :code:`0.1.7` release.
-| :code:`0.1.7-rc.1` Integration of PatternFly UI.
+| We are currently working on :code:`0.8.0` release.
+| See `Changelog <https://github.com/transtats/transtats/blob/devel/CHANGELOG.md>`_
 
-| Backlog is `here <https://github.com/transtats/transtats/issues>`_. For release features list please look at `milestone <https://github.com/transtats/transtats/milestone/10>`_.
-| Target delivery: By mid of March 2019
+| Backlog is `here <https://github.com/transtats/transtats/issues>`_. For release features list please look at `milestone <https://github.com/transtats/transtats/milestone/11>`_.
+| Target delivery: By end of May 2019
 
 To Do
 =====
@@ -25,6 +25,7 @@ To Do
 - Translation Status of Packages, sync with:
     - Translation Platform (Done)
         - `DamnedLies <https://wiki.gnome.org/DamnedLies>`_
+        - `Transifex <https://www.transifex.com/>`_
         - `Zanata <http://zanata.org/>`_
     - Upstream Repository (Done)
         - `git <https://git-scm.com/>`_
@@ -42,8 +43,8 @@ To Do
 - Transtats Engagements
 
     - Interactions
-        - Dashboard: Integration of `PatternFly <https://www.patternfly.org/>`_ UI (**In Progress**)
-        - Better stats representation in
+        - Dashboard: Integration of `PatternFly <https://www.patternfly.org/>`_ UI (Done)
+        - Better stats representation in (**In Progress**)
             - Release, Package and Job Details
         - Use-case based UI designs
         - More sub-commands and flags in CLI
@@ -56,6 +57,7 @@ To Do
 - Expanding Support
     - Translation Platform
         - `Weblate <https://weblate.org>`_
+        - `Pootle <https://pootle.translatehouse.org/>`_
     - Translation File Format *in Jobs*
         - Java files (``properties``, ``dtd``)
         - PHP, JS (``ini``, ``json``)
