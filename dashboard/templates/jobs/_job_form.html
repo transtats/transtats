@@ -12,7 +12,7 @@ function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}var poll_t
               {% for template in job_templates %}
               <div class="col-xs-12 col-md-3">
                 <div class="thumbnail">
-                  <div class="caption" style="min-height:200px">
+                  <div class="caption" style="min-height:250px">
                     <h4>{{ template.job_template_name|capfirst }}
                         {% if template.job_template_json %}
                             <small class="pull-right"> YML</small>

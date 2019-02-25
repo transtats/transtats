@@ -57,7 +57,7 @@
       <div class="form-group">
         {% if user.is_authenticated %}
         <a class="btn btn-default" type="button" id="button-add-package" href="{% url 'package-new' %}">
-          <i class="pficon pficon-add-circle-o"></i> Add package</a>
+          <i class="pficon pficon-add-circle-o"></i> Add Package</a>
         {% endif %}
         {% if packages %}
         <a class="btn btn-default" type="button" id="button-export" href="{% url 'packages-export' 'csv' %}">
@@ -295,13 +295,13 @@
             placeholder: "Filter By Upstream..."
           }, {
             optionSelector: "#filter-platforms",
-            placeholder: "Filter By Translation Platform(s)..."
+            placeholder: "Filter By Platform(s)..."
           }, {
             optionSelector: "#filter-products",
             placeholder: "Filter By Products..."
           }, {
             optionSelector: "#filter-health",
-            placeholder: "Filter By Health..."
+            placeholder: "Filter By Mapping..."
           }
         ],
         paginationSelector: "#pagination-packages-table",

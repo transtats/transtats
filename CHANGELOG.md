@@ -1,4 +1,7 @@
-##### Fri Feb 15 2019 Sundeep Anand <suanand@redhat.com>
+##### Fri Mar 01 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.0
+* Basic Celery, Tx fix, API cache, more bug fixes, a few UI changes
+
+##### Fri Feb 15 2019 Sundeep Anand <suanand@redhat.com> - release_0.1.7-rc.1
 * Many bug fixes, API docs and integration of PatternFLY UI
 * [UI] fix NewPackage form and view ([bhavin192](https://github.com/bhavin192))
 * [UI] Fix name 'Languages' is not defined error ([bhavin192](https://github.com/bhavin192))

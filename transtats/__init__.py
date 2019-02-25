@@ -9,7 +9,7 @@ from .celery import app as celery_app
 
 
 __appname__ = "Transtats"
-__version__ = '0.1.7-rc.1'
+__version__ = '0.7.0'
 __description__ = "Track Translation Completeness"
 
 
