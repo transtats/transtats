@@ -210,3 +210,10 @@ STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'staticfiles')
 
 # django-crispy-forms template pack
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(os.path.dirname(BASE_DIR), 'false', 'ts-cache'),
+    }
+}

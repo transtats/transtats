@@ -19,6 +19,8 @@ import yaml
 # django
 from django.urls import reverse
 from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 # django third party
 from rest_framework.authentication import TokenAuthentication
@@ -117,6 +119,7 @@ class PackageStatus(GraphManagerMixin, APIView):
         formatted_data['percentage_calculated_on'] = "Messages"
         return formatted_data
 
+    @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
         """
         Translation status of a package at various places.
@@ -165,6 +168,7 @@ class GraphRuleCoverage(GraphManagerMixin, APIView):
         formatted_data['translation_stats'] = translation_data
         return formatted_data
 
+    @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
         """
         Translation coverage of multiple packages for a product release in selected languages.
@@ -199,6 +203,7 @@ class ReleaseStatus(InventoryManagerMixin, GraphManagerMixin, APIView):
         trans_stats_data["Calculated on"] = "Messages"
         return trans_stats_data
 
+    @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
         """
         Translation status of a product release for linked packages.
@@ -223,6 +228,7 @@ class ReleaseStatusDetail(ReleaseStatus):
     Release Status Detail API
     """
 
+    @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
         """
         Detailed (language-wise) translation status of a product release.
@@ -249,6 +255,7 @@ class ReleaseStatusLocale(ReleaseStatus):
     Release Status Locale API View
     """
 
+    @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
         """
         Translation status of a product release in a particular language.
@@ -354,6 +361,7 @@ class JobLog(JobManagerMixin, APIView):
     Job Log API
     """
 
+    @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
         """
         Fetch details about a YML job ran successfully in Transtats.
