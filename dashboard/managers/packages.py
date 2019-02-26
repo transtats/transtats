@@ -124,9 +124,18 @@ class PackagesManager(InventoryManager):
                 versions=[version]
             ).first()
             if package_stats:
-                package_processed_stats = package_stats.stats_processed_json \
-                    if package_stats.stats_processed_json else \
-                    self._process_response_stats_json(package_stats.stats_raw_json['stats'])
+                processed_stats = {}
+                if not package_stats.stats_processed_json:
+                    if package_stats.stats_raw_json.get('stats'):
+                        processed_stats = self._process_response_stats_json(
+                            package_stats.stats_raw_json['stats'])
+
+                    if package.platform_slug.engine_name == TRANSPLATFORM_ENGINES[1] and not processed_stats:
+                        processed_stats = self._process_response_stats_json_tx(
+                            package_stats.stats_raw_json)
+                else:
+                    processed_stats = package_stats.stats_processed_json
+                package_processed_stats = processed_stats
                 packages_stats[package.package_name] = package_processed_stats \
                     if locales_count_match else {locale: package_processed_stats.get(locale, {})
                                                  for locale in branch_locales}
@@ -398,11 +407,12 @@ class PackagesManager(InventoryManager):
             if proj_trans_stats_response_dict:
                 processed_stats = {}
                 # Process and Update locale-wise stats
-                if self.PROCESS_STATS and 'stats' in proj_trans_stats_response_dict:
+                if self.PROCESS_STATS and proj_trans_stats_response_dict.get('stats'):
                     processed_stats = self._process_response_stats_json(
                         proj_trans_stats_response_dict['stats'])
 
-                if self.PROCESS_STATS and package.platform_slug.engine_name == TRANSPLATFORM_ENGINES[1]:
+                if self.PROCESS_STATS and package.platform_slug.engine_name == TRANSPLATFORM_ENGINES[1] \
+                        and not processed_stats:
                     processed_stats = self._process_response_stats_json_tx(
                         proj_trans_stats_response_dict)
 
