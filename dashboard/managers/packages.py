@@ -402,6 +402,10 @@ class PackagesManager(InventoryManager):
                     processed_stats = self._process_response_stats_json(
                         proj_trans_stats_response_dict['stats'])
 
+                if self.PROCESS_STATS and package.platform_slug.engine_name == TRANSPLATFORM_ENGINES[1]:
+                    processed_stats = self._process_response_stats_json_tx(
+                        proj_trans_stats_response_dict)
+
                 if self.syncstats_manager.save_version_stats(
                         package, version, proj_trans_stats_response_dict,
                         package.platform_slug.engine_name, p_stats=processed_stats
@@ -468,6 +472,29 @@ class PackagesManager(InventoryManager):
                 # log error, pass for now
                 pass
             processed_stats_json[locale]['Remaining'] = remaining
+        return processed_stats_json
+
+    def _process_response_stats_json_tx(self, stats_json):
+        lang_id_name = self.get_lang_id_name_dict() or []
+
+        processed_stats_json = {}
+        for lang_alias_tuple in lang_id_name.keys():
+            for locale, stats in stats_json.items():
+                if locale in lang_alias_tuple:
+                    filter_stats = {}
+                    filter_stats['Translated'] = stats.get('translated_entities', 0)
+                    filter_stats['Untranslated'] = stats.get('untranslated_entities', 0)
+                    total_entities = stats.get('translated_entities', 0) + stats.get('untranslated_entities', 0)
+                    filter_stats['Total'] = total_entities
+                    remaining = 0
+                    try:
+                        remaining = (filter_stats.get('untranslated_entities', 0.0) /
+                                     total_entities) * 100
+                    except ZeroDivisionError:
+                        # log error, pass for now
+                        pass
+                    filter_stats['Remaining'] = remaining
+                    processed_stats_json.update({lang_alias_tuple[0]: filter_stats})
         return processed_stats_json
 
     def refresh_package(self, package_name):

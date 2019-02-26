@@ -12,7 +12,7 @@ Transtats CLI
     .. code-block:: bash
 
         [server]
-        server_url = http://app.server.transtats.org
+        server_url = http://transtats.fedoraproject.org
         token = <API-token-from-server>
 
 

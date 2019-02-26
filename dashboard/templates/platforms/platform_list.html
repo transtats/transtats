@@ -17,7 +17,7 @@
         </h2>
         <div class="card-pf-items text-center">
           <div class="card-pf-item">
-            {{ platform.subject }}
+            {{ platform.subject|capfirst }}
           </div>
           <div class="card-pf-item">
             {% if platform.server_status %}

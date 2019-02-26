@@ -252,11 +252,11 @@ class NewGraphRuleForm(forms.Form):
     rule_relbranch_choices = ()
 
     rule_name = forms.CharField(
-        label='Graph Rule Name', help_text='Rule will be saved in slug form.', required=True,
+        label='Graph Rule Name', help_text='Graph Rule should be in slug form. Coverage will be based on this rule.', required=True,
     )
     rule_relbranch = forms.ChoiceField(
-        label='Release Branch', choices=rule_relbranch_choices,
-        help_text='Graph will be generated for selected release branch following branch mapping.',
+        label='Release', choices=rule_relbranch_choices,
+        help_text='Graph will be generated for selected release based on branch mapping.',
         required=True
     )
     rule_packages = TextArrayField(
@@ -265,10 +265,10 @@ class NewGraphRuleForm(forms.Form):
     )
     lang_selection = forms.ChoiceField(
         label='Languages Selection', choices=[
-            ('pick', 'Pick release branch specific languages'),
+            ('pick', 'Pick release specific languages'),
             ('select', 'Select languages')],
         initial='pick', widget=forms.RadioSelect, required=True,
-        help_text="Either pick language set associated with selected release branch or choose languages."
+        help_text="Either pick language set associated with selected release or choose languages."
     )
     rule_langs = TextArrayField(
         label='Languages', widget=forms.SelectMultiple, choices=rule_langs_choices,

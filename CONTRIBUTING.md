@@ -110,11 +110,11 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 
 #### Virtualenv
 
-- Prerequisites `Python 3.6`, `koji`, `cpio`, `patch`, `intltool`, `npm`, `redis`
+- Prerequisites `Python 3.7`, `koji`, `cpio`, `patch`, `intltool`, `npm`, `redis`
   ```console
-  # Python version should be 3.6+
+  # Python version should be 3.7+
   $ python3 --version
-  Python 3.7.1
+  Python 3.7.2
 
   # Installing other dependencies
   $ sudo dnf install koji cpio patch intltool npm redis
@@ -123,7 +123,7 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 - This will create virtualenv and setup devel env
   ```shell
   $ git clone https://github.com/transtats/transtats.git; cd transtats
-  $ mkvirtualenv transtats --python=`which python3.6` --system-site-packages
+  $ mkvirtualenv transtats --python=`which python3.7` --system-site-packages
   $ echo `pwd` > /path/to/virtualenvs/transtats/.project
   $ workon transtats; make devel; make migrate; make static
   ```

@@ -2,6 +2,7 @@
 <h5>
   <strong>Upstream Repository URL: </strong>
   <a href="{{ package.upstream_url }}" target="_blank">{{ package.upstream_url }}</a>
+  <span class="fa fa-external-link" aria-hidden="true"></span>
   {% if package.upstream_last_updated %} &emsp;
   <span class="text-muted">Last Sync:</span> {{ package.upstream_last_updated|timesince }}
   <span class="text-muted">ago</span>
@@ -10,6 +11,7 @@
 <h5>
   <strong>Translation Platform Project URL: </strong>
   <a href="{{ package.platform_url }}" target="_blank">{{ package.platform_url }}</a>
+  <span class="fa fa-external-link" aria-hidden="true"></span>
   {% if package.platform_last_updated %} &emsp;
   <span class="text-muted">Last Sync:</span>
   {{ package.platform_last_updated|timesince }}
@@ -17,17 +19,23 @@
   {% endif %}
 </h5>
 <h5>
-  <strong>Being tracked for Release Streams: </strong>
-  <span class="text-info">{{ package.products|join:", " }}</span>
+  <strong>Being tracked for Products: </strong>
+  <span class="text-info">
+  {% for product in package.products %}
+      &emsp;<a href="{% url 'settings-stream-branches' product %}">{{ product }}</a>
+  {% endfor %}
+  </span>
   {% if package.downstream_last_updated %} &emsp;
   <span class="text-muted">Sync with Build System:</span>
   {{ package.downstream_last_updated|timesince }}
   <span class="text-muted">ago</span>
   {% endif %}
-  {% if package.created_by and user.is_authenticated %} &emsp;
+</h5>
+<h5>
+{% if package.created_by and user.is_authenticated %}
   <strong>Maintainer: </strong>
   <span class="text-info">{{ package.created_by }}</span>
-  {% endif %}
+{% endif %}
 </h5>
 
 {% if not package.platform_last_updated and not package.upstream_last_updated and not package.downstream_last_updated %}

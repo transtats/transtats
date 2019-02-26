@@ -47,7 +47,7 @@ def task_sync_packages_with_platform():
         package_manager.sync_update_package_stats(pkg)
 
     all_packages = package_manager.get_packages().filter(
-        platform_last_updated__lte=timezone.now() - timedelta(hours=0)
+        platform_last_updated__lte=timezone.now() - timedelta(hours=6)
     ).order_by('platform_url')
     for package in all_packages:
         th = threading.Thread(
