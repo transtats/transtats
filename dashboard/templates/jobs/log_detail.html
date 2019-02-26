@@ -40,7 +40,7 @@
             </span>
         </p>
         <hr/>
-        <div class="panel-body">
+        <div>
             <h4><span class="fa fa-clock-o" aria-hidden="true"></span>
                 <span>
                 {% if log.job_start_time %}<span class="text-info">{{ log.job_start_time|date }}</span> - started at
@@ -54,8 +54,7 @@
                                 title="Copy to clipboard">Copy URL <span class="fa fa-clipboard"></span></button>
                     </span>
                 {% endif %}
-            </h4>
-            <hr/>
+            </h4><hr/>
             <div class="container">
                 <div class="row">
                     <div class="col-sm-6 col-md-3">

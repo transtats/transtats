@@ -9,7 +9,6 @@ Transtats 0.8.0
 ===============
 
 | We are currently working on :code:`0.8.0` release.
-| See `Changelog <https://github.com/transtats/transtats/blob/devel/CHANGELOG.md>`_
 
 | Backlog is `here <https://github.com/transtats/transtats/issues>`_. For release features list please look at `milestone <https://github.com/transtats/transtats/milestone/11>`_.
 | Target delivery: By end of May 2019
