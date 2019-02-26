@@ -60,12 +60,8 @@ spec:
             path: /health
             port: 8080
         resources:
-          requests:
-            cpu: 500m
-            memory: 1024Mi
           limits:
-            cpu: 2000m
-            memory: 2048Mi
+            memory: 384Mi
   triggers:
   - type: ImageChange
     imageChangeParams:

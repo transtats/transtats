@@ -35,8 +35,8 @@
                         {% if log.job_end_time %} and completed at <strong>{{ log.job_end_time|time:"H:i:s" }}</strong>
                         &nbsp;&nbsp;<em>({{ log.duration|floatformat:"0" }} seconds)</em>{% endif %}</span>
                         {% if log.job_visible_on_url %}
-                            <span class="pull-right"><a href="{% url 'log-detail' log.job_uuid %}">Job Details</a>&nbsp;
-                            <span class="fa fa-external-link"></span></span>
+                            <span class="pull-right btn btn-default"><a href="{% url 'log-detail' log.job_uuid %}">Job Details</a>&nbsp;
+                            <span class="fa fa-angle-right"></span></span>
                         {% endif %}
                     </p>
                     <hr/>

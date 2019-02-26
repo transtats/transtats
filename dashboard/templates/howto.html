@@ -16,20 +16,17 @@
 <div class="row row-cards-pf">
   <div class="col-xs-12">
     <div class="card-pf card-pf-utilization" id="card-packages-summary">
-      <div class="card-pf-heading">
-        <h1 class="card-pf-title">How To <small>&nbsp;Getting started with {{ app_name }} ...</small></h1>
-      </div>
       <div class="card-pf-body">
-
         <div style="padding-left:100px">
+            <h1>Quick Start</h1>
             <div class="content-section-a">
                 <div class="container">
                     <div class="row">
                         <div class="col-lg-4 col-sm-5">
                             <hr class="section-heading-spacer">
                             <div class="clearfix"></div>
-                            <h2 class="section-heading">Check Inventory</h2>
-                            <p style="font-size: medium;" class="text-justify">Graphs will be generated for enabled languages, aliases are used while syncing. One can create a language set, which can be associated with a release branch. Multiple instances of a translation platform can be added. A release branch (for example - Fedora 28) should have a language set and a schedule. {{ app_name }} jobs sync with upstream repository, translation platform and build system to keep stats, build tags and schedule latest.</p>
+                            <h2 class="section-heading text-info">Check Inventory</h2>
+                            <p style="font-size: medium;" class="text-justify">Graphs are generated for enabled languages, aliases are used while syncing. One can create a language set, which can be associated with a product release. Multiple instances of a translation platform can be added. A release should have a language set and a schedule attached. {{ app_name }} jobs talk to upstream repositories, translation platforms and build systems to keep translation statistics, build tags and release schedule latest.</p>
                         </div>
                         <div class="col-lg-4 col-lg-offset-1 col-sm-5">
                             <hr class="section-heading-spacer">
@@ -47,8 +44,8 @@
                         <div class="col-lg-5 col-lg-offset-1 col-sm-push-4  col-sm-5">
                             <hr class="section-heading-spacer">
                             <div class="clearfix"></div>
-                            <h2 class="section-heading">Add and Configure Packages</h2>
-                            <p style="font-size: medium;" class="text-justify">While adding a package, upstream URL is required. And package name is verified with selected translation platform. Translation of a package can be tracked for multiple release streams. Package should be sync'd with translation platform and build system. Once sync'd, branch mapping can be created. It maps {{ app_name }} release branches with most suitable project versions available at translation platform and with appropriate build tags. Package can be sync'd with upstream repo as well.</p>
+                            <h2 class="section-heading text-info">Add and Configure Packages</h2>
+                            <p style="font-size: medium;" class="text-justify">While adding a package, upstream URL is required. And package name is verified with selected translation platform. Translation of a package can be tracked for multiple products. Package should be sync'd with translation platform and build system. Once sync'd, branch mapping will be created. It maps {{ app_name }} releases with most suitable project versions available at translation platform and with appropriate build tags. Package can be sync'd with upstream repo as well.</p>
                         </div>
                         <div class="col-lg-5 col-sm-pull-6  col-sm-5">
                             <hr class="section-heading-spacer">
@@ -65,8 +62,8 @@
                         <div class="col-lg-4 col-sm-5">
                             <hr class="section-heading-spacer">
                             <div class="clearfix"></div>
-                            <h2 class="section-heading">Generate Diff</h2>
-                            <p style="font-size: medium;" class="text-justify">Once we have all versions / tags mentioned in branch mapping of a package sync'd with either translation platform or build system, differences can be created and observed. This answers - for a package - latest translations are packaged or not? If not, is some patch applied at the last moment? Which languages need attention?</p>
+                            <h2 class="section-heading text-info">Generate Diff</h2>
+                            <p style="font-size: medium;" class="text-justify">Once we have all versions / tags mentioned in branch mapping of a package sync'd with either translation platform and build system, differences can be created and observed. This answers - for a package - latest translations are packaged or not? If not, is some patch applied at the last moment? Which languages need attention?</p>
                         </div>
                         <div class="col-lg-5 col-lg-offset-1 col-sm-5">
                             <hr class="section-heading-spacer">
@@ -83,8 +80,8 @@
                         <div class="col-lg-5 col-lg-offset-1 col-sm-push-4  col-sm-5">
                             <hr class="section-heading-spacer">
                             <div class="clearfix"></div>
-                            <h2 class="section-heading">Add Graph Rule</h2>
-                            <p style="font-size: medium;" class="text-justify">Translation coverages (translation status of a group of packages in a set of languages to a given release) are based on rules. Slug form of rule name would be saved. This should be specific for a release branch. Packages having branch mapping created can only be included here. Languages could be picked from language set associated with the release branch or from enabled ones. Somehow if a package is not tracked for a release stream and selected for inclusion {{ app_name }} would show an error.</p>
+                            <h2 class="section-heading text-info">Add Graph Rule</h2>
+                            <p style="font-size: medium;" class="text-justify">Coverage (translation status of a group of packages in a set of languages to a given release) are based on rules. Slug form of rule name would be saved. This should be specific for a product release. Packages having branch mapping created can only be included here. Languages could be picked from language set associated with the release or from enabled ones. Somehow if a package is not tracked for the respective product and selected for inclusion; {{ app_name }} would show an error.</p>
                         </div>
                         <div class="col-lg-5 col-sm-pull-6  col-sm-5">
                             <hr class="section-heading-spacer">
@@ -100,8 +97,8 @@
                         <div class="col-lg-4 col-sm-5">
                             <hr class="section-heading-spacer">
                             <div class="clearfix"></div>
-                            <h2 class="section-heading">Experience</h2>
-                            <p style="font-size: medium;" class="text-justify">{{ app_name }} has two traversal options: releases and packages. One can see high level summary and can pick any one release or a package for details. Summary can tell you - packages which are out of sync, translation workload estimate for each language per release, and much more. Detailed views contain language wise stats, translation position etc. Another form is coverage, which depends on graph rules and branch mapping.</p>
+                            <h2 class="section-heading text-info">Experience</h2>
+                            <p style="font-size: medium;" class="text-justify">{{ app_name }} has two traversal options: releases and packages. One can see high level summary and can pick any one release or a package for details. Summary can tell you - packages which are out of sync, translation workload estimate for each language per release, and much more. Another is coverage, which depends on rules and branch mapping.</p>
                         </div>
                         <div class="col-lg-5 col-lg-offset-1 col-sm-5">
                             <hr class="section-heading-spacer">
@@ -112,38 +109,38 @@
                 <!-- /.container -->
             </div>
             <hr/>
+            <h1>FAQs</h1>
             <div style="padding:10px;text-align:justify">
-                <h2 class="text-default">FAQs</h2><br/>
-                <h4>Is {{ app_name }} project opensource? Where we have docs written?</h4>
-                <span class="text-muted">Yes. Source is available at <a href="https://github.com/transtats" target="_blank">GitHub</a></span>. Projects website is <a href="http://transtats.org/" target="_blank">transtats.org</a> and point your browser to <a href="http://docs.transtats.org/" target="_blank">docs.transtats.org</a> for docs.
-                <h4>Which translation platforms and build systems are currently supported?</h4>
-                <span class="text-muted">{{ app_name }} supports <a href="https://l10n.gnome.org/" target="_blank">DamnedLies</a>, <a href="https://www.transifex.com/" target="_blank">Transifex</a> and <a href="http://zanata.org" target="_blank">Zanata</a>. {{ app_name }} can talk to <a href="https://koji.fedoraproject.org/koji/" target="_blank">koji</a> build system.</span>
-                <h4>What is branch mapping? And why is it important?</h4>
-                <span class="text-muted">Every package has its own branch mapping. This establishes mapping between:
-                    <br/><mark>{{ app_name }} <b>release_branch</b> :: translation platform <b>project_version</b> :: build system <b>build_tag</b></mark><br/>On the basis of this, translation differences/gaps are calculated/located.</span>
-                <h4>How to figure out which languages need attention for any of the packages?</h4>
-                <span class="text-muted">Please navigate to package details page. Sync the package with translation platform and build system. Use shortcuts. Update branch mapping.<br/>Once all the branches mapped got sync'd, update statistics diff. Here you could find an answer to this!</span>
-                <h4>What jobs are available?</h4>
-                <span class="text-muted">Broadly two categories: <i>Predefined</i> and <i>YAML based</i>.<br/>Predefined jobs fill data required by various work flows. <b>syncbuildtags</b> should be run first (one-time), as it is required for branch mapping and <i>syncdownstream</i> job. Three templates are available in YAML based jobs: <i>syncupstream</i>, <i>syncdownstream</i> and <i>stringchange</i>.</span>
-                <h4>Why YAML based jobs are introduced?</h4>
-                <span class="text-muted">YAML based jobs add great level of flexibility by broadening capabilities to interact with build systems, translation platforms and source repositories.</span>
-                <h4>Which YAML job to run when and why?</h4>
-                <span class="text-muted">
+                <h3 class="text-info">Is {{ app_name }} project open source? Where we have docs written?</h3>
+                <span class="text-default">Yes. Source code is available at <a href="https://github.com/transtats" target="_blank">GitHub</a></span>. Projects website is <a href="http://transtats.org/" target="_blank">transtats.org</a> and point your browser to <a href="http://docs.transtats.org/" target="_blank">docs.transtats.org</a> for complete documentation.
+                <h3 class="text-info">Which translation platforms and build systems are currently supported?</h3>
+                <span class="text-default">{{ app_name }} supports <a href="https://l10n.gnome.org/" target="_blank">DamnedLies</a>, <a href="https://www.transifex.com/" target="_blank">Transifex</a> and <a href="http://zanata.org" target="_blank">Zanata</a>. {{ app_name }} can talk to <a href="https://koji.fedoraproject.org/koji/" target="_blank">koji</a> build system.</span>
+                <h3 class="text-info">What is branch mapping? And why is it important?</h3>
+                <span class="text-default">Every package has its own branch mapping. This establishes mapping between:
+                    <br/><mark>{{ app_name }} <b>product_release</b> :: translation platform <b>project_version</b> :: build system <b>build_tag</b></mark><br/>On the basis of this, translation differences/gaps are calculated/located.</span>
+                <h3 class="text-info">How to figure out which languages need attention for any of the packages?</h3>
+                <span class="text-default">Please navigate to package details page. Sync the package with translation platform and build system (use shortcuts). Update branch mapping.<br/>Once all the mapped branches get sync'd, update statistics diff. Here you could find an answer to this!</span>
+                <h3 class="text-info">What jobs are available?</h3>
+                <span class="text-default">Broadly two categories: <i>Predefined</i> and <i>YML based</i>.<br/>Predefined jobs fill data required by various work-flows. <b>syncbuildtags</b> should be run first (one-time), as it is required for branch mapping and <i>syncdownstream</i> jobs. <br/>Three templates are available in YML based jobs: <i>syncupstream</i>, <i>syncdownstream</i> and <i>stringchange</i>.</span>
+                <h3 class="text-info">Why YML based jobs are introduced?</h3>
+                <span class="text-default">YML based jobs add great level of flexibility by broadening capabilities to interact with build systems, translation platforms and source repositories.</span>
+                <h3 class="text-info">Which YML job to run when and why?</h3>
+                <span class="text-default">
                     They can be run in any order. Just that required values should be obeyed.
                     <ul>
                         <li>To collect translation statistics from package source repository, <i>syncupstream</i> job can be triggered. This job can only be run for added packages.</li>
-                        <li>Using <i>syncdownstream</i> job, one can inspect translation files and generate statistics in latest built SRPM. Applies patches (in SPEC file) also.</li>
+                        <li>Using <i>syncdownstream</i> job, one can inspect translation files and generate statistics in latest built SRPM. This applies patches (as-per SPEC file) also.</li>
                         <li>Translation string change can be detected using <i>stringchange</i> job. This is highly flexible. Requires package branch mapping and POT command.</li>
                     </ul>
                 </span>
-                <h4>How to look and share for details about a YAML job ran?</h4>
-                <span class="text-muted">Please navigate to job log details page. Here you would find the YAML supplied to the job and respective output of each task. If the job type is <i>stringchange</i> msgid diff found in translation template would be available along with full line-by-line file diff. This URL can be copied and shared.</span>
-                <h4>I like the idea and want to contribute, how should I start?</h4>
-                <span class="text-muted">Please look out for <a href="https://github.com/transtats/transtats/blob/devel/CONTRIBUTING.md" target="_blank">contributing guide</a> to get you started.</span>
-                <h4>While working with {{ app_name }} I got an issue, how should I report it?</h4>
-                <span class="text-muted">You're welcome! Please create a <a href="https://github.com/transtats/transtats/issues/new" target="_blank">GitHub Issue</a> or join #transtats channel at IRC freenode.</span>
-                <h4>Where to find what features will be available in coming {{ app_name }} release?</h4>
-                <span class="text-muted">Please see <a href="http://docs.transtats.org/en/latest/roadmap.html" target="_blank">Roadmap</a> section in docs. You may also like going through <a href="https://github.com/transtats/transtats/blob/devel/CHANGELOG.md" target="_blank">changelog</a>.</span>
+                <h3 class="text-info">How to look and share for details about a YML job ran?</h3>
+                <span class="text-default">Please navigate to job log details page. Here you would find the YML supplied to the job and respective output of each task.<br/>If the job type is <i>stringchange</i> msgid diff found in translation template would be available along with full line-by-line file diff. This URL can be copied and shared.</span>
+                <h3 class="text-info">I like the idea and want to contribute, how should I start?</h3>
+                <span class="text-default">You're welcome! Please read <a href="https://github.com/transtats/transtats/blob/devel/CONTRIBUTING.md" target="_blank">contributing guide</a> to get started.</span>
+                <h3 class="text-info">While working with {{ app_name }} I got an issue, how should I report it?</h3>
+                <span class="text-default">Feel free to create a <a href="https://github.com/transtats/transtats/issues/new" target="_blank">GitHub Issue</a> or join #transtats channel at IRC freenode.</span>
+                <h3 class="text-info">Where to find what features will be available in coming {{ app_name }} release?</h3>
+                <span class="text-default">Please see <a href="http://docs.transtats.org/en/latest/roadmap.html" target="_blank">roadmap</a> in docs. You may also like going through <a href="https://github.com/transtats/transtats/blob/devel/CHANGELOG.md" target="_blank">changelog</a>.</span>
             </div>
         </div>
       </div>
