@@ -462,7 +462,7 @@ class GraphRulesSettingsView(ManagersMixin, ListView):
     context_object_name = 'rules'
 
     def get_queryset(self):
-        return self.graph_manager.get_graph_rules()
+        return self.graph_manager.get_graph_rules(only_active=True)
 
 
 class NewGraphRuleView(ManagersMixin, FormView):
