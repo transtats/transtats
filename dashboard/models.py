@@ -441,6 +441,9 @@ class GraphRule(models.Model):
     rule_visibility_public = models.BooleanField(default=False)
     created_by = models.EmailField(null=True)
 
+    def __str__(self):
+        return self.rule_name
+
     class Meta:
         db_table = TABLE_PREFIX + 'graphrules'
         verbose_name = "Graph Rule"

@@ -24,7 +24,7 @@ from dashboard.constants import (
     TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS
 )
 from dashboard.models import (
-    Language, LanguageSet, Platform, Product, Release, Package, Visitor
+    Language, LanguageSet, Platform, Product, Release, Package, GraphRule, Visitor
 )
 from dashboard.managers.inventory import InventoryManager
 
@@ -120,6 +120,15 @@ class PackageAdmin(admin.ModelAdmin):
                'name_map_last_updated', 'release_branch_map_last_updated',
                'platform_last_updated', 'upstream_last_updated',
                'downstream_last_updated')
+
+
+@admin.register(GraphRule)
+class GraphRuleAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    search_fields = ('rule_name', )
+    exclude = ('created_by', 'created_on', 'rule_visibility_public')
 
 
 @admin.register(Visitor)
