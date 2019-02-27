@@ -21,7 +21,7 @@
             <div class="input-group">
               <div class="input-group-btn">
                 <button type="button" class="btn btn-default dropdown-toggle" id="filter-graph-rules-table" data-toggle="dropdown" aria-haspopup="true"
-                  aria-expanded="false">Graph rule
+                  aria-expanded="false">Graph Rule
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
@@ -35,14 +35,14 @@
                     <a href="#" id="filter-locales">Locales</a>
                   </li>
                   <li>
-                    <a href="#" id="filter-release-branch">Release Branch</a>
+                    <a href="#" id="filter-release-branch">Release</a>
                   </li>
                   <li>
                     <a href="#" id="filter-created-on">Created On</a>
                   </li>
                 </ul>
               </div>
-              <input type="text" class="form-control" placeholder="Filter By Graph rule..." autocomplete="off" id="filterInput">
+              <input type="text" class="form-control" placeholder="Filter By Graph Rule..." autocomplete="off" id="filterInput">
             </div>
           </div>
           {% if user.is_authenticated %}
@@ -96,10 +96,10 @@
     <table class="table table-striped table-bordered table-hover" id="table-graph-rules">
       <thead>
         <tr>
-          <th>Graph rule</th>
+          <th>Graph Rule</th>
           <th>Packages</th>
           <th>Locales</th>
-          <th>Release Branch</th>
+          <th>Release</th>
           {% if user.is_authenticated %}
           <th colspan="2">Created On</th>
           {% else %}
@@ -265,19 +265,19 @@
         {
           default: true,
           optionSelector: "#filter-graph-rule",
-          placeholder: "Filter By Language..."
+          placeholder: "Filter By Graph Rule..."
         }, {
           optionSelector: "#filter-packages",
-          placeholder: "Filter By Locale..."
+          placeholder: "Filter By Package(s)..."
         }, {
           optionSelector: "#filter-locales",
-          placeholder: "Filter By Alias..."
+          placeholder: "Filter By Locales..."
         }, {
           optionSelector: "#filter-release-branch",
-          placeholder: "Filter by Sets..."
+          placeholder: "Filter by Release..."
         }, {
           optionSelector: "#filter-created-on",
-          placeholder: "Filter By Status..."
+          placeholder: "Filter By Created date..."
         },
       ],
       paginationSelector: "#pagination-graph-rules-table",
