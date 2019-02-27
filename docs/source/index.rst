@@ -9,7 +9,7 @@
 Transtats
 =========
 
-*Track Product Release Translation Completeness.*
+*Track Translation Completeness.*
 
 In a software release cycle, some of the necessary localization steps lack attention which affect translation quality and delivery. These steps (for a package) are extracting or updating language resource, pushing that to translation platform, pulling and packaging translations, quality checks etc. Transtats helps to tie up loose ends and make packages ready to ship with translation completeness. Further, its an attempt to bring automation in ``i18n`` ``l10n`` space through jobs.
 

@@ -17,16 +17,16 @@
       <div class="col-sm-12">
         <form class="toolbar-pf-actions">
           <div class="form-group toolbar-pf-filter">
-            <label class="sr-only" for="filter-graph-rules-table">Graph rule</label>
+            <label class="sr-only" for="filter-graph-rules-table">Graph Rule</label>
             <div class="input-group">
               <div class="input-group-btn">
                 <button type="button" class="btn btn-default dropdown-toggle" id="filter-graph-rules-table" data-toggle="dropdown" aria-haspopup="true"
-                  aria-expanded="false">Graph rule
+                  aria-expanded="false">Graph Rule
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <a href="#" id="filter-graph-rule">Graph rule</a>
+                    <a href="#" id="filter-graph-rule">Graph Rule</a>
                   </li>
                   <li>
                     <a href="#" id="filter-packages">Packages</a>
@@ -35,14 +35,14 @@
                     <a href="#" id="filter-locales">Locales</a>
                   </li>
                   <li>
-                    <a href="#" id="filter-release-branch">Release branch</a>
+                    <a href="#" id="filter-release-branch">Release</a>
                   </li>
                   <li>
-                    <a href="#" id="filter-created-on">Created on</a>
+                    <a href="#" id="filter-created-on">Created On</a>
                   </li>
                 </ul>
               </div>
-              <input type="text" class="form-control" placeholder="Filter By Graph rule..." autocomplete="off" id="filterInput">
+              <input type="text" class="form-control" placeholder="Filter By Graph Rule..." autocomplete="off" id="filterInput">
             </div>
           </div>
           {% if user.is_authenticated %}
@@ -96,14 +96,14 @@
     <table class="table table-striped table-bordered table-hover" id="table-graph-rules">
       <thead>
         <tr>
-          <th>Graph rule</th>
+          <th>Graph Rule</th>
           <th>Packages</th>
           <th>Locales</th>
-          <th>Release branch</th>
+          <th>Release</th>
           {% if user.is_authenticated %}
-          <th colspan="2">Created on</th>
+          <th colspan="2">Created On</th>
           {% else %}
-          <th>Created on</th>
+          <th>Created On</th>
           {% endif %}
         </tr>
       </thead>
@@ -122,32 +122,31 @@
             {{ rule.rule_languages|join:", " }}
           </td>
           <td>
-	    <!-- TODO: link this to correct page where stats are there -->
-            {{ rule.rule_release_slug.release_name }}
+	        <a href="{% url 'trans-status-release' rule.rule_release_slug.release_slug %}">{{ rule.rule_release_slug.release_name }}</a>
           </td>
           <td>
             {{ rule.created_on }}
             <span class="fa fa-clock-o" aria-hidden="true"></span>
           </td>
-          {% if user.is_authenticated %}
-          <td class="table-view-pf-actions">
-            <div class="dropdown dropdown-kebab-pf">
-              <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                <span class="fa fa-ellipsis-v"></span>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight">
-                <li>
-                  <a href="#">Edit</a>
-                </li>
-                <!-- TODO: implement delete resource method
-                  <li role="separator" class="divider"></li>
-                  <li>
-                    <a href="#">Delete</a>
-                  </li> -->
-              </ul>
-            </div>
-          </td>
-          {% endif %}
+          <!--{% if user.is_authenticated %}-->
+          <!--<td class="table-view-pf-actions">-->
+            <!--<div class="dropdown dropdown-kebab-pf">-->
+              <!--<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">-->
+                <!--<span class="fa fa-ellipsis-v"></span>-->
+              <!--</button>-->
+              <!--<ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight">-->
+                <!--<li>-->
+                  <!--<a href="#">Edit</a>-->
+                <!--</li>-->
+                <!--&lt;!&ndash; TODO: implement delete resource method-->
+                  <!--<li role="separator" class="divider"></li>-->
+                  <!--<li>-->
+                    <!--<a href="#">Delete</a>-->
+                  <!--</li> &ndash;&gt;-->
+              <!--</ul>-->
+            <!--</div>-->
+          <!--</td>-->
+          <!--{% endif %}-->
         </tr>
         {% endfor %}
       </tbody>
@@ -266,19 +265,19 @@
         {
           default: true,
           optionSelector: "#filter-graph-rule",
-          placeholder: "Filter By Language..."
+          placeholder: "Filter By Graph Rule..."
         }, {
           optionSelector: "#filter-packages",
-          placeholder: "Filter By Locale..."
+          placeholder: "Filter By Package(s)..."
         }, {
           optionSelector: "#filter-locales",
-          placeholder: "Filter By Alias..."
+          placeholder: "Filter By Locales..."
         }, {
           optionSelector: "#filter-release-branch",
-          placeholder: "Filter by Sets..."
+          placeholder: "Filter by Release..."
         }, {
           optionSelector: "#filter-created-on",
-          placeholder: "Filter By Status..."
+          placeholder: "Filter By Created date..."
         },
       ],
       paginationSelector: "#pagination-graph-rules-table",

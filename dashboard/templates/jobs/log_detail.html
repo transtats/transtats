@@ -19,7 +19,7 @@
   <div class="col-xs-12">
     <div class="card-pf card-pf-utilization" id="card-packages-summary">
       <div class="card-pf-heading">
-        <h2 class="card-pf-title">Job ID: {{ log.job_uuid }}&nbsp;&nbsp;<small>{{ log.job_start_time|date }}</small></h2>
+        <h1 class="card-pf-title">Job ID: {{ log.job_uuid }}</h1>
       </div>
       <div class="card-pf-body">
 
@@ -41,24 +41,20 @@
         </p>
         <hr/>
         <div class="panel-body">
-            <p><span class="fa fa-clock-o" aria-hidden="true"></span><span class="text-info">
-                {% if log.job_start_time %}Started at <strong>{{ log.job_start_time|time:"H:i:s" }}</strong>{% endif %}
-                {% if log.job_end_time %} and completed at <strong>{{ log.job_end_time|time:"H:i:s" }}</strong>
-                &nbsp;&nbsp;<em>({{ log.duration|floatformat:"0" }} seconds)</em>{% endif %}</span>
+            <h4><span class="fa fa-clock-o" aria-hidden="true"></span>
+                <span>
+                {% if log.job_start_time %}<span class="text-info">{{ log.job_start_time|date }}</span> - started at
+                    <span class="text-info">{{ log.job_start_time|time:"H:i:s" }}</span>{% endif %}
+                {% if log.job_end_time %} and completed at <span class="text-info">{{ log.job_end_time|time:"H:i:s" }}</span>
+                    &nbsp;&nbsp;<em>( <span class="text-info">{{ log.duration|floatformat:"0" }}</span> seconds )</em>{% endif %}</span>
                 {% if log.job_visible_on_url %}
                     <span class="pull-right">
-                        <span class="input-group">
-                          <span class="input-group-btn">
-                            <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
-                                    data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
-                                    title="Copy to clipboard">Copy Job URL
-                                <span class="fa fa-share-alt"></span></button>
-                          </span>
-                        </span>
+                        <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
+                                data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
+                                title="Copy to clipboard">Copy URL <span class="fa fa-clipboard"></span></button>
                     </span>
                 {% endif %}
-            </p>
-            <hr/>
+            </h4><hr/>
             <div class="container">
                 <div class="row">
                     <div class="col-sm-6 col-md-3">
@@ -77,8 +73,7 @@
                                     <p class="list-group-item-text">
                                         <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
                                         <span class="text-muted">
-                                            <pre style="background:#212121;color:white;max-height:400px;overflow:scroll !important;">
-                                                {{ event|pprint }}</pre>
+                                            <pre style="background:#212121;color:white;max-height:400px;overflow:scroll !important;">{{ event.strip|pprint }}</pre>
                                         </span>
                                     </p>
                                 {% endfor %}

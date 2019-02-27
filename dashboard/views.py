@@ -89,8 +89,8 @@ class ManagersMixin(object):
         jobs_count, last_ran_on, last_ran_type = \
             self.jobs_log_manager.get_joblog_stats()
         summary['jobs_len'] = jobs_count
-        # graph_rules = self.graph_manager.get_graph_rules(only_active=True)
-        # summary['graph_rules_len'] = graph_rules.count() if graph_rules else 0
+        # coverage = self.graph_manager.get_graph_rules(only_active=True)
+        # summary['graph_rules_len'] = coverage.count() if coverage else 0
         return summary
 
     @staticmethod
@@ -207,7 +207,7 @@ class TransCoverageView(ManagersMixin, TemplateView):
     """
     Translation Coverage View
     """
-    template_name = "graph_rules/graph_rule_view.html"
+    template_name = "coverage/graph_rule_view.html"
 
     def get_context_data(self, **kwargs):
         """
@@ -458,7 +458,7 @@ class GraphRulesSettingsView(ManagersMixin, ListView):
     """
     Graph Rules Settings View
     """
-    template_name = "graph_rules/graph_rule_list.html"
+    template_name = "coverage/graph_rule_list.html"
     context_object_name = 'rules'
 
     def get_queryset(self):
@@ -469,7 +469,7 @@ class NewGraphRuleView(ManagersMixin, FormView):
     """
     New Graph Rule View
     """
-    template_name = "graph_rules/graph_rule_new.html"
+    template_name = "coverage/graph_rule_new.html"
 
     def get_success_url(self):
         return reverse('settings-graph-rules-new')

@@ -34,6 +34,7 @@
         </div>
         <div class="modal-body">
           <h1>{{ app_name }}</h1>
+          <p>{{ app_desc }}</p>
           <div class="product-versions-pf">
             <ul class="list-unstyled">
               <li>
@@ -45,7 +46,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <img src="" alt="{{ app_name }} logo">
+          <!--<img src="" alt="{{ app_name }} logo">-->
         </div>
       </div>
     </div>
@@ -75,13 +76,13 @@
           </a>
           <ul class="dropdown-menu" aria-labelledby="dropdown-help">
             <li>
-              <a href="{% url 'howto' %}">Quick Start</a>
+              <a href="{% url 'howto' %}">Quick Start &amp; FAQs</a>
             </li>
             <li>
-              <a href="/api-docs" target="_blank">API Docs</a>
+              <a href="/api-docs" target="_blank">API Documentation</a>
             </li>
             <li>
-              <a href="http://docs.transtats.org" target="_blank">Project Docs</a>
+              <a href="http://docs.transtats.org" target="_blank">Project Documentation</a>
             </li>
             <li>
               <a data-toggle="modal" data-target="#about-modal">About</a>
@@ -151,8 +152,7 @@
         </a>
       </li>
       <li class="list-group-item secondary-nav-item-pf" id="li-jobs" data-target="div-jobs-secondary-nav">
-	<!-- TODO: change this link to #0 as it creates problem on touch devices -->
-        <a href="{% url 'jobs' %}">
+	    <a href="#0">
           <span class="fa fa-bolt" data-toggle="tooltip" title="Jobs"></span>
           <span class="list-group-item-value">Jobs</span>
         </a>
@@ -197,10 +197,10 @@
           <span class="list-group-item-value">Platforms</span>
         </a>
       </li>
-      <li class="list-group-item" id="li-custom-graphs">
+      <li class="list-group-item" id="li-coverage">
         <a href="{% url 'settings-graph-rules' %}">
-          <span class="fa fa-bar-chart" data-toggle="tooltip" title="Custom Graphs"></span>
-          <span class="list-group-item-value">Custom Graphs</span>
+          <span class="fa fa-bar-chart" data-toggle="tooltip" title="Translation Coverage"></span>
+          <span class="list-group-item-value">Coverage</span>
         </a>
       </li>
 
@@ -260,17 +260,17 @@
           <ul class="list-group">
             <li class="list-group-item">
               <a href="{% url 'howto' %}">
-                <span class="list-group-item-value">Quick Start</span>
+                <span class="list-group-item-value">Quick Start &amp; FAQs</span>
               </a>
             </li>
             <li class="list-group-item">
               <a href="/api-docs">
-                <span class="list-group-item-value">API Docs</span>
+                <span class="list-group-item-value">API Documentation</span>
               </a>
             </li>
             <li class="list-group-item">
               <a href="http://docs.transtats.org">
-                <span class="list-group-item-value">Project Docs</span>
+                <span class="list-group-item-value">Project Documentation</span>
               </a>
             </li>
             <li class="list-group-item">
@@ -294,7 +294,7 @@
   </div>
 
   <script>
-    var waitSpinner=null;function activateSection(){var a=window.location.pathname,t=a.substring(1,a.indexOf("/",1));"releases"===t||"products"===t?$("#li-dashboard").addClass("active"):"packages"===t?$("#li-packages").addClass("active"):"jobs"===t?$("#li-jobs").addClass("active"):"languages"===t?$("#li-languages").addClass("active"):"translation-platforms"===t?$("#li-translation-platforms").addClass("active"):"graph-rules"===t&&$("#li-custom-graphs").addClass("active")}function getWaitSpinner(){null===waitSpinner&&(waitSpinner=$(".spinner-wait-ts"))}function jsIdSafe(a){return a.replace("@","-at-")}$(document).ready(function(){$().setupVerticalNavigation(!0),$("#button-about-secondary").on("click",function(a){a.preventDefault(),$("#about-modal").modal("show")}),$("#button-auth-token-secondary").on("click",function(a){a.preventDefault(),$("#modal-auth-token").modal("show")}),waitSpinner=$(".spinner-wait-ts"),activateSection()});
+    var waitSpinner=null;function activateSection(){var a=window.location.pathname,t=a.substring(1,a.indexOf("/",1));"releases"===t||"products"===t?$("#li-dashboard").addClass("active"):"packages"===t?$("#li-packages").addClass("active"):"jobs"===t?$("#li-jobs").addClass("active"):"languages"===t?$("#li-languages").addClass("active"):"translation-platforms"===t?$("#li-translation-platforms").addClass("active"):"graph-rules"===t&&$("#li-coverage").addClass("active")}function getWaitSpinner(){null===waitSpinner&&(waitSpinner=$(".spinner-wait-ts"))}function jsIdSafe(a){return a.replace("@","-at-")}$(document).ready(function(){$().setupVerticalNavigation(!0),$("#button-about-secondary").on("click",function(a){a.preventDefault(),$("#about-modal").modal("show")}),$("#button-auth-token-secondary").on("click",function(a){a.preventDefault(),$("#modal-auth-token").modal("show")}),waitSpinner=$(".spinner-wait-ts"),activateSection()});
   </script>
   </body>
 </html>

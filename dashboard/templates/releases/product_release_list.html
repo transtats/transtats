@@ -32,7 +32,8 @@
                 <span class="text-muted"><strong>Phase: </strong></span>{{ relbranch.current_phase|capfirst }}
               </div>
               <div>
-                <span class="text-muted"><strong>Language Set: </strong></span>{{ relbranch.language_set_slug.lang_set_name|capfirst }}
+                <span class="text-muted"><strong>Language Set: </strong></span>
+                <a href="{% url 'settings-languages' %}">{{ relbranch.language_set_slug.lang_set_name|capfirst }}</a>
               </div>
               <div>
                 <span class="text-muted"><strong>Sync Calendar: </strong></span>
@@ -81,7 +82,6 @@
             {% endif %}
             <span class="pull-right">
               <a href="{{ relbranch.calendar_url }}" target="_blank">iCal URL</a>
-              <span class="fa fa-external-link" aria-hidden="true"></span>
             </span>
           </div>
         </div>

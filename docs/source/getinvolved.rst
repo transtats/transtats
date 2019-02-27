@@ -36,20 +36,6 @@ Try and test
   - Application should be available at :code:`localhost:8080` with :code:`transtats | transtats` as login credentials.
 
 
-- **docker-compose**
-
-  - Install `docker-compose <https://docs.docker.com/compose>`_
-
-  - This will clone the repo and start `transtats` server
-      .. code-block:: bash
-
-          $ git clone https://github.com/transtats/transtats.git
-          $ cd transtats/deploy/docker-compose
-          $ sudo docker-compose up
-
-  - Application should be available at :code:`localhost:8080`.
-
-
 Hack and Develop
 ----------------
 
@@ -74,9 +60,9 @@ Hack and Develop
 
 - Create migrations :code:`make migrations`
 
-- Run tests :code:`make lint test`
+- Collect static files :code:`make static`
 
-- Create cache :code:`make cache`
+- Run tests :code:`make lint test`
 
 - Generate docs :code:`make docs`
 

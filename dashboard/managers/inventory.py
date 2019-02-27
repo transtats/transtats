@@ -352,6 +352,15 @@ class SyncStatsManager(BaseManager):
                 elif stats_json.get(locale_tuple[1]):
                     trans_stats.append({locale_tuple[1]: stats_json[locale_tuple[1]]})
                     missing_locales.append(locale_tuple)
+                elif stats_json.get('stats'):
+                    for stats_param in stats_json['stats']:
+                        stats_param_locale = stats_param.get('locale', '')
+                        for locale_tuple in locales:
+                            if (stats_param_locale in locale_tuple) or \
+                                    (stats_param_locale.replace('-', '_') in locale_tuple):
+                                trans_stats.append(stats_param)
+                            else:
+                                missing_locales.append(locale_tuple)
 
         return trans_stats, tuple(set(locales) - set(missing_locales))
 
@@ -366,8 +375,14 @@ class SyncStatsManager(BaseManager):
 
         if transplatform_slug in TRANSIFEX_SLUGS:
             for stats_dict in stats_dict_list:
+                if 'translated'in stats_dict and 'total' in stats_dict:
+                    translation_percent = \
+                        round((stats_dict.get('translated', 0) * 100) / stats_dict.get('total', 0), 2) \
+                        if stats_dict.get('total', 0) > 0 else 0
+                    locale_translated.append([stats_dict.get('locale', ''), translation_percent])
                 for locale, stat_params in stats_dict.items():
-                    locale_translated.append([locale, int(stat_params.get('completed')[:-1])])
+                    if isinstance(stat_params, dict):
+                        locale_translated.append([locale, int(stat_params.get('completed')[:-1])])
         else:
             for stats_dict in stats_dict_list:
                 translation_percent = \

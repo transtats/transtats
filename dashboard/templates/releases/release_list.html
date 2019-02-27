@@ -17,7 +17,7 @@
       Products
       {% if user.is_authenticated and user.is_staff %}
       <a class="pull-right btn btn-default btn-xs" id="button-add-product" type="button" href="{% url 'admin:dashboard_product_add' %}">
-        <span class="pficon pficon-add-circle-o"></span> Add product
+        <span class="pficon pficon-add-circle-o"></span> Add Product
       </a>
       {% endif %}
     </h3>
@@ -41,7 +41,7 @@
       {% if user.is_authenticated and user.is_staff %}
       <div class="blank-slate-pf-main-action">
         <a class="btn btn-primary btn-lg" href="{% url 'admin:dashboard_product_add' %}">
-          <i class="pficon pficon-add-circle-o"></i> Add product</a>
+          <i class="pficon pficon-add-circle-o"></i> Add Product</a>
       </div>
       {% endif %}
     </div>
@@ -51,7 +51,7 @@
     {% for relstream in relstreams %}
     <div class="list-group-item">
       <div class="list-view-pf-actions">
-        <a class="btn btn-default" href="{% url 'settings-stream-branches' relstream.product_slug %}">Show releases</a>
+        <a class="btn btn-default" href="{% url 'settings-stream-branches' relstream.product_slug %}">Show Releases</a>
         {% if user.is_authenticated and user.is_staff %}
         <div class="dropdown pull-right dropdown-kebab-pf">
           <button class="btn btn-link dropdown-toggle" type="button" id="dropdown-product-list" data-toggle="dropdown" aria-haspopup="true"
@@ -117,7 +117,7 @@
 <div class="panel panel-default" id="panel-release-list">
   <div class="panel-heading">
     <h3 class="panel-title">
-      Product releases
+      Product Releases
       {% if releases %}
       <select id="relBranch" class="selectpicker" data-live-search="true">
         <option selected disabled>Select Release</option>
