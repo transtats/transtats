@@ -168,11 +168,26 @@ class UpdatePackageForm(forms.ModelForm):
         cleaned_data = super().clean()
         package_name = cleaned_data['package_name']
         platform_slug = getattr(cleaned_data['platform_slug'], 'platform_slug', None)
+        platform_url = cleaned_data['platform_url']
         packages_manager = PackagesManager()
+        pkg_platform_url, _ = packages_manager.get_project_details(cleaned_data['platform_slug'],
+                                                                   package_name)
+        if not platform_url == pkg_platform_url:
+            cleaned_data['platform_url'] = pkg_platform_url
         validate_package = packages_manager.validate_package(package_name=package_name,
                                                              transplatform_slug=platform_slug)
         if not validate_package:
             self.add_error('package_name', "Not found at selected translation platform")
+        else:
+            old_platform_engine = getattr(getattr(getattr(self, 'instance', None), 'platform_slug', None),
+                                          'engine_name', None)
+            if old_platform_engine:
+                packages_manager.syncstats_manager.toggle_visibility(package_name, stats_source=old_platform_engine)
+            new_platform_engine = packages_manager.get_engine_from_slug(platform_slug)
+            if new_platform_engine:
+                packages_manager.syncstats_manager.toggle_visibility(
+                    package_name, visibility=True, stats_source=new_platform_engine
+                )
 
 
 class NewReleaseBranchForm(forms.Form):

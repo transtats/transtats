@@ -38,7 +38,8 @@ from dashboard.models import (
     Platform, Language, LanguageSet, Product, Release, SyncStats
 )
 from dashboard.constants import (
-    ZANATA_SLUGS, DAMNEDLIES_SLUGS, TRANSIFEX_SLUGS, RELSTREAM_SLUGS
+    TRANSPLATFORM_ENGINES, ZANATA_SLUGS, DAMNEDLIES_SLUGS,
+    TRANSIFEX_SLUGS, RELSTREAM_SLUGS
 )
 from dashboard.managers.utilities import parse_ical_file
 
@@ -227,6 +228,23 @@ class InventoryManager(BaseManager):
         active_platforms = [platform for platform in platforms if platform.server_status]
         inactive_platforms = list(set(platforms) - set(active_platforms))
         return active_platforms, inactive_platforms
+
+    def get_engine_from_slug(self, platform_slug):
+        """
+        return platform's engine related to provided slug
+        :param platform_slug: str
+        :return: str
+        """
+        count = 0
+        platform_relation = {}
+        platform_slugs = [DAMNEDLIES_SLUGS, TRANSIFEX_SLUGS, ZANATA_SLUGS]
+
+        for engine in TRANSPLATFORM_ENGINES:
+            platform_relation.update({engine: platform_slugs[count]})
+            count += 1
+
+        engine = [i for i, j in platform_relation.items() if platform_slug in j]
+        return engine[0] if isinstance(engine, list) and len(engine) > 0 else ''
 
     def get_transplatform_slug_url(self):
         """
@@ -427,6 +445,27 @@ class SyncStatsManager(BaseManager):
                     stats_processed_json_str=json.dumps(p_stats) if isinstance(p_stats, dict) else {},
                     sync_iter_count=existing_sync_stat.sync_iter_count + 1
                 )
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "version stats could not be saved, details: " + str(e))
+        else:
+            return True
+        return False
+
+    def toggle_visibility(self, package, visibility=False, stats_source=None):
+        """
+        Toggle visibility of statistics to false or true
+        :param package: Package Name: str
+        :param visibility: boolean
+        :param stats_source: str
+        :return: boolean
+        """
+        filter_kwargs = {}
+        filter_kwargs.update(dict(package_name=package))
+        if stats_source:
+            filter_kwargs.update(dict(source=stats_source))
+        try:
+            SyncStats.objects.filter(**filter_kwargs).update(sync_visibility=visibility)
         except Exception as e:
             self.app_logger(
                 'ERROR', "version stats could not be saved, details: " + str(e))
