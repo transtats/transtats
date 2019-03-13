@@ -23,11 +23,12 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.core.exceptions import PermissionDenied
 from django.forms.utils import ErrorList
 from django.http import (
     HttpResponse, HttpResponseRedirect, JsonResponse, Http404
 )
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
 from django.template import Context, Template
 from django.views.generic import (
     TemplateView, ListView, FormView, DetailView
@@ -440,7 +441,7 @@ class NewPackageView(ManagersMixin, FormView):
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
 
-class UpdatePackageView(SuccessMessageMixin, UpdateView):
+class UpdatePackageView(ManagersMixin, SuccessMessageMixin, UpdateView):
     """
     Update Package view
     """
@@ -449,6 +450,13 @@ class UpdatePackageView(SuccessMessageMixin, UpdateView):
     slug_field = 'package_name'
     form_class = UpdatePackageForm
     success_message = '%(package_name)s was updated successfully!'
+
+    def get(self, request, *args, **kwargs):
+        if kwargs.get('slug'):
+            pkg = self.packages_manager.get_packages(pkgs=[kwargs['slug']]).get()
+            if not pkg.created_by == request.user.email:
+                raise PermissionDenied
+        return super(UpdatePackageView, self).get(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('package-update', args=[self.object.package_name])

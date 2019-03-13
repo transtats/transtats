@@ -166,7 +166,7 @@
           <span class="pficon pficon-warning-triangle-o fa-2x"></span>
         {% endif %}
       </td>
-      {% if user.is_staff %}
+      {% if user.is_staff or package.created_by == user.email %}
       <td class="table-view-pf-actions">
         <div class="dropdown dropdown-kebab-pf">
           <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
