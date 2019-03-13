@@ -162,7 +162,7 @@ class PackagesManager(InventoryManager):
                          if package.platform_last_updated and package.release_branch_mapping]
         return tuple(sorted(name_list))
 
-    def _get_project_details(self, transplatform, package_name):
+    def get_project_details(self, transplatform, package_name):
         """
         Get platform-wise project details
         """
@@ -207,7 +207,7 @@ class PackagesManager(InventoryManager):
             platform = Platform.objects.only('engine_name', 'api_url') \
                 .filter(platform_slug=kwargs.pop('transplatform_slug')).get()
             kwargs['platform_url'], resp_dict = \
-                self._get_project_details(platform, kwargs['package_name'])
+                self.get_project_details(platform, kwargs['package_name'])
             if resp_dict:
                 # save project details in db
                 kwargs['package_details_json_str'] = json.dumps(resp_dict)
@@ -330,7 +330,8 @@ class PackagesManager(InventoryManager):
                         package_details.platform_slug_id,
                         pkg_stats_version.stats_raw_json, list(lang_id_name)
                     )
-                if 'test' not in pkg_stats_version.project_version and 'extras' not in pkg_stats_version.project_version:
+                if 'test' not in pkg_stats_version.project_version \
+                        and 'extras' not in pkg_stats_version.project_version:
                     trans_stats_dict[pkg_stats_version.project_version] = \
                         self.syncstats_manager.extract_locale_translated(package_details.platform_slug_id,
                                                                          trans_stats_list)

@@ -1,3 +1,6 @@
+##### Fri Mar 15 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.1
+* Enable package edit for users, a few bug fixes.
+
 ##### Fri Mar 01 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.0
 * Basic Celery, Tx fix, API cache, more bug fixes, a few UI changes
 
