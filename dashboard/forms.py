@@ -144,7 +144,7 @@ class UpdatePackageForm(forms.ModelForm):
             Field('platform_slug', css_class='selectpicker'),
             Field('platform_url', css_class='form-control'),
             InlineCheckboxes('products'),
-            Field('release_branch_mapping', css_class='form-control', rows=4),
+            Field('release_branch_mapping', css_class='form-control', rows=4, readonly=True),
             FormActions(
                 Submit('updatePackage', 'Update Package'), Reset('reset', 'Reset', css_class='btn-danger')
             )
