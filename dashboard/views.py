@@ -452,7 +452,7 @@ class UpdatePackageView(ManagersMixin, SuccessMessageMixin, UpdateView):
     success_message = '%(package_name)s was updated successfully!'
 
     def get(self, request, *args, **kwargs):
-        if kwargs.get('slug'):
+        if kwargs.get('slug') and not request.user.is_staff:
             pkg = self.packages_manager.get_packages(pkgs=[kwargs['slug']]).get()
             if not pkg.created_by == request.user.email:
                 raise PermissionDenied
