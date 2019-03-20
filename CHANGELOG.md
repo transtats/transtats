@@ -1,3 +1,6 @@
+##### Fri Mar 22 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.2
+* Threshold based statistics of languages.
+
 ##### Fri Mar 15 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.1
 * Enable package edit for users, a few bug fixes.
 

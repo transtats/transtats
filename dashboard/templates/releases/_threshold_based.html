@@ -1,0 +1,28 @@
+{% load get_item from custom_tags %}
+<div class="panel-heading">
+  <h4>At least <span class="text-info">{{ threshold }}%</span> of messages translated in <span class="text-info">{{ languages|length }}</span> languages across all packages.</h4>
+</div>
+<table class="table table-bordered table-hover">
+  <thead>
+    <tr>
+      {% for header in headers %}
+      <th>{{ header }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% if languages %}
+      {% for language in languages %}
+      <tr>
+        <td><a href="{% url 'trans-status-release' release %}?locale={{ locales|get_item:language.0 }}" data-toggle="tooltip" title="Package wise stats for {{ language.0 }}">
+          {{ language.0 }}</a></td>
+        <td>{{ language.1 }}</td>
+      </tr>
+      {% endfor %}
+    {% else %}
+    <tr>
+      <td colspan="2">No Languages</td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>
