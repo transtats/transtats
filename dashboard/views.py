@@ -958,6 +958,17 @@ def release_graph(request):
                 {% tag_workload_detailed relbranch %}
             """
             return HttpResponse(Template(template_string).render(context))
+        elif post_params.get('relbranch') and post_params.get('threshold'):
+            context = Context(
+                {'META': request.META,
+                 'relbranch': post_params['relbranch'],
+                 'threshold': post_params['threshold']}
+            )
+            template_string = """
+                {% load tag_threshold_based from custom_tags %}
+                {% tag_threshold_based relbranch threshold %}
+            """
+            return HttpResponse(Template(template_string).render(context))
         elif post_params.get('relbranch'):
             graph_manager = GraphManager()
             graph_dataset = graph_manager.get_workload_graph_data(post_params['relbranch'])

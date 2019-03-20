@@ -173,6 +173,25 @@ def tag_workload_detailed(relbranch):
 
 
 @register.inclusion_tag(
+    os.path.join("releases", "_threshold_based.html")
+)
+def tag_threshold_based(relbranch, threshold):
+    return_value = OrderedDict()
+    graph_manager = GraphManager()
+    if threshold and not isinstance(threshold, int):
+        threshold = int(threshold)
+    headers, workload, locales = graph_manager.get_threshold_based(
+        relbranch, threshold
+    )
+    return_value.update(dict(headers=headers))
+    return_value.update(dict(languages=workload))
+    return_value.update(dict(locales=locales))
+    return_value.update(dict(threshold=threshold))
+    return_value.update(dict(release=relbranch))
+    return return_value
+
+
+@register.inclusion_tag(
     os.path.join("releases", "_releases_summary.html")
 )
 def tag_releases_summary():

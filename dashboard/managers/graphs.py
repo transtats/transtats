@@ -458,6 +458,29 @@ class GraphManager(BaseManager):
                 self.get_workload_estimate(release_branch, locale=locale)[1]
         return workload_combined_detailed
 
+    def get_threshold_based(self, release_branch, threshold=70):
+        """
+        Build language list those have fulfilled given threshold
+        :param release_branch: str
+        :param threshold: translation %age margin: int
+        :return: dict
+        """
+
+        consolidated_stats = self._consolidate_branch_specific_stats(
+            self._get_branch_specific_pkgs_stats(release_branch)
+        )
+        # Reverse the stats to have - what has been covered
+        consolidated_stats_reversed = [(lang, 100 - stat) for lang, stat in consolidated_stats]
+        filtered_stats = list(filter(lambda elem: elem[1] > threshold, consolidated_stats_reversed))
+        headers = ['Languages', 'Translation Complete %age']
+
+        locale_lang_tuple = self.package_manager.get_locale_lang_tuple(
+            locales=self.package_manager.get_relbranch_locales(release_branch)
+        )
+        lang_locale_dict = {v: k for k, v in dict(locale_lang_tuple).items()}
+
+        return headers, filtered_stats, lang_locale_dict
+
 
 class ReportsManager(GraphManager):
     """
