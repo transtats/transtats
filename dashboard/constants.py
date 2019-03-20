@@ -16,9 +16,10 @@
 # == always append tuples with new values ==
 
 # Supported translation platforms
-TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata')
+TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata', 'weblate')
 DAMNEDLIES_SLUGS = ('DMLSPUB', )
 TRANSIFEX_SLUGS = ('TNFXPUB', )
+WEBLATE_SLUGS = ('WLTEPUB', )
 # Supported Zanata Instances
 ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTAVDR')
 
