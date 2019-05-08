@@ -53,7 +53,7 @@ ajax_urls = [
 ]
 
 app_jobs_urls = [
-    url(r'^$', JobsView.as_view(), name="jobs"),
+    url(r'^$', login_required(JobsView.as_view(), login_url=LOGIN_URL), name="jobs"),
     url(r'^logs$', JobsLogsView.as_view(), name="jobs-logs"),
     url(r'^archive$', JobsArchiveView.as_view(), name="jobs-archive"),
     url(r'^yml-based$', YMLBasedJobs.as_view(), name="jobs-yml-based"),
@@ -98,7 +98,7 @@ packages_urls = [
     url(r'^$', PackageSettingsView.as_view(), name="settings-packages"),
     url(r'^new$', login_required(NewPackageView.as_view(), login_url=LOGIN_URL), name="package-new"),
     url(r'^view/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(), name="package-view"),
-    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdatePackageView.as_view()), name="package-update"),
+    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdatePackageView.as_view(), login_url=LOGIN_URL), name="package-update"),
     url(r'^export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
 ]
 

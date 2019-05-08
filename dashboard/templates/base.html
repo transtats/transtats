@@ -162,11 +162,13 @@
 	    <span>Jobs</span>
 	  </div>
 	  <ul class="list-group">
+        {% if user.is_authenticated %}
 	    <li class="list-group-item" id="li-jobs-jobs" data-toggle="tooltip" title="Predefined Jobs">
 	      <a href="{% url 'jobs' %}">
 		<span class="list-group-item-value">Predefined Jobs</span>
 	      </a>
 	    </li>
+        {% endif %}
 	    <li class="list-group-item" id="li-jobs-yml-based" data-toggle="tooltip" title="YML based Jobs">
 	      <a href="{% url 'jobs-yml-based' %}">
 		<span class="list-group-item-value">YML based Jobs</span>
