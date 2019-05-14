@@ -32,7 +32,7 @@ from dashboard.managers.inventory import InventoryManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES,
-    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS
+    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS, WEBLATE_SLUGS
 )
 
 __all__ = ['NewPackageForm', 'NewReleaseBranchForm', 'NewGraphRuleForm']
@@ -44,6 +44,7 @@ all_platform_slugs = []
 all_platform_slugs.extend(TRANSIFEX_SLUGS)
 all_platform_slugs.extend(ZANATA_SLUGS)
 all_platform_slugs.extend(DAMNEDLIES_SLUGS)
+all_platform_slugs.extend(WEBLATE_SLUGS)
 SLUG_CHOICES = tuple([(slug, slug) for slug in all_platform_slugs])
 
 

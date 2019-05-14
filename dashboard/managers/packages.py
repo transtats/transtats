@@ -187,6 +187,11 @@ class PackagesManager(InventoryManager):
                 transplatform.engine_name, transplatform.api_url, package_name,
                 **dict(auth_user=transplatform.auth_login_id, auth_token=transplatform.auth_token_key)
             )
+        elif transplatform.engine_name == TRANSPLATFORM_ENGINES[3]:
+            resp_dict = self.api_resources.fetch_project_details(
+                transplatform.engine_name, transplatform.api_url, package_name
+            )
+            platform_url = resp_dict.get('web_url', transplatform.api_url + "/projects/" + package_name)
         return platform_url, resp_dict
 
     def add_package(self, **kwargs):
@@ -236,7 +241,9 @@ class PackagesManager(InventoryManager):
         if isinstance(projects, list) and engine == TRANSPLATFORM_ENGINES[0]:
             for project in projects:
                 ids.append(project['fields']['name'])
-        elif isinstance(projects, dict) and engine == TRANSPLATFORM_ENGINES[1]:
+        elif isinstance(projects, dict) and engine in (
+                TRANSPLATFORM_ENGINES[1], TRANSPLATFORM_ENGINES[3]
+        ):
             ids.append(projects.get('slug'))
             names.append(projects.get('name'))
         elif isinstance(projects, list) and engine == TRANSPLATFORM_ENGINES[2]:
@@ -266,7 +273,7 @@ class PackagesManager(InventoryManager):
             auth_dict = dict(
                 auth_user=platform.auth_login_id, auth_token=platform.auth_token_key
             )
-            if platform.engine_name == TRANSPLATFORM_ENGINES[1]:
+            if platform.engine_name in (TRANSPLATFORM_ENGINES[1], TRANSPLATFORM_ENGINES[3]):
                 response_dict = self.api_resources.fetch_project_details(
                     platform.engine_name, platform.api_url, package_name.lower(), **auth_dict
                 )

@@ -16,7 +16,7 @@
 from collections import (namedtuple, OrderedDict)
 
 http_methods = ('GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS')
-media_types = ('application/json', 'application/xml')
+media_types = ('application/json', 'application/xml', 'application/binary')
 
 # based on https://docs.weblate.org/en/latest/api.html
 # please add, modify resource details here, and make entry in service-to-resource mappings and in services
@@ -25,7 +25,7 @@ resource_config_dict = {
         ('/projects/', {
             http_methods[0]: {
                 'path_params': None,
-                'query_params': ('page',),
+                'query_params': None,
                 'request_media_type': media_types[0],
                 'response_media_type': media_types[0],
             },
@@ -75,12 +75,12 @@ resource_config_dict = {
                 'path_params': ('project_slug', 'component_slug'),
                 'query_params': None,
                 'request_media_type': media_types[0],
-                'response_media_type': media_types[0],
+                'response_media_type': media_types[2],
             },
         }),
     ]),
     'StatisticsResource': OrderedDict([
-        ('/components/{project_slug}/statistics/', {
+        ('/projects/{project_slug}/statistics/', {
             http_methods[0]: {
                 'path_params': ('project_slug',),
                 'query_params': None,
@@ -111,18 +111,30 @@ resource_config_dict = {
 
 resource = namedtuple('service', 'rest_resource mount_point http_method')
 # service-to-resource mappings
-teams = resource('TeamsResource', list(resource_config_dict['TeamsResource'].keys())[0], http_methods[0])
-modules = resource('ModulesResource', list(resource_config_dict['ModulesResource'].keys())[0], http_methods[0])
-releases = resource('ReleasesResource', list(resource_config_dict['ReleasesResource'].keys())[0], http_methods[0])
-release_details = resource('ReleaseDetailsResource', list(resource_config_dict['ReleaseDetailsResource'].keys())[0],
+list_projects = resource('ProjectsResource', list(resource_config_dict['ProjectsResource'].keys())[0], http_methods[0])
+project_details = resource('ProjectResource', list(resource_config_dict['ProjectResource'].keys())[0], http_methods[0])
+list_components = resource('ComponentsResource', list(resource_config_dict['ComponentsResource'].keys())[0],
                            http_methods[0])
-release_trans_stats = resource('ReleaseStatisticsResource',
-                               list(resource_config_dict['ReleaseStatisticsResource'].keys())[0], http_methods[0])
+project_components = resource('ComponentResource', list(resource_config_dict['ComponentResource'].keys())[0],
+                              http_methods[0])
+component_details = resource('ComponentResource', list(resource_config_dict['ComponentResource'].keys())[1],
+                             http_methods[0])
+source_doc = resource('SourceDocResource', list(resource_config_dict['SourceDocResource'].keys())[0], http_methods[0])
+project_stats = resource('StatisticsResource', list(resource_config_dict['StatisticsResource'].keys())[0],
+                         http_methods[0])
+project_component_stats = resource('StatisticsResource', list(resource_config_dict['StatisticsResource'].keys())[1],
+                                   http_methods[0])
+locale_stats = resource('TranslationResource', list(resource_config_dict['TranslationResource'].keys())[0],
+                        http_methods[0])
 # Transtats Weblate support operates on resources listed here
 resources = {
-    'teams': teams,
-    'modules': modules,
-    'releases': releases,
-    'release_details': release_details,
-    'release_trans_stats': release_trans_stats
+    'list_projects': list_projects,
+    'project_details': project_details,
+    'list_components': list_components,
+    'project_components': project_components,
+    'component_details': component_details,
+    'source_doc': source_doc,
+    'project_stats': project_stats,
+    'project_component_stats': project_component_stats,
+    'locale_stats': locale_stats
 }

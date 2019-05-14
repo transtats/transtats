@@ -21,6 +21,7 @@ try:
     import koji
 except Exception as e:
     raise Exception("koji could not be imported, details: %s" % e)
+from urllib.parse import urlparse
 
 # dashboard
 from dashboard.constants import TRANSPLATFORM_ENGINES, BUILD_SYSTEMS
@@ -55,6 +56,21 @@ class TransplatformResources(object):
     def _fetch_zanata_projects(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
         return response.get('json_content')
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[3])
+    def _fetch_weblate_projects(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        if response.get('json_content', {}).get('results'):
+            kwargs['combine_results'].extend(response['json_content']['results'])
+        if response.get('json_content', {}).get('next'):
+            next_api_url = urlparse(response['json_content']['next'])
+            if next_api_url.query:
+                kwargs['ext'] = next_api_url.query
+            TransplatformResources._fetch_weblate_projects(
+                base_url, resource, *url_params, **kwargs
+            )
+        return kwargs['combine_results']
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
@@ -103,6 +119,12 @@ class TransplatformResources(object):
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[2])
     def _fetch_zanata_project_details(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('json_content')
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[3])
+    def _fetch_weblate_project_details(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
         return response.get('json_content')
 
@@ -174,6 +196,8 @@ class TransplatformResources(object):
             service_resource = api_config['resources'][0]
             if len(api_config['resources']) > 1:
                 kwargs.update(dict(more_resources=api_config['resources'][1:]))
+            if api_config.get('combine_results'):
+                kwargs['combine_results'] = []
             return api_config['method'](
                 api_config['base_url'], service_resource, *args, **kwargs
             )
@@ -206,6 +230,12 @@ class TransplatformResources(object):
                 'method': self._fetch_zanata_projects,
                 'base_url': instance_url,
                 'resources': ['list_projects'],
+            },
+            TRANSPLATFORM_ENGINES[3]: {
+                'method': self._fetch_weblate_projects,
+                'base_url': instance_url,
+                'resources': ['list_projects'],
+                'combine_results': True,
             }
         }
         selected_config = method_mapper[translation_platform]
@@ -236,6 +266,12 @@ class TransplatformResources(object):
             },
             TRANSPLATFORM_ENGINES[2]: {
                 'method': self._fetch_zanata_project_details,
+                'base_url': instance_url,
+                'resources': ['project_details'],
+                'project': args[0],
+            },
+            TRANSPLATFORM_ENGINES[3]: {
+                'method': self._fetch_weblate_project_details,
                 'base_url': instance_url,
                 'resources': ['project_details'],
                 'project': args[0],
