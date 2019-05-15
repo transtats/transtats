@@ -335,13 +335,15 @@ class PackagesManager(InventoryManager):
                 trans_stats_list, missing_locales = \
                     self.syncstats_manager.filter_stats_for_required_locales(
                         package_details.platform_slug_id,
-                        pkg_stats_version.stats_raw_json, list(lang_id_name)
+                        pkg_stats_version.stats_raw_json, list(lang_id_name),
+                        pkg_stats_version.source
                     )
                 if 'test' not in pkg_stats_version.project_version \
                         and 'extras' not in pkg_stats_version.project_version:
                     trans_stats_dict[pkg_stats_version.project_version] = \
                         self.syncstats_manager.extract_locale_translated(package_details.platform_slug_id,
-                                                                         trans_stats_list)
+                                                                         trans_stats_list,
+                                                                         pkg_stats_version.source)
             if apply_branch_mapping and package_details.release_branch_mapping:
                 branch_mapping = package_details.release_branch_mapping_json
                 for relbranch, branch_mapping in branch_mapping.items():
@@ -417,7 +419,7 @@ class PackagesManager(InventoryManager):
                 # Process and Update locale-wise stats
                 if self.PROCESS_STATS and proj_trans_stats_response_dict.get('stats'):
                     processed_stats = self._process_response_stats_json(
-                        proj_trans_stats_response_dict['stats'])
+                        proj_trans_stats_response_dict['stats'], package.platform_slug.engine_name)
 
                 if self.PROCESS_STATS and package.platform_slug.engine_name == TRANSPLATFORM_ENGINES[1] \
                         and not processed_stats:
@@ -461,17 +463,22 @@ class PackagesManager(InventoryManager):
             return True
         return False
 
-    def _process_response_stats_json(self, stats_json):
+    def _process_response_stats_json(self, stats_json, engine=None):
+
+        locale_key = 'locale'
+        if engine and engine == TRANSPLATFORM_ENGINES[3]:
+            locale_key = 'code'
+
         lang_id_name = self.get_lang_id_name_dict() or []
         processed_stats_json = {}
-        for locale, alias in dict(list(lang_id_name.keys())).items():
+        for locale, l_alias in list(lang_id_name.keys()):
             try:
                 filter_stat = list(filter(
-                    lambda x: x['locale'] == locale or x['locale'].replace('-', '_') == locale, stats_json
+                    lambda x: x[locale_key] == locale or x[locale_key].replace('-', '_') == locale, stats_json
                 ))
                 if not filter_stat:
                     filter_stat = list(filter(
-                        lambda x: x['locale'] == alias or x['locale'].replace('-', '_') == alias, stats_json
+                        lambda x: x[locale_key] == l_alias or x[locale_key].replace('_', '-') == l_alias, stats_json
                     ))
             except Exception as e:
                 self.app_logger(
@@ -482,7 +489,9 @@ class PackagesManager(InventoryManager):
             processed_stats_json[locale] = {}
             processed_stats_json[locale]['Total'] = filter_stat.get('total', 0)
             processed_stats_json[locale]['Translated'] = filter_stat.get('translated', 0)
-            processed_stats_json[locale]['Untranslated'] = filter_stat.get('untranslated', 0)
+            processed_stats_json[locale]['Untranslated'] = \
+                filter_stat.get('untranslated', 0) or \
+                processed_stats_json[locale]['Total'] - processed_stats_json[locale]['Translated']
             remaining = 0
             try:
                 remaining = (filter_stat.get('untranslated', 0.0) / filter_stat.get('total', 0.0)) * 100
@@ -708,7 +717,7 @@ class PackageBranchMapping(object):
             return self._return_original_version(match3)
 
         probable_branches = ['default', 'master', 'head', 'rawhide',
-                             'devel', 'core', self.package_name]
+                             'devel', 'core', 'translations', self.package_name]
 
         for version in probable_branches:
             if version in from_branches:

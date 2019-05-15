@@ -339,25 +339,37 @@ class SyncStatsManager(BaseManager):
             )
         return sync_stats
 
-    def filter_stats_for_required_locales(self, transplatform_slug, stats_json, locales):
+    def filter_stats_for_required_locales(self, transplatform_slug, stats_json, locales, source):
         """
         Filter stats json for required locales
         :param transplatform_slug: str
         :param stats_json: dict
         :param locales: list
+        :param source: stats source
         :return: stats list, missing locales tuple
         """
         trans_stats = []
         missing_locales = []
 
-        if transplatform_slug in ZANATA_SLUGS or transplatform_slug in DAMNEDLIES_SLUGS:
+        locale_key = 'locale'
+        if source == TRANSPLATFORM_ENGINES[3]:
+            locale_key = 'code'
+
+        t_platform_group = []
+        t_platform_group.extend(ZANATA_SLUGS)
+        t_platform_group.extend(DAMNEDLIES_SLUGS)
+        t_platform_group.extend(WEBLATE_SLUGS)
+
+        if transplatform_slug in t_platform_group:
             if not stats_json.get('stats'):
                 return trans_stats, ()
             for stats_param in stats_json['stats']:
-                stats_param_locale = stats_param.get('locale', '')
+                stats_param_locale = stats_param.get(locale_key, '')
                 for locale_tuple in locales:
                     if (stats_param_locale in locale_tuple) or \
-                            (stats_param_locale.replace('-', '_') in locale_tuple):
+                            (stats_param_locale.replace('-', '_') in locale_tuple) or \
+                            (stats_param_locale.replace('_', '-') in locale_tuple):
+                        stats_param['source'] = source
                         trans_stats.append(stats_param)
                     else:
                         missing_locales.append(locale_tuple)
@@ -372,17 +384,18 @@ class SyncStatsManager(BaseManager):
                     missing_locales.append(locale_tuple)
                 elif stats_json.get('stats'):
                     for stats_param in stats_json['stats']:
-                        stats_param_locale = stats_param.get('locale', '')
+                        stats_param_locale = stats_param.get(locale_key, '')
                         for locale_tuple in locales:
                             if (stats_param_locale in locale_tuple) or \
                                     (stats_param_locale.replace('-', '_') in locale_tuple):
+                                stats_param['source'] = source
                                 trans_stats.append(stats_param)
                             else:
                                 missing_locales.append(locale_tuple)
 
         return trans_stats, tuple(set(locales) - set(missing_locales))
 
-    def extract_locale_translated(self, transplatform_slug, stats_dict_list):
+    def extract_locale_translated(self, transplatform_slug, stats_dict_list, source):
         """
         Compute %age of translation for each locale
         :param transplatform_slug:str
@@ -391,13 +404,17 @@ class SyncStatsManager(BaseManager):
         """
         locale_translated = []
 
+        locale_key = 'locale'
+        if source == TRANSPLATFORM_ENGINES[3]:
+            locale_key = 'code'
+
         if transplatform_slug in TRANSIFEX_SLUGS:
             for stats_dict in stats_dict_list:
                 if 'translated'in stats_dict and 'total' in stats_dict:
                     translation_percent = \
                         round((stats_dict.get('translated', 0) * 100) / stats_dict.get('total', 0), 2) \
                         if stats_dict.get('total', 0) > 0 else 0
-                    locale_translated.append([stats_dict.get('locale', ''), translation_percent])
+                    locale_translated.append([stats_dict.get(locale_key, ''), translation_percent])
                 for locale, stat_params in stats_dict.items():
                     if isinstance(stat_params, dict):
                         locale_translated.append([locale, int(stat_params.get('completed')[:-1])])
@@ -406,7 +423,8 @@ class SyncStatsManager(BaseManager):
                 translation_percent = \
                     round((stats_dict.get('translated', 0) * 100) / stats_dict.get('total', 0), 2) \
                     if stats_dict.get('total', 0) > 0 else 0
-                locale_translated.append([stats_dict.get('locale', ''), translation_percent])
+                locale_translated.append([stats_dict.get(locale_key, ''), translation_percent])
+        locale_translated.append(['source', source])
         return locale_translated
 
     def save_version_stats(self, project, version, stats_json, stats_source, p_stats=None):

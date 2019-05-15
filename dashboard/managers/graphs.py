@@ -155,7 +155,7 @@ class GraphManager(BaseManager):
             expected_stats_list = temp_patched_stats_list
         return expected_stats_list
 
-    def _format_stats_for_default_graphs(self, locale_sequence, stats_dict, desc):
+    def _format_stats_for_default_graphs(self, locale_sequence, stats_dict, desc, prepend_source=False):
         """
         Formats stats dict for graph-ready material
         - sorting and normalization
@@ -172,27 +172,32 @@ class GraphManager(BaseManager):
             for stats_tuple in stats_lists:
                 index = [i for i, locale_tuple in enumerate(list(locale_sequence), 0)
                          if (stats_tuple[0] in locale_tuple) or
-                         (stats_tuple[0].replace('-', '_') in locale_tuple)]
+                         (stats_tuple[0].replace('-', '_') in locale_tuple) or
+                         (stats_tuple[0].replace('_', '-') in locale_tuple)]
                 if index:
                     index.append(stats_tuple[1] or 0.0)
                     new_stats_list.append(index)
+                if prepend_source:
+                    if stats_tuple[0] == 'source' and stats_tuple[1] not in version.lower():
+                        version = "{0} - {1}".format(stats_tuple[1], version)
             normalized_stats = self._normalize_stats(sorted(new_stats_list), indexes)
             if len(list(filter(lambda x: x[1] > 0.0, normalized_stats))) > 0:
                 graph_data_dict[version] = normalized_stats
         stats_for_graphs_dict['graph_data'] = OrderedDict(sorted(graph_data_dict.items()))
         return stats_for_graphs_dict
 
-    def get_trans_stats_by_package(self, package):
+    def get_trans_stats_by_package(self, package, prepend_source=False):
         """
         formats stats of a package for all enabled languages
         :param package: str
+        :param prepend_source: boolean
         :return: Graph data for "Package-wise" view: dict
         """
         if not package:
             return {}
         lang_id_name, stats_dict, pkg_desc = self.package_manager.get_trans_stats(package)
         # format trans_stats_list for graphs
-        return self._format_stats_for_default_graphs(lang_id_name, stats_dict, pkg_desc)
+        return self._format_stats_for_default_graphs(lang_id_name, stats_dict, pkg_desc, prepend_source)
 
     def _format_stats_for_lang_wise_graphs(self, input_locale, locale_sequence, stats_dict, desc):
         """
