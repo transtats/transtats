@@ -191,7 +191,7 @@ class PackagesManager(InventoryManager):
             resp_dict = self.api_resources.fetch_project_details(
                 transplatform.engine_name, transplatform.api_url, package_name
             )
-            platform_url = resp_dict.get('web_url', transplatform.api_url + "/projects/" + package_name)
+            platform_url = transplatform.api_url + "/projects/" + package_name
         return platform_url, resp_dict
 
     def add_package(self, **kwargs):
@@ -241,15 +241,17 @@ class PackagesManager(InventoryManager):
         if isinstance(projects, list) and engine == TRANSPLATFORM_ENGINES[0]:
             for project in projects:
                 ids.append(project['fields']['name'])
-        elif isinstance(projects, dict) and engine in (
-                TRANSPLATFORM_ENGINES[1], TRANSPLATFORM_ENGINES[3]
-        ):
+        elif isinstance(projects, dict) and engine == TRANSPLATFORM_ENGINES[1]:
             ids.append(projects.get('slug'))
             names.append(projects.get('name'))
         elif isinstance(projects, list) and engine == TRANSPLATFORM_ENGINES[2]:
             for project in projects:
                 ids.append(project['id'])
                 names.append(project['name'])
+        elif isinstance(projects, list) and engine == TRANSPLATFORM_ENGINES[3]:
+            for project in projects:
+                ids.append(project.get('slug'))
+                names.append(project.get('name'))
         return ids, names
 
     def validate_package(self, **kwargs):
@@ -273,12 +275,13 @@ class PackagesManager(InventoryManager):
             auth_dict = dict(
                 auth_user=platform.auth_login_id, auth_token=platform.auth_token_key
             )
-            if platform.engine_name in (TRANSPLATFORM_ENGINES[1], TRANSPLATFORM_ENGINES[3]):
+            if platform.engine_name == TRANSPLATFORM_ENGINES[1]:
                 response_dict = self.api_resources.fetch_project_details(
                     platform.engine_name, platform.api_url, package_name.lower(), **auth_dict
                 )
-            elif platform.engine_name == TRANSPLATFORM_ENGINES[0] or \
-                    platform.engine_name == TRANSPLATFORM_ENGINES[2]:
+            elif platform.engine_name in (TRANSPLATFORM_ENGINES[0],
+                                          TRANSPLATFORM_ENGINES[2],
+                                          TRANSPLATFORM_ENGINES[3]):
                 response_dict = self.api_resources.fetch_all_projects(
                     platform.engine_name, platform.api_url, **auth_dict
                 ) or {}
@@ -515,7 +518,7 @@ class PackagesManager(InventoryManager):
                     filter_stats['Total'] = total_entities
                     remaining = 0
                     try:
-                        remaining = (filter_stats.get('untranslated_entities', 0.0) /
+                        remaining = (stats.get('untranslated_entities', 0.0) /
                                      total_entities) * 100
                     except ZeroDivisionError:
                         # log error, pass for now
@@ -726,6 +729,10 @@ class PackageBranchMapping(object):
         for version in from_branches:
             closest_ver = difflib.get_close_matches(version, probable_branches)
             if isinstance(closest_ver, list) and len(closest_ver) > 0:
+                return self._return_original_version(version)
+
+        for version in from_branches:
+            if self.package_name in version:
                 return self._return_original_version(version)
 
         return ''

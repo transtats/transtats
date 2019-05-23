@@ -453,7 +453,7 @@ class NewTransPlatformForm(forms.ModelForm):
     )
     platform_slug = forms.ChoiceField(
         choices=SLUG_CHOICES, label="Platform SLUG",
-        help_text="Please identify SLUG carefully. Example: ZNTAPUB should be for zanata public instance.",
+        help_text="Please identify SLUG carefully. Example: DMLSPUB should be for DamnedLies Public instance.",
     )
     helper = FormHelper()
     helper.form_method = 'POST'
@@ -498,6 +498,9 @@ class UpdateTransPlatformForm(forms.ModelForm):
             Field('server_status', css_class='bootstrap-switch'),
             Field('auth_login_id', css_class='form-control'),
             Field('auth_token_key', css_class='form-control'),
+            HTML("<hr/>"),
+            HTML("<h5>After update, please run <span class='text-info'>Sync Translation Platforms</span>"
+                 " in <span class='text-info'>Predefined Jobs</span>.</h5>"),
             FormActions(
                 Submit('updateTransPlatform', 'Update Translation Platform'),
                 Reset('reset', 'Reset', css_class='btn-danger')

@@ -19,7 +19,7 @@
 TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata', 'weblate')
 DAMNEDLIES_SLUGS = ('DMLSPUB', )
 TRANSIFEX_SLUGS = ('TNFXPUB', )
-WEBLATE_SLUGS = ('WLTEPUB', )
+WEBLATE_SLUGS = ('WLTEPUB', 'WLTEFED')
 # Supported Zanata Instances
 ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTAVDR')
 
