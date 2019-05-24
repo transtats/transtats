@@ -32,7 +32,7 @@ from dashboard.managers.inventory import InventoryManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES,
-    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS
+    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS, WEBLATE_SLUGS
 )
 
 __all__ = ['NewPackageForm', 'NewReleaseBranchForm', 'NewGraphRuleForm']
@@ -44,6 +44,7 @@ all_platform_slugs = []
 all_platform_slugs.extend(TRANSIFEX_SLUGS)
 all_platform_slugs.extend(ZANATA_SLUGS)
 all_platform_slugs.extend(DAMNEDLIES_SLUGS)
+all_platform_slugs.extend(WEBLATE_SLUGS)
 SLUG_CHOICES = tuple([(slug, slug) for slug in all_platform_slugs])
 
 
@@ -452,7 +453,7 @@ class NewTransPlatformForm(forms.ModelForm):
     )
     platform_slug = forms.ChoiceField(
         choices=SLUG_CHOICES, label="Platform SLUG",
-        help_text="Please identify SLUG carefully. Example: ZNTAPUB should be for zanata public instance.",
+        help_text="Please identify SLUG carefully. Example: DMLSPUB should be for DamnedLies Public instance.",
     )
     helper = FormHelper()
     helper.form_method = 'POST'
@@ -497,6 +498,9 @@ class UpdateTransPlatformForm(forms.ModelForm):
             Field('server_status', css_class='bootstrap-switch'),
             Field('auth_login_id', css_class='form-control'),
             Field('auth_token_key', css_class='form-control'),
+            HTML("<hr/>"),
+            HTML("<h5>After update, please run <span class='text-info'>Sync Translation Platforms</span>"
+                 " in <span class='text-info'>Predefined Jobs</span>.</h5>"),
             FormActions(
                 Submit('updateTransPlatform', 'Update Translation Platform'),
                 Reset('reset', 'Reset', css_class='btn-danger')

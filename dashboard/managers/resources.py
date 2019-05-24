@@ -13,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# Process and cache REST resource's responses here.
+# Service Layer: Process and cache REST resource's responses here.
 
 from subprocess import Popen, PIPE
 from collections import OrderedDict
@@ -21,6 +21,7 @@ try:
     import koji
 except Exception as e:
     raise Exception("koji could not be imported, details: %s" % e)
+from urllib.parse import urlparse
 
 # dashboard
 from dashboard.constants import TRANSPLATFORM_ENGINES, BUILD_SYSTEMS
@@ -55,6 +56,21 @@ class TransplatformResources(object):
     def _fetch_zanata_projects(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
         return response.get('json_content')
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[3])
+    def _fetch_weblate_projects(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        if response.get('json_content', {}).get('results'):
+            kwargs['combine_results'].extend(response['json_content']['results'])
+        if response.get('json_content', {}).get('next'):
+            next_api_url = urlparse(response['json_content']['next'])
+            if next_api_url.query:
+                kwargs['ext'] = next_api_url.query
+            TransplatformResources._fetch_weblate_projects(
+                base_url, resource, *url_params, **kwargs
+            )
+        return kwargs['combine_results']
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
@@ -105,6 +121,34 @@ class TransplatformResources(object):
     def _fetch_zanata_project_details(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
         return response.get('json_content')
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[3])
+    def _fetch_weblate_project_details(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        resp_json_content = response.get('json_content')
+        if kwargs.get('more_resources'):
+            for next_resource in kwargs['more_resources']:
+                if next_resource == 'project_components':
+                    resp_json_content['components'] = \
+                        TransplatformResources._fetch_weblate_project_components(
+                            base_url, next_resource, *url_params, **kwargs)
+        return resp_json_content
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[3])
+    def _fetch_weblate_project_components(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        if response.get('json_content', {}).get('results'):
+            kwargs['combine_results'].extend(response['json_content']['results'])
+        if response.get('json_content', {}).get('next'):
+            next_api_url = urlparse(response['json_content']['next'])
+            if next_api_url.query:
+                kwargs['ext'] = next_api_url.query
+            TransplatformResources._fetch_weblate_project_components(
+                base_url, resource, *url_params, **kwargs
+            )
+        return kwargs['combine_results']
 
     @staticmethod
     def _locate_damnedlies_stats(module_stat):
@@ -164,6 +208,21 @@ class TransplatformResources(object):
         response = kwargs.get('rest_response', {})
         return response.get('json_content')
 
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[3])
+    def _fetch_weblate_proj_tran_stats(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        if response.get('json_content', {}).get('results'):
+            kwargs['combine_results'].extend(response['json_content']['results'])
+        if response.get('json_content', {}).get('next'):
+            next_api_url = urlparse(response['json_content']['next'])
+            if next_api_url.query:
+                kwargs['ext'] = next_api_url.query
+            TransplatformResources._fetch_weblate_proj_tran_stats(
+                base_url, resource, *url_params, **kwargs
+            )
+        return dict(id=url_params[1], stats=kwargs['combine_results'])
+
     def _execute_method(self, api_config, *args, **kwargs):
         """
         Executes located method with required params
@@ -174,6 +233,8 @@ class TransplatformResources(object):
             service_resource = api_config['resources'][0]
             if len(api_config['resources']) > 1:
                 kwargs.update(dict(more_resources=api_config['resources'][1:]))
+            if api_config.get('combine_results'):
+                kwargs['combine_results'] = []
             return api_config['method'](
                 api_config['base_url'], service_resource, *args, **kwargs
             )
@@ -206,6 +267,12 @@ class TransplatformResources(object):
                 'method': self._fetch_zanata_projects,
                 'base_url': instance_url,
                 'resources': ['list_projects'],
+            },
+            TRANSPLATFORM_ENGINES[3]: {
+                'method': self._fetch_weblate_projects,
+                'base_url': instance_url,
+                'resources': ['list_projects'],
+                'combine_results': True,
             }
         }
         selected_config = method_mapper[translation_platform]
@@ -238,6 +305,13 @@ class TransplatformResources(object):
                 'method': self._fetch_zanata_project_details,
                 'base_url': instance_url,
                 'resources': ['project_details'],
+                'project': args[0],
+            },
+            TRANSPLATFORM_ENGINES[3]: {
+                'method': self._fetch_weblate_project_details,
+                'base_url': instance_url,
+                'resources': ['project_details', 'project_components'],
+                'combine_results': True,
                 'project': args[0],
             }
         }
@@ -277,6 +351,14 @@ class TransplatformResources(object):
                 'project': args[0],
                 'version': args[1],
                 'ext': True,
+            },
+            TRANSPLATFORM_ENGINES[3]: {
+                'method': self._fetch_weblate_proj_tran_stats,
+                'base_url': instance_url,
+                'resources': ['project_component_stats'],
+                'project': args[0],
+                'version': args[1],
+                'combine_results': True,
             }
         }
         selected_config = method_mapper[translation_platform]

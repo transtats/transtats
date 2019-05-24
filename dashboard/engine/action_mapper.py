@@ -181,7 +181,9 @@ class Download(JobCommandBase):
             TRANSPLATFORM_ENGINES[1]:
                 '{platform_url}/api/2/project/{project}/resource/{version}/content/',
             TRANSPLATFORM_ENGINES[2]:
-                '{platform_url}/rest/file/source/{project}/{version}/pot?docId={domain}'
+                '{platform_url}/rest/file/source/{project}/{version}/pot?docId={domain}',
+            TRANSPLATFORM_ENGINES[3]:
+                '{platform_url}/api/components/{project}/{version}/new_template/',
         }
 
         if not (input.get('pkg_branch_map') or {}).get(input.get('release_slug')):

@@ -130,7 +130,9 @@ class PackageStatus(GraphManagerMixin, APIView):
             package_exist = \
                 self.graph_manager.package_manager.get_packages(pkgs=[package])
             if package_exist:
-                translation_stats = self.graph_manager.get_trans_stats_by_package(package)
+                translation_stats = self.graph_manager.get_trans_stats_by_package(
+                    package, prepend_source=True
+                )
                 response_text = {package: self._process_stats_data(translation_stats)}
             else:
                 response_text = {package: "Not Found"}
