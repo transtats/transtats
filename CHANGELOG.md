@@ -1,4 +1,4 @@
-##### Wed May 15 2019 Sundeep Anand <suanand@redhat.com>
+##### Fri May 24 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.3
 * Added [Weblate](https://docs.weblate.org/en/latest/api.html) APIs integration to enable statistics sync
 
 ##### Fri Mar 22 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.2
