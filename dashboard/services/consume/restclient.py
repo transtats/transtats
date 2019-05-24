@@ -32,6 +32,10 @@ from .config.transifex import resource_config_dict as transifex_config
 from .config.zanata import resources as zanata_resources
 from .config.zanata import resource_config_dict as zanata_config
 
+# Weblate specific imports
+from .config.weblate import resources as weblate_resources
+from .config.weblate import resource_config_dict as weblate_config
+
 from dashboard.constants import TRANSPLATFORM_ENGINES
 from dashboard.models import CacheAPI
 
@@ -69,6 +73,12 @@ class ServiceConfig(object):
                 '_config_dict': zanata_config,
                 '_middle_url': '/rest',
                 '_service': zanata_resources.get(resource),
+                'http_auth': None
+            },
+            TRANSPLATFORM_ENGINES[3]: {
+                '_config_dict': weblate_config,
+                '_middle_url': '/api',
+                '_service': weblate_resources.get(resource),
                 'http_auth': None
             },
         }
@@ -314,9 +324,11 @@ class RestClient(object):
             service_details.resource.format(**dict(zip(service_details.path_params or [], args)))
             if args else service_details.resource
         )
-        if extension:   # extension should always be boolean
+        if isinstance(extension, bool):   # extension should be boolean
             ext = "&".join(service_details.query_params)
             resource = resource + "?" + ext
+        elif isinstance(extension, str):
+            resource = resource + "?" + extension
         # Lets check with cache
         c_content, c_json_content = self._return_cached_response(base_url, resource)
         if c_content:

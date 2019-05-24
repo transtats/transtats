@@ -123,7 +123,9 @@ def tag_stats_diff(package):
 def tag_tabular_form(package):
     return_value = OrderedDict()
     graph_manager = GraphManager()
-    stats_dict = graph_manager.get_trans_stats_by_package(package)
+    stats_dict = graph_manager.get_trans_stats_by_package(
+        package, prepend_source=True
+    )
     headers = stats_dict['ticks']
     stats_data = stats_dict['graph_data']
     return_value.update(

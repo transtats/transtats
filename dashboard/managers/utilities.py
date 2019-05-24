@@ -43,6 +43,9 @@ def parse_project_details_json(engine, json_dict):
         project = json_dict.get('id', '')
         versions = [version.get('id') for version in json_dict.get('iterations', [])
                     if version.get('status', '') == 'ACTIVE']
+    elif engine == TRANSPLATFORM_ENGINES[3]:
+        project = json_dict.get('slug', '')
+        versions = [version.get('slug') for version in json_dict.get('components', [])]
     return project, versions
 
 

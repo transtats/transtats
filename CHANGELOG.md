@@ -1,3 +1,6 @@
+##### Wed May 15 2019 Sundeep Anand <suanand@redhat.com>
+* Added [Weblate](https://docs.weblate.org/en/latest/api.html) APIs integration to enable statistics sync
+
 ##### Fri Mar 22 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.2
 * Threshold based statistics of languages.
 

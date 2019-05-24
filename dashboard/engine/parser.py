@@ -13,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from yaml import load, YAMLError
+from yaml import load, YAMLError, FullLoader
 
 __all__ = ['YMLPreProcessor', 'YMLJobParser']
 
@@ -53,7 +53,7 @@ class YMLJobParser(object):
 
         stream = yml_stream if yml_stream else open(self.test_yml_path)
         try:
-            parsed_data = load(stream)
+            parsed_data = load(stream, Loader=FullLoader)
         except YAMLError as exc:
             # log error
             pass

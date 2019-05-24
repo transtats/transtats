@@ -1,3 +1,4 @@
+celery
 coreapi
 gitdb2
 GitPython
