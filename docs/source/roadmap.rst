@@ -11,7 +11,7 @@ Transtats 0.8.0
 | We are currently working on :code:`0.8.0` release.
 
 | Backlog is `here <https://github.com/transtats/transtats/issues>`_. For release features list please look at `milestone <https://github.com/transtats/transtats/milestone/11>`_.
-| Target delivery: By end of May 2019
+| Target delivery: By end of July 2019
 
 To Do
 =====
@@ -25,6 +25,7 @@ To Do
     - Translation Platform (Done)
         - `DamnedLies <https://wiki.gnome.org/DamnedLies>`_
         - `Transifex <https://www.transifex.com/>`_
+        - `Weblate <https://weblate.org>`_
         - `Zanata <http://zanata.org/>`_
     - Upstream Repository (Done)
         - `git <https://git-scm.com/>`_
@@ -55,7 +56,6 @@ To Do
 
 - Expanding Support
     - Translation Platform
-        - `Weblate <https://weblate.org>`_
         - `Pootle <https://pootle.translatehouse.org/>`_
     - Translation File Format *in Jobs*
         - Java files (``properties``, ``dtd``)
