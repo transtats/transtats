@@ -97,14 +97,14 @@
             <span class="caret"></span>
           </a>
           <ul class="dropdown-menu" aria-labelledby="dropdown-user">
-            {% if user.auth_token %}
-            <li>
-              <a href="#" data-toggle="modal" data-target="#modal-auth-token">Auth Token</a>
-            </li>
-            {% endif %}
             {% if user.is_staff %}
             <li>
               <a href="{% url 'admin:index' %}">Admin Panel</a>
+            </li>
+            {% endif %}
+            {% if user.auth_token %}
+            <li>
+              <a href="#" data-toggle="modal" data-target="#modal-auth-token">Auth Token</a>
             </li>
             {% endif %}
             <li>
@@ -156,36 +156,36 @@
           <span class="fa fa-bolt" data-toggle="tooltip" title="Jobs"></span>
           <span class="list-group-item-value">Jobs</span>
         </a>
-	<div class="nav-pf-secondary-nav" id="div-jobs-secondary-nav">
-	  <div class="nav-item-pf-header">
-	    <a href="#0" class="secondary-collapse-toggle-pf" data-toggle="collapse-secondary-nav"></a>
-	    <span>Jobs</span>
-	  </div>
-	  <ul class="list-group">
-        {% if user.is_authenticated %}
-	    <li class="list-group-item" id="li-jobs-jobs" data-toggle="tooltip" title="Predefined Jobs">
-	      <a href="{% url 'jobs' %}">
-		<span class="list-group-item-value">Predefined Jobs</span>
-	      </a>
-	    </li>
-        {% endif %}
-	    <li class="list-group-item" id="li-jobs-yml-based" data-toggle="tooltip" title="YML based Jobs">
-	      <a href="{% url 'jobs-yml-based' %}">
-		<span class="list-group-item-value">YML based Jobs</span>
-	      </a>
-	    </li>
-	    <li class="list-group-item" id="li-jobs-logs" data-toggle="tooltip" title="Inspect Logs">
-	      <a href="{% url 'jobs-logs' %}">
-		<span class="list-group-item-value">Inspect Logs</span>
-	      </a>
-	    </li>
-	    <li class="list-group-item" id="li-jobs-archive" data-toggle="tooltip" title="Archive">
-	      <a href="{% url 'jobs-archive' %}">
-		<span class="list-group-item-value">Archive</span>
-	      </a>
-	    </li>
-	  </ul>
-	</div>
+        <div class="nav-pf-secondary-nav" id="div-jobs-secondary-nav">
+          <div class="nav-item-pf-header">
+            <a href="#0" class="secondary-collapse-toggle-pf" data-toggle="collapse-secondary-nav"></a>
+            <span>Jobs</span>
+          </div>
+          <ul class="list-group">
+            {% if user.is_authenticated %}
+            <li class="list-group-item" id="li-jobs-jobs" data-toggle="tooltip" title="Predefined Jobs">
+              <a href="{% url 'jobs' %}">
+                <span class="list-group-item-value">Predefined Jobs</span>
+              </a>
+            </li>
+            {% endif %}
+            <li class="list-group-item" id="li-jobs-yml-based" data-toggle="tooltip" title="YML based Jobs">
+              <a href="{% url 'jobs-yml-based' %}">
+                <span class="list-group-item-value">YML based Jobs</span>
+              </a>
+            </li>
+            <li class="list-group-item" id="li-jobs-logs" data-toggle="tooltip" title="Inspect Logs">
+              <a href="{% url 'jobs-logs' %}">
+                <span class="list-group-item-value">Inspect Logs</span>
+              </a>
+            </li>
+            <li class="list-group-item" id="li-jobs-archive" data-toggle="tooltip" title="Archive">
+              <a href="{% url 'jobs-archive' %}">
+                <span class="list-group-item-value">Archive</span>
+              </a>
+            </li>
+          </ul>
+        </div>
       </li>
       <li class="list-group-item" id="li-languages">
         <a href="{% url 'settings-languages' %}">
@@ -199,11 +199,29 @@
           <span class="list-group-item-value">Platforms</span>
         </a>
       </li>
-      <li class="list-group-item" id="li-coverage">
-        <a href="{% url 'settings-graph-rules' %}">
-          <span class="fa fa-bar-chart" data-toggle="tooltip" title="Translation Coverage"></span>
-          <span class="list-group-item-value">Coverage</span>
+      <li class="list-group-item secondary-nav-item-pf" id="li-reports" data-target="div-reports-secondary-nav">
+	    <a href="#0">
+          <span class="fa fa-bar-chart" data-toggle="tooltip" title="Reports"></span>
+          <span class="list-group-item-value">Reports</span>
         </a>
+        <div class="nav-pf-secondary-nav" id="div-reports-secondary-nav">
+          <div class="nav-item-pf-header">
+            <a href="#0" class="secondary-collapse-toggle-pf" data-toggle="collapse-secondary-nav"></a>
+            <span>Reports</span>
+          </div>
+          <ul class="list-group">
+            <li class="list-group-item" id="li-coverage" data-toggle="tooltip" title="Coverage">
+              <a href="{% url 'settings-graph-rules' %}">
+                <span class="list-group-item-value">Coverage</span>
+              </a>
+            </li>
+            <li class="list-group-item" id="li-advanced" data-toggle="tooltip" title="YML based Jobs">
+              <a href="#">
+                <span class="list-group-item-value">Advanced</span>
+              </a>
+            </li>
+          </ul>
+        </div>
       </li>
 
       {% if user.is_authenticated %}
@@ -234,16 +252,24 @@
             </li>
             {% endif %}
             <li class="list-group-item">
-              <a href="{% if auth == 'fas' %}{% url 'oidc_authentication_init' %}{% else %}{% url 'admin:login' %}{% endif %}">
-                <span class="list-group-item-value">Login</span>
-              </a>
+              {% if auth == 'fas' %}
+                  <form id="logout1" action="{% url 'oidc_logout' %}" method="post">{% csrf_token %}
+                      <button type="submit" class="btn btn-logout">
+                  <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
+                  <span class="nounderline" style="color:white">&nbsp;Logout</span></button>
+              </form>
+              {% else %}
+                <a href="{% url 'admin:logout' %}">
+                    <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
+                    Logout</a>
+              {% endif %}
             </li>
           </ul>
         </div>
       </li>
       {% else %}
       <li class="list-group-item secondary-nav-item-pf mobile-nav-item-pf visible-xs-block">
-        <a href="{% url 'admin:login' %}" id="button-login-secondary">
+        <a href="{% if auth == 'fas' %}{% url 'oidc_authentication_init' %}{% else %}{% url 'admin:login' %}{% endif %}" id="button-login-secondary">
           <span class="pficon pficon-user" data-toggle="tooltip" title="" data-original-title="Login"></span>
           <span class="list-group-item-value">Login</span>
         </a>

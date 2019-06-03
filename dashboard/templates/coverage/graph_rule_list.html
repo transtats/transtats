@@ -40,6 +40,11 @@
                   <li>
                     <a href="#" id="filter-created-on">Created On</a>
                   </li>
+                  {% if user.is_authenticated %}
+                  <li>
+                    <a href="#" id="filter-created-by">Created By</a>
+                  </li>
+                  {% endif %}
                 </ul>
               </div>
               <input type="text" class="form-control" placeholder="Filter By Graph Rule..." autocomplete="off" id="filterInput">
@@ -100,15 +105,15 @@
           <th>Packages</th>
           <th>Locales</th>
           <th>Release</th>
-          {% if user.is_authenticated %}
-          <th colspan="2">Created On</th>
-          {% else %}
           <th>Created On</th>
+          {% if user.is_authenticated %}
+          <th>Created By</th>
           {% endif %}
         </tr>
       </thead>
       <tbody>
         {% for rule in rules %}
+        {% if rule.rule_visibility_public or user.is_authenticated %}
         <tr>
           <td>
             <a href="{% url 'custom-graph' %}?rule={{ rule.rule_name }}">
@@ -128,26 +133,13 @@
             {{ rule.created_on }}
             <span class="fa fa-clock-o" aria-hidden="true"></span>
           </td>
-          <!--{% if user.is_authenticated %}-->
-          <!--<td class="table-view-pf-actions">-->
-            <!--<div class="dropdown dropdown-kebab-pf">-->
-              <!--<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">-->
-                <!--<span class="fa fa-ellipsis-v"></span>-->
-              <!--</button>-->
-              <!--<ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight">-->
-                <!--<li>-->
-                  <!--<a href="#">Edit</a>-->
-                <!--</li>-->
-                <!--&lt;!&ndash; TODO: implement delete resource method-->
-                  <!--<li role="separator" class="divider"></li>-->
-                  <!--<li>-->
-                    <!--<a href="#">Delete</a>-->
-                  <!--</li> &ndash;&gt;-->
-              <!--</ul>-->
-            <!--</div>-->
-          <!--</td>-->
-          <!--{% endif %}-->
+          {% if user.is_authenticated %}
+          <td>
+            {{ rule.created_by }}
+          </td>
+          {% endif %}
         </tr>
+        {% endif %}
         {% endfor %}
       </tbody>
     </table>
@@ -240,16 +232,14 @@
         { data: "packages" },
         { data: "locales" },
         { data: "release-branch" },
-        {
-          data: "created-on",
-
-        },
+        { data: "created-on" },
+        { data: "created-by" },
         {% if user.is_staff %}
             {
-        data: "action",
-        sortable: false
-      },
-      {% endif %}
+                data: "action",
+                sortable: false
+            },
+         {% endif %}
           ],
     dom: "t",
     language: {
@@ -278,6 +268,9 @@
         }, {
           optionSelector: "#filter-created-on",
           placeholder: "Filter By Created date..."
+        }, {
+          optionSelector: "#filter-created-by",
+          placeholder: "Filter By Created by..."
         },
       ],
       paginationSelector: "#pagination-graph-rules-table",

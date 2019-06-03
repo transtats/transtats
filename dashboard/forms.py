@@ -35,7 +35,9 @@ from dashboard.constants import (
     TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS, WEBLATE_SLUGS
 )
 
-__all__ = ['NewPackageForm', 'NewReleaseBranchForm', 'NewGraphRuleForm']
+__all__ = ['NewPackageForm', 'UpdatePackageForm', 'NewReleaseBranchForm',
+           'NewGraphRuleForm', 'NewLanguageForm', 'UpdateLanguageForm',
+           'LanguageSetForm', 'NewTransPlatformForm', 'UpdateTransPlatformForm']
 
 ENGINE_CHOICES = tuple([(engine, engine.upper())
                         for engine in TRANSPLATFORM_ENGINES])
@@ -268,11 +270,14 @@ class NewGraphRuleForm(forms.Form):
     rule_relbranch_choices = ()
 
     rule_name = forms.CharField(
-        label='Graph Rule Name', help_text='Graph Rule should be in slug form. Coverage will be based on this rule.', required=True,
+        label='Graph Rule Name', help_text='Graph Rule should be in slug form. '
+                                           'Coverage graph will be based on this rule.',
+        required=True,
     )
     rule_relbranch = forms.ChoiceField(
         label='Release', choices=rule_relbranch_choices,
-        help_text='Graph will be generated for selected release based on branch mapping.',
+        help_text='Graph will be generated for selected release based on branch mapping '
+                  'of Platform and Build System.',
         required=True
     )
     rule_packages = TextArrayField(
@@ -285,6 +290,12 @@ class NewGraphRuleForm(forms.Form):
             ('select', 'Select languages')],
         initial='pick', widget=forms.RadioSelect, required=True,
         help_text="Either pick language set associated with selected release or choose languages."
+    )
+    rule_visibility_public = forms.ChoiceField(
+        label='Rule Visibility', choices=[
+            ('public', 'Public'),
+            ('private', 'Private')],
+        initial='private', widget=forms.RadioSelect, required=True
     )
     rule_langs = TextArrayField(
         label='Languages', widget=forms.SelectMultiple, choices=rule_langs_choices,
@@ -314,6 +325,7 @@ class NewGraphRuleForm(forms.Form):
             Field('rule_packages', css_class="selectpicker"),
             InlineRadios('lang_selection', id="lang_selection_id"),
             Field('rule_langs', css_class="selectpicker"),
+            Field('rule_visibility_public', css_class="selectpicker"),
             HTML("<hr/>"),
             FormActions(
                 Submit('addRule', 'Add Graph Rule'),
@@ -321,6 +333,15 @@ class NewGraphRuleForm(forms.Form):
             )
         )
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        visibility = cleaned_data['rule_visibility_public']
+        if visibility == 'public':
+            cleaned_data['rule_visibility_public'] = True
+        elif visibility == 'private':
+            cleaned_data['rule_visibility_public'] = False
+        return cleaned_data
 
     def is_valid(self):
         return False if len(self.errors) >= 1 else True
