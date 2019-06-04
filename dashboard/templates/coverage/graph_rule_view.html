@@ -9,7 +9,7 @@
 {% block pagecontent %}
 <div class="panel panel-default" id="panel-graph-rule-view">
   <div class="panel-heading">
-    <div class=" panel-title">
+    <div class="panel-title">
       {% if rules %}
       <select class="selectpicker" id="select-graph-rule-name" data-live-search="true">
         <option selected disabled>Select Graph Rule</option>
@@ -18,6 +18,12 @@
         {% endfor %}
       </select>
       {% endif %}
+      <span class="pull-right">
+        <span class="form-group">
+          <a class="btn btn-default" type="button" id="button-list-graph-rules" href="{% url 'settings-graph-rules' %}">
+             Back</a>
+        </span>
+      </span>
     </div>
     <p style="padding-top:10px"><span class="lead" id="span-coverage-info">Translation coverage of a package list for a specific release in selected languages.</span></p>
   </div>

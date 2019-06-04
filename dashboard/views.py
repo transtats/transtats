@@ -33,8 +33,8 @@ from django.template import Context, Template
 from django.views.generic import (
     TemplateView, ListView, FormView, DetailView
 )
-from django.views.generic.edit import (CreateView, UpdateView)
-from django.urls import reverse
+from django.views.generic.edit import (CreateView, UpdateView, DeleteView)
+from django.urls import reverse, reverse_lazy
 
 # dashboard
 
@@ -44,7 +44,7 @@ from dashboard.constants import (
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
     NewLanguageForm, UpdateLanguageForm, LanguageSetForm,
-    NewTransPlatformForm, UpdateTransPlatformForm
+    NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager
@@ -58,7 +58,7 @@ from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
 from dashboard.models import (
-    Job, Language, LanguageSet, Platform, Visitor, Package
+    Job, Language, LanguageSet, Platform, Visitor, Package, GraphRule
 )
 
 
@@ -540,6 +540,45 @@ class NewGraphRuleView(ManagersMixin, FormView):
                 ))
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
+
+
+class UpdateGraphRuleView(ManagersMixin, SuccessMessageMixin, UpdateView):
+    """
+    Update Graph Rule view
+    """
+    template_name = 'coverage/graph_rule_update.html'
+    model = GraphRule
+    slug_field = 'rule_name'
+    form_class = UpdateGraphRuleForm
+    success_message = '%(rule_name)s was updated successfully!'
+
+    def get(self, request, *args, **kwargs):
+        if kwargs.get('slug') and not request.user.is_staff:
+            rule = self.graph_manager.get_graph_rules(graph_rule=kwargs['slug'],
+                                                      only_active=True).get()
+            if not rule.created_by == request.user.email:
+                raise PermissionDenied
+        return super(UpdateGraphRuleView, self).get(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('graph-rule-update', args=[self.kwargs['slug']])
+
+
+class DeleteGraphRuleView(DeleteView):
+    """
+    Delete Graph Rule View
+    """
+    template_name = 'coverage/graph_rule_delete.html'
+    model = GraphRule
+    slug_field = 'rule_name'
+    success_url = reverse_lazy('settings-graph-rules')
+
+    def get_object(self, queryset=None):
+
+        obj = super(DeleteGraphRuleView, self).get_object()
+        if not obj.created_by == self.request.user.email:
+            raise PermissionDenied
+        return obj
 
 
 class JobsView(ManagersMixin, TemplateView):

@@ -30,9 +30,10 @@ from dashboard.views import (
     TransPlatformSettingsView, LanguagesSettingsView, PackageSettingsView,
     JobsView, JobsLogsView, JobsArchiveView, JobsLogsPackageView, NewPackageView, UpdatePackageView, TransCoverageView,
     StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, YMLBasedJobs,
-    NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView,
-    UpdateTransPlatformView, JobDetailView, refresh_package, release_graph, schedule_job, graph_data, tabular_data,
-    export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status, job_template
+    NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, graph_data,
+    UpdateTransPlatformView, UpdateGraphRuleView, JobDetailView, refresh_package, release_graph, schedule_job,
+    tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status, job_template,
+    DeleteGraphRuleView
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -98,7 +99,8 @@ packages_urls = [
     url(r'^$', PackageSettingsView.as_view(), name="settings-packages"),
     url(r'^new$', login_required(NewPackageView.as_view(), login_url=LOGIN_URL), name="package-new"),
     url(r'^view/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(), name="package-view"),
-    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdatePackageView.as_view(), login_url=LOGIN_URL), name="package-update"),
+    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdatePackageView.as_view(), login_url=LOGIN_URL),
+        name="package-update"),
     url(r'^export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
 ]
 
@@ -126,6 +128,10 @@ graph_rules_urls = [
     url(r'^view/$', TransCoverageView.as_view(), name="custom-graph"),
     url(r'^new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
         name="settings-graph-rules-new"),
+    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdateGraphRuleView.as_view(), login_url=LOGIN_URL),
+        name="graph-rule-update"),
+    url(r'^remove/(?P<slug>[\w-]+)$', login_required(DeleteGraphRuleView.as_view(), login_url=LOGIN_URL),
+        name="graph-rule-delete"),
 ]
 
 urlpatterns = [

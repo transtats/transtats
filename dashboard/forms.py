@@ -27,7 +27,9 @@ from slugify import slugify
 from django import forms
 
 # dashboard
-from dashboard.models import (Language, LanguageSet, Platform, Package)
+from dashboard.models import (
+    Language, LanguageSet, Platform, Package, GraphRule
+)
 from dashboard.managers.inventory import InventoryManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.constants import (
@@ -37,7 +39,8 @@ from dashboard.constants import (
 
 __all__ = ['NewPackageForm', 'UpdatePackageForm', 'NewReleaseBranchForm',
            'NewGraphRuleForm', 'NewLanguageForm', 'UpdateLanguageForm',
-           'LanguageSetForm', 'NewTransPlatformForm', 'UpdateTransPlatformForm']
+           'LanguageSetForm', 'NewTransPlatformForm', 'UpdateTransPlatformForm',
+           'UpdateGraphRuleForm']
 
 ENGINE_CHOICES = tuple([(engine, engine.upper())
                         for engine in TRANSPLATFORM_ENGINES])
@@ -295,7 +298,8 @@ class NewGraphRuleForm(forms.Form):
         label='Rule Visibility', choices=[
             ('public', 'Public'),
             ('private', 'Private')],
-        initial='private', widget=forms.RadioSelect, required=True
+        initial='private', widget=forms.RadioSelect, required=True,
+        help_text="Private rules will be visible only to logged in users."
     )
     rule_langs = TextArrayField(
         label='Languages', widget=forms.SelectMultiple, choices=rule_langs_choices,
@@ -548,3 +552,45 @@ class UpdateTransPlatformForm(forms.ModelForm):
             return platform_slug
         else:
             return self.cleaned_data.get('platform_slug', None)
+
+
+class UpdateGraphRuleForm(forms.ModelForm):
+    """
+    Update Graph Rule form
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(UpdateGraphRuleForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = GraphRule
+        fields = ['rule_name', 'rule_release_slug', 'rule_packages', 'rule_packages',
+                  'rule_visibility_public', 'rule_languages']
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('rule_name', css_class='form-control', readonly=True),
+            Field('rule_release_slug', css_class='selectpicker'),
+            Field('rule_packages', css_class='selectpicker'),
+            Field('rule_visibility_public', css_class='selectpicker'),
+            Field('rule_languages', css_class='selectpicker'),
+            HTML("<hr/>"),
+            FormActions(
+                Submit('updateRule', 'Update Graph Rule'),
+                Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+    def clean_rule_name(self):
+        """
+        Don't allow to override the value of 'rule_name' as it is readonly field
+        """
+        rule_name = getattr(self.instance, 'rule_name', None)
+        if rule_name:
+            return rule_name
+        else:
+            return self.cleaned_data.get('rule_name', None)
