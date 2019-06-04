@@ -454,7 +454,8 @@ class UpdatePackageView(ManagersMixin, SuccessMessageMixin, UpdateView):
     def get(self, request, *args, **kwargs):
         if kwargs.get('slug') and not request.user.is_staff:
             pkg = self.packages_manager.get_packages(pkgs=[kwargs['slug']]).get()
-            if not pkg.created_by == request.user.email:
+            if not pkg.created_by == request.user.email and \
+                    not request.user.is_superuser:
                 raise PermissionDenied
         return super(UpdatePackageView, self).get(request, *args, **kwargs)
 
@@ -556,7 +557,8 @@ class UpdateGraphRuleView(ManagersMixin, SuccessMessageMixin, UpdateView):
         if kwargs.get('slug') and not request.user.is_staff:
             rule = self.graph_manager.get_graph_rules(graph_rule=kwargs['slug'],
                                                       only_active=True).get()
-            if not rule.created_by == request.user.email:
+            if not rule.created_by == request.user.email and \
+                    not request.user.is_superuser:
                 raise PermissionDenied
         return super(UpdateGraphRuleView, self).get(request, *args, **kwargs)
 
@@ -576,7 +578,8 @@ class DeleteGraphRuleView(DeleteView):
     def get_object(self, queryset=None):
 
         obj = super(DeleteGraphRuleView, self).get_object()
-        if not obj.created_by == self.request.user.email:
+        if not obj.created_by == self.request.user.email and \
+                not self.request.user.is_superuser:
             raise PermissionDenied
         return obj
 

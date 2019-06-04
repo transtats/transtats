@@ -12,9 +12,10 @@
     </div>
     <div class="panel-body">
       <div style="padding-left:0.5em; padding-right:0.5em">
-        <form method="post">{% csrf_token %}
+        <form id="form-graph-rule-delete" method="post">{% csrf_token %}
             <p>Are you sure you want to remove rule: <span class="text-primary">{{ object }}</span> ?</p>
-            <input class="btn-danger" type="submit" value="Remove">
+            <a class="btn btn-danger" href="javascript:{}"
+               onclick="document.getElementById('form-graph-rule-delete').submit();">Remove</a>
         </form>
       </div>
     </div>
