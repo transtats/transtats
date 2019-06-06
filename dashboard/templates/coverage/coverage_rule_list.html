@@ -17,16 +17,16 @@
       <div class="col-sm-12">
         <form class="toolbar-pf-actions">
           <div class="form-group toolbar-pf-filter">
-            <label class="sr-only" for="filter-graph-rules-table">Graph Rule</label>
+            <label class="sr-only" for="filter-coverage-rules-table">Coverage Rule</label>
             <div class="input-group">
               <div class="input-group-btn">
-                <button type="button" class="btn btn-default dropdown-toggle" id="filter-graph-rules-table" data-toggle="dropdown" aria-haspopup="true"
-                  aria-expanded="false">Graph Rule
+                <button type="button" class="btn btn-default dropdown-toggle" id="filter-coverage-rules-table"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Coverage Rule
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <a href="#" id="filter-graph-rule">Graph Rule</a>
+                    <a href="#" id="filter-coverage-rule">Coverage Rule</a>
                   </li>
                   <li>
                     <a href="#" id="filter-packages">Packages</a>
@@ -47,13 +47,13 @@
                   {% endif %}
                 </ul>
               </div>
-              <input type="text" class="form-control" placeholder="Filter By Graph Rule..." autocomplete="off" id="filterInput">
+              <input type="text" class="form-control" placeholder="Filter By Coverage Rule..." autocomplete="off" id="filterInput">
             </div>
           </div>
           {% if user.is_authenticated %}
           <div class="form-group">
             <a class="btn btn-default" type="button" id="button-add-graph-rule" href="{% url 'settings-graph-rules-new' %}">
-              <i class="pficon pficon-add-circle-o"></i> Create graph rule</a>
+              <i class="pficon pficon-add-circle-o"></i> Create Coverage Rule</a>
           </div>
           {% endif %}
           <div class="toolbar-pf-action-right">
@@ -92,7 +92,7 @@
             </div>
           </div>
           <div class="col-sm-3 table-view-pf-select-results">
-            <strong>{{ rules|length }}</strong> graph rules
+            <strong>{{ rules|length }}</strong> coverage rules
           </div>
         </div>
       </div>
@@ -101,7 +101,7 @@
     <table class="table table-striped table-bordered table-hover" id="table-graph-rules">
       <thead>
         <tr>
-          <th>Graph Rule</th>
+          <th>Coverage Rule</th>
           <th>Packages</th>
           <th>Locales</th>
           <th>Release</th>
@@ -223,10 +223,10 @@
         <span class="pficon pficon pficon-add-circle-o"></span>
       </div>
       <h1>
-        No graph rules available!
+        No coverage rules available!
       </h1>
       <p>
-        Seems like no graph rules are available, would like to create one?
+        Seems like no coverage rules are available, would like to create one?
       </p>
       <p>
         Learn more about this
@@ -235,7 +235,7 @@
       {% if user.is_authenticated %}
       <div class="blank-slate-pf-main-action">
         <a class="btn btn-primary btn-lg" href="{% url 'settings-graph-rules-new' %}">
-          <i class="pficon pficon-add-circle-o"></i> Create graph rule </a>
+          <i class="pficon pficon-add-circle-o"></i> Create coverage rule </a>
       </div>
       {% endif %}
     </div>
@@ -274,8 +274,8 @@
       filterCols: [
         {
           default: true,
-          optionSelector: "#filter-graph-rule",
-          placeholder: "Filter By Graph Rule..."
+          optionSelector: "#filter-coverage-rule",
+          placeholder: "Filter By Coverage Rule..."
         }, {
           optionSelector: "#filter-packages",
           placeholder: "Filter By Package(s)..."

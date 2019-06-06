@@ -273,13 +273,13 @@ class NewGraphRuleForm(forms.Form):
     rule_relbranch_choices = ()
 
     rule_name = forms.CharField(
-        label='Graph Rule Name', help_text='Graph Rule should be in slug form. '
-                                           'Coverage graph will be based on this rule.',
+        label='Coverage Rule Name', help_text='Coverage Rule should be in slug form. '
+                                              'Reports will be based on this rule.',
         required=True,
     )
     rule_relbranch = forms.ChoiceField(
         label='Release', choices=rule_relbranch_choices,
-        help_text='Graph will be generated for selected release based on branch mapping '
+        help_text='Coverage will be generated for selected release based on branch mapping '
                   'of Platform and Build System.',
         required=True
     )
@@ -332,7 +332,7 @@ class NewGraphRuleForm(forms.Form):
             Field('rule_visibility_public', css_class="selectpicker"),
             HTML("<hr/>"),
             FormActions(
-                Submit('addRule', 'Add Graph Rule'),
+                Submit('addRule', 'Add Coverage Rule'),
                 Reset('reset', 'Reset', css_class='btn-danger')
             )
         )
@@ -579,7 +579,7 @@ class UpdateGraphRuleForm(forms.ModelForm):
             Field('rule_languages', css_class='selectpicker'),
             HTML("<hr/>"),
             FormActions(
-                Submit('updateRule', 'Update Graph Rule'),
+                Submit('updateRule', 'Update Coverage Rule'),
                 Reset('reset', 'Reset', css_class='btn-danger')
             )
         )

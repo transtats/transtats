@@ -208,7 +208,7 @@ class TransCoverageView(ManagersMixin, TemplateView):
     """
     Translation Coverage View
     """
-    template_name = "coverage/graph_rule_view.html"
+    template_name = "coverage/coverage_rule_view.html"
 
     def get_context_data(self, **kwargs):
         """
@@ -467,7 +467,7 @@ class GraphRulesSettingsView(ManagersMixin, ListView):
     """
     Graph Rules Settings View
     """
-    template_name = "coverage/graph_rule_list.html"
+    template_name = "coverage/coverage_rule_list.html"
     context_object_name = 'rules'
 
     def get_queryset(self):
@@ -478,7 +478,7 @@ class NewGraphRuleView(ManagersMixin, FormView):
     """
     New Graph Rule View
     """
-    template_name = "coverage/graph_rule_new.html"
+    template_name = "coverage/coverage_rule_new.html"
 
     def get_success_url(self):
         return reverse('settings-graph-rules-new')
@@ -537,7 +537,7 @@ class NewGraphRuleView(ManagersMixin, FormView):
                 ))
             else:
                 messages.add_message(request, messages.SUCCESS, (
-                    'Great! Graph rule added successfully.'
+                    'Great! Coverage rule added successfully.'
                 ))
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
@@ -547,7 +547,7 @@ class UpdateGraphRuleView(ManagersMixin, SuccessMessageMixin, UpdateView):
     """
     Update Graph Rule view
     """
-    template_name = 'coverage/graph_rule_update.html'
+    template_name = 'coverage/coverage_rule_update.html'
     model = GraphRule
     slug_field = 'rule_name'
     form_class = UpdateGraphRuleForm
@@ -570,7 +570,7 @@ class DeleteGraphRuleView(DeleteView):
     """
     Delete Graph Rule View
     """
-    template_name = 'coverage/graph_rule_delete.html'
+    template_name = 'coverage/coverage_rule_delete.html'
     model = GraphRule
     slug_field = 'rule_name'
     success_url = reverse_lazy('settings-graph-rules')

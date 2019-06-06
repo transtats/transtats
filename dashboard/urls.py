@@ -69,7 +69,7 @@ app_setting_urls = [
     url(r'^translation-platforms$', RedirectView.as_view(permanent=True, url='/translation-platforms')),
     url(r'^packages$', RedirectView.as_view(permanent=True, url='/packages')),
     url(r'^products$', RedirectView.as_view(permanent=True, url='/products')),
-    url(r'^graph-rules$', RedirectView.as_view(permanent=True, url='/graph-rules')),
+    url(r'^graph-rules$', RedirectView.as_view(permanent=True, url='/coverage')),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
 ]
@@ -144,7 +144,7 @@ urlpatterns = [
     url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/'), name="home"),
     url(r'^translation-status/', include(trans_status_urls)),
     url(r'^translation-coverage/$', RedirectView.as_view(query_string=True,
-        permanent=True, url='/graph-rules/view/')),
+        permanent=True, url='/coverage/view/')),
     url(r'^quick-start$', TemplateView.as_view(template_name="howto.html"), name="howto"),
     url(r'^health$', RedirectView.as_view(permanent=False, url='/api/ping?format=json')),
     # packages section urls
@@ -157,5 +157,5 @@ urlpatterns = [
     url(r'^releases/', include(releases_urls)),
     url(r'^products/', include(products_urls)),
     # custom graphs section urls (graph_rules)
-    url(r'^graph-rules/', include(graph_rules_urls)),
+    url(r'^coverage/', include(graph_rules_urls)),
 ]
