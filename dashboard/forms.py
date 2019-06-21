@@ -271,6 +271,7 @@ class NewGraphRuleForm(forms.Form):
     rule_packages_choices = ()
     rule_langs_choices = ()
     rule_relbranch_choices = ()
+    rule_tags_choices = ()
 
     rule_name = forms.CharField(
         label='Coverage Rule Name', help_text='Coverage Rule should be in slug form. '
@@ -282,6 +283,17 @@ class NewGraphRuleForm(forms.Form):
         help_text='Coverage will be generated for selected release based on branch mapping '
                   'of Platform and Build System.',
         required=True
+    )
+    tags_selection = forms.ChoiceField(
+        label='Build Tags Selection', choices=[
+            ('pick', 'Pick tags specific to package branch mapping'),
+            ('select', 'Select and override tags')],
+        initial='pick', widget=forms.RadioSelect, required=True,
+        help_text="Either pick build tags associated with package branch mapping or choose tags."
+    )
+    rule_build_tags = TextArrayField(
+        label='Build Tags', widget=forms.SelectMultiple, choices=rule_tags_choices,
+        help_text="Selected build tags will be included in this rule.", required=False
     )
     rule_packages = TextArrayField(
         label='Packages', widget=forms.SelectMultiple, choices=rule_packages_choices,
@@ -310,10 +322,12 @@ class NewGraphRuleForm(forms.Form):
         self.rule_packages_choices = kwargs.pop('packages')
         self.rule_langs_choices = kwargs.pop('languages')
         self.rule_relbranch_choices = kwargs.pop('branches')
+        self.rule_tags_choices = kwargs.pop('tags')
         super(NewGraphRuleForm, self).__init__(*args, **kwargs)
         self.fields['rule_packages'].choices = self.rule_packages_choices
         self.fields['rule_langs'].choices = self.rule_langs_choices
         self.fields['rule_relbranch'].choices = self.rule_relbranch_choices
+        self.fields['rule_build_tags'].choices = self.rule_tags_choices
         super(NewGraphRuleForm, self).full_clean()
 
     helper = FormHelper()
@@ -326,6 +340,8 @@ class NewGraphRuleForm(forms.Form):
         Div(
             Field('rule_name', css_class="form-control", onkeyup="showRuleSlug()"),
             Field('rule_relbranch', css_class="selectpicker"),
+            InlineRadios('tags_selection', id="tags_selection_id"),
+            Field('rule_build_tags', css_class="selectpicker"),
             Field('rule_packages', css_class="selectpicker"),
             InlineRadios('lang_selection', id="lang_selection_id"),
             Field('rule_langs', css_class="selectpicker"),
@@ -349,6 +365,49 @@ class NewGraphRuleForm(forms.Form):
 
     def is_valid(self):
         return False if len(self.errors) >= 1 else True
+
+
+class UpdateGraphRuleForm(forms.ModelForm):
+    """
+    Update Graph Rule form
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(UpdateGraphRuleForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = GraphRule
+        fields = ['rule_name', 'rule_release_slug', 'rule_packages',
+                  'rule_visibility_public', 'rule_languages', 'rule_build_tags']
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('rule_name', css_class='form-control', readonly=True),
+            Field('rule_release_slug', css_class='selectpicker'),
+            Field('rule_packages', css_class='selectpicker'),
+            Field('rule_languages', css_class='selectpicker'),
+            Field('rule_visibility_public', css_class='selectpicker'),
+            Field('rule_build_tags', css_class='selectpicker'),
+            HTML("<hr/>"),
+            FormActions(
+                Submit('updateRule', 'Update Coverage Rule'),
+                Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+    def clean_rule_name(self):
+        """
+        Don't allow to override the value of 'rule_name' as it is readonly field
+        """
+        rule_name = getattr(self.instance, 'rule_name', None)
+        if rule_name:
+            return rule_name
+        else:
+            return self.cleaned_data.get('rule_name', None)
 
 
 class NewLanguageForm(forms.ModelForm):
@@ -552,45 +611,3 @@ class UpdateTransPlatformForm(forms.ModelForm):
             return platform_slug
         else:
             return self.cleaned_data.get('platform_slug', None)
-
-
-class UpdateGraphRuleForm(forms.ModelForm):
-    """
-    Update Graph Rule form
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(UpdateGraphRuleForm, self).__init__(*args, **kwargs)
-
-    class Meta:
-        model = GraphRule
-        fields = ['rule_name', 'rule_release_slug', 'rule_packages', 'rule_packages',
-                  'rule_visibility_public', 'rule_languages']
-
-    helper = FormHelper()
-    helper.form_method = 'POST'
-    helper.form_class = 'dynamic-form'
-    helper.layout = Layout(
-        Div(
-            Field('rule_name', css_class='form-control', readonly=True),
-            Field('rule_release_slug', css_class='selectpicker'),
-            Field('rule_packages', css_class='selectpicker'),
-            Field('rule_visibility_public', css_class='selectpicker'),
-            Field('rule_languages', css_class='selectpicker'),
-            HTML("<hr/>"),
-            FormActions(
-                Submit('updateRule', 'Update Coverage Rule'),
-                Reset('reset', 'Reset', css_class='btn-danger')
-            )
-        )
-    )
-
-    def clean_rule_name(self):
-        """
-        Don't allow to override the value of 'rule_name' as it is readonly field
-        """
-        rule_name = getattr(self.instance, 'rule_name', None)
-        if rule_name:
-            return rule_name
-        else:
-            return self.cleaned_data.get('rule_name', None)

@@ -452,7 +452,9 @@ class BuildTagsSyncManager(BaseManager):
             # # before we access its hub for info, #todo
             # if relstream.product_build_system == 'koji':
             try:
-                tags = self.api_resources.build_tags(hub_url=hub_server_url)
+                tags = self.api_resources.build_tags(
+                    hub_url=hub_server_url, product=relstream
+                )
             except Exception as e:
                 self.job_manager.log_json[SUBJECT].update(
                     {str(datetime.now()): 'Failed to fetch build tags of %s. Details: %s' %

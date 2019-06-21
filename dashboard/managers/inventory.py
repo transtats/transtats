@@ -296,8 +296,10 @@ class InventoryManager(BaseManager):
                 product.product_build_tags or []
         return build_tags
 
-    def get_build_tags(self, buildsys):
-        release_stream = self.get_release_streams(built=buildsys)
+    def get_build_tags(self, buildsys, product_slug):
+        release_stream = self.get_release_streams(
+            stream_slug=product_slug, built=buildsys
+        )
         if release_stream:
             return release_stream.first().product_build_tags or [' ']
         return []

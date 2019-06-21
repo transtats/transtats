@@ -24,7 +24,9 @@ except Exception as e:
 from urllib.parse import urlparse
 
 # dashboard
-from dashboard.constants import TRANSPLATFORM_ENGINES, BUILD_SYSTEMS
+from dashboard.constants import (
+    TRANSPLATFORM_ENGINES, BUILD_SYSTEMS, RELSTREAM_SLUGS
+)
 from dashboard.converters.xml2dict import parse
 from dashboard.decorators import call_service
 
@@ -395,23 +397,42 @@ class KojiResources(object):
         kinit.stdin.write(b'secret')
         kinit.wait()
 
-    def build_tags(self, hub_url):
+    def build_tags(self, hub_url, product):
         """
         Get build tags
         """
+        all_tags = []
         active_repos = self._session(hub_url).getActiveRepos()
-        tag_starts_with = 'rhel' if BUILD_SYSTEMS[0] in hub_url else ''
+        tag_starts_with = ''
+
+        if BUILD_SYSTEMS[0] in hub_url:
+            all_tags = self._session(hub_url).listTags()
+            if product.product_slug == RELSTREAM_SLUGS[0]:
+                tag_starts_with = 'rhel'
+            elif product.product_slug == RELSTREAM_SLUGS[2]:
+                tag_starts_with = 'rhevm'
+        elif product.product_slug == RELSTREAM_SLUGS[1]:
+            tag_starts_with = 'f'
+
         build_tags = [repo.get('tag_name') for repo in active_repos
                       if repo.get('tag_name', '').startswith(tag_starts_with)]
+        if all_tags:
+            build_tags.extend(
+                [tag.get('name') for tag in all_tags
+                 if tag.get('name', '').startswith(tag_starts_with)
+                 and ('-candidate' in tag.get('name', '') or
+                      '-snapshot-' in tag.get('name', ''))]
+            )
         if BUILD_SYSTEMS[1] in hub_url:
             # fedora koji specific changes
-            pre_processed_tags = [tag[:-6] if tag.endswith('-build') else tag
-                                  for tag in list(set(build_tags))]
-            processed_tags = [tag for tag in pre_processed_tags
-                              if not tag.startswith('module-')]
+            processed_tags = list(set(
+                [tag[:tag.find('-')] for tag in build_tags if '-' in tag]
+            ))
         else:
-            processed_tags = list(set(build_tags))
-        return sorted(processed_tags)[::-1]
+            processed_tags = list(set(
+                [tag for tag in build_tags if 'alt' not in tag]
+            ))
+        return sorted(processed_tags, reverse=True)
 
     def build_info(self, hub_url, tag, pkg):
         return self._session(hub_url).getLatestBuilds(tag, package=pkg)

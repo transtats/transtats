@@ -35,6 +35,9 @@
                     <a href="#" id="filter-locales">Locales</a>
                   </li>
                   <li>
+                    <a href="#" id="filter-build-tags">Build Tags</a>
+                  </li>
+                  <li>
                     <a href="#" id="filter-release-branch">Release</a>
                   </li>
                   <li>
@@ -104,6 +107,7 @@
           <th>Coverage Rule</th>
           <th>Packages</th>
           <th>Locales</th>
+          <th>Build Tags</th>
           <th>Release</th>
           <th>Created On</th>
           {% if user.is_authenticated %}
@@ -117,15 +121,26 @@
         {% if rule.rule_visibility_public or user.is_authenticated %}
         <tr>
           <td>
+            {% if not rule.rule_visibility_public %}
+              <span class="fa fa-eye-slash" aria-hidden="true"></span>
+            {% else %}
+              &nbsp;&nbsp;&nbsp;&nbsp;
+            {% endif %}
             <a href="{% url 'custom-graph' %}?rule={{ rule.rule_name }}">
               {{ rule.rule_name }}
             </a>
           </td>
           <td>
-            {{ rule.rule_packages|join:", " }}
+            {% for package in rule.rule_packages %}
+            <a href="{% url 'package-view' package %}">{{ package }}</a>
+            {% if not forloop.last %}, {% endif %}
+            {% endfor %}
           </td>
           <td>
             {{ rule.rule_languages|join:", " }}
+          </td>
+          <td>
+            {{ rule.rule_build_tags|join:", " }}
           </td>
           <td>
 	        <a href="{% url 'trans-status-release' rule.rule_release_slug.release_slug %}">{{ rule.rule_release_slug.release_name }}</a>
@@ -246,11 +261,12 @@
 <script>
   $(document).ready(function () {
     // DataTable Config
-    var languagesTable = $("#table-graph-rules").DataTable({
+    var coverageTable = $("#table-graph-rules").DataTable({
       columns: [
         { data: "graph-rule" },
         { data: "packages" },
         { data: "locales" },
+        { data: "build-tags" },
         { data: "release-branch" },
         { data: "created-on" },
         {% if user.is_authenticated %}
@@ -283,6 +299,9 @@
           optionSelector: "#filter-locales",
           placeholder: "Filter By Locales..."
         }, {
+          optionSelector: "#filter-build-tags",
+          placeholder: "Filter By Build Tags..."
+        }, {
           optionSelector: "#filter-release-branch",
           placeholder: "Filter by Release..."
         }, {
@@ -306,7 +325,7 @@
     // workaround for search function
     // TODO: improve this, make the default pf method work
     $('#find').on('keyup', function () {
-      languagesTable.search(this.value).draw();
+      coverageTable.search(this.value).draw();
     });
     // Upon clicking the find close button, hide the find dropdown content
     $(".btn-find-close").click(function () {

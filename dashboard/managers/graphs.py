@@ -28,7 +28,9 @@ from slugify import slugify
 from django.utils import timezone
 
 # dashboard
-from dashboard.constants import RELSTREAM_SLUGS, WORKLOAD_HEADERS
+from dashboard.constants import (
+    RELSTREAM_SLUGS, WORKLOAD_HEADERS, BRANCH_MAPPING_KEYS
+)
 from dashboard.managers import BaseManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.managers.packages import PackagesManager, PackageBranchMapping
@@ -88,6 +90,26 @@ class GraphManager(BaseManager):
                 pkg_not_participate.append(package)
         return pkg_not_participate
 
+    def validate_tags_product_participation(self, release_slug, tags):
+        """
+        This validates that tag belongs to release
+        :param release_slug: Release Slug
+        :param tags: Build Tags
+        :return: List of tags that do not belong
+        """
+        if not release_slug and not tags:
+            return
+        tags_not_participate = []
+
+        q_release = self.branch_manager.get_release_branches(relbranch=release_slug)
+        if q_release:
+            release = q_release.get()
+            release_build_tags = release.product_slug.product_build_tags
+            for tag in tags:
+                if tag not in release_build_tags:
+                    tags_not_participate.append(tag)
+        return tags_not_participate
+
     def add_graph_rule(self, **kwargs):
         """
         Save graph rule in db
@@ -104,6 +126,20 @@ class GraphManager(BaseManager):
         release_branch = \
             self.branch_manager.get_release_branches(relbranch=relbranch_slug)
 
+        if kwargs.get('tags_selection') == "pick" and not kwargs.get('rule_build_tags'):
+            release_packages = \
+                self.package_manager.get_relbranch_specific_pkgs(
+                    relbranch_slug, fields=['release_branch_mapping']
+                )
+
+            package_tags = [package.release_branch_mapping_json[relbranch_slug][BRANCH_MAPPING_KEYS[2]]
+                            for package in release_packages if package.release_branch_mapping_json and
+                            package.release_branch_mapping_json.get(relbranch_slug, {}).get(BRANCH_MAPPING_KEYS[2])]
+            if package_tags:
+                kwargs['rule_build_tags'] = list(set(package_tags))
+            else:
+                return False
+
         if kwargs.get('lang_selection') == "pick" and not kwargs.get('rule_langs'):
             relbranch_lang_set = self.branch_manager.get_release_branches(
                 relbranch=relbranch_slug, fields=['language_set_slug']
@@ -116,7 +152,7 @@ class GraphManager(BaseManager):
         elif kwargs.get('rule_langs'):
             kwargs['rule_languages'] = kwargs.pop('rule_langs')
 
-        filters = ['lang_selection', 'rule_langs', 'rule_relbranch']
+        filters = ['tags_selection', 'lang_selection', 'rule_langs', 'rule_relbranch']
         [kwargs.pop(i) for i in filters if i in kwargs]
 
         try:

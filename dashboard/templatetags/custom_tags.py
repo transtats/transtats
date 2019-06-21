@@ -275,10 +275,12 @@ def tag_job_form(template_type):
 @register.inclusion_tag(
     os.path.join("jobs", "_build_tags.html")
 )
-def tag_build_tags(buildsys):
+def tag_build_tags(buildsys, product):
     return_value = OrderedDict()
     package_manager = PackagesManager()
-    tags = package_manager.get_build_tags(buildsys=buildsys)
+    tags = package_manager.get_build_tags(
+        buildsys=buildsys, product_slug=product
+    )
     return_value.update(dict(
         build_tags=tags
     ))

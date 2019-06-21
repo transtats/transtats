@@ -494,9 +494,15 @@ class NewGraphRuleView(ManagersMixin, FormView):
         langs = self.inventory_manager.get_locale_lang_tuple()
         release_branches_tuple = \
             self.release_branch_manager.get_relbranch_name_slug_tuple()
+        b_tags = []
+        build_system_tags = self.inventory_manager.get_relstream_build_tags()
+        for release, tags in build_system_tags.items():
+            for tag in tags:
+                b_tags.append((tag, tag))
         kwargs.update({'packages': pkgs})
         kwargs.update({'languages': langs})
         kwargs.update({'branches': release_branches_tuple})
+        kwargs.update({'tags': tuple(b_tags)})
         kwargs.update({'initial': self.get_initial()})
         if data:
             kwargs.update({'data': data})
@@ -507,12 +513,17 @@ class NewGraphRuleView(ManagersMixin, FormView):
         form = self.get_form(data=post_data)
         post_params = form.cleaned_data
         # check for required params
-        required_params = ('rule_name', 'rule_relbranch', 'rule_packages', 'lang_selection')
+        required_params = ('rule_name', 'rule_relbranch', 'rule_packages',
+                           'tags_selection', 'lang_selection')
         if not set(required_params) <= set(post_params.keys()):
+            return render(request, self.template_name, {'form': form})
+        elif post_params.get('tags_selection') == 'select' and not post_params.get('rule_build_tags'):
+            errors = form._errors.setdefault('rule_build_tags', ErrorList())
+            errors.append("Please select build tags to be included in coverage rule.")
             return render(request, self.template_name, {'form': form})
         elif post_params.get('lang_selection') == 'select' and not post_params.get('rule_langs'):
             errors = form._errors.setdefault('rule_langs', ErrorList())
-            errors.append("Please select languages to be included in graph rule.")
+            errors.append("Please select languages to be included in coverage rule.")
             return render(request, self.template_name, {'form': form})
         rule_slug = self.graph_manager.slugify_graph_rule_name(post_params['rule_name'])
         if not rule_slug:
@@ -526,7 +537,15 @@ class NewGraphRuleView(ManagersMixin, FormView):
             err_msg = ("Translation progress of " + pkgs_not_participate[0] +
                        " is not being tracked for " + post_params['rule_relbranch'])
             errors.append(err_msg)
-        if rule_slug and not pkgs_not_participate:
+        tags_not_participate = self.graph_manager.validate_tags_product_participation(
+            post_params['rule_relbranch'], post_params['rule_build_tags']
+        )
+        if tags_not_participate and len(tags_not_participate) >= 1:
+            errors = form._errors.setdefault('rule_build_tags', ErrorList())
+            err_msg = ("Build Tag " + tags_not_participate[0] + " does not belong to " +
+                       post_params['rule_relbranch'] + " release.")
+            errors.append(err_msg)
+        if rule_slug and not pkgs_not_participate and not tags_not_participate:
             post_params['rule_name'] = rule_slug
             active_user = getattr(request, 'user', None)
             if active_user:
@@ -1063,18 +1082,22 @@ def get_build_tags(request):
     """
     if request.is_ajax():
         post_params = request.POST.dict()
-        build_system = post_params.get('buildsys', '')
+        product_build = post_params.get('buildsys', '')
+        product_slug, build_system = tuple(product_build.split('-'))
         inventory_manager = InventoryManager()
-        tags = inventory_manager.get_build_tags(build_system)
+        tags = inventory_manager.get_build_tags(
+            build_system, product_slug
+        )
         if tags:
             context = Context(
                 {'META': request.META,
                  'build_tags': tags,
+                 'product': product_slug,
                  'buildsys': build_system}
             )
             template_string = """
                                 {% load tag_build_tags from custom_tags %}
-                                {% tag_build_tags buildsys %}
+                                {% tag_build_tags buildsys product %}
                             """
             return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)

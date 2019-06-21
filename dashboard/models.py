@@ -425,16 +425,23 @@ class GraphRule(models.Model):
     Graph Rules Model
     """
     graph_rule_id = models.AutoField(primary_key=True)
-    rule_name = models.CharField(max_length=1000, unique=True)
+    rule_name = models.CharField(max_length=1000, unique=True,
+                                 verbose_name="Rule Name")
     rule_packages = ArrayField(
-        models.CharField(max_length=1000, blank=True), default=list
+        models.CharField(max_length=1000, blank=True), default=list,
+        verbose_name="Rule Packages"
     )
     rule_languages = ArrayField(
-        models.CharField(max_length=400, blank=True), default=list
+        models.CharField(max_length=400, blank=True), default=list,
+        verbose_name="Rule Languages"
     )
     rule_release_slug = models.ForeignKey(
         Release, on_delete=models.PROTECT,
-        to_field='release_slug', verbose_name="Graph Rule for Release"
+        to_field='release_slug', verbose_name="Release"
+    )
+    rule_build_tags = ArrayField(
+        models.CharField(max_length=200, blank=True),
+        default=list, null=True, verbose_name="Rule Build Tags"
     )
     created_on = models.DateTimeField()
     rule_status = models.BooleanField(default=True)
