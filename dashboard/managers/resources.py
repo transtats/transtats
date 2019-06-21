@@ -419,9 +419,9 @@ class KojiResources(object):
         if all_tags:
             build_tags.extend(
                 [tag.get('name') for tag in all_tags
-                 if tag.get('name', '').startswith(tag_starts_with)
-                 and ('-candidate' in tag.get('name', '') or
-                      '-snapshot-' in tag.get('name', ''))]
+                 if tag.get('name', '').startswith(tag_starts_with) and
+                 ('-candidate' in tag.get('name', '') or
+                 '-snapshot-' in tag.get('name', ''))]
             )
         if BUILD_SYSTEMS[1] in hub_url:
             # fedora koji specific changes

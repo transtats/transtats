@@ -176,8 +176,8 @@ class GraphRuleCoverage(GraphManagerMixin, APIView):
         Translation coverage of multiple packages for a product release in selected languages.
         """
         response_text = {}
-        if kwargs.get('graph_rule'):
-            rule = kwargs['graph_rule']
+        if kwargs.get('coverage_rule'):
+            rule = kwargs['coverage_rule']
             rule_exist = self.graph_manager.get_graph_rules(graph_rule=rule)
             if rule_exist:
                 translation_stats = self.graph_manager.get_trans_stats_by_rule(rule)

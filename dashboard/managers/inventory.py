@@ -412,7 +412,7 @@ class SyncStatsManager(BaseManager):
 
         if transplatform_slug in TRANSIFEX_SLUGS:
             for stats_dict in stats_dict_list:
-                if 'translated'in stats_dict and 'total' in stats_dict:
+                if 'translated' in stats_dict and 'total' in stats_dict:
                     translation_percent = \
                         round((stats_dict.get('translated', 0) * 100) / stats_dict.get('total', 0), 2) \
                         if stats_dict.get('total', 0) > 0 else 0
