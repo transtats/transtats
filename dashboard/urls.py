@@ -125,7 +125,7 @@ transplatforms_urls = [
 
 graph_rules_urls = [
     url(r'^$', GraphRulesSettingsView.as_view(), name="settings-graph-rules"),
-    url(r'^view/$', TransCoverageView.as_view(), name="custom-graph"),
+    url(r'^view/(?P<coverage_rule>[\w\-\+]+)$', TransCoverageView.as_view(), name="custom-graph"),
     url(r'^new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
         name="settings-graph-rules-new"),
     url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdateGraphRuleView.as_view(), login_url=LOGIN_URL),

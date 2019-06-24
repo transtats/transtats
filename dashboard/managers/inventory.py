@@ -532,6 +532,20 @@ class ReleaseBranchManager(InventoryManager):
             return True
         return False
 
+    def get_product_by_release(self, release_slug):
+        """
+        Get Product by release
+        :param release_slug: str
+        :return: product query obj
+        """
+        if not release_slug:
+            return
+        release = self.get_release_branches(relbranch=release_slug)
+        if release:
+            product = release.get().product_slug
+            return product
+        return
+
     def get_relbranch_name_slug_tuple(self):
         """
         Get release branch slug and name tuple

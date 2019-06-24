@@ -1,0 +1,51 @@
+{% if coverage_rule %}
+<div class="panel-body">
+<h3>Coverage Rule: <span class="text-info">{{ coverage_rule }}</span></h3>
+<h3>Translation coverage of <span class="text-info">{{ package_len }}</span> packages in <span class="text-info">{{ locale_len }}</span> languages for <span class="text-info">{{ release }}</span> release,
+    including <span class="text-info">{{ build_tag_len }}</span> build tags.</h3>
+<hr/>
+
+{% for package, stats_source in rule_data.items %}
+    <h2><a href="{% url 'package-view' package %}"><span class="text-primary">{{ package }}</span></a></h2>
+    <div class="row row-cards-pf">
+    {% for source, lang_stats in stats_source.items %}
+        <div class="col-xs-12 col-sm-6">
+            <div class="card-pf card-pf-utilization card-pf-accented card-releases-ts">
+            <h3 class="card-pf-title">{{ source|title }}
+                {% if source == "build_system" %}
+                <span class="pull-right"><span class="form-group">
+                  <a class="btn btn-default" type="button" id="button-list-graph-rules"
+                     href="{% url 'jobs-logs-package' package %}">Jobs</a>
+                </span></span>
+                {% endif %}
+            </h3>
+            <div class="card-pf-body">
+                <div style="padding-left:40px">
+                {% if source == "translation_platform" %}
+                <table>
+                {% for lang, stats in lang_stats.items %}
+                    <tr><td>{{ lang }}</td>
+                    <td><pre style="white-space:pre-line;">{{ stats }}</pre></td></tr>
+                {% endfor %}
+                </table>
+                {% elif source == "build_system" %}
+                    {% for tag, l_stats in lang_stats.items %}
+                    <h4><span class="text-info">{{ tag }}</span></h4>
+                    <div style="padding-left:40px"><table>
+                    {% for locale, stats in l_stats.items %}
+                        <tr><td>{{ locale }}</td>
+                        <td><pre style="white-space:pre-line;">{{ stats }}</pre></td></tr>
+                    {% endfor %}
+                    </table></div>
+                    {% endfor %}
+                {% endif %}
+                </div>
+            </div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+{% endfor %}
+
+</div>
+{% endif %}

@@ -67,6 +67,14 @@ class GraphManager(BaseManager):
             pass
         return rules
 
+    def is_coverage_rule_exist(self, coverage_rule):
+        """
+        check coverage rule existence
+        """
+        if self.get_graph_rules(graph_rule=coverage_rule):
+            return True
+        return False
+
     def slugify_graph_rule_name(self, suggested_name):
         try:
             return slugify(suggested_name)
@@ -273,26 +281,26 @@ class GraphManager(BaseManager):
         # format stats for lang-wise graph
         return self._format_stats_for_lang_wise_graphs(locale, lang_id_name, stats_dict, pkg_desc)
 
-    def _format_stats_for_custom_graphs(self, rel_branch, languages, stats_dict):
-        """
-        Formats stats dict for graph-ready material
-        """
-        stats_for_graphs_dict = OrderedDict()
-        stats_for_graphs_dict['branch'] = rel_branch
-        stats_for_graphs_dict['ticks'] = \
-            [[i, package] for i, package in enumerate(stats_dict.keys(), 0)]
-
-        stats_for_graphs_dict['graph_data'] = []
-        for language in languages:
-            stats = []
-            graph_lang_stats_dict = OrderedDict()
-            graph_lang_stats_dict['label'] = language
-            for lang_stat in stats_dict.values():
-                stats.append(lang_stat.get(language))
-            graph_lang_stats_dict['data'] = \
-                [[i, stat] for i, stat in enumerate(stats, 0)]
-            stats_for_graphs_dict['graph_data'].append(graph_lang_stats_dict)
-        return stats_for_graphs_dict
+    # def _format_stats_for_custom_graphs(self, rel_branch, languages, stats_dict):
+    #     """
+    #     Formats stats dict for graph-ready material
+    #     """
+    #     stats_for_graphs_dict = OrderedDict()
+    #     stats_for_graphs_dict['branch'] = rel_branch
+    #     stats_for_graphs_dict['ticks'] = \
+    #         [[i, package] for i, package in enumerate(stats_dict.keys(), 0)]
+    #
+    #     stats_for_graphs_dict['graph_data'] = []
+    #     for language in languages:
+    #         stats = []
+    #         graph_lang_stats_dict = OrderedDict()
+    #         graph_lang_stats_dict['label'] = language
+    #         for lang_stat in stats_dict.values():
+    #             stats.append(lang_stat.get(language))
+    #         graph_lang_stats_dict['data'] = \
+    #             [[i, stat] for i, stat in enumerate(stats, 0)]
+    #         stats_for_graphs_dict['graph_data'].append(graph_lang_stats_dict)
+    #     return stats_for_graphs_dict
 
     def get_trans_stats_by_rule(self, graph_rule):
         """
@@ -300,54 +308,66 @@ class GraphManager(BaseManager):
         :param: graph_rule: str
         :return: Graph data for "Rule-wise" view: dict
         """
-        if not graph_rule:
-            return {}
+        rule_data = {}
         rule = self.get_graph_rules(graph_rule=graph_rule).get()
-        graph_rule_branch = rule.rule_release_slug.release_slug
-        release_branch = self.branch_manager.get_release_branches(
-            relbranch=graph_rule_branch, fields=['release_name']
-        ).get().release_name
+
         packages = rule.rule_packages
-        exclude_packages = []
-        rule_locales = rule.rule_languages
+        locales = rule.rule_languages
+        tags = rule.rule_build_tags
+        release = rule.rule_release_slug_id
 
-        trans_stats_dict_set = OrderedDict()
-        languages_list = []
-        for package in packages:
-            lang_id_name, package_stats = self.package_manager.get_trans_stats(
-                package, apply_branch_mapping=True
-            )[0:2]
-            relbranch_stats = {}
-            if graph_rule_branch in package_stats:
-                relbranch_stats.update(package_stats.get(graph_rule_branch))
-            elif 'master' in package_stats and package_stats.get('master'):
-                relbranch_stats.update(package_stats.get('master'))
-            elif 'default' in package_stats and package_stats.get('default'):
-                relbranch_stats.update(package_stats.get('default'))
-            else:
-                exclude_packages.append(package)
-            # filter locale_tuple for required locales
-            required_locales = []
-            for locale_tuple, lang in lang_id_name.items():
-                rule_locale = [rule_locale for rule_locale in rule_locales if rule_locale in locale_tuple]
-                if rule_locale:
-                    required_locales.append((locale_tuple, lang))
-            # set stat for filtered_locale_tuple checking with both locale and alias
-            lang_stats = OrderedDict()
-            for locale, stat in relbranch_stats.items():
-                locale = locale.replace('-', '_') if '-' in locale else locale
-                for locale_tuple, lang in required_locales:
-                    if locale in locale_tuple:
-                        lang_stats[lang] = stat
-            languages_list = lang_stats.keys()
-            trans_stats_dict_set[package] = lang_stats
-        # this is to prevent any breaking in graphs
-        for ex_package in exclude_packages:
-            trans_stats_dict_set.pop(ex_package)
+        if rule:
+            rule_data = self.package_manager.get_trans_stats_by_rule(rule)
 
-        # here trans_stats_dict_set would contain {'package': {'language': stat}}
-        # now, lets format trans_stats_list for graphs
-        return self._format_stats_for_custom_graphs(release_branch, languages_list, trans_stats_dict_set)
+        return rule_data, len(packages), len(locales), len(tags), release
+
+        # graph_rule_branch = rule.rule_release_slug.release_slug
+        # release_branch = self.branch_manager.get_release_branches(
+        #     relbranch=graph_rule_branch, fields=['release_name']
+        # ).get()
+        # packages = rule.rule_packages
+        # exclude_packages = []
+        # rule_locales = rule.rule_languages
+        #
+        # trans_stats_dict_set = OrderedDict()
+        # languages_list = []
+        # for package in packages:
+        #     lang_id_name, package_stats = self.package_manager.get_trans_stats(
+        #         package, apply_branch_mapping=True
+        #     )[0:2]
+        #     relbranch_stats = {}
+        #     if graph_rule_branch in package_stats:
+        #         relbranch_stats.update(package_stats.get(graph_rule_branch))
+        #     elif 'master' in package_stats and package_stats.get('master'):
+        #         relbranch_stats.update(package_stats.get('master'))
+        #     elif 'default' in package_stats and package_stats.get('default'):
+        #         relbranch_stats.update(package_stats.get('default'))
+        #     else:
+        #         exclude_packages.append(package)
+        #     # filter locale_tuple for required locales
+        #     required_locales = []
+        #     for locale_tuple, lang in lang_id_name.items():
+        #         rule_locale = [rule_locale for rule_locale in rule_locales if rule_locale in locale_tuple]
+        #         if rule_locale:
+        #             required_locales.append((locale_tuple, lang))
+        #     # set stat for filtered_locale_tuple checking with both locale and alias
+        #     lang_stats = OrderedDict()
+        #     for locale, stat in relbranch_stats.items():
+        #         locale = locale.replace('-', '_') if '-' in locale else locale
+        #         for locale_tuple, lang in required_locales:
+        #             if locale in locale_tuple:
+        #                 lang_stats[lang] = stat
+        #     languages_list = lang_stats.keys()
+        #     trans_stats_dict_set[package] = lang_stats
+        # # this is to prevent any breaking in graphs
+        # for ex_package in exclude_packages:
+        #     trans_stats_dict_set.pop(ex_package)
+        #
+        # # here trans_stats_dict_set would contain {'package': {'language': stat}}
+        # # now, lets format trans_stats_list for graphs
+        # return self._format_stats_for_custom_graphs(
+        #     release_branch.release_name, languages_list, trans_stats_dict_set
+        # )
 
     def _consolidate_branch_specific_stats(self, packages_stats_dict):
         """

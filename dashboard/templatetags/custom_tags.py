@@ -76,6 +76,7 @@ def tag_package_details(package_name, user):
 )
 def tag_branch_mapping(package):
     package_manager = PackagesManager()
+    release_manager = ReleaseBranchManager()
     return_value = OrderedDict()
     try:
         package_details = package_manager.get_packages([package]).get()
@@ -83,9 +84,17 @@ def tag_branch_mapping(package):
         # log event, passing for now
         pass
     else:
+        branch_mapping = {}
+        if package_details.release_branch_mapping_json:
+            branch_mapping = package_details.release_branch_mapping_json.copy()
+            for k, v in package_details.release_branch_mapping_json.items():
+                branch_mapping[k]['product'] = \
+                    release_manager.get_product_by_release(k).product_slug
+
         return_value.update(
             {'package_name': package_details.package_name,
-             'branch_mapping': package_details.release_branch_mapping_json,
+             'branch_mapping':
+                 branch_mapping if branch_mapping else package_details.release_branch_mapping_json,
              'mapping_lastupdated': package_details.release_branch_map_last_updated,
              'mapping_keys': BRANCH_MAPPING_KEYS}
         )
@@ -283,5 +292,24 @@ def tag_build_tags(buildsys, product):
     )
     return_value.update(dict(
         build_tags=tags
+    ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("coverage", "_coverage_table.html")
+)
+def tag_coverage_view(coverage_rule):
+    return_value = OrderedDict()
+    graph_manager = GraphManager()
+    rule_data, pkg_len, locale_len, tag_len, release_name = \
+        graph_manager.get_trans_stats_by_rule(coverage_rule)
+    return_value.update(dict(
+        coverage_rule=coverage_rule,
+        rule_data=rule_data,
+        package_len=pkg_len,
+        locale_len=locale_len,
+        build_tag_len=tag_len,
+        release=release_name
     ))
     return return_value
