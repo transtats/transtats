@@ -13,7 +13,7 @@ jobs:
     steps:
       - run:
           name: Install system dependencies
-          command: dnf -y install gcc findutils git python3 python3-pip python3-devel sudo redhat-rpm-config koji cpio patch make openssh-server openssl-devel
+          command: dnf -y install gcc findutils git python3 python3-pip python3-devel sudo redhat-rpm-config koji cpio patch make openssh-server openssl-devel libxcrypt-compat
       - checkout
       - run:
           name: Setup environment

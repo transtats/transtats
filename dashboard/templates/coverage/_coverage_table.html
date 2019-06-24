@@ -20,7 +20,7 @@
                 {% endif %}
             </h3>
             <div class="card-pf-body">
-                <div style="padding-left:40px">
+                <div style="padding-left:20px">
                 {% if source == "translation_platform" %}
                 <table>
                 {% for lang, stats in lang_stats.items %}
@@ -31,7 +31,7 @@
                 {% elif source == "build_system" %}
                     {% for tag, l_stats in lang_stats.items %}
                     <h4><span class="text-info">{{ tag }}</span></h4>
-                    <div style="padding-left:40px"><table>
+                    <div style="padding-left:20px"><table>
                     {% for locale, stats in l_stats.items %}
                         <tr><td>{{ locale }}</td>
                         <td><pre style="white-space:pre-line;">{{ stats }}</pre></td></tr>

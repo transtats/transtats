@@ -198,7 +198,7 @@ class PackagesManager(InventoryManager):
                     else:
                         processed_stats = p_stats.stats_processed_json
                     package_processed_stats = {
-                        locale_lang_dict.get(locale, ''):
+                        locale_lang_dict.get(locale, locale):
                             processed_stats.get(locale, not_found) for locale in locales}
 
                     if p_stats.project_version == platform_version:
