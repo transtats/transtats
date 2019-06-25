@@ -1,9 +1,8 @@
 {% if coverage_rule %}
 <div class="panel-body">
-<h3>Coverage Rule: <span class="text-info">{{ coverage_rule }}</span></h3>
-<h3>Translation coverage of <span class="text-info">{{ package_len }}</span> packages in <span class="text-info">{{ locale_len }}</span> languages for <span class="text-info">{{ release }}</span> release,
-    including <span class="text-info">{{ build_tag_len }}</span> build tags.</h3>
-<hr/>
+<h3>Coverage Rule: <span class="text-info">{{ coverage_rule }}</span>
+<span class="pull-right">Translation coverage of <span class="text-info">{{ package_len }}</span> packages in <span class="text-info">{{ locale_len }}</span> languages for <span class="text-info">{{ release }}</span> release,
+    including <span class="text-info">{{ build_tag_len }}</span> build tags.</span></h3><hr/>
 
 {% for package, stats_source in rule_data.items %}
     <h2><a href="{% url 'package-view' package %}"><span class="text-primary">{{ package }}</span></a></h2>
@@ -15,26 +14,27 @@
                 {% if source == "build_system" %}
                 <span class="pull-right"><span class="form-group">
                   <a class="btn btn-default" type="button" id="button-list-graph-rules"
-                     href="{% url 'jobs-logs-package' package %}">Jobs</a>
+                     href="{% url 'jobs-logs-package' package %}" data-toggle="tooltip"
+                     data-placement="top" title="Stats Source">Jobs</a>
                 </span></span>
                 {% endif %}
             </h3>
             <div class="card-pf-body">
-                <div style="padding-left:20px">
+                <div style="padding-left:20px;min-height:300px;">
                 {% if source == "translation_platform" %}
-                <table>
+                <div style="max-height:300px;overflow-y:scroll !important;"><table>
                 {% for lang, stats in lang_stats.items %}
-                    <tr><td>{{ lang }}</td>
-                    <td><pre style="white-space:pre-line;">{{ stats }}</pre></td></tr>
+                    <tr><td><h5>{{ lang }}</h5></td>
+                    <td><pre style="white-space:pre-line;background:#212121;color:white !important;">{{ stats }}</pre></td></tr>
                 {% endfor %}
-                </table>
+                </table></div>
                 {% elif source == "build_system" %}
                     {% for tag, l_stats in lang_stats.items %}
                     <h4><span class="text-info">{{ tag }}</span></h4>
-                    <div style="padding-left:20px"><table>
+                    <div style="padding-left:20px;max-height:274px;overflow-y:scroll !important;"><table>
                     {% for locale, stats in l_stats.items %}
-                        <tr><td>{{ locale }}</td>
-                        <td><pre style="white-space:pre-line;">{{ stats }}</pre></td></tr>
+                        <tr><td><h5>{{ locale }}</h5></td>
+                        <td><pre style="white-space:pre-line;background:#212121;color:white !important;">{{ stats }}</pre></td></tr>
                     {% endfor %}
                     </table></div>
                     {% endfor %}
