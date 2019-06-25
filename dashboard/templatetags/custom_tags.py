@@ -18,11 +18,10 @@ import json
 import yaml
 from collections import OrderedDict
 from django import template
-from urllib.parse import urlparse
 
 from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
 from dashboard.managers.graphs import GraphManager, ReportsManager
-from dashboard.managers.jobs import JobTemplateManager
+from dashboard.managers.jobs import JobTemplateManager, JobsLogManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
 
@@ -292,6 +291,20 @@ def tag_build_tags(buildsys, product):
     )
     return_value.update(dict(
         build_tags=tags
+    ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("jobs", "_job_analysis.html")
+)
+def tag_job_analysis(job_details):
+    return_value = OrderedDict()
+    job_log_manager = JobsLogManager()
+    analysed_data = \
+        job_log_manager.analyse_job_data(job_details)
+    return_value.update(dict(
+        job_info=analysed_data
     ))
     return return_value
 

@@ -1,10 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% load custom_tags %}
 
-</body>
-</html>
+{% if job_info %}
+<div class="card-pf card-pf-utilization card-pf-accented">
+    <div class="card-pf-title">Calculated Stats <span class="pull-right">
+    {% if 'meta_data' in job_info %}
+        {% with meta=job_info|get_item:"meta_data" %}
+            {% if 'package' in meta and 'nvr' in meta and 'built_on' in meta %}
+                <a href="{% url 'package-view' meta|get_item:'package' %}">{{ meta|get_item:"nvr" }}</a> built on
+                <span class="text-info">{{ meta|get_item:"built_on" }}</span>
+            {% endif %}
+        {% endwith %}
+    {% endif %}</span></div>
+    <div class="card-pf-body">
+        <div class="panel panel-default" style="max-height:300px;overflow-y:scroll !important;">
+          {% if 'stats' in job_info %}
+          <table class="table table-bordered table-hover">
+              <thead style="position:sticky;top:0;">
+                <tr>
+                  {% for heading in job_info|get_item:"headings" %}
+                      <th>{{ heading }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                  {% for stats_chunk in job_info|get_item:"stats" %}
+                  <tr>
+                    {% for stat in stats_chunk %}
+                    <td>{{ stat }}</td>
+                    {% endfor %}
+                  </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+          {% endif %}
+        </div>
+    </div>
+    {% if 'pot_differ' in job_info %}
+    <div class="card-pf-footer text-danger">{{ job_info|get_item:"pot_differ" }}</div>
+    {% endif %}
+</div>
+{% endif %}
