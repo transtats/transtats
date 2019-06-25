@@ -123,7 +123,7 @@ transplatforms_urls = [
         name="transplatform-update"),
 ]
 
-graph_rules_urls = [
+coverage_urls = [
     url(r'^$', GraphRulesSettingsView.as_view(), name="settings-graph-rules"),
     url(r'^view/(?P<coverage_rule>[\w\-\+]+)$', TransCoverageView.as_view(), name="custom-graph"),
     url(r'^new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
@@ -156,6 +156,6 @@ urlpatterns = [
     # dashboard section urls
     url(r'^releases/', include(releases_urls)),
     url(r'^products/', include(products_urls)),
-    # custom graphs section urls (graph_rules)
-    url(r'^coverage/', include(graph_rules_urls)),
+    # custom graphs section urls (coverage_urls)
+    url(r'^coverage/', include(coverage_urls)),
 ]

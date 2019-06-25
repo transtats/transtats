@@ -67,14 +67,6 @@ class GraphManager(BaseManager):
             pass
         return rules
 
-    def is_coverage_rule_exist(self, coverage_rule):
-        """
-        check coverage rule existence
-        """
-        if self.get_graph_rules(graph_rule=coverage_rule):
-            return True
-        return False
-
     def slugify_graph_rule_name(self, suggested_name):
         try:
             return slugify(suggested_name)

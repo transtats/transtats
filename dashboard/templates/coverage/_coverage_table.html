@@ -27,7 +27,9 @@
                     <tr><td><h5>{{ lang }}</h5></td>
                     <td><pre style="white-space:pre-line;background:#212121;color:white !important;">{{ stats }}</pre></td></tr>
                 {% endfor %}
-                </table></div>
+                </table>
+                    <span class="text-info"><i>Based on branch mapping of {{ package }} for {{ release }}</i></span>
+                </div>
                 {% elif source == "build_system" %}
                     {% for tag, l_stats in lang_stats.items %}
                     <h4><span class="text-info">{{ tag }}</span></h4>

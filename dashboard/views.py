@@ -211,12 +211,16 @@ class TransCoverageView(ManagersMixin, TemplateView):
     template_name = "coverage/coverage_rule_view.html"
 
     def get(self, request, *args, **kwargs):
-        response = super(TransCoverageView, self).get(
-            request, *args, **kwargs)
-        if not self.graph_manager.is_coverage_rule_exist(
-                kwargs.get('coverage_rule', '')):
+        rule = self.graph_manager.get_graph_rules(
+            graph_rule=kwargs.get('coverage_rule', '')
+        )
+        if not rule:
             raise Http404("Coverage rule does not exist.")
-        return response
+        elif not rule.get().rule_visibility_public and \
+                not request.user.is_authenticated:
+            raise PermissionDenied
+        return super(TransCoverageView, self).get(
+            request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         """
