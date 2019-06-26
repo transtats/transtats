@@ -182,6 +182,7 @@ class GraphRuleCoverage(GraphManagerMixin, APIView):
             if rule_exist:
                 translation_stats, _, _, _, release = self.graph_manager.get_trans_stats_by_rule(rule)
                 translation_stats.update({'release': release})
+                translation_stats.update({'coverage_rule': rule})
                 response_text = {'coverage': translation_stats}
             else:
                 response_text = {rule: "Not Found"}

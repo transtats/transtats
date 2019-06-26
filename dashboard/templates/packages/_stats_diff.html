@@ -26,6 +26,8 @@
             {% elif diff > 0 %}
               <span class="text-danger" data-toggle="tooltip" title="{{ diff }}%">{{ lang }}</span>&nbsp;&nbsp;
             {% endif %}
+          {% empty %}
+            <span class="text-success">All languages are in sync!</span>
           {% endfor %}
         </td>
       </tr>

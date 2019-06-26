@@ -7,7 +7,7 @@ LABEL maintainer="suanand@redhat.com, bhavin7392@gmail.com"
 USER root
 RUN useradd -ms /bin/bash tsuser
 RUN dnf -y update && \
-    dnf -y install git make cpio koji file patch intltool libtool gtk3-devel npm supervisor redis && \
+    dnf -y install libxcrypt-compat git make cpio koji file patch intltool libtool gtk3-devel npm supervisor redis && \
     dnf clean all
 
 RUN mkdir /workspace

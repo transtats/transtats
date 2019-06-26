@@ -213,8 +213,10 @@ class PackagesManager(InventoryManager):
                             package_processed_stats
 
                 if not trans_stats_by_rule[package.package_name]["translation_platform"]:
+                    tp_not_sync_msg = "Not Synced with Translation Platform for {0}".format(platform_version) \
+                        if platform_version else "Not Synced with Translation Platform"
                     trans_stats_by_rule[package.package_name]["translation_platform"].update({
-                        "Translation Stats": "Not Synced with Translation Platform for {0}".format(platform_version)
+                        "Translation Stats": tp_not_sync_msg
                     })
         return trans_stats_by_rule
 
@@ -796,8 +798,8 @@ class PackageBranchMapping(object):
         if status2:
             return self._return_original_version(match3)
 
-        probable_branches = ['default', 'master', 'head', 'rawhide',
-                             'devel', 'core', 'translations', self.package_name]
+        probable_branches = ['default', 'master', 'head', 'rawhide', 'devel', 'core',
+                             'translations', 'programs', self.package_name]
 
         for version in probable_branches:
             if version in from_branches:
