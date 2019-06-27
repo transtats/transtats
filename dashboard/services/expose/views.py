@@ -144,32 +144,6 @@ class GraphRuleCoverage(GraphManagerMixin, APIView):
     Graph Rule Coverage API
     """
 
-    # def _process_stats_data(self, graph_rule, trans_stats_data):
-    #     """
-    #     convert graph_ready material to api_ready
-    #     :param: graph rule
-    #     :param trans_stats_data: graph_ready data
-    #     :return: dict
-    #     """
-    #     formatted_data = {}
-    #     translation_data = {}
-    #     if graph_rule:
-    #         formatted_data['graph_rule'] = graph_rule
-    #     if trans_stats_data.get('branch'):
-    #         formatted_data['branch'] = trans_stats_data['branch']
-    #     ticks = trans_stats_data.get('ticks')
-    #     labels = {}
-    #     [labels.update({index: val}) for index, val in ticks]
-    #     graph_data = trans_stats_data.get('graph_data', {})
-    #     for unit in graph_data:
-    #         temp_stat = {}
-    #         stat = unit.get('data', [])
-    #         for index, val in stat:
-    #             temp_stat.update({labels.get(index): val})
-    #         translation_data[unit.get('label', 'label')] = temp_stat
-    #     formatted_data['translation_stats'] = translation_data
-    #     return formatted_data
-
     @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
         """
@@ -179,7 +153,7 @@ class GraphRuleCoverage(GraphManagerMixin, APIView):
         if kwargs.get('coverage_rule'):
             rule = kwargs['coverage_rule']
             rule_exist = self.graph_manager.get_graph_rules(graph_rule=rule)
-            if rule_exist:
+            if rule_exist and rule_exist.first().rule_visibility_public:
                 translation_stats, _, _, _, release = self.graph_manager.get_trans_stats_by_rule(rule)
                 translation_stats.update({'release': release})
                 translation_stats.update({'coverage_rule': rule})

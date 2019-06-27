@@ -26,8 +26,10 @@
                   {% for stats_chunk in job_info|get_item:"stats" %}
                   <tr>
                     {% for stat in stats_chunk %}
-                      <td>{{ stat }} {% if not forloop.first %}
-                          <small class="text-muted">messages</small>{% endif %}</td>
+                      <td>{{ stat }}{% if forloop.last %}<small>%</small>{% endif %}
+                      {% if not forloop.first and not forloop.last %}
+                          <small class="text-muted">messages</small>{% endif %}
+                      </td>
                     {% endfor %}
                   </tr>
                   {% endfor %}

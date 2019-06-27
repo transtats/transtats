@@ -214,7 +214,8 @@ class JobsLogManager(BaseManager):
                          'Total',
                          'Translated',
                          'Fuzzy',
-                         'Untranslated']
+                         'Untranslated',
+                         'Complete']
 
         if not fields_to_analyse and not len(fields_to_analyse) > 0:
             return
@@ -276,6 +277,13 @@ class JobsLogManager(BaseManager):
                                     stats_chunk.append(filter_stat.get('translated', 0))
                                     stats_chunk.append(filter_stat.get('fuzzy', 0))
                                     stats_chunk.append(filter_stat.get('untranslated', 0))
+                                    completion_percentage = 0
+                                    try:
+                                        completion_percentage = int((filter_stat.get('translated', 0) * 100 /
+                                                                     filter_stat.get('total', 0)))
+                                    except ZeroDivisionError:
+                                        pass
+                                    stats_chunk.append(completion_percentage)
                                     if stats_chunk:
                                         non_zero_stats = [i for i in stats_chunk[1:] if i > 0]
                                         if non_zero_stats and len(non_zero_stats) > 0:
