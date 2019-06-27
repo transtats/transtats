@@ -529,6 +529,8 @@ class NewGraphRuleView(ManagersMixin, FormView):
                            'tags_selection', 'lang_selection')
         if not set(required_params) <= set(post_params.keys()):
             return render(request, self.template_name, {'form': form})
+        elif post_params.get('tags_selection') == 'pick' and post_params.get('rule_build_tags'):
+            post_params['rule_build_tags'] = []
         elif post_params.get('tags_selection') == 'select' and not post_params.get('rule_build_tags'):
             errors = form._errors.setdefault('rule_build_tags', ErrorList())
             errors.append("Please select build tags to be included in coverage rule.")
