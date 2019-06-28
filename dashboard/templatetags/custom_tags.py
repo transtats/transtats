@@ -326,3 +326,34 @@ def tag_coverage_view(coverage_rule):
         release=release_name
     ))
     return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("coverage", "_sync_from_coverage.html")
+)
+def tag_sync_from_coverage(stats, package, release, tag):
+    return_value = OrderedDict()
+    if not isinstance(stats, str):
+        return return_value
+    if isinstance(stats, str) and not stats.startswith('Not Synced with'):
+        return return_value
+    package_manager = PackagesManager()
+    release_manager = ReleaseBranchManager()
+    try:
+        package_details = package_manager.get_packages([package]).get()
+    except:
+        # log event, passing for now
+        pass
+    else:
+        branch_mapping = {}
+        if package_details.release_branch_mapping_json:
+            branch_mapping = package_details.release_branch_mapping_json.copy()
+            branch_mapping = branch_mapping.get(release)
+            branch_mapping['product'] = \
+                release_manager.get_product_by_release(release).product_slug
+        return_value.update(dict(
+            mapping=branch_mapping,
+            package=package,
+            tag=tag,
+        ))
+    return return_value

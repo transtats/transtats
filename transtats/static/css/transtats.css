@@ -151,3 +151,9 @@ body {
 .nounderline {
     text-decoration: none
 }
+
+.ts-pre {
+    white-space:pre-line;
+    background:#212121;
+    color:white;
+}

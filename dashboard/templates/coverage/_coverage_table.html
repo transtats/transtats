@@ -1,3 +1,5 @@
+{% load custom_tags %}
+
 {% if coverage_rule %}
 <div class="panel-body">
 <h3>Coverage Rule: <span class="text-info">{{ coverage_rule }}</span>
@@ -25,7 +27,7 @@
                 <div style="max-height:300px;overflow-y:scroll !important;"><table>
                 {% for lang, stats in lang_stats.items %}
                     <tr><td><h5>{{ lang }}</h5></td>
-                    <td><pre style="white-space:pre-line;background:#212121;color:white !important;">{{ stats }}</pre></td></tr>
+                    <td><pre class="ts-pre">{{ stats }}</pre></td></tr>
                 {% endfor %}
                 </table>
                     <span class="text-info"><i>Based on branch mapping of {{ package }} for {{ release }}</i></span>
@@ -36,7 +38,10 @@
                     <div style="padding-left:20px;max-height:274px;overflow-y:scroll !important;"><table>
                     {% for locale, stats in l_stats.items %}
                         <tr><td><h5>{{ locale }}</h5></td>
-                        <td><pre style="white-space:pre-line;background:#212121;color:white !important;">{{ stats }}</pre></td></tr>
+                            <td><table><tr><td><pre class="ts-pre">{{ stats }}</pre></td>
+                                <td>{% tag_sync_from_coverage stats package release tag %}</td>
+                            </tr></table>
+                        </td></tr>
                     {% endfor %}
                     </table></div>
                     {% endfor %}

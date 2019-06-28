@@ -1,0 +1,8 @@
+{% load custom_tags %}
+
+{% if package and tag and mapping %}
+<a type="button" class="btn btn-small" data-toggle="tooltip" title="Sync Now"
+    href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package }}&buildsys={{ mapping|get_item:'product' }}-{{ mapping|get_item:'buildsys' }}&tag={{ tag }}">
+    <span class="fa fa-refresh" aria-hidden="true"></span>
+</a>
+{% endif %}

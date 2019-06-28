@@ -73,7 +73,7 @@
                                     <p class="list-group-item-text">
                                         <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
                                         <span class="text-muted">
-                                            <pre style="background:#212121;color:white;max-height:400px;overflow:scroll !important;">{{ event.strip|pprint }}</pre>
+                                            <pre class="ts-pre" style="max-height:400px;overflow-y:scroll !important;">{{ event.strip|pprint }}</pre>
                                         </span>
                                     </p>
                                 {% endfor %}
