@@ -253,16 +253,11 @@ class JobsLogManager(BaseManager):
                                 for locale, l_alias in list(lang_id_name.keys()):
                                     filter_stat = []
                                     stats_chunk = []
+
                                     try:
-                                        filter_stat = list(filter(
-                                            lambda x: x[locale_key] == locale or x[locale_key].replace('-', '_') == locale,
-                                            stats_json
-                                        ))
-                                        if not filter_stat:
-                                            filter_stat = list(filter(
-                                                lambda x: x[locale_key] == l_alias or x[locale_key].replace('_', '-') == l_alias,
-                                                stats_json
-                                            ))
+                                        filter_stat = self.package_manager.filter_n_reduce_stats(
+                                            locale_key, locale, l_alias, stats_json
+                                        )
                                     except Exception as e:
                                         self.app_logger(
                                             'ERROR', "Error while filtering stats, details: " + str(e))

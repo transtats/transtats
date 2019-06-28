@@ -22,6 +22,7 @@ import json
 import difflib
 import operator
 from collections import OrderedDict
+from functools import reduce
 
 # django
 from django.utils import timezone
@@ -545,6 +546,51 @@ class PackagesManager(InventoryManager):
             return True
         return False
 
+    def filter_n_reduce_stats(self, locale_key, locale, locale_alias, stats_json):
+        """
+        Filter and reduce multiple statistics for single language
+        :param locale_key: str
+        :param locale: str
+        :param locale_alias: str
+        :param stats_json: dict
+        :return: list
+        """
+        filter_n_reduced_stat = []
+
+        def _reduce_stats_for_a_locale(stats):
+            return [reduce(
+                lambda x, y: x if x.get('translated', 0) > y.get('translated', 0)
+                else y, stats
+            )]
+
+        filter_stat_locale = list(filter(
+            lambda x: x[locale_key] == locale or
+            x[locale_key].replace('-', '_') == locale,
+            stats_json
+        ))
+        filter_stat_alias = list(filter(
+            lambda x: x[locale_key] == locale_alias or
+            x[locale_key].replace('_', '-') == locale_alias,
+            stats_json
+        ))
+
+        if filter_stat_locale and len(filter_stat_locale) > 1:
+            filter_stat_locale = _reduce_stats_for_a_locale(filter_stat_locale)
+
+        if filter_stat_alias and len(filter_stat_alias) > 1:
+            filter_stat_alias = _reduce_stats_for_a_locale(filter_stat_alias)
+
+        if filter_stat_locale and filter_stat_alias:
+            filter_n_reduced_stat = _reduce_stats_for_a_locale(
+                filter_stat_locale + filter_stat_alias
+            )
+        elif filter_stat_locale and not filter_stat_alias:
+            filter_n_reduced_stat = filter_stat_locale
+        elif filter_stat_alias and not filter_stat_locale:
+            filter_n_reduced_stat = filter_stat_alias
+
+        return filter_n_reduced_stat
+
     def _process_response_stats_json(self, stats_json, engine=None):
 
         locale_key = 'locale'
@@ -555,13 +601,9 @@ class PackagesManager(InventoryManager):
         processed_stats_json = {}
         for locale, l_alias in list(lang_id_name.keys()):
             try:
-                filter_stat = list(filter(
-                    lambda x: x[locale_key] == locale or x[locale_key].replace('-', '_') == locale, stats_json
-                ))
-                if not filter_stat:
-                    filter_stat = list(filter(
-                        lambda x: x[locale_key] == l_alias or x[locale_key].replace('_', '-') == l_alias, stats_json
-                    ))
+                filter_stat = self.filter_n_reduce_stats(
+                    locale_key, locale, l_alias, stats_json
+                )
             except Exception as e:
                 self.app_logger(
                     'ERROR', "Error while filtering stats, details: " + str(e))
