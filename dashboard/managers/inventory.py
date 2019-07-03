@@ -296,8 +296,10 @@ class InventoryManager(BaseManager):
                 product.product_build_tags or []
         return build_tags
 
-    def get_build_tags(self, buildsys):
-        release_stream = self.get_release_streams(built=buildsys)
+    def get_build_tags(self, buildsys, product_slug):
+        release_stream = self.get_release_streams(
+            stream_slug=product_slug, built=buildsys
+        )
         if release_stream:
             return release_stream.first().product_build_tags or [' ']
         return []
@@ -410,7 +412,7 @@ class SyncStatsManager(BaseManager):
 
         if transplatform_slug in TRANSIFEX_SLUGS:
             for stats_dict in stats_dict_list:
-                if 'translated'in stats_dict and 'total' in stats_dict:
+                if 'translated' in stats_dict and 'total' in stats_dict:
                     translation_percent = \
                         round((stats_dict.get('translated', 0) * 100) / stats_dict.get('total', 0), 2) \
                         if stats_dict.get('total', 0) > 0 else 0
@@ -529,6 +531,20 @@ class ReleaseBranchManager(InventoryManager):
         if self.get_release_branches(relbranch=release_branch):
             return True
         return False
+
+    def get_product_by_release(self, release_slug):
+        """
+        Get Product by release
+        :param release_slug: str
+        :return: product query obj
+        """
+        if not release_slug:
+            return
+        release = self.get_release_branches(relbranch=release_slug)
+        if release:
+            product = release.get().product_slug
+            return product
+        return
 
     def get_relbranch_name_slug_tuple(self):
         """

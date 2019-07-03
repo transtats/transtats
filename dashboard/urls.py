@@ -30,9 +30,10 @@ from dashboard.views import (
     TransPlatformSettingsView, LanguagesSettingsView, PackageSettingsView,
     JobsView, JobsLogsView, JobsArchiveView, JobsLogsPackageView, NewPackageView, UpdatePackageView, TransCoverageView,
     StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, YMLBasedJobs,
-    NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView,
-    UpdateTransPlatformView, JobDetailView, refresh_package, release_graph, schedule_job, graph_data, tabular_data,
-    export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status, job_template
+    NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, graph_data,
+    UpdateTransPlatformView, UpdateGraphRuleView, JobDetailView, refresh_package, release_graph, schedule_job,
+    tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status, job_template,
+    DeleteGraphRuleView
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -68,7 +69,7 @@ app_setting_urls = [
     url(r'^translation-platforms$', RedirectView.as_view(permanent=True, url='/translation-platforms')),
     url(r'^packages$', RedirectView.as_view(permanent=True, url='/packages')),
     url(r'^products$', RedirectView.as_view(permanent=True, url='/products')),
-    url(r'^graph-rules$', RedirectView.as_view(permanent=True, url='/graph-rules')),
+    url(r'^graph-rules$', RedirectView.as_view(permanent=True, url='/coverage')),
     url(r'^notification$', TemplateView.as_view(template_name="settings/notification.html"),
         name="settings-notification"),
 ]
@@ -98,7 +99,8 @@ packages_urls = [
     url(r'^$', PackageSettingsView.as_view(), name="settings-packages"),
     url(r'^new$', login_required(NewPackageView.as_view(), login_url=LOGIN_URL), name="package-new"),
     url(r'^view/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(), name="package-view"),
-    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdatePackageView.as_view(), login_url=LOGIN_URL), name="package-update"),
+    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdatePackageView.as_view(), login_url=LOGIN_URL),
+        name="package-update"),
     url(r'^export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
 ]
 
@@ -121,11 +123,15 @@ transplatforms_urls = [
         name="transplatform-update"),
 ]
 
-graph_rules_urls = [
+coverage_urls = [
     url(r'^$', GraphRulesSettingsView.as_view(), name="settings-graph-rules"),
-    url(r'^view/$', TransCoverageView.as_view(), name="custom-graph"),
+    url(r'^view/(?P<coverage_rule>[\w\-\+]+)$', TransCoverageView.as_view(), name="custom-graph"),
     url(r'^new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
         name="settings-graph-rules-new"),
+    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdateGraphRuleView.as_view(), login_url=LOGIN_URL),
+        name="graph-rule-update"),
+    url(r'^remove/(?P<slug>[\w-]+)$', login_required(DeleteGraphRuleView.as_view(), login_url=LOGIN_URL),
+        name="graph-rule-delete"),
 ]
 
 urlpatterns = [
@@ -138,7 +144,7 @@ urlpatterns = [
     url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/'), name="home"),
     url(r'^translation-status/', include(trans_status_urls)),
     url(r'^translation-coverage/$', RedirectView.as_view(query_string=True,
-        permanent=True, url='/graph-rules/view/')),
+        permanent=True, url='/coverage/view/')),
     url(r'^quick-start$', TemplateView.as_view(template_name="howto.html"), name="howto"),
     url(r'^health$', RedirectView.as_view(permanent=False, url='/api/ping?format=json')),
     # packages section urls
@@ -150,6 +156,6 @@ urlpatterns = [
     # dashboard section urls
     url(r'^releases/', include(releases_urls)),
     url(r'^products/', include(products_urls)),
-    # custom graphs section urls (graph_rules)
-    url(r'^graph-rules/', include(graph_rules_urls)),
+    # custom graphs section urls (coverage_urls)
+    url(r'^coverage/', include(coverage_urls)),
 ]

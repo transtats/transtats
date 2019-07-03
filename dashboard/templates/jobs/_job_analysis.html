@@ -1,0 +1,47 @@
+{% load custom_tags %}
+
+{% if job_info %}
+<div class="card-pf card-pf-utilization card-pf-accented">
+    <div class="card-pf-title">Calculated Stats <span class="pull-right">
+    {% if 'meta_data' in job_info %}
+        {% with meta=job_info|get_item:"meta_data" %}
+            {% if 'package' in meta and 'nvr' in meta and 'built_on' in meta %}
+                <a href="{% url 'package-view' meta|get_item:'package' %}">{{ meta|get_item:"nvr" }}</a> built on
+                <span class="text-info">{{ meta|get_item:"built_on" }}</span>
+            {% endif %}
+        {% endwith %}
+    {% endif %}</span></div>
+    <div class="card-pf-body">
+        {% if 'stats' in job_info %}
+        <div class="panel panel-default" style="max-height:300px;overflow-y:scroll !important;">
+          <table class="table table-bordered table-hover">
+              <thead style="position:sticky;top:0;">
+                <tr>
+                  {% for heading in job_info|get_item:"headings" %}
+                      <th>{{ heading }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                  {% for stats_chunk in job_info|get_item:"stats" %}
+                  <tr>
+                    {% for stat in stats_chunk %}
+                      <td>{{ stat }}{% if forloop.last %}<small>%</small>{% endif %}
+                      {% if not forloop.first and not forloop.last %}
+                          <small class="text-muted">messages</small>{% endif %}
+                      </td>
+                    {% endfor %}
+                  </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+        </div>
+        {% else %}
+            <span class="text-warning" style="padding-left:20px">No Statistics Derived.</span>
+        {% endif %}
+    </div>
+    {% if 'pot_differ' in job_info %}
+    <div class="card-pf-footer text-danger">{{ job_info|get_item:"pot_differ" }}</div>
+    {% endif %}
+</div>
+{% endif %}

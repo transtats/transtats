@@ -33,8 +33,8 @@ from django.template import Context, Template
 from django.views.generic import (
     TemplateView, ListView, FormView, DetailView
 )
-from django.views.generic.edit import (CreateView, UpdateView)
-from django.urls import reverse
+from django.views.generic.edit import (CreateView, UpdateView, DeleteView)
+from django.urls import reverse, reverse_lazy
 
 # dashboard
 
@@ -44,7 +44,7 @@ from dashboard.constants import (
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
     NewLanguageForm, UpdateLanguageForm, LanguageSetForm,
-    NewTransPlatformForm, UpdateTransPlatformForm
+    NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager
@@ -58,7 +58,7 @@ from dashboard.managers.graphs import (
     GraphManager, ReportsManager
 )
 from dashboard.models import (
-    Job, Language, LanguageSet, Platform, Visitor, Package
+    Job, Language, LanguageSet, Platform, Visitor, Package, GraphRule
 )
 
 
@@ -208,7 +208,19 @@ class TransCoverageView(ManagersMixin, TemplateView):
     """
     Translation Coverage View
     """
-    template_name = "coverage/graph_rule_view.html"
+    template_name = "coverage/coverage_rule_view.html"
+
+    def get(self, request, *args, **kwargs):
+        rule = self.graph_manager.get_graph_rules(
+            graph_rule=kwargs.get('coverage_rule', '')
+        )
+        if not rule:
+            raise Http404("Coverage rule does not exist.")
+        elif not rule.get().rule_visibility_public and \
+                not request.user.is_authenticated:
+            raise PermissionDenied
+        return super(TransCoverageView, self).get(
+            request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         """
@@ -454,7 +466,8 @@ class UpdatePackageView(ManagersMixin, SuccessMessageMixin, UpdateView):
     def get(self, request, *args, **kwargs):
         if kwargs.get('slug') and not request.user.is_staff:
             pkg = self.packages_manager.get_packages(pkgs=[kwargs['slug']]).get()
-            if not pkg.created_by == request.user.email:
+            if not pkg.created_by == request.user.email and \
+                    not request.user.is_superuser:
                 raise PermissionDenied
         return super(UpdatePackageView, self).get(request, *args, **kwargs)
 
@@ -466,7 +479,7 @@ class GraphRulesSettingsView(ManagersMixin, ListView):
     """
     Graph Rules Settings View
     """
-    template_name = "coverage/graph_rule_list.html"
+    template_name = "coverage/coverage_rule_list.html"
     context_object_name = 'rules'
 
     def get_queryset(self):
@@ -477,7 +490,7 @@ class NewGraphRuleView(ManagersMixin, FormView):
     """
     New Graph Rule View
     """
-    template_name = "coverage/graph_rule_new.html"
+    template_name = "coverage/coverage_rule_new.html"
 
     def get_success_url(self):
         return reverse('settings-graph-rules-new')
@@ -493,9 +506,15 @@ class NewGraphRuleView(ManagersMixin, FormView):
         langs = self.inventory_manager.get_locale_lang_tuple()
         release_branches_tuple = \
             self.release_branch_manager.get_relbranch_name_slug_tuple()
+        b_tags = []
+        build_system_tags = self.inventory_manager.get_relstream_build_tags()
+        for release, tags in build_system_tags.items():
+            for tag in tags:
+                b_tags.append((tag, tag))
         kwargs.update({'packages': pkgs})
         kwargs.update({'languages': langs})
         kwargs.update({'branches': release_branches_tuple})
+        kwargs.update({'tags': tuple(b_tags)})
         kwargs.update({'initial': self.get_initial()})
         if data:
             kwargs.update({'data': data})
@@ -506,12 +525,19 @@ class NewGraphRuleView(ManagersMixin, FormView):
         form = self.get_form(data=post_data)
         post_params = form.cleaned_data
         # check for required params
-        required_params = ('rule_name', 'rule_relbranch', 'rule_packages', 'lang_selection')
+        required_params = ('rule_name', 'rule_relbranch', 'rule_packages',
+                           'tags_selection', 'lang_selection')
         if not set(required_params) <= set(post_params.keys()):
+            return render(request, self.template_name, {'form': form})
+        elif post_params.get('tags_selection') == 'pick' and post_params.get('rule_build_tags'):
+            post_params['rule_build_tags'] = []
+        elif post_params.get('tags_selection') == 'select' and not post_params.get('rule_build_tags'):
+            errors = form._errors.setdefault('rule_build_tags', ErrorList())
+            errors.append("Please select build tags to be included in coverage rule.")
             return render(request, self.template_name, {'form': form})
         elif post_params.get('lang_selection') == 'select' and not post_params.get('rule_langs'):
             errors = form._errors.setdefault('rule_langs', ErrorList())
-            errors.append("Please select languages to be included in graph rule.")
+            errors.append("Please select languages to be included in coverage rule.")
             return render(request, self.template_name, {'form': form})
         rule_slug = self.graph_manager.slugify_graph_rule_name(post_params['rule_name'])
         if not rule_slug:
@@ -525,7 +551,15 @@ class NewGraphRuleView(ManagersMixin, FormView):
             err_msg = ("Translation progress of " + pkgs_not_participate[0] +
                        " is not being tracked for " + post_params['rule_relbranch'])
             errors.append(err_msg)
-        if rule_slug and not pkgs_not_participate:
+        tags_not_participate = self.graph_manager.validate_tags_product_participation(
+            post_params['rule_relbranch'], post_params['rule_build_tags']
+        )
+        if tags_not_participate and len(tags_not_participate) >= 1:
+            errors = form._errors.setdefault('rule_build_tags', ErrorList())
+            err_msg = ("Build Tag " + tags_not_participate[0] + " does not belong to " +
+                       post_params['rule_relbranch'] + " release.")
+            errors.append(err_msg)
+        if rule_slug and not pkgs_not_participate and not tags_not_participate:
             post_params['rule_name'] = rule_slug
             active_user = getattr(request, 'user', None)
             if active_user:
@@ -536,10 +570,51 @@ class NewGraphRuleView(ManagersMixin, FormView):
                 ))
             else:
                 messages.add_message(request, messages.SUCCESS, (
-                    'Great! Graph rule added successfully.'
+                    'Great! Coverage rule added successfully.'
                 ))
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
+
+
+class UpdateGraphRuleView(ManagersMixin, SuccessMessageMixin, UpdateView):
+    """
+    Update Graph Rule view
+    """
+    template_name = 'coverage/coverage_rule_update.html'
+    model = GraphRule
+    slug_field = 'rule_name'
+    form_class = UpdateGraphRuleForm
+    success_message = '%(rule_name)s was updated successfully!'
+
+    def get(self, request, *args, **kwargs):
+        if kwargs.get('slug') and not request.user.is_staff:
+            rule = self.graph_manager.get_graph_rules(graph_rule=kwargs['slug'],
+                                                      only_active=True).get()
+            if not rule.created_by == request.user.email and \
+                    not request.user.is_superuser:
+                raise PermissionDenied
+        return super(UpdateGraphRuleView, self).get(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('graph-rule-update', args=[self.kwargs['slug']])
+
+
+class DeleteGraphRuleView(DeleteView):
+    """
+    Delete Graph Rule View
+    """
+    template_name = 'coverage/coverage_rule_delete.html'
+    model = GraphRule
+    slug_field = 'rule_name'
+    success_url = reverse_lazy('settings-graph-rules')
+
+    def get_object(self, queryset=None):
+
+        obj = super(DeleteGraphRuleView, self).get_object()
+        if not obj.created_by == self.request.user.email and \
+                not self.request.user.is_superuser:
+            raise PermissionDenied
+        return obj
 
 
 class JobsView(ManagersMixin, TemplateView):
@@ -1021,18 +1096,22 @@ def get_build_tags(request):
     """
     if request.is_ajax():
         post_params = request.POST.dict()
-        build_system = post_params.get('buildsys', '')
+        product_build = post_params.get('buildsys', '')
+        product_slug, build_system = tuple(product_build.split('-'))
         inventory_manager = InventoryManager()
-        tags = inventory_manager.get_build_tags(build_system)
+        tags = inventory_manager.get_build_tags(
+            build_system, product_slug
+        )
         if tags:
             context = Context(
                 {'META': request.META,
                  'build_tags': tags,
+                 'product': product_slug,
                  'buildsys': build_system}
             )
             template_string = """
                                 {% load tag_build_tags from custom_tags %}
-                                {% tag_build_tags buildsys %}
+                                {% tag_build_tags buildsys product %}
                             """
             return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)

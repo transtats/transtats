@@ -1,3 +1,6 @@
+##### Wed Jun 26 2019 Sundeep Anand <suanand@redhat.com>
+* Coverage rules revamp - add, edit, delete and view pages, few bug fixes
+
 ##### Fri May 24 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.3
 * Added [Weblate](https://docs.weblate.org/en/latest/api.html) APIs integration to enable statistics sync
 

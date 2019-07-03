@@ -129,7 +129,7 @@ class GraphRuleAdmin(admin.ModelAdmin):
         return False
 
     search_fields = ('rule_name', )
-    exclude = ('created_by', 'created_on', 'rule_visibility_public')
+    exclude = ('created_on', )
 
 
 @admin.register(Visitor)

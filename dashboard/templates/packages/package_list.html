@@ -126,11 +126,7 @@
       <th>Upstream Repository</th>
       <th>Translation Platform</th>
       <th>Products</th>
-      {% if user.is_staff %}
       <th colspan="2">Mapping</th>
-      {% else %}
-      <th>Mapping</th>
-      {% endif %}
     </tr>
   </thead>
   <tbody>
@@ -166,10 +162,13 @@
           <span class="pficon pficon-warning-triangle-o fa-2x"></span>
         {% endif %}
       </td>
-      {% if user.is_staff or package.created_by == user.email %}
       <td class="table-view-pf-actions">
         <div class="dropdown dropdown-kebab-pf">
+          {% if user.is_staff or package.created_by == user.email %}
           <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+          {% else %}
+          <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" disabled>
+          {% endif %}
             <span class="fa fa-ellipsis-v"></span>
           </button>
           <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight">
@@ -179,7 +178,6 @@
           </ul>
         </div>
       </td>
-      {% endif %}
     </tr>
     {% endfor %}
   </tbody>
@@ -269,12 +267,10 @@
           data: "health",
           sortable: false
         },
-        {% if user.is_staff %}
         {
           data: "action",
           sortable: false
         },
-        {% endif %}
       ],
       dom: "t",
       language: {

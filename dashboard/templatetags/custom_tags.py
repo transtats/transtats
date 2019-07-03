@@ -18,11 +18,10 @@ import json
 import yaml
 from collections import OrderedDict
 from django import template
-from urllib.parse import urlparse
 
 from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
 from dashboard.managers.graphs import GraphManager, ReportsManager
-from dashboard.managers.jobs import JobTemplateManager
+from dashboard.managers.jobs import JobTemplateManager, JobsLogManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
 
@@ -76,6 +75,7 @@ def tag_package_details(package_name, user):
 )
 def tag_branch_mapping(package):
     package_manager = PackagesManager()
+    release_manager = ReleaseBranchManager()
     return_value = OrderedDict()
     try:
         package_details = package_manager.get_packages([package]).get()
@@ -83,9 +83,17 @@ def tag_branch_mapping(package):
         # log event, passing for now
         pass
     else:
+        branch_mapping = {}
+        if package_details.release_branch_mapping_json:
+            branch_mapping = package_details.release_branch_mapping_json.copy()
+            for k, v in package_details.release_branch_mapping_json.items():
+                branch_mapping[k]['product'] = \
+                    release_manager.get_product_by_release(k).product_slug
+
         return_value.update(
             {'package_name': package_details.package_name,
-             'branch_mapping': package_details.release_branch_mapping_json,
+             'branch_mapping':
+                 branch_mapping if branch_mapping else package_details.release_branch_mapping_json,
              'mapping_lastupdated': package_details.release_branch_map_last_updated,
              'mapping_keys': BRANCH_MAPPING_KEYS}
         )
@@ -275,11 +283,77 @@ def tag_job_form(template_type):
 @register.inclusion_tag(
     os.path.join("jobs", "_build_tags.html")
 )
-def tag_build_tags(buildsys):
+def tag_build_tags(buildsys, product):
     return_value = OrderedDict()
     package_manager = PackagesManager()
-    tags = package_manager.get_build_tags(buildsys=buildsys)
+    tags = package_manager.get_build_tags(
+        buildsys=buildsys, product_slug=product
+    )
     return_value.update(dict(
         build_tags=tags
     ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("jobs", "_job_analysis.html")
+)
+def tag_job_analysis(job_details):
+    return_value = OrderedDict()
+    job_log_manager = JobsLogManager()
+    analysed_data = \
+        job_log_manager.analyse_job_data(job_details)
+    return_value.update(dict(
+        job_info=analysed_data
+    ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("coverage", "_coverage_table.html")
+)
+def tag_coverage_view(coverage_rule):
+    return_value = OrderedDict()
+    graph_manager = GraphManager()
+    rule_data, pkg_len, locale_len, tag_len, release_name = \
+        graph_manager.get_trans_stats_by_rule(coverage_rule)
+    return_value.update(dict(
+        coverage_rule=coverage_rule,
+        rule_data=rule_data,
+        package_len=pkg_len,
+        locale_len=locale_len,
+        build_tag_len=tag_len,
+        release=release_name
+    ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("coverage", "_sync_from_coverage.html")
+)
+def tag_sync_from_coverage(stats, package, release, tag):
+    return_value = OrderedDict()
+    if not isinstance(stats, str):
+        return return_value
+    if isinstance(stats, str) and not stats.startswith('Not Synced with'):
+        return return_value
+    package_manager = PackagesManager()
+    release_manager = ReleaseBranchManager()
+    try:
+        package_details = package_manager.get_packages([package]).get()
+    except:
+        # log event, passing for now
+        pass
+    else:
+        branch_mapping = {}
+        if package_details.release_branch_mapping_json:
+            branch_mapping = package_details.release_branch_mapping_json.copy()
+            branch_mapping = branch_mapping.get(release)
+            branch_mapping['product'] = \
+                release_manager.get_product_by_release(release).product_slug
+        return_value.update(dict(
+            mapping=branch_mapping,
+            package=package,
+            tag=tag,
+        ))
     return return_value

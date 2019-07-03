@@ -6,12 +6,3 @@
 
 - name: Create Database
   shell: runuser -l - postgres -c "psql -U postgres -d postgres -c \"create database {{ db_name }} ENCODING = 'UTF-8' LC_CTYPE = 'en_US.utf8' LC_COLLATE = 'en_US.utf8' template = template0;\""
-
-- name: Setup transtats keys
-  shell: cp /workspace/transtats/settings/keys.json.example /workspace/transtats/settings/keys.json
-
-- name: Setup DB Schema
-  shell: cd /workspace; make migrate
-
-- name: Setup Static Files
-  shell: cd /workspace; make static

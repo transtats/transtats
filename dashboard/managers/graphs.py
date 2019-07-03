@@ -28,7 +28,9 @@ from slugify import slugify
 from django.utils import timezone
 
 # dashboard
-from dashboard.constants import RELSTREAM_SLUGS, WORKLOAD_HEADERS
+from dashboard.constants import (
+    RELSTREAM_SLUGS, WORKLOAD_HEADERS, BRANCH_MAPPING_KEYS
+)
 from dashboard.managers import BaseManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.managers.packages import PackagesManager, PackageBranchMapping
@@ -88,6 +90,26 @@ class GraphManager(BaseManager):
                 pkg_not_participate.append(package)
         return pkg_not_participate
 
+    def validate_tags_product_participation(self, release_slug, tags):
+        """
+        This validates that tag belongs to release
+        :param release_slug: Release Slug
+        :param tags: Build Tags
+        :return: List of tags that do not belong
+        """
+        if not release_slug and not tags:
+            return
+        tags_not_participate = []
+
+        q_release = self.branch_manager.get_release_branches(relbranch=release_slug)
+        if q_release:
+            release = q_release.get()
+            release_build_tags = release.product_slug.product_build_tags
+            for tag in tags:
+                if tag not in release_build_tags:
+                    tags_not_participate.append(tag)
+        return tags_not_participate
+
     def add_graph_rule(self, **kwargs):
         """
         Save graph rule in db
@@ -104,6 +126,20 @@ class GraphManager(BaseManager):
         release_branch = \
             self.branch_manager.get_release_branches(relbranch=relbranch_slug)
 
+        if kwargs.get('tags_selection') == "pick" and not kwargs.get('rule_build_tags'):
+            release_packages = \
+                self.package_manager.get_relbranch_specific_pkgs(
+                    relbranch_slug, fields=['release_branch_mapping']
+                )
+
+            package_tags = [package.release_branch_mapping_json[relbranch_slug][BRANCH_MAPPING_KEYS[2]]
+                            for package in release_packages if package.release_branch_mapping_json and
+                            package.release_branch_mapping_json.get(relbranch_slug, {}).get(BRANCH_MAPPING_KEYS[2])]
+            if package_tags:
+                kwargs['rule_build_tags'] = list(set(package_tags))
+            else:
+                return False
+
         if kwargs.get('lang_selection') == "pick" and not kwargs.get('rule_langs'):
             relbranch_lang_set = self.branch_manager.get_release_branches(
                 relbranch=relbranch_slug, fields=['language_set_slug']
@@ -116,7 +152,7 @@ class GraphManager(BaseManager):
         elif kwargs.get('rule_langs'):
             kwargs['rule_languages'] = kwargs.pop('rule_langs')
 
-        filters = ['lang_selection', 'rule_langs', 'rule_relbranch']
+        filters = ['tags_selection', 'lang_selection', 'rule_langs', 'rule_relbranch']
         [kwargs.pop(i) for i in filters if i in kwargs]
 
         try:
@@ -237,81 +273,24 @@ class GraphManager(BaseManager):
         # format stats for lang-wise graph
         return self._format_stats_for_lang_wise_graphs(locale, lang_id_name, stats_dict, pkg_desc)
 
-    def _format_stats_for_custom_graphs(self, rel_branch, languages, stats_dict):
-        """
-        Formats stats dict for graph-ready material
-        """
-        stats_for_graphs_dict = OrderedDict()
-        stats_for_graphs_dict['branch'] = rel_branch
-        stats_for_graphs_dict['ticks'] = \
-            [[i, package] for i, package in enumerate(stats_dict.keys(), 0)]
-
-        stats_for_graphs_dict['graph_data'] = []
-        for language in languages:
-            stats = []
-            graph_lang_stats_dict = OrderedDict()
-            graph_lang_stats_dict['label'] = language
-            for lang_stat in stats_dict.values():
-                stats.append(lang_stat.get(language))
-            graph_lang_stats_dict['data'] = \
-                [[i, stat] for i, stat in enumerate(stats, 0)]
-            stats_for_graphs_dict['graph_data'].append(graph_lang_stats_dict)
-        return stats_for_graphs_dict
-
     def get_trans_stats_by_rule(self, graph_rule):
         """
         formats stats of a graph rule
         :param: graph_rule: str
         :return: Graph data for "Rule-wise" view: dict
         """
-        if not graph_rule:
-            return {}
+        rule_data = {}
         rule = self.get_graph_rules(graph_rule=graph_rule).get()
-        graph_rule_branch = rule.rule_release_slug.release_slug
-        release_branch = self.branch_manager.get_release_branches(
-            relbranch=graph_rule_branch, fields=['release_name']
-        ).get().release_name
+
         packages = rule.rule_packages
-        exclude_packages = []
-        rule_locales = rule.rule_languages
+        locales = rule.rule_languages
+        tags = rule.rule_build_tags
+        release = rule.rule_release_slug_id
 
-        trans_stats_dict_set = OrderedDict()
-        languages_list = []
-        for package in packages:
-            lang_id_name, package_stats = self.package_manager.get_trans_stats(
-                package, apply_branch_mapping=True
-            )[0:2]
-            relbranch_stats = {}
-            if graph_rule_branch in package_stats:
-                relbranch_stats.update(package_stats.get(graph_rule_branch))
-            elif 'master' in package_stats and package_stats.get('master'):
-                relbranch_stats.update(package_stats.get('master'))
-            elif 'default' in package_stats and package_stats.get('default'):
-                relbranch_stats.update(package_stats.get('default'))
-            else:
-                exclude_packages.append(package)
-            # filter locale_tuple for required locales
-            required_locales = []
-            for locale_tuple, lang in lang_id_name.items():
-                rule_locale = [rule_locale for rule_locale in rule_locales if rule_locale in locale_tuple]
-                if rule_locale:
-                    required_locales.append((locale_tuple, lang))
-            # set stat for filtered_locale_tuple checking with both locale and alias
-            lang_stats = OrderedDict()
-            for locale, stat in relbranch_stats.items():
-                locale = locale.replace('-', '_') if '-' in locale else locale
-                for locale_tuple, lang in required_locales:
-                    if locale in locale_tuple:
-                        lang_stats[lang] = stat
-            languages_list = lang_stats.keys()
-            trans_stats_dict_set[package] = lang_stats
-        # this is to prevent any breaking in graphs
-        for ex_package in exclude_packages:
-            trans_stats_dict_set.pop(ex_package)
+        if rule:
+            rule_data = self.package_manager.get_trans_stats_by_rule(rule)
 
-        # here trans_stats_dict_set would contain {'package': {'language': stat}}
-        # now, lets format trans_stats_list for graphs
-        return self._format_stats_for_custom_graphs(release_branch, languages_list, trans_stats_dict_set)
+        return rule_data, len(packages), len(locales), len(tags), release
 
     def _consolidate_branch_specific_stats(self, packages_stats_dict):
         """
