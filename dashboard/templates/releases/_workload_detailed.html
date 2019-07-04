@@ -1,34 +1,94 @@
+<script>
+    jQuery(document).ready(function() {
+       jQuery(".main-table").clone(true).appendTo('#table-scroll').addClass('clone');
+    });
+
+    .table-scroll {
+        position:relative;
+        max-width:600px;
+        margin:auto;
+        overflow:hidden;
+        border:1px solid #000;
+    }
+    .table-wrap {
+        width:100%;
+        overflow:auto;
+    }
+    .table-scroll table {
+        width:100%;
+        margin:auto;
+        border-collapse:separate;
+        border-spacing:0;
+    }
+    .table-scroll th, .table-scroll td {
+        padding:5px 10px;
+        border:1px solid #000;
+        background:#fff;
+        white-space:nowrap;
+        vertical-align:top;
+    }
+    .table-scroll thead, .table-scroll tfoot {
+        background:#f9f9f9;
+    }
+    .clone {
+        position:absolute;
+        top:0;
+        left:0;
+        pointer-events:none;
+    }
+    .clone th, .clone td {
+        visibility:hidden
+    }
+    .clone td, .clone th {
+        border-color:transparent
+    }
+    .clone tbody th {
+        visibility:visible;
+        color:red;
+    }
+    .clone .fixed-side {
+        border:1px solid #000;
+        background:#eee;
+        visibility:visible;
+    }
+    .clone thead, .clone tfoot{background:transparent;}
+</script>
+
 <div class="panel-heading">
   <h3 class="panel-title"></h3>
   <span class='text-info'>Percentage denotes translations completed for a language across packages</span>
 </div>
-<table class="table table-bordered table-hover">
-  <thead>
-    <tr>
-      <th>&nbsp;</th>
-      {% for header in headers %}
-      <th>{{ header }}</th>
-      {% endfor %}
-    </tr>
-  </thead>
-  <tbody>
-    {% for package in packages %}
-    <tr>
-      <td><a href="{% if '*' not in package.0 %}{% url 'package-view' package.0 %}{% else %}#{% endif %}">{{ package.0 }}</a></td>
-      {% for stat in package.1 %}
-      <td>
-        {% if stat > 90 %}
-        <span class="text-success">{{ stat|floatformat }}%</span>
-        {% elif stat > 60 %}
-        <span class="text-primary">{{ stat|floatformat }}%</span>
-        {% elif stat > 30 %}
-        <span class="text-warning">{{ stat|floatformat }}%</span>
-        {% else %}
-        <span class="text-danger">{{ stat|floatformat }}%</span>
-        {% endif %}
-      </td>
-      {% endfor %}
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div id="table-scroll" class="table-scroll">
+  <div class="table-wrap">
+    <table class="table main-table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th class="fixed-side" scope="col">&nbsp;</th>
+          {% for header in headers %}
+          <th scope="col">{{ header }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for package in packages %}
+        <tr>
+          <th class="fixed-side"><a href="{% if '*' not in package.0 %}{% url 'package-view' package.0 %}{% else %}#{% endif %}">{{ package.0 }}</a></th>
+          {% for stat in package.1 %}
+          <td>
+            {% if stat > 90 %}
+            <span class="text-success">{{ stat|floatformat }}%</span>
+            {% elif stat > 60 %}
+            <span class="text-primary">{{ stat|floatformat }}%</span>
+            {% elif stat > 30 %}
+            <span class="text-warning">{{ stat|floatformat }}%</span>
+            {% else %}
+            <span class="text-danger">{{ stat|floatformat }}%</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,46 +1,56 @@
 <script>
     var a = "<span>&nbsp;</span><span class='pull-right text-muted'>Stats are based on synced data and percentage is calculated on messages</span>";
     $("#span-package-desc").html("{{ pkg_desc }}"); $("#div-graph-disclaimer").html(a);
+
+    jQuery(document).ready(function() {
+       jQuery(".main-table").clone(true).appendTo('#table-scroll').addClass('clone');
+    });
+
+    .table-scroll{position:relative;max-width:600px;margin:auto;overflow:hidden;border:1px solid #000}.table-wrap{width:100%;overflow:auto}.table-scroll table{width:100%;margin:auto;border-collapse:separate;border-spacing:0}.table-scroll td,.table-scroll th{padding:5px 10px;border:1px solid #000;background:#fff;white-space:nowrap;vertical-align:top}.table-scroll tfoot,.table-scroll thead{background:#f9f9f9}.clone{position:absolute;top:0;left:0;pointer-events:none}.clone td,.clone th{visibility:hidden}.clone td,.clone th{border-color:transparent}.clone tbody th{visibility:visible;color:red}.clone .fixed-side{border:1px solid #000;background:#eee;visibility:visible}.clone tfoot,.clone thead{background:0 0}
 </script>
 {% if stats_data %}
-<div class="panel panel-default panel-border-ts">
+<div class="panel panel-default">
   <div class="panel-heading">
     <h3 class="panel-title">Statistics</h3>
     <span class="text-info">Stats coming from Upstream has AliceBlue background color whereas Downstream has Ivory color, and its transparent for Translation Platforms.</span>
   </div>
-  <table class="table table-bordered table-hover">
-      <thead>
-        <tr>
-          <th>&nbsp;</th>
-          {% for lang in headers %}
-              <th>{{ lang }}</th>
-          {% endfor %}
-        </tr>
-      </thead>
-      <tbody>
-        {% for version, stats in stats_data.items %}
-        {% if version|lower == 'upstream' %}
-        <tr style="background-color:AliceBlue">
-        {% elif 'brew' in version|lower or 'koji' in version|lower%}
-        <tr style="background-color:Ivory">
-        {% else %}
-        <tr>
-        {% endif %}
-          <td><span class="text-info">{{ version }}</span></td>
-          {% for index, stat in stats %}
-              <td>
-                  {% if stat and stat == 100 %}
-                      <span class="text-success">{{ stat }}%</span>
-                  {% elif stat %}
-                      {{ stat }}%
-                  {% else %}
-                      <span class="text-muted">N/A</span>
-                  {% endif %}
-              </td>
-          {% endfor %}
-        </tr>
-        {% endfor %}
-      </tbody>
-  </table>
+  <div id="table-scroll" class="table-scroll">
+      <div class="table-wrap">
+          <table class="table main-table table-bordered table-hover">
+              <thead>
+                <tr>
+                  <th class="fixed-side" scope="col">&nbsp;</th>
+                  {% for lang in headers %}
+                      <th scope="col">{{ lang }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for version, stats in stats_data.items %}
+                {% if version|lower == 'upstream' %}
+                <tr style="background-color:AliceBlue">
+                {% elif 'brew' in version|lower or 'koji' in version|lower%}
+                <tr style="background-color:Ivory">
+                {% else %}
+                <tr>
+                {% endif %}
+                  <th class="fixed-side"><a href="#"><span class="text-info">{{ version }}</span></a></th>
+                  {% for index, stat in stats %}
+                      <td>
+                          {% if stat and stat == 100 %}
+                              <span class="text-success">{{ stat }}%</span>
+                          {% elif stat %}
+                              {{ stat }}%
+                          {% else %}
+                              <span class="text-muted">N/A</span>
+                          {% endif %}
+                      </td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+          </table>
+      </div>
+  </div>
 </div>
 {% endif %}
