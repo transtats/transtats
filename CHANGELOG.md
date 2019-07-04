@@ -1,13 +1,7 @@
-##### Wed Jun 26 2019 Sundeep Anand <suanand@redhat.com>
+##### Thu Jul 04 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.5
 * Coverage rules revamp - add, edit, delete and view pages, few bug fixes
-
-##### Fri May 24 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.3
 * Added [Weblate](https://docs.weblate.org/en/latest/api.html) APIs integration to enable statistics sync
-
-##### Fri Mar 22 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.2
 * Threshold based statistics of languages.
-
-##### Fri Mar 15 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.1
 * Enable package edit for users, a few bug fixes.
 
 ##### Fri Mar 01 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.0

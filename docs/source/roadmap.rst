@@ -11,7 +11,7 @@ Transtats 0.7.5
 | We are currently working on :code:`0.7.5` release.
 
 | Backlog is `here <https://github.com/transtats/transtats/issues>`_. For release features list please look at `milestone <https://github.com/transtats/transtats/milestone/11>`_.
-| Target delivery: By end of July 2019
+| Target delivery: By mid of August 2019
 
 To Do
 =====
