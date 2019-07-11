@@ -284,8 +284,31 @@ class Package(ModelMixin, models.Model):
         return self.str2json(self.release_branch_mapping)
 
     @property
+    def release_branch_mapping_health(self):
+        release_branch_mapping_dict = \
+            self.str2json(self.release_branch_mapping)
+        if not release_branch_mapping_dict:
+            return False
+        for release, mapping in release_branch_mapping_dict.items():
+            if isinstance(mapping, dict):
+                for k, v in mapping.items():
+                    if not mapping.get(k):
+                        return False
+        return True
+
+    @property
     def stats_diff_json(self):
         return self.str2json(self.stats_diff)
+
+    @property
+    def stats_diff_health(self):
+        stats_diff_dict = self.str2json(self.stats_diff)
+        if not stats_diff_dict:
+            return True
+        for release, diff in stats_diff_dict.items():
+            if stats_diff_dict.get(release):
+                return False
+        return True
 
     @property
     def maintainers_json(self):

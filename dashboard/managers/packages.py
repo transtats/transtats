@@ -681,6 +681,18 @@ class PackagesManager(InventoryManager):
                      if platform_diff_dict.get(lang_index, 0) > stat else 0)
         return formatted_stats_dict
 
+    @staticmethod
+    def _filter_pkg_branch_map(mapping):
+
+        if not mapping:
+            return {}
+        mapping_dict = mapping.copy()
+        for release, map_value in mapping.items():
+            for k, v in map_value.items():
+                if not map_value.get(k):
+                    mapping_dict.pop(release)
+        return mapping_dict
+
     def calculate_stats_diff(self, package, graph_ready_stats, pkg_branch_map):
         """
         Calculates and stores translation stats differences
@@ -691,6 +703,9 @@ class PackagesManager(InventoryManager):
         :param pkg_branch_map: dict
         :return: languages list and stats diff dict
         """
+
+        pkg_branch_map = self._filter_pkg_branch_map(pkg_branch_map)
+
         stats_diff_dict = OrderedDict()
         stats_data = graph_ready_stats.get('graph_data', {})
         languages = graph_ready_stats.get('ticks', [])

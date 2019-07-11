@@ -67,7 +67,7 @@ def task_sync_packages_with_platform():
 
 
 @periodic_task(
-    run_every=(crontab(minute=0, hour='11,23')),
+    run_every=(crontab(minute=0, hour='4,16')),
     name="sync_packages_with_build_system",
     ignore_result=True
 )
