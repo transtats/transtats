@@ -132,7 +132,7 @@ class Command(BaseCommand):
                     )
                     th.start()
                     th.join()
-                    time.sleep(2)
+                    time.sleep(5)
 
                 self._update_diff(package)
 

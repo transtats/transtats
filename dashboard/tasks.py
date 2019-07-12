@@ -67,7 +67,7 @@ def task_sync_packages_with_platform():
 
 
 @periodic_task(
-    run_every=(crontab(minute=0, hour='4,16')),
+    run_every=(crontab(minute=0, hour='6,16')),
     name="sync_packages_with_build_system",
     ignore_result=True
 )
@@ -153,7 +153,7 @@ def task_sync_packages_with_build_system():
                 )
                 th.start()
                 th.join()
-                time.sleep(2)
+                time.sleep(5)
 
             _update_diff(package)
 
