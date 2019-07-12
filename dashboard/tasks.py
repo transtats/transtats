@@ -14,10 +14,12 @@
 # under the License.
 
 import os
+import shutil
 import time
 import threading
-from datetime import timedelta
 import yaml
+
+from datetime import timedelta
 
 from celery.schedules import crontab
 from celery.task import periodic_task
@@ -35,7 +37,7 @@ logger = get_task_logger(__name__)
 
 
 @periodic_task(
-    run_every=(crontab(minute=0, hour='10,22')),
+    run_every=(crontab(minute=0, hour='8,20')),
     name="sync_packages_with_platform",
     ignore_result=True
 )
@@ -59,7 +61,7 @@ def task_sync_packages_with_platform():
         )
         th.start()
         th.join()
-        time.sleep(2)
+        time.sleep(4)
 
     reports_manager.analyse_releases_status()
     reports_manager.analyse_packages_status()
@@ -96,6 +98,9 @@ def task_sync_packages_with_build_system():
 
     def _sync_build_system(template, params):
 
+        if package_manager.is_package_build_latest(params):
+            return
+
         t_params = template.job_template_params
         if len(t_params) == len(params):
             job_data = {field.upper(): param
@@ -116,6 +121,8 @@ def task_sync_packages_with_build_system():
             )
 
             try:
+                if os.path.isdir(temp_path):
+                    shutil.rmtree(temp_path)
                 os.mkdir(temp_path)
                 job_manager.execute_job()
             except Exception as e:
@@ -153,7 +160,7 @@ def task_sync_packages_with_build_system():
                 )
                 th.start()
                 th.join()
-                time.sleep(5)
+                time.sleep(6)
 
             _update_diff(package)
 

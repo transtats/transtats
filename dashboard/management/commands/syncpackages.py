@@ -14,9 +14,11 @@
 # under the License.
 
 import os
+import shutil
 import time
 import threading
 import yaml
+
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand, CommandError
@@ -73,6 +75,9 @@ class Command(BaseCommand):
 
     def _sync_build_system(self, template, params):
 
+        if self.package_manager.is_package_build_latest(params):
+            return
+
         t_params = template.job_template_params
         if len(t_params) == len(params):
             job_data = {field.upper(): param
@@ -93,6 +98,8 @@ class Command(BaseCommand):
             )
 
             try:
+                if os.path.isdir(temp_path):
+                    shutil.rmtree(temp_path)
                 os.mkdir(temp_path)
                 job_manager.execute_job()
             except Exception as e:

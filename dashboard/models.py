@@ -502,6 +502,36 @@ class CacheAPI(ModelMixin, models.Model):
         db_table = TABLE_PREFIX + 'cacheapi'
 
 
+class CacheBuildDetails(ModelMixin, models.Model):
+    """
+    Cache Build Details Model
+    """
+    cache_build_details_id = models.AutoField(primary_key=True)
+    package_name = models.ForeignKey(
+        Package, on_delete=models.PROTECT,
+        to_field='package_name', verbose_name="Package"
+    )
+    build_system = models.CharField(
+        max_length=200, verbose_name="Build System"
+    )
+    build_tag = models.CharField(
+        max_length=200, verbose_name="Build Tag"
+    )
+    build_details_json_str = models.TextField(null=True, blank=True)
+    job_log_json_str = models.TextField(null=True, blank=True)
+
+    @property
+    def build_details_json(self):
+        return self.str2json(self.build_details_json_str)
+
+    @property
+    def job_log_json(self):
+        return self.str2json(self.job_log_json_str)
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'cachebuilddetails'
+
+
 class Report(ModelMixin, models.Model):
     """
     Reports Model

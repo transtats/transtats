@@ -35,7 +35,7 @@ from dashboard.constants import (
 from dashboard.managers.inventory import (
     InventoryManager, SyncStatsManager, ReleaseBranchManager
 )
-from dashboard.models import Platform, Package
+from dashboard.models import Platform, Package, CacheBuildDetails
 from dashboard.managers.utilities import parse_project_details_json
 
 
@@ -731,6 +731,50 @@ class PackagesManager(InventoryManager):
         if package and polished_stats_diff:
             self.update_package(package, {'stats_diff': json.dumps(polished_stats_diff)})
         return polished_stats_diff
+
+    def is_package_build_latest(self, params):
+        """
+        Determine if new build is available for the package
+        :param params: package_name, build_system, build_tag
+        :return: boolean - True or False
+        """
+        if not isinstance(params, (list, tuple)) and not len(params) == 3:
+            return
+        package_name, build_system, build_tag = params
+        product_hub_url = ''
+        product = self.get_release_streams(built=build_system)
+        if product:
+            product_hub_url = product.first().product_server
+
+        try:
+            builds = self.api_resources.build_info(
+                hub_url=product_hub_url,
+                tag=build_tag,
+                pkg=package_name
+            )
+
+            latest_build = {}
+            if builds and len(builds) > 0:
+                latest_build = builds[0]
+
+            kwargs = {}
+            package_qs = self.get_packages(pkgs=[package_name])
+            kwargs.update(dict(package_name=package_qs.get()))
+            kwargs.update(dict(build_system=build_system))
+            kwargs.update(dict(build_tag=build_tag))
+
+            try:
+                cache_build_detail = CacheBuildDetails.objects.filter(**kwargs)
+            except Exception as e:
+                return False
+            else:
+                if cache_build_detail and \
+                        cache_build_detail.first().build_details_json == latest_build:
+                    return True
+        except Exception:
+            return False
+
+        return
 
 
 class PackageBranchMapping(object):

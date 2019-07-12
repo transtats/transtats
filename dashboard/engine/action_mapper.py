@@ -687,7 +687,7 @@ class Calculate(JobCommandBase):
                 except Exception as e:
                     task_log.update(self._log_task(
                         input['log_f'], task_subject,
-                        'Something went wrong in parsing PO: %s' % str(e)
+                        'Something went wrong while parsing %s: %s' % (po_file, str(e))
                     ))
                 else:
                     temp_trans_stats = {}
@@ -810,6 +810,7 @@ class ActionMapper(BaseManager):
         self.pkg_tp_url = pkg_tp_url
         self.log_f = job_log_file
         self.cleanup_resources = {}
+        self.__build = None
         self.__result = None
         self.__log = OrderedDict()
 
@@ -879,6 +880,8 @@ class ActionMapper(BaseManager):
             if current_node.output and 'builds' in current_node.output:
                 if not current_node.output['builds']:
                     break
+                else:
+                    self.__build = current_node.output.get('builds')
             if current_node.output and 'srpm_path' in current_node.output:
                 d = {'srpm_path': current_node.output.get('srpm_path')}
                 initials.update(d)
@@ -905,6 +908,10 @@ class ActionMapper(BaseManager):
                 if not self.__result:
                     self.__result = current_node.output.copy()
             current_node = current_node.next
+
+    @property
+    def build(self):
+        return self.__build or {}
 
     @property
     def result(self):
