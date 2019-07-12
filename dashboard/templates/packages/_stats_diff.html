@@ -2,16 +2,18 @@
 {% if stats_diff %}
 <div class="panel panel-default">
   <div class="panel-heading">
-    <h3 class="panel-title">Differences <small>Out of Sync</small></h3>
-    <span class="text-muted">Translation Platform vs Build System</span>
+    <h3 class="panel-title">Differences <span class="pull-right text-muted">Translation Platform vs Build System</span></h3>
+    <span class="text-info">Languages in <span class="text-danger">red</span> color differ in stats with Translation Platform.
+      <i>So, either push or pull is not latest.</i> Languages in <span class="text-primary">blue</span> could
+      <b>not</b> make 100% in the build system.</span>
   </div>
   <table class="table table-hover table-bordered" cellspacing="0">
     <thead>
       <tr>
-        <th>Release Branch</th>
+        <th>Release</th>
         <th>Languages
           <small>(which are out of sync:
-            <span class="text-danger">needs attention</span>)</small>
+            <span class="text-danger">need attention</span>)</small>
         </th>
       </tr>
     </thead>
@@ -22,7 +24,7 @@
         <td>
           {% for lang, diff in lang_diff.items %}
             {% if diff == 0 %}
-              <span class="text-info">{{ lang }}</span>&nbsp;&nbsp;
+              <span class="text-primary">{{ lang }}</span>&nbsp;&nbsp;
             {% elif diff > 0 %}
               <span class="text-danger" data-toggle="tooltip" title="{{ diff }}%">{{ lang }}</span>&nbsp;&nbsp;
             {% endif %}
@@ -34,9 +36,5 @@
       {% endfor %}
     </tbody>
   </table>
-  <div class="panel-footer text-muted">
-    <span>&nbsp;</span>
-    <span class="pull-right">Languages in red color differ in stats with Translation Platform. <i>So, either push or pull is not latest.</i> Other languages could <b>not</b> make 100% in the build system</span>
-  </div>
 </div>
 {% endif %}
