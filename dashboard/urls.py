@@ -33,7 +33,7 @@ from dashboard.views import (
     NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, graph_data,
     UpdateTransPlatformView, UpdateGraphRuleView, JobDetailView, refresh_package, release_graph, schedule_job,
     tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status, job_template,
-    DeleteGraphRuleView
+    DeleteGraphRuleView, LanguageDetailView, LanguageReleaseView
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -108,6 +108,9 @@ languages_urls = [
     url(r'^$', LanguagesSettingsView.as_view(), name="settings-languages"),
     url(r'^new$', staff_member_required(NewLanguageView.as_view()),
         name="language-new"),
+    url(r'^view/(?P<pk>[\w@-]+)$', LanguageDetailView.as_view(), name="language-view"),
+    url(r'^view/(?P<locale>[\w@-]+)/(?P<release_slug>[\w\-\+]+)$',
+        LanguageReleaseView.as_view(), name="language-release-view"),
     url(r'^edit/(?P<pk>[\w@-]+)$', staff_member_required(UpdateLanguageView.as_view()),
         name="language-update"),
     url(r'^set/new$', staff_member_required(NewLanguageSetView.as_view()),

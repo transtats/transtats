@@ -10,8 +10,8 @@
 <script src="/static/patternfly/dist/js/patternfly.dataTables.pfEmpty.js"></script>
 <script src="/static/js/csrf.js"></script>
 {% endblock %}
-{% block pagecontent %}
 
+{% block pagecontent %}
 <div class="row row-cards-pf">
   <div class="col-lg-1"></div>
   <div class="col-xs-12 col-sm-6 col-lg-5">
@@ -215,7 +215,7 @@
         {% for lang in locales %}
         <tr>
           <td>
-            {{ lang.lang_name }}
+            <a href="{% url 'language-view' lang.locale_id %}">{{ lang.lang_name }}</a>
           </td>
           <td>
             {{ lang.locale_id }}

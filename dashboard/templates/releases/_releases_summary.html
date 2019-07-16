@@ -29,14 +29,14 @@
           <div class="vert-scroll-div-ts">
             <table class="table table-bordered table-striped">
               <tbody>
-                {% for lang, untranslated in summary.languages.items %}
+                {% for lang, msgs in summary.languages.items %}
                 <tr>
                   <td>
                     <a href="{% url 'trans-status-release' summary.slug %}?locale={{ lang_locale|get_item:lang }}" data-toggle="tooltip" title="Show stats for {{ lang }}">
                       {{ lang }}
                     </a>
                   </td>
-                  <td align="right" class="text-info">{{ untranslated }}</td>
+                  <td align="right" class="text-info">{{ msgs.0 }}</td>
                 </tr>
                 {% endfor %}
               </tbody>

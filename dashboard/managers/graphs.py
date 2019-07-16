@@ -547,7 +547,22 @@ class ReportsManager(GraphManager):
                         [stats.get('Untranslated') for pkg, stats in pkg_stats.items()]
                     )
                     total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_msgs)) or 0
-                    relbranch_report[branch_name]['languages'][lang] = total_untranslated_msgs
+
+                    translated_msgs = []
+                    translated_msgs.extend(
+                        [stats.get('Translated') for pkg, stats in pkg_stats.items()]
+                    )
+                    total_translated_msgs = (functools.reduce((lambda x, y: x + y), translated_msgs)) or 0
+
+                    msgs = []
+                    msgs.extend(
+                        [stats.get('Total') for pkg, stats in pkg_stats.items()]
+                    )
+                    total_msgs = (functools.reduce((lambda x, y: x + y), msgs)) or 0
+
+                    relbranch_report[branch_name]['languages'][lang] = (total_untranslated_msgs,
+                                                                        total_translated_msgs,
+                                                                        total_msgs)
         if self.create_or_update_report(**{
             'subject': 'releases', 'report_json': relbranch_report
         }):

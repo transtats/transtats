@@ -255,6 +255,50 @@ class InventoryManager(BaseManager):
         return tuple([(platform.platform_slug, platform.api_url)
                       for platform in active_platforms]) or ()
 
+    def _get_lang_contact(self, platform, language):
+        """
+        Get language team contact information
+        :param platform: translation platform query object
+        :param language: language query object
+        :return: contact url: str
+        """
+        contact_url = platform.api_url
+        niddle = language.locale_alias \
+            if language.locale_alias else language.locale_id
+
+        if platform.engine_name in (TRANSPLATFORM_ENGINES[1],
+                                    TRANSPLATFORM_ENGINES[2]):
+            niddle = niddle.replace('_', '-')
+
+        if platform.engine_name == TRANSPLATFORM_ENGINES[0]:
+            contact_url += '/teams/{0}'.format(niddle)
+        elif platform.engine_name == TRANSPLATFORM_ENGINES[1]:
+            contact_url += '/explore/people/?lang={0}'.format(niddle)
+        elif platform.engine_name == TRANSPLATFORM_ENGINES[2]:
+            contact_url += '/language/view/{0}'.format(niddle)
+        elif platform.engine_name == TRANSPLATFORM_ENGINES[3]:
+            contact_url += '/languages/{0}/'.format(niddle)
+        return contact_url
+
+    def get_platform_language_team_contact(self, locale):
+        """
+        Get language team contact information
+        :param locale: str
+        :return: dict
+        """
+        language_team_contact = {}
+        if not locale:
+            return language_team_contact
+        language_query = self.get_locales(pick_locales=[locale])
+        if language_query:
+            language = language_query.get()
+            platforms = self.get_translation_platforms(only_active=True)
+
+            for platform in platforms:
+                language_team_contact[platform.api_url] = \
+                    self._get_lang_contact(platform, language)
+        return language_team_contact
+
     def get_release_streams(self, stream_slug=None, only_active=None,
                             built=None, fields=None):
         """

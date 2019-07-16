@@ -71,6 +71,7 @@ class ManagersMixin(object):
     jobs_log_manager = JobsLogManager()
     release_branch_manager = ReleaseBranchManager()
     graph_manager = GraphManager()
+    reports_manager = ReportsManager()
 
     def get_summary(self):
         """
@@ -235,7 +236,7 @@ class TransCoverageView(ManagersMixin, TemplateView):
 
 class LanguagesSettingsView(ManagersMixin, ListView):
     """
-    Languages Settings View
+    Languages List View
     """
     template_name = "languages/language_list.html"
     context_object_name = 'locales'
@@ -259,6 +260,50 @@ class LanguagesSettingsView(ManagersMixin, ListView):
             context['language_sets'] = language_sets
             context['langset_color_dict'] = langset_color_dict
             context['locale_groups'] = locale_groups
+        return context
+
+
+class LanguageDetailView(ManagersMixin, DetailView):
+    """
+    Languages Detail View
+    """
+    template_name = "languages/language_view.html"
+    context_object_name = 'language'
+    model = Language
+    slug_field = 'locale_id'
+    slug_url_kwarg = 'locale_id'
+
+    def get_context_data(self, **kwargs):
+        context = super(LanguageDetailView, self).get_context_data(**kwargs)
+        locale_lang_tuple = self.inventory_manager.get_locale_lang_tuple()
+        release_summary = self.reports_manager.get_reports('releases')
+        if release_summary:
+            release_summary = release_summary.get()
+        language_teams = \
+            self.inventory_manager.get_platform_language_team_contact(
+                kwargs['object'].locale_id
+            )
+        if language_teams:
+            context["language_teams"] = language_teams
+        context["locale_lang"] = locale_lang_tuple
+        context["release_summary"] = release_summary.report_json
+        context["last_updated"] = release_summary.report_updated
+        return context
+
+
+class LanguageReleaseView(ManagersMixin, TemplateView):
+    """
+    Language Release View
+    """
+
+    template_name = "languages/language_release_view.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(LanguageReleaseView, self).get_context_data(**kwargs)
+        language_query = \
+            self.inventory_manager.get_locales(pick_locales=[kwargs['locale']])
+        if language_query:
+            context["language"] = language_query.get()
         return context
 
 
