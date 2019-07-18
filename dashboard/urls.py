@@ -74,18 +74,6 @@ app_setting_urls = [
         name="settings-notification"),
 ]
 
-trans_status_urls = [
-    url(r'^$', RedirectView.as_view(permanent=False, url='/releases'),
-        name="trans-status"),
-    url(r'^packages$', RedirectView.as_view(permanent=True, url='/packages')),
-    url(r'^releases$', RedirectView.as_view(permanent=True, url='/releases')),
-]
-
-releases_urls = [
-    url(r'^$', TranStatusReleasesView.as_view(), name="trans-status-releases"),
-    url(r'^view/(?P<release_branch>[\w\-\+]+)$', TranStatusReleaseView.as_view(), name="trans-status-release"),
-]
-
 products_urls = [
     url(r'^$', RedirectView.as_view(permanent=False, url='/releases'), name="settings-release-streams"),
     url(r'^(?P<stream_slug>\w+)/', include([
@@ -135,6 +123,18 @@ coverage_urls = [
         name="graph-rule-update"),
     url(r'^remove/(?P<slug>[\w-]+)$', login_required(DeleteGraphRuleView.as_view(), login_url=LOGIN_URL),
         name="graph-rule-delete"),
+]
+
+releases_urls = [
+    url(r'^$', TranStatusReleasesView.as_view(), name="trans-status-releases"),
+    url(r'^view/(?P<release_branch>[\w\-\+]+)$', TranStatusReleaseView.as_view(), name="trans-status-release"),
+]
+
+trans_status_urls = [
+    url(r'^$', RedirectView.as_view(permanent=False, url='/releases'),
+        name="trans-status"),
+    url(r'^packages$', RedirectView.as_view(permanent=True, url='/packages')),
+    url(r'^releases$', RedirectView.as_view(permanent=True, url='/releases')),
 ]
 
 urlpatterns = [

@@ -12,19 +12,19 @@
         </h2>
         <div class="card-pf-body">
           <p class="card-pf-utilization-details">
-            <span class="text-info">
-              {% if summary.packages_need_attention %}{{ summary.packages_need_attention }}{% else %}0{% endif %}
-            </span>
-            packages need attention.
-            <br/> In total we have
+            In total we have
             <span class="text-info">
               {% if summary.total_untranslated_msgs %}{{ summary.total_untranslated_msgs }}{% else %}0{% endif %}
             </span>
-            untranslated messages across
+            untranslated messages in translation platforms across
             <span class="text-info">
               {{ summary.languages|length }}
             </span>
-            languages!
+            languages for
+            <span class="text-info">
+              {% if summary.packages_need_attention %}{{ summary.packages_need_attention }}{% else %}0{% endif %}
+            </span>
+            packages.
           </p>
           <div class="vert-scroll-div-ts">
             <table class="table table-bordered table-striped">
@@ -32,7 +32,7 @@
                 {% for lang, msgs in summary.languages.items %}
                 <tr>
                   <td>
-                    <a href="{% url 'trans-status-release' summary.slug %}?locale={{ lang_locale|get_item:lang }}" data-toggle="tooltip" title="Show stats for {{ lang }}">
+                    <a href="{% url 'language-release-view' lang_locale|get_item:lang summary.slug %}" data-toggle="tooltip" title="Show stats for {{ lang }}">
                       {{ lang }}
                     </a>
                   </td>
@@ -49,8 +49,8 @@
   </div>
 </div>
 <div class="panel-footer">
-  <span class="text-muted">Select a release or a language to get into insights!</span>
-  <span class="pull-right text-muted">Updated {{ last_updated|timesince }} ago</span>
+  <span class="text-info">Click a <span class="text-primary">release</span> or a <span class="text-primary">language</span> to get into insights!</span>
+  <span class="pull-right text-muted">Updated <span class="text-info">{{ last_updated|timesince }}</span> ago</span>
 </div>
 {% else %}
 <div class="panel-body">

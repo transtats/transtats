@@ -357,3 +357,28 @@ def tag_sync_from_coverage(stats, package, release, tag):
             tag=tag,
         ))
     return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("releases", "_release_map_view.html")
+)
+def tag_release_map_view():
+    return_value = OrderedDict()
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("releases", "_outofsync_packages.html")
+)
+def tag_outofsync_packages():
+    return_value = OrderedDict()
+    package_manager = PackagesManager()
+    all_packages = package_manager.get_packages()
+    outofsync_packages = \
+        [i.package_name for i in all_packages if not i.stats_diff_health]
+    if all_packages and outofsync_packages:
+        return_value["insync_packages"] = \
+            (all_packages.count() - len(outofsync_packages)) or 0
+    return_value["outofsync_packages"] = len(outofsync_packages) or 0
+    return_value["total_packages"] = all_packages.count() or 0
+    return return_value

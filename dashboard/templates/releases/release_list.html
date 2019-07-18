@@ -113,6 +113,26 @@
   </div>
 </div>
 
+<div class="row container-fluid row-eq-height">
+  <div class="panel panel-default col-xs-12 col-md-6" id="panel-release-map">
+    <div class="panel-body">
+      {% tag_release_map_view %}
+    </div>
+  </div>
+
+  <div class="panel panel-default col-xs-12 col-md-3" id="panel-trending-languages">
+    <div class="panel-body">
+      {% include "releases/_trending_languages.html" %}
+    </div>
+  </div>
+
+  <div class="panel panel-default col-xs-12 col-md-3" id="panel-pkg-out-of-sync">
+    <div class="panel-body">
+      {% tag_outofsync_packages %}
+    </div>
+  </div>
+</div>
+
 <!-- Releases panel -->
 <div class="panel panel-default" id="panel-release-list">
   <div class="panel-heading">
