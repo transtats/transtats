@@ -18,7 +18,7 @@
 # python
 import json
 import functools
-from operator import itemgetter
+from operator import add, itemgetter
 from collections import Counter, OrderedDict
 
 # third-party
@@ -559,7 +559,7 @@ class ReportsManager(GraphManager):
                         [stats.get('Total') for pkg, stats in pkg_stats.items()]
                     )
                     total_msgs = (functools.reduce((lambda x, y: x + y), msgs)) or 0
-
+                    # 0: untranslated, 1: translated, 2: total
                     relbranch_report[branch_name]['languages'][lang] = (total_untranslated_msgs,
                                                                         total_translated_msgs,
                                                                         total_msgs)
@@ -610,3 +610,49 @@ class ReportsManager(GraphManager):
         }):
             return package_report
         return False
+
+    def get_trending_languages(self, release_summary_data):
+        """
+        Get Trending Languages
+            Based on statistics of the latest releases.
+
+        ToDo:
+            make it specific for latest release only
+
+        :param release_summary_data: dict
+        :return: dict: {language: average percentage}
+        """
+
+        if not release_summary_data:
+            return {}
+
+        trending_languages = []
+        language_release_count = {}
+
+        try:
+
+            for i, j in release_summary_data.items():
+                for lang, stat in j.get('languages').items():
+                    if lang not in language_release_count:
+                        language_release_count[lang] = {}
+                        language_release_count[lang]["count"] = 1
+                        language_release_count[lang]["stats"] = stat
+                    else:
+                        language_release_count[lang]["count"] += 1
+                        language_release_count[lang]["stats"] = \
+                            list(map(add, stat,
+                                     language_release_count[lang]["stats"]))
+            if language_release_count:
+                for lang, data in language_release_count.items():
+                    rel_c = data['count']
+                    new_data = list(map(lambda x: int(x/rel_c) if (x > 0 and rel_c > 0) else 0, data['stats']))
+                    try:
+                        percent = int((new_data[1]*100)/new_data[2])
+                    except ZeroDivisionError:
+                        percent = 0
+                    trending_languages.append((lang, percent, new_data))
+        except Exception as e:
+            # log for now
+            return {}
+        if trending_languages:
+            return sorted(trending_languages, key=lambda x: x[1], reverse=True)

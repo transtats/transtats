@@ -118,7 +118,7 @@
 
 .map-container {
     width: 100%;
-    min-height: 400px;
+    min-height: 420px;
     position: relative;
     overflow-x: auto;
 }

@@ -46,6 +46,11 @@ def js_id_safe(id_value):
     return id_value.replace("@", "-at-")
 
 
+@register.filter
+def subtract(value, arg):
+    return value - arg
+
+
 @register.inclusion_tag(
     os.path.join("packages", "_package_details.html")
 )
@@ -364,6 +369,23 @@ def tag_sync_from_coverage(stats, package, release, tag):
 )
 def tag_release_map_view():
     return_value = OrderedDict()
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("releases", "_trending_languages.html")
+)
+def tag_trending_languages():
+    return_value = OrderedDict()
+    reports_manager = ReportsManager()
+    releases_summary = reports_manager.get_reports('releases')
+    if releases_summary:
+        releases_summary = releases_summary.get()
+        trending_languages = reports_manager.get_trending_languages(
+            releases_summary.report_json
+        )
+        if trending_languages and isinstance(trending_languages, (list, tuple)):
+            return_value["trending_languages"] = trending_languages[:9]
     return return_value
 
 

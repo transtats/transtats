@@ -1,2 +1,27 @@
+{% load custom_tags %}
 
-<h2>Trending Languages in Platforms</h2>
+<h2>Trending Languages in Platforms <br/>
+  <small>Based on statistics of the latest releases.</small></h2>
+
+{% if trending_languages %}
+    <div style="padding-top:5%">
+    {% for language in trending_languages %}
+    <div class="progress-container progress-description-left progress-label-right">
+      <div class="progress-description">
+        {{ language.0 }}
+      </div>
+      <div class="progress">
+        <div class="progress-bar" role="progressbar" aria-valuenow="{{ language.1 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ language.1 }}%;" data-toggle="tooltip" title="{{ language.1 }}% Translated">
+            <span><strong>{{ language.2.1 }}</strong> Messages</span>
+        </div>
+        <div class="progress-bar progress-bar-remaining" role="progressbar" aria-valuenow="{{ 100|subtract:language.1 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ 100|subtract:language.1 }}%;" data-toggle="tooltip" title="{{ 100|subtract:language.1 }}% Remaining">
+          <span class="sr-only">{{ 100|subtract:language.1 }}% Remaining</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    </div>
+    <div><i class="text-muted">Calculated by taking average of statistics from latest releases.</i></div>
+{% else %}
+  <h4 class="text-info" style="padding-top:10%">Data not found.</h4>
+{% endif %}

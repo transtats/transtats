@@ -2,7 +2,7 @@
 <script src="/static/d3/d3.min.js"></script>
 <script src="/static/bootstrap-select/js/bootstrap-select.js"></script>
 
-<h2>Out of Sync Packages <br/><small class="text-muted">
+<h2>Out of Sync <br/><small class="text-muted">
     Statistics differ for messages translated in platform versus packaged.</small></h2>
 
 
@@ -16,6 +16,9 @@
       var donutConfig1 = c3ChartDefaults.getDefaultDonutConfig('P');
 
       donutConfig1.bindto = '#div-donut-chart';
+      donutConfig1.color = {
+        pattern: ["#CC0000", "#D1D1D1"]
+      };
       donutConfig1.data = {
         type: "donut",
         columns: [
@@ -41,7 +44,6 @@
     </script>
 
     <h5>Out of <span class="text-info">{{ total_packages }}</span> packages,
-        <span class="text-success">{{ insync_packages }}</span> are in sync and
         <span class="text-danger">{{ outofsync_packages }}</span> need attention.</h5>
     <a href="{% url 'settings-packages' %}" class="btn btn-default btn-sx">Details</a>
 
@@ -60,6 +62,6 @@
     </ul>
     </div>
     {% else %}
-    <h4 class="text-info" style="padding-top:10%">Data not found.</h4>
+        <h4 class="text-info" style="padding-top:10%">Data not found.</h4>
     {% endif %}
 </div>
