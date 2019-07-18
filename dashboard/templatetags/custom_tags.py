@@ -379,13 +379,20 @@ def tag_trending_languages():
     return_value = OrderedDict()
     reports_manager = ReportsManager()
     releases_summary = reports_manager.get_reports('releases')
+    release_manager = ReleaseBranchManager()
+    latest_release = release_manager.get_latest_release()
+    pkg_manager = PackagesManager()
+    lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
+
     if releases_summary:
         releases_summary = releases_summary.get()
         trending_languages = reports_manager.get_trending_languages(
-            releases_summary.report_json
+            releases_summary.report_json, *latest_release
         )
         if trending_languages and isinstance(trending_languages, (list, tuple)):
             return_value["trending_languages"] = trending_languages[:9]
+            return_value["lang_locale_dict"] = lang_locale_dict
+            return_value["latest_release"] = latest_release
     return return_value
 
 

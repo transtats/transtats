@@ -90,6 +90,8 @@
             </div>
           </div>
         </div>
+        {% empty %}
+          <h5 class="text-info" style="padding-left:2%">Statistics not found.</h5>
         {% endfor %}
       </div>
       {% if language_teams %}

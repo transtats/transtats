@@ -1,14 +1,14 @@
 {% load custom_tags %}
 
 <h2>Trending Languages <small><span class="text-info">in Platforms</span><br/>
-  Based on statistics of the latest releases.</small></h2>
+    Based on statistics of the {{ latest_release.1 }} release.</small></h2>
 
 {% if trending_languages %}
     <div style="padding-top:5%">
     {% for language in trending_languages %}
     <div class="progress-container progress-description-left progress-label-right">
       <div class="progress-description">
-        {{ language.0 }}
+          <a href="{% url 'language-view' lang_locale_dict|get_item:language.0 %}" style="text-decoration:none">{{ language.0 }}</a>
       </div>
       <div class="progress">
         <div class="progress-bar" role="progressbar" aria-valuenow="{{ language.1 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ language.1 }}%;" data-toggle="tooltip" title="{{ language.1 }}% Translated">
@@ -21,7 +21,7 @@
     </div>
     {% endfor %}
     </div>
-    <div><i class="text-muted">Calculated by taking average of stats from latest releases.</i></div>
+    <div><i class="text-muted">Calculated by summing up statistics of all packages.</i></div>
 {% else %}
   <h4 class="text-info" style="padding-top:10%">Data not found.</h4>
 {% endif %}

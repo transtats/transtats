@@ -286,8 +286,9 @@ class LanguageDetailView(ManagersMixin, DetailView):
         if language_teams:
             context["language_teams"] = language_teams
         context["locale_lang"] = locale_lang_tuple
-        context["release_summary"] = release_summary.report_json
-        context["last_updated"] = release_summary.report_updated
+        if release_summary:
+            context["release_summary"] = release_summary.report_json
+            context["last_updated"] = release_summary.report_updated
         return context
 
 
