@@ -1,7 +1,7 @@
 {% load custom_tags %}
 
-<h2>Trending Languages in Platforms <br/>
-  <small>Based on statistics of the latest releases.</small></h2>
+<h2>Trending Languages <small><span class="text-info">in Platforms</span><br/>
+  Based on statistics of the latest releases.</small></h2>
 
 {% if trending_languages %}
     <div style="padding-top:5%">
@@ -21,7 +21,7 @@
     </div>
     {% endfor %}
     </div>
-    <div><i class="text-muted">Calculated by taking average of statistics from latest releases.</i></div>
+    <div><i class="text-muted">Calculated by taking average of stats from latest releases.</i></div>
 {% else %}
   <h4 class="text-info" style="padding-top:10%">Data not found.</h4>
 {% endif %}

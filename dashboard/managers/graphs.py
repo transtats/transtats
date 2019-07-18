@@ -645,9 +645,9 @@ class ReportsManager(GraphManager):
             if language_release_count:
                 for lang, data in language_release_count.items():
                     rel_c = data['count']
-                    new_data = list(map(lambda x: int(x/rel_c) if (x > 0 and rel_c > 0) else 0, data['stats']))
+                    new_data = list(map(lambda x: int(x / rel_c) if (x > 0 and rel_c > 0) else 0, data['stats']))
                     try:
-                        percent = int((new_data[1]*100)/new_data[2])
+                        percent = int((new_data[1] * 100) / new_data[2])
                     except ZeroDivisionError:
                         percent = 0
                     trending_languages.append((lang, percent, new_data))

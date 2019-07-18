@@ -120,7 +120,6 @@
     width: 100%;
     min-height: 420px;
     position: relative;
-    overflow-x: auto;
 }
 
 .row-eq-height {
