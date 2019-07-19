@@ -133,7 +133,7 @@
     {% for package in packages %}
     <tr>
       <td>
-        <a href="{% url 'package-view' package.package_name %}">
+        <a href="{% url 'package-view' package.package_name %}" style="text-decoration:none">
           <span class="{% if not package.stats_diff_health %}text-danger{% endif %}">{{ package.package_name }}</span>
         </a>
       </td>

@@ -150,7 +150,7 @@ def tag_tabular_form(package):
 
 
 @register.inclusion_tag(
-    os.path.join("releases", "_workload_combined.html")
+    os.path.join("releases", "_workload_per_lang.html")
 )
 def tag_workload_per_lang(relbranch, lang_id):
     return_value = OrderedDict()
