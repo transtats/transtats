@@ -85,7 +85,8 @@
 	    done: function(datamap) {
             datamap.svg.selectAll('.datamaps-subunit').on('click', function(geography) {
                 var message = geography.properties.name + ' has a country code of ' + geography.id;
-                alert(message);
+                <!--alert(message);-->
+                window.location.replace("/territory/view/" + geography.id + "/?name=" + geography.properties.name)
             });
         },
     });

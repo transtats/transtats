@@ -22,6 +22,7 @@ from operator import add, itemgetter
 from collections import Counter, OrderedDict
 
 # third-party
+from langtable import langtable
 from slugify import slugify
 
 # django
@@ -34,10 +35,11 @@ from dashboard.constants import (
 from dashboard.managers import BaseManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.managers.packages import PackagesManager, PackageBranchMapping
+from dashboard.managers.utilities import COUNTRY_CODE_3to2_LETTERS
 from dashboard.models import GraphRule, Report
 
 
-__all__ = ['GraphManager', 'ReportsManager']
+__all__ = ['GraphManager', 'ReportsManager', 'GeoLocationManager']
 
 
 class GraphManager(BaseManager):
@@ -611,6 +613,64 @@ class ReportsManager(GraphManager):
             return package_report
         return False
 
+    def refresh_stats_required_by_territory(self):
+        """
+        This refreshes statistics which is required by territory
+            - this includes:
+                - all languages (both disabled and enabled)
+                - build system stats where sync_visibility is True
+                - both for translation platform and build system
+        :return: master_statistics or False
+        """
+        all_locales = self.package_manager.get_locales()
+        all_releases = self.branch_manager.get_release_branches()
+        platform_release_stats_report = self.get_reports(report_subject='releases')
+        if not platform_release_stats_report:
+            return
+        platform_release_stats_report = platform_release_stats_report.get()
+
+        # Create basic skeleton
+        master_statistics = {}
+        for locale in all_locales:
+            master_statistics[locale.locale_id] = {}
+            master_statistics[locale.locale_id].update({'language': locale.lang_name})
+            for release in all_releases:
+                master_statistics[locale.locale_id].update({
+                    release.release_slug: {
+                        'Release Name': release.release_name,
+                        'Translation Platform': [],
+                        'Build System': []
+                    }
+                })
+
+        lang_locale_dict = {locale.lang_name: locale.locale_id for locale in all_locales}
+
+        # Let's fill master_statistics with platform_release_stats_report
+        for release, data in platform_release_stats_report.report_json.items():
+            release_slug = data.get('slug')
+            language_stats = data.get('languages')
+            if release_slug and language_stats:
+                for language, stats in language_stats.items():
+                    locale = lang_locale_dict.get(language)
+                    if 'Translation Platform' in master_statistics.get(locale, {}).get(release_slug, {}):
+                        master_statistics[locale][release_slug]['Translation Platform'] = stats
+
+        # Now, fill the build system stats
+        build_system_stats = self.package_manager.get_build_system_stats_by_release()
+        for b_release, locale_stats in build_system_stats.items():
+            for b_locale, b_stats in locale_stats.items():
+                if 'Build System' in master_statistics.get(b_locale, {}).get(b_release, {}):
+                    master_statistics[b_locale][b_release]['Build System'] = [
+                        b_stats.get('Untranslated') or 0,
+                        b_stats.get('Translated') or 0,
+                        b_stats.get('Total') or 0
+                    ]
+        if self.create_or_update_report(**{
+            'subject': 'location', 'report_json': master_statistics
+        }):
+            return master_statistics
+        return False
+
     @staticmethod
     def get_trending_languages(release_summary_data, *release_tuple):
         """
@@ -640,3 +700,29 @@ class ReportsManager(GraphManager):
             return {}
         if trending_languages:
             return sorted(trending_languages, key=lambda x: x[1], reverse=True)
+
+
+class GeoLocationManager(ReportsManager):
+    """
+    Geo Location Manager
+    """
+
+    def get_locales_from_territory_id(self, territory_id):
+        """
+        Get list of locales associated with a Territory
+        :param territory_id: three characters country code
+        :return: list of locales
+        """
+        territory_locales = []
+        if not territory_id:
+            return territory_locales
+        two_char_country_code = COUNTRY_CODE_3to2_LETTERS.get(territory_id)
+        if not two_char_country_code:
+            return territory_locales
+        territory_locales = langtable.list_locales(
+            territoryId=two_char_country_code
+        )
+        return territory_locales, two_char_country_code
+
+    def get_territory_stats(self):
+        pass

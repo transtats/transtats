@@ -165,4 +165,5 @@ def task_sync_packages_with_build_system():
             _update_diff(package)
 
     reports_manager.analyse_packages_status()
+    reports_manager.refresh_stats_required_by_territory()
     logger.info("%s Packages sync'd with Build System" % len(all_packages))

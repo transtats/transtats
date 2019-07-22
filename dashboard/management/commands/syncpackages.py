@@ -144,6 +144,7 @@ class Command(BaseCommand):
                 self._update_diff(package)
 
         self.reports_manager.analyse_packages_status()
+        self.reports_manager.refresh_stats_required_by_territory()
 
     def add_arguments(self, parser):
 

@@ -40,7 +40,7 @@ from dashboard.models import (
 )
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, ZANATA_SLUGS, DAMNEDLIES_SLUGS,
-    TRANSIFEX_SLUGS, RELSTREAM_SLUGS, WEBLATE_SLUGS
+    TRANSIFEX_SLUGS, RELSTREAM_SLUGS, WEBLATE_SLUGS, BUILD_SYSTEMS
 )
 from dashboard.managers.utilities import parse_ical_file
 
@@ -537,6 +537,14 @@ class SyncStatsManager(BaseManager):
         else:
             return True
         return False
+
+    def get_build_system_stats(self):
+        """
+        The build system statistics
+        :return: queryset
+        """
+        build_sys_stats = self.get_sync_stats(sources=BUILD_SYSTEMS)
+        return build_sys_stats
 
 
 class ReleaseBranchManager(InventoryManager):

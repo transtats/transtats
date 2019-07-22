@@ -18,6 +18,7 @@ import csv
 import json
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import parse_qs
 
 # django
 from django.conf import settings
@@ -55,7 +56,7 @@ from dashboard.managers.jobs import (
     ReleaseScheduleSyncManager, BuildTagsSyncManager
 )
 from dashboard.managers.graphs import (
-    GraphManager, ReportsManager
+    GraphManager, ReportsManager, GeoLocationManager
 )
 from dashboard.models import (
     Job, Language, LanguageSet, Platform, Visitor, Package, GraphRule
@@ -72,6 +73,7 @@ class ManagersMixin(object):
     release_branch_manager = ReleaseBranchManager()
     graph_manager = GraphManager()
     reports_manager = ReportsManager()
+    geo_location_manager = GeoLocationManager()
 
     def get_summary(self):
         """
@@ -730,7 +732,7 @@ class JobsArchiveView(ManagersMixin, ListView):
         return job_logs[25:]
 
 
-class JobDetailView(ManagersMixin, DetailView):
+class JobDetailView(DetailView):
     """
     Job Log Detail View
     """
@@ -816,6 +818,28 @@ class UpdateTransPlatformView(SuccessMessageMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('transplatform-update', args=[self.object.platform_slug])
+
+
+class TerritoryView(ManagersMixin, TemplateView):
+    """
+    Territory View
+    """
+    template_name = "geolocation/territory_view.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(TerritoryView, self).get_context_data(**kwargs)
+        country_name = self.request.GET.get('name', '')
+        if country_name:
+            context['country_name'] = country_name
+        territory_locales, two_char_country_code = self.geo_location_manager.get_locales_from_territory_id(
+            kwargs.get('country_code', '')
+        )
+        if two_char_country_code:
+            context['two_char_country_code'] = two_char_country_code
+        if territory_locales:
+            context['territory_locales'] = territory_locales
+        # self.reports_manager.refresh_stats_required_by_territory()
+        return context
 
 
 def schedule_job(request):

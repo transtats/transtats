@@ -33,25 +33,11 @@ from dashboard.views import (
     NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, graph_data,
     UpdateTransPlatformView, UpdateGraphRuleView, JobDetailView, refresh_package, release_graph, schedule_job,
     tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status, job_template,
-    DeleteGraphRuleView, LanguageDetailView, LanguageReleaseView
+    DeleteGraphRuleView, LanguageDetailView, LanguageReleaseView, TerritoryView
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
 
-
-ajax_urls = [
-    url(r'^schedule-job$', schedule_job, name="ajax-schedule-job"),
-    url(r'^graph-data$', graph_data, name="ajax-graph-data"),
-    url(r'^tabular-data$', tabular_data, name="ajax-tabular-data"),
-    url(r'^refresh-package$', refresh_package, name="ajax-refresh-package"),
-    url(r'^release-graph$', release_graph, name="ajax-release-graph"),
-    url(r'^generate-reports$', generate_reports, name="ajax-releases-report"),
-    url(r'^read-file-logs$', read_file_logs, name="ajax-read-logs"),
-    url(r'^build-tags$', get_build_tags, name="ajax-build-tags"),
-    url(r'^job-template$', job_template, name="ajax-job-template"),
-    url(r'^change-lang-status$', staff_member_required(change_lang_status),
-        name="ajax-change-lang-status"),
-]
 
 app_jobs_urls = [
     url(r'^$', login_required(JobsView.as_view(), login_url=LOGIN_URL), name="jobs"),
@@ -74,22 +60,33 @@ app_setting_urls = [
         name="settings-notification"),
 ]
 
-products_urls = [
-    url(r'^$', RedirectView.as_view(permanent=False, url='/releases'), name="settings-release-streams"),
-    url(r'^(?P<stream_slug>\w+)/', include([
-        url(r'^releases$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches"),
-        url(r'^releases/new$', staff_member_required(NewReleaseBranchView.as_view()),
-            name="settings-stream-branches-new"),
-    ])),
+ajax_urls = [
+    url(r'^schedule-job$', schedule_job, name="ajax-schedule-job"),
+    url(r'^graph-data$', graph_data, name="ajax-graph-data"),
+    url(r'^tabular-data$', tabular_data, name="ajax-tabular-data"),
+    url(r'^refresh-package$', refresh_package, name="ajax-refresh-package"),
+    url(r'^release-graph$', release_graph, name="ajax-release-graph"),
+    url(r'^generate-reports$', generate_reports, name="ajax-releases-report"),
+    url(r'^read-file-logs$', read_file_logs, name="ajax-read-logs"),
+    url(r'^build-tags$', get_build_tags, name="ajax-build-tags"),
+    url(r'^job-template$', job_template, name="ajax-job-template"),
+    url(r'^change-lang-status$', staff_member_required(change_lang_status),
+        name="ajax-change-lang-status"),
 ]
 
-packages_urls = [
-    url(r'^$', PackageSettingsView.as_view(), name="settings-packages"),
-    url(r'^new$', login_required(NewPackageView.as_view(), login_url=LOGIN_URL), name="package-new"),
-    url(r'^view/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(), name="package-view"),
-    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdatePackageView.as_view(), login_url=LOGIN_URL),
-        name="package-update"),
-    url(r'^export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
+coverage_urls = [
+    url(r'^$', GraphRulesSettingsView.as_view(), name="settings-graph-rules"),
+    url(r'^view/(?P<coverage_rule>[\w\-\+]+)$', TransCoverageView.as_view(), name="custom-graph"),
+    url(r'^new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
+        name="settings-graph-rules-new"),
+    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdateGraphRuleView.as_view(), login_url=LOGIN_URL),
+        name="graph-rule-update"),
+    url(r'^remove/(?P<slug>[\w-]+)$', login_required(DeleteGraphRuleView.as_view(), login_url=LOGIN_URL),
+        name="graph-rule-delete"),
+]
+
+geolocation_urls = [
+    url(r'^view/(?P<country_code>[\w]+)/$', TerritoryView.as_view(), name="territory-view"),
 ]
 
 languages_urls = [
@@ -107,22 +104,29 @@ languages_urls = [
         name="language-set-update"),
 ]
 
-transplatforms_urls = [
+packages_urls = [
+    url(r'^$', PackageSettingsView.as_view(), name="settings-packages"),
+    url(r'^new$', login_required(NewPackageView.as_view(), login_url=LOGIN_URL), name="package-new"),
+    url(r'^view/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(), name="package-view"),
+    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdatePackageView.as_view(), login_url=LOGIN_URL),
+        name="package-update"),
+    url(r'^export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
+]
+
+platforms_urls = [
     url(r'^$', TransPlatformSettingsView.as_view(), name="settings-trans-platforms"),
     url(r'^new$', staff_member_required(NewTransPlatformView.as_view()), name="transplatform-new"),
     url(r'^edit/(?P<slug>[\w-]+)$', staff_member_required(UpdateTransPlatformView.as_view()),
         name="transplatform-update"),
 ]
 
-coverage_urls = [
-    url(r'^$', GraphRulesSettingsView.as_view(), name="settings-graph-rules"),
-    url(r'^view/(?P<coverage_rule>[\w\-\+]+)$', TransCoverageView.as_view(), name="custom-graph"),
-    url(r'^new$', login_required(NewGraphRuleView.as_view(), login_url=LOGIN_URL),
-        name="settings-graph-rules-new"),
-    url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdateGraphRuleView.as_view(), login_url=LOGIN_URL),
-        name="graph-rule-update"),
-    url(r'^remove/(?P<slug>[\w-]+)$', login_required(DeleteGraphRuleView.as_view(), login_url=LOGIN_URL),
-        name="graph-rule-delete"),
+products_urls = [
+    url(r'^$', RedirectView.as_view(permanent=False, url='/releases'), name="settings-release-streams"),
+    url(r'^(?P<stream_slug>\w+)/', include([
+        url(r'^releases$', StreamBranchesSettingsView.as_view(), name="settings-stream-branches"),
+        url(r'^releases/new$', staff_member_required(NewReleaseBranchView.as_view()),
+            name="settings-stream-branches-new"),
+    ])),
 ]
 
 releases_urls = [
@@ -155,10 +159,12 @@ urlpatterns = [
     # languages section urls
     url(r'^languages/', include(languages_urls)),
     # trans platforms section urls
-    url(r'^translation-platforms/', include(transplatforms_urls)),
+    url(r'^translation-platforms/', include(platforms_urls)),
     # dashboard section urls
     url(r'^releases/', include(releases_urls)),
     url(r'^products/', include(products_urls)),
-    # custom graphs section urls (coverage_urls)
+    # coverage section urls (coverage_urls)
     url(r'^coverage/', include(coverage_urls)),
+    # geolocation section urls (location_urls)
+    url(r'^territory/', include(geolocation_urls)),
 ]

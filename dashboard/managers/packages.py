@@ -49,6 +49,7 @@ class PackagesManager(InventoryManager):
 
     PROCESS_STATS = True
     syncstats_manager = SyncStatsManager()
+    release_manager = ReleaseBranchManager()
 
     def get_packages(self, pkgs=None, pkg_params=None):
         """
@@ -600,6 +601,7 @@ class PackagesManager(InventoryManager):
         lang_id_name = self.get_lang_id_name_dict() or []
         processed_stats_json = {}
         for locale, l_alias in list(lang_id_name.keys()):
+            filter_stat = {}
             try:
                 filter_stat = self.filter_n_reduce_stats(
                     locale_key, locale, l_alias, stats_json
@@ -775,6 +777,38 @@ class PackagesManager(InventoryManager):
             return False
 
         return
+
+    def get_build_system_stats_by_release(self, release=None):
+        """
+        Get Build System Stats by Release
+        :param release:
+        :return:
+        """
+        releases = self.release_manager.get_release_branches(relbranch=release)
+        build_system_stats_query_set = self.syncstats_manager.get_build_system_stats()
+        stats_by_release = {release.release_slug: {} for release in releases}
+
+        for sync_stats in build_system_stats_query_set:
+            if isinstance(sync_stats.stats_raw_json, dict) and sync_stats.stats_raw_json.get('stats'):
+                processed_stats = self._process_response_stats_json(sync_stats.stats_raw_json['stats'])
+                pkg_branch_map = sync_stats.package_name.release_branch_mapping_json
+
+                respective_release = [r for r, d in pkg_branch_map.items()
+                                      if d and d.get(BRANCH_MAPPING_KEYS[2]) in sync_stats.project_version]
+                if respective_release and len(respective_release) > 0:
+                    pkg_release = respective_release[0]
+                    if pkg_release in stats_by_release and not stats_by_release.get(pkg_release):
+                        stats_by_release[pkg_release] = processed_stats
+                    else:
+                        for r_locale, r_stats in stats_by_release[pkg_release].items():
+                            for k, v in r_stats.items():
+                                if not k == 'Remaining':
+                                    stats_by_release[pkg_release][r_locale][k] += \
+                                        processed_stats.get(r_locale, {}).get(k, 0)
+
+        if release and release in stats_by_release:
+            return stats_by_release.get(release, {})
+        return stats_by_release
 
 
 class PackageBranchMapping(object):

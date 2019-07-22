@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+
+{% block extrascript %}
+{% endblock %}
+
+{% block pagecontent %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+      <span class="card-pf-title">Territory View</span>
+      <span class="pull-right">
+        <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default btn-small">Go Back</a>
+      </span>
+  </div>
+  <div class="panel-body">
+      <h1>{{ country_name }} <small>{{ country_code }} | {{ two_char_country_code }}</small>
+          <small class="pull-right text-muted">
+            {% if territory_locales %}<span class="text-info">{{ territory_locales|length }}</span> Locale(s){% endif %}
+          </small>
+      </h1><hr/>
+      <div class="row container-fluid row-eq-height">
+          <div class="col-xs-12 col-md-2">
+            <div>
+                <ul class="list-group">
+                    {% for locale in territory_locales %}
+                      <li class="list-group-item">
+                          <h5 class="text-info">{{ locale }}</h5>
+                      </li>
+                    {% empty %}
+                      <li class="list-group-item">
+                          <h5 class="text-info">No locales found.</h5>
+                      </li>
+                    {% endfor %}
+                </ul>
+            </div>
+          </div>
+
+          <div class="col-xs-12 col-md-10">
+          </div>
+
+      </div>
+  </div>
+</div>
+{% endblock %}
