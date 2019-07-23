@@ -831,14 +831,14 @@ class TerritoryView(ManagersMixin, TemplateView):
         country_name = self.request.GET.get('name', '')
         if country_name:
             context['country_name'] = country_name
-        territory_locales, two_char_country_code = self.geo_location_manager.get_locales_from_territory_id(
-            kwargs.get('country_code', '')
-        )
+        territory_locales, two_char_country_code = \
+            self.geo_location_manager.get_locales_from_territory_id(
+                kwargs.get('country_code', '')
+            )
         if two_char_country_code:
             context['two_char_country_code'] = two_char_country_code
         if territory_locales:
             context['territory_locales'] = territory_locales
-        # self.reports_manager.refresh_stats_required_by_territory()
         return context
 
 
@@ -1155,6 +1155,21 @@ def generate_reports(request):
                 template_string = """
                                     {% load tag_packages_summary from custom_tags %}
                                     {% tag_packages_summary %}
+                                """
+                return HttpResponse(Template(template_string).render(context))
+        if report_subject == 'location':
+            country_code = post_params.get('country_code', '')
+            location_summary = reports_manager.refresh_stats_required_by_territory()
+            if location_summary:
+                context = Context(
+                    {'META': request.META,
+                     'location_summary': location_summary,
+                     'last_updated': datetime.now(),
+                     'country_code': country_code}
+                )
+                template_string = """
+                                    {% load tag_location_summary from custom_tags %}
+                                    {% tag_location_summary country_code %}
                                 """
                 return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)

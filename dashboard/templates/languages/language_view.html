@@ -20,6 +20,7 @@
       {% endif %}
       <span class="pull-right">
         <a href="{% url 'settings-languages' %}" class="btn btn-default btn-small">List Languages</a>
+        <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default btn-small">Go Back</a>
       </span>
   </div>
   <div class="panel-body">

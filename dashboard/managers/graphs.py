@@ -715,14 +715,69 @@ class GeoLocationManager(ReportsManager):
         """
         territory_locales = []
         if not territory_id:
-            return territory_locales
-        two_char_country_code = COUNTRY_CODE_3to2_LETTERS.get(territory_id)
+            return territory_locales, ''
+        two_char_country_code = COUNTRY_CODE_3to2_LETTERS.get(territory_id, '')
         if not two_char_country_code:
-            return territory_locales
+            return territory_locales, ''
         territory_locales = langtable.list_locales(
             territoryId=two_char_country_code
         )
         return territory_locales, two_char_country_code
 
-    def get_territory_stats(self):
-        pass
+    def get_territory_summary(self, territory_id):
+        """
+        Get Territory Summary
+        :param territory_id: three characters country code
+        :return: related stats: dict
+        """
+        related_locales, _ = self.get_locales_from_territory_id(territory_id)
+        location_summary = self.get_reports(report_subject='location')
+
+        if not related_locales or not location_summary:
+            return {}, ''
+
+        location_summary_dict = location_summary.get().report_json
+        last_updated = location_summary.get().report_updated
+        locales = [locale[:locale.find('.UTF-8')] for locale in related_locales]
+        filtered_stats = {k: v for k, v in location_summary_dict.items() if k in locales}
+        return filtered_stats, last_updated
+
+    def save_territory_build_system_stats(self):
+        """
+        Save Territory's Build System Stats in Percentage
+        """
+
+        latest_release = self.branch_manager.get_latest_release()
+        countries = list(COUNTRY_CODE_3to2_LETTERS.keys())
+        territory_stats = []
+
+        for country_code in countries:
+            total_translated = 0
+            total_messages = 0
+            locale_stats, _ = self.get_territory_summary(country_code)
+            for locale, data in locale_stats.items():
+                release_stats = data.get(latest_release[0], {}).get('Build System', [])
+                if release_stats and len(release_stats) == 3:
+                    total_translated += release_stats[1]
+                    total_messages += release_stats[2]
+            try:
+                territory_stats.append([country_code, int((total_translated * 100) / total_messages)])
+            except Exception:
+                territory_stats.append([country_code, 0])
+
+        if self.create_or_update_report(**{
+            'subject': 'territory', 'report_json': territory_stats
+        }):
+            return territory_stats
+        return False
+
+    def get_territory_build_system_stats(self):
+        """
+        Get Territory Build system Stats
+        :return: dict
+        """
+        reports = self.get_reports(report_subject='territory')
+        if not reports:
+            return self.save_territory_build_system_stats()
+        report = reports.get()
+        return report.report_json if report else []

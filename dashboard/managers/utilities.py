@@ -68,7 +68,7 @@ COUNTRY_CODE_3to2_LETTERS = {"BGD": "BD", "BEL": "BE", "BFA": "BF", "BGR": "BG",
                              "AFG": "AF", "AIA": "AI", "VIR": "VI", "ISL": "IS", "IRN": "IR", "ARM": "AM",
                              "ALB": "AL", "AGO": "AO", "ATA": "AQ", "ASM": "AS", "ARG": "AR", "AUS": "AU",
                              "AUT": "AT", "ABW": "AW", "IND": "IN", "ALA": "AX", "AZE": "AZ", "IRL": "IE",
-                             "IDN": "ID", "UKR": "UA", "QAT": "QA", "MOZ": "MZ"}
+                             "IDN": "ID", "UKR": "UA", "QAT": "QA", "MOZ": "MZ", "MRT": "MR"}
 
 # http://country.io/iso3.json
 COUNTRY_CODE_2to3_LETTERS = {"BD": "BGD", "BE": "BEL", "BF": "BFA", "BG": "BGR", "BA": "BIH", "BB": "BRB",

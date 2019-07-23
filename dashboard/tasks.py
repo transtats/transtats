@@ -30,7 +30,9 @@ from django.utils import timezone
 from dashboard.constants import TS_JOB_TYPES, BRANCH_MAPPING_KEYS
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.jobs import JobTemplateManager, YMLBasedJobManager
-from dashboard.managers.graphs import GraphManager, ReportsManager
+from dashboard.managers.graphs import (
+    GraphManager, ReportsManager, GeoLocationManager
+)
 
 
 logger = get_task_logger(__name__)
@@ -63,9 +65,11 @@ def task_sync_packages_with_platform():
         th.join()
         time.sleep(4)
 
-    reports_manager.analyse_releases_status()
-    reports_manager.analyse_packages_status()
     logger.info("%s Packages sync'd with Translation Platform" % len(all_packages))
+    if reports_manager.analyse_releases_status():
+        logger.info("Releases Summary Updated")
+    if reports_manager.analyse_packages_status():
+        logger.info("Packages Summary Updated")
 
 
 @periodic_task(
@@ -82,6 +86,7 @@ def task_sync_packages_with_build_system():
     graph_manager = GraphManager()
     reports_manager = ReportsManager()
     job_template_manager = JobTemplateManager()
+    location_manager = GeoLocationManager()
 
     def _update_diff(package):
         try:
@@ -164,6 +169,12 @@ def task_sync_packages_with_build_system():
 
             _update_diff(package)
 
-    reports_manager.analyse_packages_status()
-    reports_manager.refresh_stats_required_by_territory()
     logger.info("%s Packages sync'd with Build System" % len(all_packages))
+    if reports_manager.analyse_packages_status():
+        logger.info("Packages Summary Updated")
+    time.sleep(2)
+    if reports_manager.refresh_stats_required_by_territory():
+        logger.info("Location Summary Updated")
+    time.sleep(2)
+    if location_manager.save_territory_build_system_stats():
+        logger.info("Territory Summary Updated")

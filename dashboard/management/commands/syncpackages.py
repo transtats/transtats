@@ -26,7 +26,9 @@ from django.utils import timezone
 
 from dashboard.constants import TS_JOB_TYPES, BRANCH_MAPPING_KEYS
 from dashboard.managers.packages import PackagesManager
-from dashboard.managers.graphs import (GraphManager, ReportsManager)
+from dashboard.managers.graphs import (
+    GraphManager, ReportsManager, GeoLocationManager
+)
 from dashboard.managers.jobs import (
     JobTemplateManager, YMLBasedJobManager
 )
@@ -40,6 +42,7 @@ class Command(BaseCommand):
     package_manager = PackagesManager()
     reports_manager = ReportsManager()
     job_template_manager = JobTemplateManager()
+    location_manager = GeoLocationManager()
 
     def _sync_package(self, pkg):
         self.package_manager.sync_update_package_stats(pkg)
@@ -145,6 +148,7 @@ class Command(BaseCommand):
 
         self.reports_manager.analyse_packages_status()
         self.reports_manager.refresh_stats_required_by_territory()
+        self.location_manager.save_territory_build_system_stats()
 
     def add_arguments(self, parser):
 

@@ -20,7 +20,9 @@ from collections import OrderedDict
 from django import template
 
 from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
-from dashboard.managers.graphs import GraphManager, ReportsManager
+from dashboard.managers.graphs import (
+    GraphManager, ReportsManager, GeoLocationManager
+)
 from dashboard.managers.jobs import JobTemplateManager, JobsLogManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
@@ -34,6 +36,13 @@ def get_item(dict_object, key):
     if not isinstance(dict_object, dict):
         return ''
     return dict_object.get(key)
+
+
+@register.filter
+def pop_item(dict_object, key):
+    if not isinstance(dict_object, dict):
+        return ''
+    return dict_object.pop(key)
 
 
 @register.filter
@@ -369,6 +378,11 @@ def tag_sync_from_coverage(stats, package, release, tag):
 )
 def tag_release_map_view():
     return_value = OrderedDict()
+    geo_location_manager = GeoLocationManager()
+    territory_stats = \
+        geo_location_manager.get_territory_build_system_stats()
+    if territory_stats:
+        return_value["territory_stats"] = territory_stats
     return return_value
 
 
@@ -410,4 +424,20 @@ def tag_outofsync_packages():
             (all_packages.count() - len(outofsync_packages)) or 0
     return_value["outofsync_packages"] = len(outofsync_packages) or 0
     return_value["total_packages"] = all_packages.count() or 0
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("geolocation", "_territory_summary.html")
+)
+def tag_location_summary(country_code):
+    return_value = OrderedDict()
+    geo_location_manager = GeoLocationManager()
+    territory_stats, last_updated = \
+        geo_location_manager.get_territory_summary(country_code)
+    if territory_stats:
+        return_value["territory_stats"] = territory_stats
+    if last_updated:
+        return_value["last_updated"] = last_updated
+    return_value["country_code"] = country_code
     return return_value

@@ -2,6 +2,7 @@
 {% load custom_tags %}
 
 {% block extrascript %}
+    <script src="/static/js/csrf.js"></script>
 {% endblock %}
 
 {% block pagecontent %}
@@ -10,16 +11,25 @@
       <span class="card-pf-title">Territory View</span>
       <span class="pull-right">
         <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default btn-small">Go Back</a>
+        <a id="refresh-location-summary" class="btn btn-default btn-small" data-toggle="tooltip" title="Refresh">
+          <span class="fa fa-refresh" aria-hidden="true"></span>
+        </a>
       </span>
   </div>
   <div class="panel-body">
-      <h1>{{ country_name }} <small>{{ country_code }} | {{ two_char_country_code }}</small>
+      <h1>{{ country_name }} <small>{{ country_code }}
+          {% if two_char_country_code %}| {{ two_char_country_code }}{% endif %}</small>
           <small class="pull-right text-muted">
             {% if territory_locales %}<span class="text-info">{{ territory_locales|length }}</span> Locale(s){% endif %}
           </small>
       </h1><hr/>
       <div class="row container-fluid row-eq-height">
-          <div class="col-xs-12 col-md-2">
+
+          <div id="div-territory-summary" class="col-xs-12 col-md-10">
+              {% tag_location_summary country_code %}
+          </div>
+
+          <div id="div-territory-locales" class="col-xs-12 col-md-2">
             <div>
                 <ul class="list-group">
                     {% for locale in territory_locales %}
@@ -34,11 +44,11 @@
                 </ul>
             </div>
           </div>
-
-          <div class="col-xs-12 col-md-10">
-          </div>
-
       </div>
   </div>
 </div>
+
+<script type="text/javascript">
+    function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}function refresh_location_summary(){$.ajax({beforeSend:function(e,t){csrfSafeMethod(t.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitSpinner.show()},type:"POST",url:"{% url 'ajax-releases-report' %}",data:{subject:"location",country_code:"{{ country_code }}"},success:function(e){waitSpinner.hide(),$("#div-territory-summary").html(e)},error:function(e,t,r){waitSpinner.hide(),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span>Some unexpected error occurred!</div>')}})}$(document).ready(function(){$("#refresh-location-summary").on("click",function(e){return e.preventDefault(),refresh_location_summary(),!1})});
+</script>
 {% endblock %}
