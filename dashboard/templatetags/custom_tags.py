@@ -60,6 +60,19 @@ def subtract(value, arg):
     return value - arg
 
 
+@register.filter
+def percent(value):
+    """
+    find percentage from stats
+    :param value: tuple (untranslated, translated, total)
+    :return: percentage
+    """
+    try:
+        return int((value[1] * 100) / value[2])
+    except Exception:
+        return 0
+
+
 @register.inclusion_tag(
     os.path.join("packages", "_package_details.html")
 )

@@ -166,7 +166,12 @@ body {
 }
 
 .ts-pre {
-    white-space:pre-line;
-    background:#212121;
-    color:white;
+    white-space: pre-line;
+    background: #212121;
+    color: white;
+}
+
+.ts-loc-summary-card {
+    min-height: 250px;
+    overflow-x: auto;
 }

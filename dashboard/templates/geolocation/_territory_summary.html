@@ -11,21 +11,21 @@
               <a href="{% url 'language-view' locale %}" style="text-decoration: none !important">
                 {{ data|pop_item:"language" }}</a>
             </h3><hr/>
-            <div class="card-pf-body" style="min-height:250px">
+            <div class="card-pf-body ts-loc-summary-card">
                 {% for rel, stats_data in data.items %}
                   <h4><a href="{% url 'trans-status-release' rel %}" style="text-decoration: none !important">
                     {{ stats_data|pop_item:"Release Name" }}</a>
                     <small class="text-muted pull-right">In messages</small></h4>
+                  <!-- ToDo: replace table with bullet chart -->
                   <table class="table table-striped table-hover">
-                    <tr><th>&nbsp;</th><th>Untranslated</th><th>Translated</th><th>Total</th></tr>
-                  {% for source, stats in stats_data.items %}
-                    <tr>
-                      <td>{{ source }}</td>
-                      <td>{{ stats.0 }}</td>
-                      <td>{{ stats.1 }}</td>
-                      <td>{{ stats.2 }}</td>
-                    </tr>
-                  {% endfor %}
+                    <tr><th>&nbsp;</th><th>Total</th><th>Translated</th></tr>
+                    {% for source, stats in stats_data.items %}
+                      <tr>
+                        <td>{{ source }}</td>
+                        <td>{{ stats.2 }}</td>
+                        <td data-toggle="tooltip" title="{{ stats|percent }}%">{{ stats.1 }}</td>
+                      </tr>
+                    {% endfor %}
                   </table>
                 {% endfor %}
             </div>

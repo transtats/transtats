@@ -46,7 +46,7 @@ COUNTRY_CODE_3to2_LETTERS = {"BGD": "BD", "BEL": "BE", "BFA": "BF", "BGR": "BG",
                              "MNE": "ME", "MDA": "MD", "MDG": "MG", "MAF": "MF", "MAR": "MA", "MCO": "MC",
                              "UZB": "UZ", "MMR": "MM", "MLI": "ML", "MAC": "MO", "MNG": "MN", "MHL": "MH",
                              "MKD": "MK", "MUS": "MU", "MLT": "MT", "MWI": "MW", "MDV": "MV", "MTQ": "MQ",
-                             "MNP": "MP", "MSR": "MS", "SEÑMRT": "OR", "IMN": "IM", "UGA": "UG", "TZA": "TZ",
+                             "MNP": "MP", "MSR": "MS", "MRT": "MR", "IMN": "IM", "UGA": "UG", "TZA": "TZ",
                              "MYS": "MIS", "MEX": "MX", "ISR": "IL", "FRA": "FR", "IOT": "IO", "SHN": "SH",
                              "FIN": "FI", "FJI": "FJ", "FLK": "FK", "FSM": "FM", "FRO": "FO", "NIC": "NI",
                              "NLD": "NL", "NOR": "NO", "NAM": "NA", "VUT": "VU", "NCL": "NC", "NER": "NE",
@@ -68,7 +68,7 @@ COUNTRY_CODE_3to2_LETTERS = {"BGD": "BD", "BEL": "BE", "BFA": "BF", "BGR": "BG",
                              "AFG": "AF", "AIA": "AI", "VIR": "VI", "ISL": "IS", "IRN": "IR", "ARM": "AM",
                              "ALB": "AL", "AGO": "AO", "ATA": "AQ", "ASM": "AS", "ARG": "AR", "AUS": "AU",
                              "AUT": "AT", "ABW": "AW", "IND": "IN", "ALA": "AX", "AZE": "AZ", "IRL": "IE",
-                             "IDN": "ID", "UKR": "UA", "QAT": "QA", "MOZ": "MZ", "MRT": "MR"}
+                             "IDN": "ID", "UKR": "UA", "QAT": "QA", "MOZ": "MZ"}
 
 # http://country.io/iso3.json
 COUNTRY_CODE_2to3_LETTERS = {"BD": "BGD", "BE": "BEL", "BF": "BFA", "BG": "BGR", "BA": "BIH", "BB": "BRB",
