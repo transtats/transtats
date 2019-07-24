@@ -2,12 +2,15 @@
 # https://hub.docker.com/r/transtats/transtats/
 #
 # Run Command: docker run -d --name container_name -p 8080:8015 transtats/transtats
+#
+# Requires libxcrypt-compat, f30 onwards
 
-FROM registry.fedoraproject.org/fedora:latest
+
+FROM registry.fedoraproject.org/fedora:29
 LABEL maintainer="suanand@redhat.com"
 
 RUN dnf -y update && \
-    dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel libxcrypt-compat \
+    dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel \
     sudo postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel \
     redhat-rpm-config file patch intltool libtool gtk3-devel npm supervisor redis && \
     dnf clean all
@@ -19,7 +22,7 @@ RUN chown -R 26:26 /var/lib/pgsql/data
 ENV PYTHONUNBUFFERED 1
 RUN mkdir /workspace
 WORKDIR /workspace
-RUN git clone -b master https://github.com/transtats/transtats.git .
+RUN git clone -b ui https://github.com/transtats/transtats.git .
 ADD conf/sample_keys.json /workspace/transtats/settings/keys.json
 RUN pip3 install -r /workspace/requirements/base.txt
 ADD launch.sh /usr/bin/transtats.sh

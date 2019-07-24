@@ -5,8 +5,10 @@
 # Build Image: docker build -t transtats/transtats .
 # Run Container with env variable: docker run -d --name container -p 8080:8014 -e DATABASE_NAME=transtats -e \
 #                                  DATABASE_USER=postgres -e DATABASE_PASSWD=postgres -e DATABASE_HOST=localhost transtats/transtats
+#
+# Requires libxcrypt-compat, f30 onwards
 
-FROM registry.fedoraproject.org/fedora:latest
+FROM registry.fedoraproject.org/fedora:29
 LABEL maintainer="spathare@redhat.com,suanand@redhat.com"
 
 # Environment variable 
@@ -19,7 +21,7 @@ ENV DATABASE_NAME=transtats \
 RUN echo 'root:root' | chpasswd
 
 RUN dnf -y update && \
-    dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel libxcrypt-compat \
+    dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel \
     sudo postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel \
     redhat-rpm-config file patch intltool libtool gtk3-devel npm supervisor redis && \
     dnf clean all

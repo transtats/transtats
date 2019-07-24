@@ -1,4 +1,6 @@
-##### Thu Jul 04 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.5
+##### Fri Jul 26 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.5
+* New sections in landing page: map, trending languages, out-of-sync
+* Add language detail page and job output analysis section. 
 * Coverage rules revamp - add, edit, delete and view pages, few bug fixes
 * Added [Weblate](https://docs.weblate.org/en/latest/api.html) APIs integration to enable statistics sync
 * Threshold based statistics of languages.
