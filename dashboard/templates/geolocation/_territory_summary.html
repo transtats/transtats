@@ -18,12 +18,13 @@
                     <small class="text-muted pull-right">In messages</small></h4>
                   <!-- ToDo: replace table with bullet chart -->
                   <table class="table table-striped table-hover">
-                    <tr><th>&nbsp;</th><th>Total</th><th>Translated</th></tr>
+                    <tr><th>&nbsp;</th><th>Total</th><th>Translated</th><th>%age</th></tr>
                     {% for source, stats in stats_data.items %}
                       <tr>
                         <td>{{ source }}</td>
                         <td>{{ stats.2 }}</td>
-                        <td data-toggle="tooltip" title="{{ stats|percent }}%">{{ stats.1 }}</td>
+                        <td>{{ stats.1 }}</td>
+                        <td><span class="text-success">{{ stats|percent }}</span></td>
                       </tr>
                     {% endfor %}
                   </table>

@@ -30,11 +30,11 @@ Transtats CLI
 - **Commands**
 
     1. coverage
-        Translation coverage as per graph rule.
+        Translation coverage as per rule.
 
         .. code-block:: bash
 
-            transtats coverage [OPTIONS] GRAPH_RULE
+            transtats coverage [OPTIONS] RULE_NAME
 
     2. job
         Runs a job and/or show the job log.

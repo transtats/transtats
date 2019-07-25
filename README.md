@@ -41,4 +41,3 @@ Get docker daemon running. Pull `transtats` image *([docker.io](https://hub.dock
 ### License
 
 [Apache License](http://www.apache.org/licenses/LICENSE-2.0), Version 2.0
-

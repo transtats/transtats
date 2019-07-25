@@ -8,3 +8,5 @@ Transtats is licensed under `Apache License <http://www.apache.org/licenses/LICE
 - `transtats <https://github.com/transtats/transtats/graphs/contributors>`_
 
 - `transtats-cli <https://github.com/transtats/transtats-cli/graphs/contributors>`_
+
+- `transtats.github.io <https://github.com/transtats/transtats.github.io/graphs/contributors>`_
