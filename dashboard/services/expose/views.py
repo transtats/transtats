@@ -91,6 +91,31 @@ class PackageExist(GraphManagerMixin, APIView):
         return Response(response_text)
 
 
+class PackageHealth(GraphManagerMixin, APIView):
+    """
+    Package Health API
+    """
+    def get(self, request, **kwargs):
+        """
+        Get package health
+        """
+        response_text = {}
+        if kwargs.get('package_name'):
+            package = kwargs['package_name']
+            package_obj = \
+                self.graph_manager.package_manager.get_packages(
+                    pkgs=[package])
+            if not package_obj:
+                return Response({package: "Not found"})
+            package_obj = package_obj.get()
+            if package_obj.stats_diff_health:
+                response_text = {package: "Translation platform statistics "
+                                          "are in sync with the build system."}
+            else:
+                response_text = {package: package_obj.stats_diff_json}
+        return Response(response_text)
+
+
 class PackageStatus(GraphManagerMixin, APIView):
     """
     Package Translation Status API
