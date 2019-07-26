@@ -391,11 +391,15 @@ def tag_sync_from_coverage(stats, package, release, tag):
 )
 def tag_release_map_view():
     return_value = OrderedDict()
+    release_manager = ReleaseBranchManager()
+    latest_release = release_manager.get_latest_release()
     geo_location_manager = GeoLocationManager()
     territory_stats = \
         geo_location_manager.get_territory_build_system_stats()
     if territory_stats:
         return_value["territory_stats"] = territory_stats
+    if territory_stats and latest_release:
+        return_value["latest_release"] = latest_release
     return return_value
 
 

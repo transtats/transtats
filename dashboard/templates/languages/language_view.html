@@ -21,6 +21,9 @@
       <span class="pull-right">
         <a href="{% url 'settings-languages' %}" class="btn btn-default btn-small">List Languages</a>
         <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default btn-small">Go Back</a>
+        <a id="refresh-releases-summary" class="btn btn-default btn-small" data-toggle="tooltip" title="Refresh">
+          <span class="fa fa-refresh" aria-hidden="true"></span>
+        </a>
       </span>
   </div>
   <div class="panel-body">
@@ -122,10 +125,6 @@
 </div>
 
 <script>
-    $(document).ready(function() {
-        $("#select-lang-name").change(function(e) {
-            window.location.replace("/languages/view/" + $(this).val())
-        })
-    });
+    function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}function refresh_releases_summary(){$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),waitSpinner.show()},type:"POST",url:"{% url 'ajax-releases-report' %}",data:{subject:"releases"},success:function(e){waitSpinner.hide(),location.reload(!0)},error:function(e,s,t){waitSpinner.hide(),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span>Some unexpected error occurred!</div>')}})}$(document).ready(function(){$("#select-lang-name").change(function(e){window.location.replace("/languages/view/"+$(this).val())}),$("#refresh-releases-summary").on("click",function(e){return e.preventDefault(),refresh_releases_summary(),!1})});
 </script>
 {% endblock %}
