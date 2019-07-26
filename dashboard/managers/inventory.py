@@ -750,11 +750,14 @@ class ReleaseBranchManager(InventoryManager):
     def get_latest_release(self):
         """
         Returns latest release query object
+            - releases for which translation tracking is ON
         :return: query obj
         """
         product_slug = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0]
         releases = self.get_release_branches(relstream=product_slug)
         if releases and len(releases) > 0:
-            latest_release_slug = sorted([r.release_slug for r in releases], reverse=True)[0]
+            latest_release_slug = sorted(
+                [r.release_slug for r in releases if r.track_trans_flag], reverse=True
+            )[0]
             latest_release = self.get_release_branches(relbranch=latest_release_slug).get()
             return latest_release.release_slug, latest_release.release_name
