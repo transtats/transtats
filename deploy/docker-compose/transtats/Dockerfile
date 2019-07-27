@@ -1,5 +1,7 @@
 # Dockerfile for transtats
 # https://hub.docker.com/r/transtats/transtats-sa
+#
+# Requires libxcrypt-compat, f30 onwards
 
 FROM registry.fedoraproject.org/fedora:29
 LABEL maintainer="suanand@redhat.com, bhavin7392@gmail.com"
@@ -7,7 +9,7 @@ LABEL maintainer="suanand@redhat.com, bhavin7392@gmail.com"
 USER root
 RUN useradd -ms /bin/bash tsuser
 RUN dnf -y update && \
-    dnf -y install git make cpio koji file patch intltool libtool gtk3-devel npm supervisor redis libxcrypt-compat && \
+    dnf -y install git make cpio koji file patch intltool libtool gtk3-devel npm supervisor redis && \
     dnf clean all
 
 RUN mkdir /workspace

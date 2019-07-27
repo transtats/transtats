@@ -1,4 +1,4 @@
-##### Fri Jul 26 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.5
+##### Sun Jul 28 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.5
 * New sections in landing page: map, trending languages, out-of-sync
 * Add language detail page and job output analysis section. 
 * Coverage rules revamp - add, edit, delete and view pages, few bug fixes
