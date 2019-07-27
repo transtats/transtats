@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block extrascript %}
+<script src="/static/jquery.flot/jquery.flot.js"></script>
+<script src="/static/jquery.flot.tooltip/js/jquery.flot.tooltip.js"></script>
+<script src="/static/jquery.flot/jquery.flot.stack.js"></script>
+<script src="/static/bootstrap-select/js/bootstrap-select.js"></script>
+<script src="/static/js/csrf.js"></script>
+{% endblock %}
+{% block pagecontent %}
+<div class="panel panel-default" id="panel-graph-rule-view">
+  <div class="panel-heading">
+    <div class="panel-title">
+      {% if rules %}
+      <select class="selectpicker" id="select-graph-rule-name" data-live-search="true">
+        <option selected disabled>Select Graph Rule</option>
+        {% for rule in rules %}
+        <option>{{ rule.rule_name }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+      <span class="pull-right">
+        <span class="form-group">
+          <a class="btn btn-default" type="button" id="button-list-graph-rules" href="{% url 'settings-graph-rules' %}">
+             Coverage Rules</a>
+        </span>
+      </span>
+    </div>
+  </div>
+  {% if not rules %}
+  <div class="panel-body">
+    <div class="blank-slate-pf blank-state-ts" id="empty-state-graph-rules">
+      <div class="blank-slate-pf-icon">
+        <span class="pficon pficon pficon-add-circle-o"></span>
+      </div>
+      <h1>
+        No graph rules available!
+      </h1>
+      <p>
+        Seems like no graph rules are available, would like to create one?
+      </p>
+      <p>
+        Learn more about this
+        <a href="#">on the documentation</a>.
+      </p>
+      <div class="blank-slate-pf-main-action">
+        <a class="btn btn-primary btn-lg" href="{% url 'settings-graph-rules-new' %}">
+          <i class="pficon pficon-add-circle-o"></i> Create graph rule</a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+    {% tag_coverage_view coverage_rule %}
+  {% endif %}
+</div>
+
+<script>
+  $(document).ready(function() {
+    $("#select-graph-rule-name").val("{{ coverage_rule }}"),
+    $("#select-graph-rule-name").change(function(a) {
+        window.location.replace("/coverage/view/" + $(this).val())
+    })
+});
+</script>
+{% endblock %}

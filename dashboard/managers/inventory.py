@@ -30,6 +30,7 @@ import requests
 from slugify import slugify
 
 # django
+from django.conf import settings
 from django.utils import timezone
 
 # dashboard
@@ -39,7 +40,7 @@ from dashboard.models import (
 )
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, ZANATA_SLUGS, DAMNEDLIES_SLUGS,
-    TRANSIFEX_SLUGS, RELSTREAM_SLUGS, WEBLATE_SLUGS
+    TRANSIFEX_SLUGS, RELSTREAM_SLUGS, WEBLATE_SLUGS, BUILD_SYSTEMS
 )
 from dashboard.managers.utilities import parse_ical_file
 
@@ -255,6 +256,50 @@ class InventoryManager(BaseManager):
         return tuple([(platform.platform_slug, platform.api_url)
                       for platform in active_platforms]) or ()
 
+    def _get_lang_contact(self, platform, language):
+        """
+        Get language team contact information
+        :param platform: translation platform query object
+        :param language: language query object
+        :return: contact url: str
+        """
+        contact_url = platform.api_url
+        niddle = language.locale_alias \
+            if language.locale_alias else language.locale_id
+
+        if platform.engine_name in (TRANSPLATFORM_ENGINES[1],
+                                    TRANSPLATFORM_ENGINES[2]):
+            niddle = niddle.replace('_', '-')
+
+        if platform.engine_name == TRANSPLATFORM_ENGINES[0]:
+            contact_url += '/teams/{0}'.format(niddle)
+        elif platform.engine_name == TRANSPLATFORM_ENGINES[1]:
+            contact_url += '/explore/people/?lang={0}'.format(niddle)
+        elif platform.engine_name == TRANSPLATFORM_ENGINES[2]:
+            contact_url += '/language/view/{0}'.format(niddle)
+        elif platform.engine_name == TRANSPLATFORM_ENGINES[3]:
+            contact_url += '/languages/{0}/'.format(niddle)
+        return contact_url
+
+    def get_platform_language_team_contact(self, locale):
+        """
+        Get language team contact information
+        :param locale: str
+        :return: dict
+        """
+        language_team_contact = {}
+        if not locale:
+            return language_team_contact
+        language_query = self.get_locales(pick_locales=[locale])
+        if language_query:
+            language = language_query.get()
+            platforms = self.get_translation_platforms(only_active=True)
+
+            for platform in platforms:
+                language_team_contact[platform.api_url] = \
+                    self._get_lang_contact(platform, language)
+        return language_team_contact
+
     def get_release_streams(self, stream_slug=None, only_active=None,
                             built=None, fields=None):
         """
@@ -296,8 +341,10 @@ class InventoryManager(BaseManager):
                 product.product_build_tags or []
         return build_tags
 
-    def get_build_tags(self, buildsys):
-        release_stream = self.get_release_streams(built=buildsys)
+    def get_build_tags(self, buildsys, product_slug):
+        release_stream = self.get_release_streams(
+            stream_slug=product_slug, built=buildsys
+        )
         if release_stream:
             return release_stream.first().product_build_tags or [' ']
         return []
@@ -410,7 +457,7 @@ class SyncStatsManager(BaseManager):
 
         if transplatform_slug in TRANSIFEX_SLUGS:
             for stats_dict in stats_dict_list:
-                if 'translated'in stats_dict and 'total' in stats_dict:
+                if 'translated' in stats_dict and 'total' in stats_dict:
                     translation_percent = \
                         round((stats_dict.get('translated', 0) * 100) / stats_dict.get('total', 0), 2) \
                         if stats_dict.get('total', 0) > 0 else 0
@@ -491,6 +538,14 @@ class SyncStatsManager(BaseManager):
             return True
         return False
 
+    def get_build_system_stats(self):
+        """
+        The build system statistics
+        :return: queryset
+        """
+        build_sys_stats = self.get_sync_stats(sources=BUILD_SYSTEMS)
+        return build_sys_stats
+
 
 class ReleaseBranchManager(InventoryManager):
     """
@@ -529,6 +584,20 @@ class ReleaseBranchManager(InventoryManager):
         if self.get_release_branches(relbranch=release_branch):
             return True
         return False
+
+    def get_product_by_release(self, release_slug):
+        """
+        Get Product by release
+        :param release_slug: str
+        :return: product query obj
+        """
+        if not release_slug:
+            return
+        release = self.get_release_branches(relbranch=release_slug)
+        if release:
+            product = release.get().product_slug
+            return product
+        return
 
     def get_relbranch_name_slug_tuple(self):
         """
@@ -677,3 +746,18 @@ class ReleaseBranchManager(InventoryManager):
             return False
         else:
             return True
+
+    def get_latest_release(self):
+        """
+        Returns latest release query object
+            - releases for which translation tracking is ON
+        :return: query obj
+        """
+        product_slug = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0]
+        releases = self.get_release_branches(relstream=product_slug)
+        if releases and len(releases) > 0:
+            latest_release_slug = sorted(
+                [r.release_slug for r in releases if r.track_trans_flag], reverse=True
+            )[0]
+            latest_release = self.get_release_branches(relbranch=latest_release_slug).get()
+            return latest_release.release_slug, latest_release.release_name

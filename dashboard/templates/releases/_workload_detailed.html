@@ -1,34 +1,46 @@
+<script>
+    jQuery(document).ready(function() {
+       jQuery(".main-table").clone(true).appendTo('#table-scroll').addClass('clone');
+    });
+</script>
+
 <div class="panel-heading">
-  <h3 class="panel-title"></h3>
-  <span class='text-info'>Percentage denotes translations completed for a language across packages</span>
+  <h4>Percentage denotes the translations completed for a language across packages in platforms.</h4>
 </div>
-<table class="table table-bordered table-hover">
-  <thead>
-    <tr>
-      <th>&nbsp;</th>
-      {% for header in headers %}
-      <th>{{ header }}</th>
-      {% endfor %}
-    </tr>
-  </thead>
-  <tbody>
-    {% for package in packages %}
-    <tr>
-      <td><a href="{% if '*' not in package.0 %}{% url 'package-view' package.0 %}{% else %}#{% endif %}">{{ package.0 }}</a></td>
-      {% for stat in package.1 %}
-      <td>
-        {% if stat > 90 %}
-        <span class="text-success">{{ stat|floatformat }}%</span>
-        {% elif stat > 60 %}
-        <span class="text-primary">{{ stat|floatformat }}%</span>
-        {% elif stat > 30 %}
-        <span class="text-warning">{{ stat|floatformat }}%</span>
-        {% else %}
-        <span class="text-danger">{{ stat|floatformat }}%</span>
-        {% endif %}
-      </td>
-      {% endfor %}
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div id="table-scroll" class="table-scroll">
+  <div class="table-wrap">
+    <table class="table main-table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th class="fixed-side" scope="col">&nbsp;</th>
+          {% for header in headers %}
+            <th scope="col">{{ header }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for package in packages %}
+        <tr>
+          <th class="fixed-side">
+            <a href="{% if '*' not in package.0 %}{% url 'package-view' package.0 %}
+            {% else %}#{% endif %}">{{ package.0 }}</a>
+          </th>
+          {% for stat in package.1 %}
+          <td>
+            {% if stat > 90 %}
+            <span class="text-success">{{ stat|floatformat }}%</span>
+            {% elif stat > 60 %}
+            <span class="text-primary">{{ stat|floatformat }}%</span>
+            {% elif stat > 30 %}
+            <span class="text-warning">{{ stat|floatformat }}%</span>
+            {% else %}
+            <span class="text-danger">{{ stat|floatformat }}%</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

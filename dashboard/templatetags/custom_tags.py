@@ -18,11 +18,12 @@ import json
 import yaml
 from collections import OrderedDict
 from django import template
-from urllib.parse import urlparse
 
 from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
-from dashboard.managers.graphs import GraphManager, ReportsManager
-from dashboard.managers.jobs import JobTemplateManager
+from dashboard.managers.graphs import (
+    GraphManager, ReportsManager, GeoLocationManager
+)
+from dashboard.managers.jobs import JobTemplateManager, JobsLogManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
 
@@ -38,6 +39,13 @@ def get_item(dict_object, key):
 
 
 @register.filter
+def pop_item(dict_object, key):
+    if not isinstance(dict_object, dict):
+        return ''
+    return dict_object.pop(key)
+
+
+@register.filter
 def join_by(sequence, delimiter):
     return delimiter.join(sequence)
 
@@ -45,6 +53,24 @@ def join_by(sequence, delimiter):
 @register.filter
 def js_id_safe(id_value):
     return id_value.replace("@", "-at-")
+
+
+@register.filter
+def subtract(value, arg):
+    return value - arg
+
+
+@register.filter
+def percent(value):
+    """
+    find percentage from stats
+    :param value: tuple (untranslated, translated, total)
+    :return: percentage
+    """
+    try:
+        return int((value[1] * 100) / value[2])
+    except Exception:
+        return 0
 
 
 @register.inclusion_tag(
@@ -76,6 +102,7 @@ def tag_package_details(package_name, user):
 )
 def tag_branch_mapping(package):
     package_manager = PackagesManager()
+    release_manager = ReleaseBranchManager()
     return_value = OrderedDict()
     try:
         package_details = package_manager.get_packages([package]).get()
@@ -83,9 +110,17 @@ def tag_branch_mapping(package):
         # log event, passing for now
         pass
     else:
+        branch_mapping = {}
+        if package_details.release_branch_mapping_json:
+            branch_mapping = package_details.release_branch_mapping_json.copy()
+            for k, v in package_details.release_branch_mapping_json.items():
+                branch_mapping[k]['product'] = \
+                    release_manager.get_product_by_release(k).product_slug
+
         return_value.update(
             {'package_name': package_details.package_name,
-             'branch_mapping': package_details.release_branch_mapping_json,
+             'branch_mapping':
+                 branch_mapping if branch_mapping else package_details.release_branch_mapping_json,
              'mapping_lastupdated': package_details.release_branch_map_last_updated,
              'mapping_keys': BRANCH_MAPPING_KEYS}
         )
@@ -137,7 +172,7 @@ def tag_tabular_form(package):
 
 
 @register.inclusion_tag(
-    os.path.join("releases", "_workload_combined.html")
+    os.path.join("releases", "_workload_per_lang.html")
 )
 def tag_workload_per_lang(relbranch, lang_id):
     return_value = OrderedDict()
@@ -275,11 +310,151 @@ def tag_job_form(template_type):
 @register.inclusion_tag(
     os.path.join("jobs", "_build_tags.html")
 )
-def tag_build_tags(buildsys):
+def tag_build_tags(buildsys, product):
     return_value = OrderedDict()
     package_manager = PackagesManager()
-    tags = package_manager.get_build_tags(buildsys=buildsys)
+    tags = package_manager.get_build_tags(
+        buildsys=buildsys, product_slug=product
+    )
     return_value.update(dict(
         build_tags=tags
     ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("jobs", "_job_analysis.html")
+)
+def tag_job_analysis(job_details):
+    return_value = OrderedDict()
+    job_log_manager = JobsLogManager()
+    analysed_data = \
+        job_log_manager.analyse_job_data(job_details)
+    return_value.update(dict(
+        job_info=analysed_data
+    ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("coverage", "_coverage_table.html")
+)
+def tag_coverage_view(coverage_rule):
+    return_value = OrderedDict()
+    graph_manager = GraphManager()
+    rule_data, pkg_len, locale_len, tag_len, release_name = \
+        graph_manager.get_trans_stats_by_rule(coverage_rule)
+    return_value.update(dict(
+        coverage_rule=coverage_rule,
+        rule_data=rule_data,
+        package_len=pkg_len,
+        locale_len=locale_len,
+        build_tag_len=tag_len,
+        release=release_name
+    ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("coverage", "_sync_from_coverage.html")
+)
+def tag_sync_from_coverage(stats, package, release, tag):
+    return_value = OrderedDict()
+    if not isinstance(stats, str):
+        return return_value
+    if isinstance(stats, str) and not stats.startswith('Not Synced with'):
+        return return_value
+    package_manager = PackagesManager()
+    release_manager = ReleaseBranchManager()
+    try:
+        package_details = package_manager.get_packages([package]).get()
+    except:
+        # log event, passing for now
+        pass
+    else:
+        branch_mapping = {}
+        if package_details.release_branch_mapping_json:
+            branch_mapping = package_details.release_branch_mapping_json.copy()
+            branch_mapping = branch_mapping.get(release)
+            branch_mapping['product'] = \
+                release_manager.get_product_by_release(release).product_slug
+        return_value.update(dict(
+            mapping=branch_mapping,
+            package=package,
+            tag=tag,
+        ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("releases", "_release_map_view.html")
+)
+def tag_release_map_view():
+    return_value = OrderedDict()
+    release_manager = ReleaseBranchManager()
+    latest_release = release_manager.get_latest_release()
+    geo_location_manager = GeoLocationManager()
+    territory_stats = \
+        geo_location_manager.get_territory_build_system_stats()
+    if territory_stats:
+        return_value["territory_stats"] = territory_stats
+    if territory_stats and latest_release:
+        return_value["latest_release"] = latest_release
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("releases", "_trending_languages.html")
+)
+def tag_trending_languages():
+    return_value = OrderedDict()
+    reports_manager = ReportsManager()
+    releases_summary = reports_manager.get_reports('releases')
+    release_manager = ReleaseBranchManager()
+    latest_release = release_manager.get_latest_release()
+    pkg_manager = PackagesManager()
+    lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
+
+    if releases_summary:
+        releases_summary = releases_summary.get()
+        trending_languages = reports_manager.get_trending_languages(
+            releases_summary.report_json, *latest_release
+        )
+        if trending_languages and isinstance(trending_languages, (list, tuple)):
+            return_value["trending_languages"] = trending_languages[:9]
+            return_value["lang_locale_dict"] = lang_locale_dict
+            return_value["latest_release"] = latest_release
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("releases", "_outofsync_packages.html")
+)
+def tag_outofsync_packages():
+    return_value = OrderedDict()
+    package_manager = PackagesManager()
+    all_packages = package_manager.get_packages()
+    outofsync_packages = \
+        [i.package_name for i in all_packages if not i.stats_diff_health]
+    if all_packages and outofsync_packages:
+        return_value["insync_packages"] = \
+            (all_packages.count() - len(outofsync_packages)) or 0
+    return_value["outofsync_packages"] = len(outofsync_packages) or 0
+    return_value["total_packages"] = all_packages.count() or 0
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("geolocation", "_territory_summary.html")
+)
+def tag_location_summary(country_code):
+    return_value = OrderedDict()
+    geo_location_manager = GeoLocationManager()
+    territory_stats, last_updated = \
+        geo_location_manager.get_territory_summary(country_code)
+    if territory_stats:
+        return_value["territory_stats"] = territory_stats
+    if last_updated:
+        return_value["last_updated"] = last_updated
+    return_value["country_code"] = country_code
     return return_value

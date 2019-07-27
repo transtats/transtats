@@ -22,6 +22,7 @@ import json
 import difflib
 import operator
 from collections import OrderedDict
+from functools import reduce
 
 # django
 from django.utils import timezone
@@ -34,7 +35,7 @@ from dashboard.constants import (
 from dashboard.managers.inventory import (
     InventoryManager, SyncStatsManager, ReleaseBranchManager
 )
-from dashboard.models import Platform, Package
+from dashboard.models import Platform, Package, CacheBuildDetails
 from dashboard.managers.utilities import parse_project_details_json
 
 
@@ -48,6 +49,7 @@ class PackagesManager(InventoryManager):
 
     PROCESS_STATS = True
     syncstats_manager = SyncStatsManager()
+    release_manager = ReleaseBranchManager()
 
     def get_packages(self, pkgs=None, pkg_params=None):
         """
@@ -140,6 +142,85 @@ class PackagesManager(InventoryManager):
                     if locales_count_match else {locale: package_processed_stats.get(locale, {})
                                                  for locale in branch_locales}
         return packages_stats
+
+    def get_trans_stats_by_rule(self, coverage_rule):
+        """
+        Get translation stats by rule args: release, packages, locales, tags
+        :param coverage_rule: coverage rule query object
+        :return: stats dict
+        """
+        if not coverage_rule:
+            return
+        packages = self.get_packages(pkgs=coverage_rule.rule_packages)
+        locales = coverage_rule.rule_languages
+        tags = coverage_rule.rule_build_tags
+        release = coverage_rule.rule_release_slug_id
+
+        locale_lang_dict = dict(self.get_locale_lang_tuple(locales))
+
+        trans_stats_by_rule = {}
+
+        for package in packages:
+            versions = []
+            versions.extend(tags)
+
+            trans_stats_by_rule[package.package_name] = {
+                "translation_platform": {},
+                "build_system": {
+                    tag: {"Statistics": "Not Synced with Build System for {0}".format(tag)}
+                    for tag in tags
+                }
+            }
+
+            if package.release_branch_mapping_json and package.release_branch_mapping_json.get(release):
+
+                branch_map = package.release_branch_mapping_json
+                platform_version = branch_map[release].get(BRANCH_MAPPING_KEYS[0])
+                build_system_version = branch_map[release].get(BRANCH_MAPPING_KEYS[2])
+
+                package_stats = self.syncstats_manager.get_sync_stats(
+                    pkgs=[package.package_name],
+                    fields=['stats_raw_json_str', 'stats_processed_json_str',
+                            'project_version', 'source']
+                )
+
+                for p_stats in package_stats:
+                    processed_stats = {}
+                    not_found = {'Total': 'Not Found', 'Translated': 'Not Found',
+                                 'Untranslated': 'Not Found', 'Remaining': 'N/A'}
+
+                    if not p_stats.stats_processed_json:
+                        if p_stats.stats_raw_json.get('stats'):
+                            processed_stats = self._process_response_stats_json(
+                                p_stats.stats_raw_json['stats'])
+
+                        if p_stats.source == TRANSPLATFORM_ENGINES[1] and not processed_stats:
+                            processed_stats = self._process_response_stats_json_tx(
+                                p_stats.stats_raw_json)
+                    else:
+                        processed_stats = p_stats.stats_processed_json
+                    package_processed_stats = {
+                        locale_lang_dict.get(locale, locale):
+                            processed_stats.get(locale, not_found) for locale in locales}
+
+                    if p_stats.project_version == platform_version:
+                        trans_stats_by_rule[package.package_name]["translation_platform"].update(package_processed_stats)
+                    elif p_stats.project_version == "{0} - {1}".format(p_stats.source, build_system_version) and \
+                            build_system_version in tags:
+                        trans_stats_by_rule[package.package_name]["build_system"][build_system_version] = \
+                            package_processed_stats
+                    ext_tags = [tag for tag in tags if tag in p_stats.project_version]
+                    if ext_tags and len(ext_tags) == 1:
+                        trans_stats_by_rule[package.package_name]["build_system"][ext_tags[0]] = \
+                            package_processed_stats
+
+                if not trans_stats_by_rule[package.package_name]["translation_platform"]:
+                    tp_not_sync_msg = "Not Synced with Translation Platform for {0}".format(platform_version) \
+                        if platform_version else "Not Synced with Translation Platform"
+                    trans_stats_by_rule[package.package_name]["translation_platform"].update({
+                        "Translation Stats": tp_not_sync_msg
+                    })
+        return trans_stats_by_rule
 
     def count_packages(self):
         """
@@ -466,6 +547,51 @@ class PackagesManager(InventoryManager):
             return True
         return False
 
+    def filter_n_reduce_stats(self, locale_key, locale, locale_alias, stats_json):
+        """
+        Filter and reduce multiple statistics for single language
+        :param locale_key: str
+        :param locale: str
+        :param locale_alias: str
+        :param stats_json: dict
+        :return: list
+        """
+        filter_n_reduced_stat = []
+
+        def _reduce_stats_for_a_locale(stats):
+            return [reduce(
+                lambda x, y: x if x.get('translated', 0) > y.get('translated', 0)
+                else y, stats
+            )]
+
+        filter_stat_locale = list(filter(
+            lambda x: x[locale_key] == locale or
+            x[locale_key].replace('-', '_') == locale,
+            stats_json
+        ))
+        filter_stat_alias = list(filter(
+            lambda x: x[locale_key] == locale_alias or
+            x[locale_key].replace('_', '-') == locale_alias,
+            stats_json
+        ))
+
+        if filter_stat_locale and len(filter_stat_locale) > 1:
+            filter_stat_locale = _reduce_stats_for_a_locale(filter_stat_locale)
+
+        if filter_stat_alias and len(filter_stat_alias) > 1:
+            filter_stat_alias = _reduce_stats_for_a_locale(filter_stat_alias)
+
+        if filter_stat_locale and filter_stat_alias:
+            filter_n_reduced_stat = _reduce_stats_for_a_locale(
+                filter_stat_locale + filter_stat_alias
+            )
+        elif filter_stat_locale and not filter_stat_alias:
+            filter_n_reduced_stat = filter_stat_locale
+        elif filter_stat_alias and not filter_stat_locale:
+            filter_n_reduced_stat = filter_stat_alias
+
+        return filter_n_reduced_stat
+
     def _process_response_stats_json(self, stats_json, engine=None):
 
         locale_key = 'locale'
@@ -475,14 +601,11 @@ class PackagesManager(InventoryManager):
         lang_id_name = self.get_lang_id_name_dict() or []
         processed_stats_json = {}
         for locale, l_alias in list(lang_id_name.keys()):
+            filter_stat = {}
             try:
-                filter_stat = list(filter(
-                    lambda x: x[locale_key] == locale or x[locale_key].replace('-', '_') == locale, stats_json
-                ))
-                if not filter_stat:
-                    filter_stat = list(filter(
-                        lambda x: x[locale_key] == l_alias or x[locale_key].replace('_', '-') == l_alias, stats_json
-                    ))
+                filter_stat = self.filter_n_reduce_stats(
+                    locale_key, locale, l_alias, stats_json
+                )
             except Exception as e:
                 self.app_logger(
                     'ERROR', "Error while filtering stats, details: " + str(e))
@@ -501,7 +624,7 @@ class PackagesManager(InventoryManager):
             except ZeroDivisionError:
                 # log error, pass for now
                 pass
-            processed_stats_json[locale]['Remaining'] = remaining
+            processed_stats_json[locale]['Remaining'] = round(remaining, 2)
         return processed_stats_json
 
     def _process_response_stats_json_tx(self, stats_json):
@@ -523,7 +646,7 @@ class PackagesManager(InventoryManager):
                     except ZeroDivisionError:
                         # log error, pass for now
                         pass
-                    filter_stats['Remaining'] = remaining
+                    filter_stats['Remaining'] = round(remaining, 2)
                     processed_stats_json.update({lang_alias_tuple[0]: filter_stats})
         return processed_stats_json
 
@@ -560,6 +683,18 @@ class PackagesManager(InventoryManager):
                      if platform_diff_dict.get(lang_index, 0) > stat else 0)
         return formatted_stats_dict
 
+    @staticmethod
+    def _filter_pkg_branch_map(mapping):
+
+        if not mapping:
+            return {}
+        mapping_dict = mapping.copy()
+        for release, map_value in mapping.items():
+            for k, v in map_value.items():
+                if not map_value.get(k):
+                    mapping_dict.pop(release)
+        return mapping_dict
+
     def calculate_stats_diff(self, package, graph_ready_stats, pkg_branch_map):
         """
         Calculates and stores translation stats differences
@@ -570,6 +705,9 @@ class PackagesManager(InventoryManager):
         :param pkg_branch_map: dict
         :return: languages list and stats diff dict
         """
+
+        pkg_branch_map = self._filter_pkg_branch_map(pkg_branch_map)
+
         stats_diff_dict = OrderedDict()
         stats_data = graph_ready_stats.get('graph_data', {})
         languages = graph_ready_stats.get('ticks', [])
@@ -595,6 +733,82 @@ class PackagesManager(InventoryManager):
         if package and polished_stats_diff:
             self.update_package(package, {'stats_diff': json.dumps(polished_stats_diff)})
         return polished_stats_diff
+
+    def is_package_build_latest(self, params):
+        """
+        Determine if new build is available for the package
+        :param params: package_name, build_system, build_tag
+        :return: boolean - True or False
+        """
+        if not isinstance(params, (list, tuple)) and not len(params) == 3:
+            return
+        package_name, build_system, build_tag = params
+        product_hub_url = ''
+        product = self.get_release_streams(built=build_system)
+        if product:
+            product_hub_url = product.first().product_server
+
+        try:
+            builds = self.api_resources.build_info(
+                hub_url=product_hub_url,
+                tag=build_tag,
+                pkg=package_name
+            )
+
+            latest_build = {}
+            if builds and len(builds) > 0:
+                latest_build = builds[0]
+
+            kwargs = {}
+            package_qs = self.get_packages(pkgs=[package_name])
+            kwargs.update(dict(package_name=package_qs.get()))
+            kwargs.update(dict(build_system=build_system))
+            kwargs.update(dict(build_tag=build_tag))
+
+            try:
+                cache_build_detail = CacheBuildDetails.objects.filter(**kwargs)
+            except Exception as e:
+                return False
+            else:
+                if cache_build_detail and \
+                        cache_build_detail.first().build_details_json == latest_build:
+                    return True
+        except Exception:
+            return False
+
+        return
+
+    def get_build_system_stats_by_release(self, release=None):
+        """
+        Get Build System Stats by Release
+        :param release:
+        :return:
+        """
+        releases = self.release_manager.get_release_branches(relbranch=release)
+        build_system_stats_query_set = self.syncstats_manager.get_build_system_stats()
+        stats_by_release = {release.release_slug: {} for release in releases}
+
+        for sync_stats in build_system_stats_query_set:
+            if isinstance(sync_stats.stats_raw_json, dict) and sync_stats.stats_raw_json.get('stats'):
+                processed_stats = self._process_response_stats_json(sync_stats.stats_raw_json['stats'])
+                pkg_branch_map = sync_stats.package_name.release_branch_mapping_json
+
+                respective_release = [r for r, d in pkg_branch_map.items()
+                                      if d and d.get(BRANCH_MAPPING_KEYS[2]) in sync_stats.project_version]
+                if respective_release and len(respective_release) > 0:
+                    pkg_release = respective_release[0]
+                    if pkg_release in stats_by_release and not stats_by_release.get(pkg_release):
+                        stats_by_release[pkg_release] = processed_stats
+                    else:
+                        for r_locale, r_stats in stats_by_release[pkg_release].items():
+                            for k, v in r_stats.items():
+                                if not k == 'Remaining':
+                                    stats_by_release[pkg_release][r_locale][k] += \
+                                        processed_stats.get(r_locale, {}).get(k, 0)
+
+        if release and release in stats_by_release:
+            return stats_by_release.get(release, {})
+        return stats_by_release
 
 
 class PackageBranchMapping(object):
@@ -719,8 +933,8 @@ class PackageBranchMapping(object):
         if status2:
             return self._return_original_version(match3)
 
-        probable_branches = ['default', 'master', 'head', 'rawhide',
-                             'devel', 'core', 'translations', self.package_name]
+        probable_branches = ['default', 'master', 'head', 'rawhide', 'devel', 'core',
+                             'translations', 'programs', self.package_name]
 
         for version in probable_branches:
             if version in from_branches:

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block pagecontent %}
+<div class="col-md-2"></div>
+<div class="col-md-8">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Remove Coverage Rule
+        <a class="pull-right" data-toggle="tooltip" title="Close and return" href="{% url 'settings-graph-rules' %}">
+          <i class="pficon-close"></i>
+        </a>
+      </h3>
+    </div>
+    <div class="panel-body">
+      <div style="padding-left:0.5em; padding-right:0.5em">
+        <form id="form-graph-rule-delete" method="post">{% csrf_token %}
+            <p>Are you sure you want to remove rule: <span class="text-primary">{{ object }}</span> ?</p>
+            <a class="btn btn-danger" href="javascript:{}"
+               onclick="document.getElementById('form-graph-rule-delete').submit();">Remove</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

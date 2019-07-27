@@ -1,6 +1,6 @@
 {
   "name": "transtats",
-  "version": "0.7.2",
+  "version": "0.7.5",
   "description": "Track Translation Completeness",
   "homepage": "http://transtats.org",
   "license": "Apache-2.0",
@@ -16,9 +16,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "patternfly": "^3.58.0",
+    "datamaps": "^0.5.9",
     "diff2html": "^2.7.0",
     "jquery.flot": "^0.8.3",
-    "jquery.flot.tooltip": "^0.9.0"
+    "jquery.flot.tooltip": "^0.9.0",
+    "patternfly": "^3.59.3"
   }
 }

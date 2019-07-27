@@ -8,7 +8,7 @@ spec:
   runPolicy: Serial
   source:
     dockerfile: |-
-      FROM registry.fedoraproject.org/fedora:latest
+      FROM registry.fedoraproject.org/fedora:29
       USER root
       RUN useradd -ms /bin/bash tsuser
       RUN dnf -y update && \

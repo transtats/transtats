@@ -5,8 +5,10 @@
 # Build Image: docker build -t transtats/transtats .
 # Run Container with env variable: docker run -d --name container -p 8080:8014 -e DATABASE_NAME=transtats -e \
 #                                  DATABASE_USER=postgres -e DATABASE_PASSWD=postgres -e DATABASE_HOST=localhost transtats/transtats
+#
+# Requires libxcrypt-compat, f30 onwards
 
-FROM registry.fedoraproject.org/fedora:latest
+FROM registry.fedoraproject.org/fedora:29
 LABEL maintainer="spathare@redhat.com,suanand@redhat.com"
 
 # Environment variable 

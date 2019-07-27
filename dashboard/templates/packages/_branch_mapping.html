@@ -2,8 +2,8 @@
 {% if branch_mapping %}
 <div class="panel panel-default">
   <div class="panel-heading">
-    <h3 class="panel-title">Branch Mapping</h3>
-    <span class="text-info">This mapping is basis to comparision of statistics (<i>diff</i>).</span>
+    <h3 class="panel-title">Branch Mapping {% if mapping_lastupdated %}<span class="pull-right text-muted">Updated {{ mapping_lastupdated|timesince }} ago</span>{% endif %}</h3>
+    <span class="text-info">This mapping is basis to comparision of statistics.</span>
   </div>
   <table class="table table-hover table-bordered" cellspacing="0">
     <thead>
@@ -22,7 +22,7 @@
           {{ version|get_item:mapping_keys.2 }}&nbsp;
           {%if version|get_item:mapping_keys.1 and version|get_item:mapping_keys.2 %}
           <a type="button" class="btn btn-small pull-right" data-toggle="tooltip" title="Sync with {{ version|get_item:mapping_keys.1 }}"
-            href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package_name }}&buildsys={{ version|get_item:mapping_keys.1 }}&tag={{ version|get_item:mapping_keys.2 }}">
+            href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package_name }}&buildsys={{ version|get_item:'product' }}-{{ version|get_item:mapping_keys.1 }}&tag={{ version|get_item:mapping_keys.2 }}">
             <span class="fa fa-refresh" aria-hidden="true"></span>
           </a>
           {% endif %}
@@ -31,12 +31,6 @@
       {% endfor %}
     </tbody>
   </table>
-  {% if mapping_lastupdated %}
-  <div class="panel-footer">
-    <span>&nbsp;</span>
-    <span class="pull-right text-muted">Updated {{ mapping_lastupdated|timesince }} ago</span>
-  </div>
-  {% endif %}
 </div>
 {% else %}
 No mapping found.

@@ -8,6 +8,7 @@ django-crispy-forms
 django-debug-toolbar
 djangorestframework
 gunicorn
+langtable
 mozilla-django-oidc
 polib
 psycopg2-binary

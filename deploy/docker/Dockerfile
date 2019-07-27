@@ -2,8 +2,11 @@
 # https://hub.docker.com/r/transtats/transtats/
 #
 # Run Command: docker run -d --name container_name -p 8080:8015 transtats/transtats
+#
+# Requires libxcrypt-compat, f30 onwards
 
-FROM registry.fedoraproject.org/fedora:latest
+
+FROM registry.fedoraproject.org/fedora:29
 LABEL maintainer="suanand@redhat.com"
 
 RUN dnf -y update && \

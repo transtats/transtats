@@ -484,13 +484,14 @@ class Load(JobCommandBase):
                 for file in files:
                     if file.endswith('.spec') and not file.startswith('.'):
                         spec_file = os.path.join(root, file)
-                    zip_ext = ('.tar', '.tar.gz', '.tar.bz2', '.tar.xz')
+                    zip_ext = ('.tar', '.tar.gz', '.tar.bz2', '.tar.xz', '.tgz')
                     if file.endswith(zip_ext):
                         tarballs.append(file)
                     translation_ext = ('.po', )
                     if file.endswith(translation_ext):
                         src_translations.append(file)
             spec_obj = Spec.from_file(spec_file)
+
             if len(tarballs) > 0:
                 probable_tarball = spec_obj.sources[0].split('/')[-1].replace(
                     "%{name}", spec_obj.name).replace("%{version}", spec_obj.version)
@@ -504,11 +505,21 @@ class Load(JobCommandBase):
                 )
             spec_sections = RpmSpecFile(os.path.join(input['base_dir'], spec_file))
 
-            version_release = spec_obj.release[0]
+            version_release = spec_obj.release[:spec_obj.release.index('%')]
             release_related_tarballs = [tarball for tarball in tarballs
                                         if version_release in tarball and tarball in spec_obj.sources]
             if release_related_tarballs:
                 related_tarballs = [os.path.join(root_dir, x) for x in release_related_tarballs]
+            # look for translation specific tarball
+            po_tarball_name = '{0}-{1}'.format(input['package'], 'po')
+            translation_related_tarballs = [tarball for tarball in tarballs
+                                            if po_tarball_name in tarball and tarball in spec_obj.sources]
+            if translation_related_tarballs and len(translation_related_tarballs) > 0:
+                index_in_prep = '-a {0}'.format(spec_obj.sources.index(translation_related_tarballs[0]))
+                if index_in_prep in " ".join([prep_lines for prep_lines in
+                                              spec_sections.section.get('prep', {}).get(input['package'], [])
+                                              if prep_lines.startswith('%')]):
+                    related_tarballs.append(os.path.join(root_dir, translation_related_tarballs[0]))
         except Exception as e:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
@@ -676,7 +687,7 @@ class Calculate(JobCommandBase):
                 except Exception as e:
                     task_log.update(self._log_task(
                         input['log_f'], task_subject,
-                        'Something went wrong in parsing PO: %s' % str(e)
+                        'Something went wrong while parsing %s: %s' % (po_file, str(e))
                     ))
                 else:
                     temp_trans_stats = {}
@@ -799,6 +810,7 @@ class ActionMapper(BaseManager):
         self.pkg_tp_url = pkg_tp_url
         self.log_f = job_log_file
         self.cleanup_resources = {}
+        self.__build = None
         self.__result = None
         self.__log = OrderedDict()
 
@@ -868,6 +880,8 @@ class ActionMapper(BaseManager):
             if current_node.output and 'builds' in current_node.output:
                 if not current_node.output['builds']:
                     break
+                else:
+                    self.__build = current_node.output.get('builds')
             if current_node.output and 'srpm_path' in current_node.output:
                 d = {'srpm_path': current_node.output.get('srpm_path')}
                 initials.update(d)
@@ -894,6 +908,10 @@ class ActionMapper(BaseManager):
                 if not self.__result:
                     self.__result = current_node.output.copy()
             current_node = current_node.next
+
+    @property
+    def build(self):
+        return self.__build or {}
 
     @property
     def result(self):

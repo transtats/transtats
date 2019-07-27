@@ -89,7 +89,7 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 
 #### Vagrant
 
-- Install Ansible, Docker and Vagrant.
+- Install latest Ansible, Docker and Vagrant.
 
 - This will setup devel environment, run container and `ssh` into it
   ```shell
@@ -103,6 +103,7 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
 - Run application
   ```shell
   $ cd /workspace
+  $ make migrate
   $ make run
   ```
 

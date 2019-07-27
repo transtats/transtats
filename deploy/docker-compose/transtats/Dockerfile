@@ -1,7 +1,9 @@
 # Dockerfile for transtats
 # https://hub.docker.com/r/transtats/transtats-sa
+#
+# Requires libxcrypt-compat, f30 onwards
 
-FROM registry.fedoraproject.org/fedora:latest
+FROM registry.fedoraproject.org/fedora:29
 LABEL maintainer="suanand@redhat.com, bhavin7392@gmail.com"
 
 USER root

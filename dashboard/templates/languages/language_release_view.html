@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+
+{% block pagecontent %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+      <span class="card-pf-title">Translation Platform Statistics of Packages for a Release</span>
+      <span class="pull-right">
+        <a href="{% url 'settings-languages' %}" class="btn btn-default btn-small">List Languages</a>
+        <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default btn-small">Go Back</a>
+      </span>
+  </div>
+  <div class="panel-body">
+      <h1>{{ language.lang_name }} <small>for</small> {{ release_slug }}
+          <small class="pull-right text-muted">
+            {% if language.locale_id %}{{ language.locale_id }}{% endif %}
+            {% if language.locale_alias %} | {{ language.locale_alias }}{% endif %}
+            {% if language.locale_script %} | {{ language.locale_script }} {% endif %}
+          </small>
+      </h1><hr/>
+      {% tag_workload_per_lang release_slug language.locale_id %}
+  </div>
+</div>
+{% endblock %}
