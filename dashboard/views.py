@@ -18,6 +18,7 @@ import csv
 import json
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import parse_qs
 
 # django
 from django.conf import settings
@@ -55,7 +56,7 @@ from dashboard.managers.jobs import (
     ReleaseScheduleSyncManager, BuildTagsSyncManager
 )
 from dashboard.managers.graphs import (
-    GraphManager, ReportsManager
+    GraphManager, ReportsManager, GeoLocationManager
 )
 from dashboard.models import (
     Job, Language, LanguageSet, Platform, Visitor, Package, GraphRule
@@ -71,6 +72,8 @@ class ManagersMixin(object):
     jobs_log_manager = JobsLogManager()
     release_branch_manager = ReleaseBranchManager()
     graph_manager = GraphManager()
+    reports_manager = ReportsManager()
+    geo_location_manager = GeoLocationManager()
 
     def get_summary(self):
         """
@@ -235,7 +238,7 @@ class TransCoverageView(ManagersMixin, TemplateView):
 
 class LanguagesSettingsView(ManagersMixin, ListView):
     """
-    Languages Settings View
+    Languages List View
     """
     template_name = "languages/language_list.html"
     context_object_name = 'locales'
@@ -259,6 +262,51 @@ class LanguagesSettingsView(ManagersMixin, ListView):
             context['language_sets'] = language_sets
             context['langset_color_dict'] = langset_color_dict
             context['locale_groups'] = locale_groups
+        return context
+
+
+class LanguageDetailView(ManagersMixin, DetailView):
+    """
+    Languages Detail View
+    """
+    template_name = "languages/language_view.html"
+    context_object_name = 'language'
+    model = Language
+    slug_field = 'locale_id'
+    slug_url_kwarg = 'locale_id'
+
+    def get_context_data(self, **kwargs):
+        context = super(LanguageDetailView, self).get_context_data(**kwargs)
+        locale_lang_tuple = self.inventory_manager.get_locale_lang_tuple()
+        release_summary = self.reports_manager.get_reports('releases')
+        if release_summary:
+            release_summary = release_summary.get()
+        language_teams = \
+            self.inventory_manager.get_platform_language_team_contact(
+                kwargs['object'].locale_id
+            )
+        if language_teams:
+            context["language_teams"] = language_teams
+        context["locale_lang"] = locale_lang_tuple
+        if release_summary:
+            context["release_summary"] = release_summary.report_json
+            context["last_updated"] = release_summary.report_updated
+        return context
+
+
+class LanguageReleaseView(ManagersMixin, TemplateView):
+    """
+    Language Release View
+    """
+
+    template_name = "languages/language_release_view.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(LanguageReleaseView, self).get_context_data(**kwargs)
+        language_query = \
+            self.inventory_manager.get_locales(pick_locales=[kwargs['locale']])
+        if language_query:
+            context["language"] = language_query.get()
         return context
 
 
@@ -684,7 +732,7 @@ class JobsArchiveView(ManagersMixin, ListView):
         return job_logs[25:]
 
 
-class JobDetailView(ManagersMixin, DetailView):
+class JobDetailView(DetailView):
     """
     Job Log Detail View
     """
@@ -770,6 +818,28 @@ class UpdateTransPlatformView(SuccessMessageMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('transplatform-update', args=[self.object.platform_slug])
+
+
+class TerritoryView(ManagersMixin, TemplateView):
+    """
+    Territory View
+    """
+    template_name = "geolocation/territory_view.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(TerritoryView, self).get_context_data(**kwargs)
+        country_name = self.request.GET.get('name', '')
+        if country_name:
+            context['country_name'] = country_name
+        territory_locales, two_char_country_code = \
+            self.geo_location_manager.get_locales_from_territory_id(
+                kwargs.get('country_code', '')
+            )
+        if two_char_country_code:
+            context['two_char_country_code'] = two_char_country_code
+        if territory_locales:
+            context['territory_locales'] = territory_locales
+        return context
 
 
 def schedule_job(request):
@@ -1085,6 +1155,21 @@ def generate_reports(request):
                 template_string = """
                                     {% load tag_packages_summary from custom_tags %}
                                     {% tag_packages_summary %}
+                                """
+                return HttpResponse(Template(template_string).render(context))
+        if report_subject == 'location':
+            country_code = post_params.get('country_code', '')
+            location_summary = reports_manager.refresh_stats_required_by_territory()
+            if location_summary:
+                context = Context(
+                    {'META': request.META,
+                     'location_summary': location_summary,
+                     'last_updated': datetime.now(),
+                     'country_code': country_code}
+                )
+                template_string = """
+                                    {% load tag_location_summary from custom_tags %}
+                                    {% tag_location_summary country_code %}
                                 """
                 return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)

@@ -39,7 +39,8 @@ from dashboard.managers import BaseManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.models import (
-    Platform, Package, Product, Release, JobTemplate, Job
+    Platform, Package, Product, Release, JobTemplate, Job,
+    CacheBuildDetails
 )
 
 
@@ -240,7 +241,11 @@ class JobsLogManager(BaseManager):
                     elif field == analysable_fields[1]:
                         stats_json_data = list(job_data.get(analysable_fields[1], {}).values())
                         if stats_json_data and len(stats_json_data) > 0:
-                            data = load(stats_json_data[0][stats_json_data[0].find('{'):], Loader=FullLoader)
+                            data = {}
+                            for json_data in stats_json_data:
+                                if '{' in json_data:
+                                    data = load(json_data[json_data.find('{'):],
+                                                Loader=FullLoader)
                             stats_json = data.get('stats', {})
                             if stats_json and isinstance(stats_json, list):
 
@@ -600,6 +605,7 @@ class YMLBasedJobManager(BaseManager):
         self.suffix = self.job_suffix(
             [getattr(self, param, '') for param in self.params]
         )
+        self.job_log_file = self.sandbox_path + '.log'
 
     def _get_package(self):
         package_details = \
@@ -641,7 +647,7 @@ class YMLBasedJobManager(BaseManager):
                 self.pkg_tp_auth_token = package_detail.platform_slug.auth_token_key
                 self.pkg_branch_map = package_detail.release_branch_mapping_json
 
-    def _save_result_in_db(self, stats_dict):
+    def _save_result_in_db(self, stats_dict, build_details):
         """
         Save derived stats in db from YML Job
         :param stats_dict: translation stats calculated
@@ -667,6 +673,29 @@ class YMLBasedJobManager(BaseManager):
                 self.package_manager.update_package(self.package, {
                     'downstream_last_updated': timezone.now()
                 })
+            # If invoked by system user, cache build details
+            if self.active_user_email == 'system@transtats.org' and \
+                    self.type == TS_JOB_TYPES[3]:
+                cache_params = {}
+                match_params = {
+                    'package_name': self._get_package(),
+                    'build_system': self.buildsys,
+                    'build_tag': self.tag
+                }
+                cache_params.update(match_params)
+                latest_build = {}
+                if isinstance(build_details, list) and build_details and len(build_details) > 0:
+                    latest_build = build_details[0]
+                cache_params['build_details_json_str'] = json.dumps(latest_build)
+                try:
+                    CacheBuildDetails.objects.update_or_create(
+                        package_name=self._get_package(), build_system=self.buildsys,
+                        build_tag=self.tag, defaults=cache_params
+                    )
+                except Exception as e:
+                    # log error
+                    pass
+
         except Exception as e:
             self.app_logger(
                 'ERROR', "Package could not be updated, details: " + str(e)
@@ -799,7 +828,7 @@ class YMLBasedJobManager(BaseManager):
             time.sleep(4)
         # if not a dry run, save results is db
         if action_mapper.result and not getattr(self, 'DRY_RUN', None):
-            self._save_result_in_db(action_mapper.result)
+            self._save_result_in_db(action_mapper.result, action_mapper.build)
         if os.path.exists(log_file):
             os.unlink(log_file)
         return self.job_id

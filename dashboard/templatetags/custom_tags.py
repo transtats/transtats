@@ -20,7 +20,9 @@ from collections import OrderedDict
 from django import template
 
 from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
-from dashboard.managers.graphs import GraphManager, ReportsManager
+from dashboard.managers.graphs import (
+    GraphManager, ReportsManager, GeoLocationManager
+)
 from dashboard.managers.jobs import JobTemplateManager, JobsLogManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
@@ -37,6 +39,13 @@ def get_item(dict_object, key):
 
 
 @register.filter
+def pop_item(dict_object, key):
+    if not isinstance(dict_object, dict):
+        return ''
+    return dict_object.pop(key)
+
+
+@register.filter
 def join_by(sequence, delimiter):
     return delimiter.join(sequence)
 
@@ -44,6 +53,24 @@ def join_by(sequence, delimiter):
 @register.filter
 def js_id_safe(id_value):
     return id_value.replace("@", "-at-")
+
+
+@register.filter
+def subtract(value, arg):
+    return value - arg
+
+
+@register.filter
+def percent(value):
+    """
+    find percentage from stats
+    :param value: tuple (untranslated, translated, total)
+    :return: percentage
+    """
+    try:
+        return int((value[1] * 100) / value[2])
+    except Exception:
+        return 0
 
 
 @register.inclusion_tag(
@@ -145,7 +172,7 @@ def tag_tabular_form(package):
 
 
 @register.inclusion_tag(
-    os.path.join("releases", "_workload_combined.html")
+    os.path.join("releases", "_workload_per_lang.html")
 )
 def tag_workload_per_lang(relbranch, lang_id):
     return_value = OrderedDict()
@@ -356,4 +383,78 @@ def tag_sync_from_coverage(stats, package, release, tag):
             package=package,
             tag=tag,
         ))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("releases", "_release_map_view.html")
+)
+def tag_release_map_view():
+    return_value = OrderedDict()
+    release_manager = ReleaseBranchManager()
+    latest_release = release_manager.get_latest_release()
+    geo_location_manager = GeoLocationManager()
+    territory_stats = \
+        geo_location_manager.get_territory_build_system_stats()
+    if territory_stats:
+        return_value["territory_stats"] = territory_stats
+    if territory_stats and latest_release:
+        return_value["latest_release"] = latest_release
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("releases", "_trending_languages.html")
+)
+def tag_trending_languages():
+    return_value = OrderedDict()
+    reports_manager = ReportsManager()
+    releases_summary = reports_manager.get_reports('releases')
+    release_manager = ReleaseBranchManager()
+    latest_release = release_manager.get_latest_release()
+    pkg_manager = PackagesManager()
+    lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
+
+    if releases_summary:
+        releases_summary = releases_summary.get()
+        trending_languages = reports_manager.get_trending_languages(
+            releases_summary.report_json, *latest_release
+        )
+        if trending_languages and isinstance(trending_languages, (list, tuple)):
+            return_value["trending_languages"] = trending_languages[:9]
+            return_value["lang_locale_dict"] = lang_locale_dict
+            return_value["latest_release"] = latest_release
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("releases", "_outofsync_packages.html")
+)
+def tag_outofsync_packages():
+    return_value = OrderedDict()
+    package_manager = PackagesManager()
+    all_packages = package_manager.get_packages()
+    outofsync_packages = \
+        [i.package_name for i in all_packages if not i.stats_diff_health]
+    if all_packages and outofsync_packages:
+        return_value["insync_packages"] = \
+            (all_packages.count() - len(outofsync_packages)) or 0
+    return_value["outofsync_packages"] = len(outofsync_packages) or 0
+    return_value["total_packages"] = all_packages.count() or 0
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("geolocation", "_territory_summary.html")
+)
+def tag_location_summary(country_code):
+    return_value = OrderedDict()
+    geo_location_manager = GeoLocationManager()
+    territory_stats, last_updated = \
+        geo_location_manager.get_territory_summary(country_code)
+    if territory_stats:
+        return_value["territory_stats"] = territory_stats
+    if last_updated:
+        return_value["last_updated"] = last_updated
+    return_value["country_code"] = country_code
     return return_value

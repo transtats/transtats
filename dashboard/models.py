@@ -284,8 +284,31 @@ class Package(ModelMixin, models.Model):
         return self.str2json(self.release_branch_mapping)
 
     @property
+    def release_branch_mapping_health(self):
+        release_branch_mapping_dict = \
+            self.str2json(self.release_branch_mapping)
+        if not release_branch_mapping_dict:
+            return False
+        for release, mapping in release_branch_mapping_dict.items():
+            if isinstance(mapping, dict):
+                for k, v in mapping.items():
+                    if not mapping.get(k):
+                        return False
+        return True
+
+    @property
     def stats_diff_json(self):
         return self.str2json(self.stats_diff)
+
+    @property
+    def stats_diff_health(self):
+        stats_diff_dict = self.str2json(self.stats_diff)
+        if not stats_diff_dict:
+            return True
+        for release, diff in stats_diff_dict.items():
+            if stats_diff_dict.get(release):
+                return False
+        return True
 
     @property
     def maintainers_json(self):
@@ -477,6 +500,36 @@ class CacheAPI(ModelMixin, models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'cacheapi'
+
+
+class CacheBuildDetails(ModelMixin, models.Model):
+    """
+    Cache Build Details Model
+    """
+    cache_build_details_id = models.AutoField(primary_key=True)
+    package_name = models.ForeignKey(
+        Package, on_delete=models.PROTECT,
+        to_field='package_name', verbose_name="Package"
+    )
+    build_system = models.CharField(
+        max_length=200, verbose_name="Build System"
+    )
+    build_tag = models.CharField(
+        max_length=200, verbose_name="Build Tag"
+    )
+    build_details_json_str = models.TextField(null=True, blank=True)
+    job_log_json_str = models.TextField(null=True, blank=True)
+
+    @property
+    def build_details_json(self):
+        return self.str2json(self.build_details_json_str)
+
+    @property
+    def job_log_json(self):
+        return self.str2json(self.job_log_json_str)
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'cachebuilddetails'
 
 
 class Report(ModelMixin, models.Model):

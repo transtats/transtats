@@ -35,7 +35,7 @@ from dashboard.constants import (
 from dashboard.managers.inventory import (
     InventoryManager, SyncStatsManager, ReleaseBranchManager
 )
-from dashboard.models import Platform, Package
+from dashboard.models import Platform, Package, CacheBuildDetails
 from dashboard.managers.utilities import parse_project_details_json
 
 
@@ -49,6 +49,7 @@ class PackagesManager(InventoryManager):
 
     PROCESS_STATS = True
     syncstats_manager = SyncStatsManager()
+    release_manager = ReleaseBranchManager()
 
     def get_packages(self, pkgs=None, pkg_params=None):
         """
@@ -600,6 +601,7 @@ class PackagesManager(InventoryManager):
         lang_id_name = self.get_lang_id_name_dict() or []
         processed_stats_json = {}
         for locale, l_alias in list(lang_id_name.keys()):
+            filter_stat = {}
             try:
                 filter_stat = self.filter_n_reduce_stats(
                     locale_key, locale, l_alias, stats_json
@@ -681,6 +683,18 @@ class PackagesManager(InventoryManager):
                      if platform_diff_dict.get(lang_index, 0) > stat else 0)
         return formatted_stats_dict
 
+    @staticmethod
+    def _filter_pkg_branch_map(mapping):
+
+        if not mapping:
+            return {}
+        mapping_dict = mapping.copy()
+        for release, map_value in mapping.items():
+            for k, v in map_value.items():
+                if not map_value.get(k):
+                    mapping_dict.pop(release)
+        return mapping_dict
+
     def calculate_stats_diff(self, package, graph_ready_stats, pkg_branch_map):
         """
         Calculates and stores translation stats differences
@@ -691,6 +705,9 @@ class PackagesManager(InventoryManager):
         :param pkg_branch_map: dict
         :return: languages list and stats diff dict
         """
+
+        pkg_branch_map = self._filter_pkg_branch_map(pkg_branch_map)
+
         stats_diff_dict = OrderedDict()
         stats_data = graph_ready_stats.get('graph_data', {})
         languages = graph_ready_stats.get('ticks', [])
@@ -716,6 +733,82 @@ class PackagesManager(InventoryManager):
         if package and polished_stats_diff:
             self.update_package(package, {'stats_diff': json.dumps(polished_stats_diff)})
         return polished_stats_diff
+
+    def is_package_build_latest(self, params):
+        """
+        Determine if new build is available for the package
+        :param params: package_name, build_system, build_tag
+        :return: boolean - True or False
+        """
+        if not isinstance(params, (list, tuple)) and not len(params) == 3:
+            return
+        package_name, build_system, build_tag = params
+        product_hub_url = ''
+        product = self.get_release_streams(built=build_system)
+        if product:
+            product_hub_url = product.first().product_server
+
+        try:
+            builds = self.api_resources.build_info(
+                hub_url=product_hub_url,
+                tag=build_tag,
+                pkg=package_name
+            )
+
+            latest_build = {}
+            if builds and len(builds) > 0:
+                latest_build = builds[0]
+
+            kwargs = {}
+            package_qs = self.get_packages(pkgs=[package_name])
+            kwargs.update(dict(package_name=package_qs.get()))
+            kwargs.update(dict(build_system=build_system))
+            kwargs.update(dict(build_tag=build_tag))
+
+            try:
+                cache_build_detail = CacheBuildDetails.objects.filter(**kwargs)
+            except Exception as e:
+                return False
+            else:
+                if cache_build_detail and \
+                        cache_build_detail.first().build_details_json == latest_build:
+                    return True
+        except Exception:
+            return False
+
+        return
+
+    def get_build_system_stats_by_release(self, release=None):
+        """
+        Get Build System Stats by Release
+        :param release:
+        :return:
+        """
+        releases = self.release_manager.get_release_branches(relbranch=release)
+        build_system_stats_query_set = self.syncstats_manager.get_build_system_stats()
+        stats_by_release = {release.release_slug: {} for release in releases}
+
+        for sync_stats in build_system_stats_query_set:
+            if isinstance(sync_stats.stats_raw_json, dict) and sync_stats.stats_raw_json.get('stats'):
+                processed_stats = self._process_response_stats_json(sync_stats.stats_raw_json['stats'])
+                pkg_branch_map = sync_stats.package_name.release_branch_mapping_json
+
+                respective_release = [r for r, d in pkg_branch_map.items()
+                                      if d and d.get(BRANCH_MAPPING_KEYS[2]) in sync_stats.project_version]
+                if respective_release and len(respective_release) > 0:
+                    pkg_release = respective_release[0]
+                    if pkg_release in stats_by_release and not stats_by_release.get(pkg_release):
+                        stats_by_release[pkg_release] = processed_stats
+                    else:
+                        for r_locale, r_stats in stats_by_release[pkg_release].items():
+                            for k, v in r_stats.items():
+                                if not k == 'Remaining':
+                                    stats_by_release[pkg_release][r_locale][k] += \
+                                        processed_stats.get(r_locale, {}).get(k, 0)
+
+        if release and release in stats_by_release:
+            return stats_by_release.get(release, {})
+        return stats_by_release
 
 
 class PackageBranchMapping(object):

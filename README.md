@@ -8,8 +8,10 @@ Transtats helps make packages ready to ship with translation completeness.
 
 Use Cases
  - Tracking translation progress across packages for downstream releases with respect to current development.
- - Finding translation gaps by syncing with source repositories, translation platforms and build systems.
- - Estimates translation update volume at an early stage of a release cycle. 
+ - Finding translation gaps by syncing with source repositories, translation platforms and build systems. To find out:
+    - Is everything translated packaged and built?
+    - Are all strings pushed to translation platform latest to software repositories?
+ - At-a-glance picture for managing the l10n effort progress, release by release. And it's readiness.
 
 To learn more about using Transtats, please point your browser to [docs](http://docs.transtats.org).
 
@@ -39,4 +41,3 @@ Get docker daemon running. Pull `transtats` image *([docker.io](https://hub.dock
 ### License
 
 [Apache License](http://www.apache.org/licenses/LICENSE-2.0), Version 2.0
-

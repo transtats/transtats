@@ -18,10 +18,11 @@
 # python
 import json
 import functools
-from operator import itemgetter
+from operator import add, itemgetter
 from collections import Counter, OrderedDict
 
 # third-party
+from langtable import langtable
 from slugify import slugify
 
 # django
@@ -34,10 +35,11 @@ from dashboard.constants import (
 from dashboard.managers import BaseManager
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.managers.packages import PackagesManager, PackageBranchMapping
+from dashboard.managers.utilities import COUNTRY_CODE_3to2_LETTERS
 from dashboard.models import GraphRule, Report
 
 
-__all__ = ['GraphManager', 'ReportsManager']
+__all__ = ['GraphManager', 'ReportsManager', 'GeoLocationManager']
 
 
 class GraphManager(BaseManager):
@@ -547,7 +549,22 @@ class ReportsManager(GraphManager):
                         [stats.get('Untranslated') for pkg, stats in pkg_stats.items()]
                     )
                     total_untranslated_msgs = (functools.reduce((lambda x, y: x + y), untranslated_msgs)) or 0
-                    relbranch_report[branch_name]['languages'][lang] = total_untranslated_msgs
+
+                    translated_msgs = []
+                    translated_msgs.extend(
+                        [stats.get('Translated') for pkg, stats in pkg_stats.items()]
+                    )
+                    total_translated_msgs = (functools.reduce((lambda x, y: x + y), translated_msgs)) or 0
+
+                    msgs = []
+                    msgs.extend(
+                        [stats.get('Total') for pkg, stats in pkg_stats.items()]
+                    )
+                    total_msgs = (functools.reduce((lambda x, y: x + y), msgs)) or 0
+                    # 0: untranslated, 1: translated, 2: total
+                    relbranch_report[branch_name]['languages'][lang] = (total_untranslated_msgs,
+                                                                        total_translated_msgs,
+                                                                        total_msgs)
         if self.create_or_update_report(**{
             'subject': 'releases', 'report_json': relbranch_report
         }):
@@ -575,11 +592,10 @@ class ReportsManager(GraphManager):
         pkg_with_stats_diff = 0
         if relbranches and len(relbranches) > 0:
             relbranch_slugs = sorted([slug for slug, name in relbranches], reverse=True)
-            pkgs_improper_branch_mapping = [i for i in all_packages
-                                            if not i.release_branch_mapping_json.get(relbranch_slugs[0])]
+            pkgs_improper_branch_mapping = [i.package_name for i in all_packages
+                                            if not i.release_branch_mapping_health]
             pkg_improper_branch_mapping = len(pkgs_improper_branch_mapping)
-            pkg_with_stats_diff = list(set([i.package_name for i in all_packages
-                                            for y in relbranch_slugs if i.stats_diff_json.get(y)]))
+            pkg_with_stats_diff = [i.package_name for i in all_packages if not i.stats_diff_health]
 
         package_report = {
             RELSTREAM_SLUGS[0]: pkg_tracking_for_RHEL or 0,
@@ -596,3 +612,172 @@ class ReportsManager(GraphManager):
         }):
             return package_report
         return False
+
+    def refresh_stats_required_by_territory(self):
+        """
+        This refreshes statistics which is required by territory
+            - this includes:
+                - all languages (both disabled and enabled)
+                - build system stats where sync_visibility is True
+                - both for translation platform and build system
+        :return: master_statistics or False
+        """
+        all_locales = self.package_manager.get_locales()
+        all_releases = self.branch_manager.get_release_branches()
+        platform_release_stats_report = self.get_reports(report_subject='releases')
+        if not platform_release_stats_report:
+            return
+        platform_release_stats_report = platform_release_stats_report.get()
+
+        # Create basic skeleton
+        master_statistics = {}
+        for locale in all_locales:
+            master_statistics[locale.locale_id] = {}
+            master_statistics[locale.locale_id].update({'language': locale.lang_name})
+            for release in all_releases:
+                master_statistics[locale.locale_id].update({
+                    release.release_slug: {
+                        'Release Name': release.release_name,
+                        'Translation Platform': [],
+                        'Build System': []
+                    }
+                })
+
+        lang_locale_dict = {locale.lang_name: locale.locale_id for locale in all_locales}
+
+        # Let's fill master_statistics with platform_release_stats_report
+        for release, data in platform_release_stats_report.report_json.items():
+            release_slug = data.get('slug')
+            language_stats = data.get('languages')
+            if release_slug and language_stats:
+                for language, stats in language_stats.items():
+                    locale = lang_locale_dict.get(language)
+                    if 'Translation Platform' in master_statistics.get(locale, {}).get(release_slug, {}):
+                        master_statistics[locale][release_slug]['Translation Platform'] = stats
+
+        # Now, fill the build system stats
+        build_system_stats = self.package_manager.get_build_system_stats_by_release()
+        for b_release, locale_stats in build_system_stats.items():
+            for b_locale, b_stats in locale_stats.items():
+                if 'Build System' in master_statistics.get(b_locale, {}).get(b_release, {}):
+                    master_statistics[b_locale][b_release]['Build System'] = [
+                        b_stats.get('Untranslated') or 0,
+                        b_stats.get('Translated') or 0,
+                        b_stats.get('Total') or 0
+                    ]
+        if self.create_or_update_report(**{
+            'subject': 'location', 'report_json': master_statistics
+        }):
+            return master_statistics
+        return False
+
+    @staticmethod
+    def get_trending_languages(release_summary_data, *release_tuple):
+        """
+        Get Trending Languages
+            Based on statistics of the latest releases.
+        :param release_summary_data: dict
+        :param release_tuple: tuple
+        :return: dict: {language: average percentage}
+        """
+        if not release_summary_data:
+            return {}
+
+        trending_languages = []
+        lang_stats_data = release_summary_data.get(release_tuple[1], {}).get('languages')
+        if not lang_stats_data:
+            return {}
+
+        try:
+            for lang, stats in lang_stats_data.items():
+                try:
+                    percent = int((stats[1] * 100) / stats[2])
+                except ZeroDivisionError:
+                    percent = 0
+                trending_languages.append((lang, percent, stats))
+        except Exception as e:
+            # log for now
+            return {}
+        if trending_languages:
+            return sorted(trending_languages, key=lambda x: x[1], reverse=True)
+
+
+class GeoLocationManager(ReportsManager):
+    """
+    Geo Location Manager
+    """
+
+    def get_locales_from_territory_id(self, territory_id):
+        """
+        Get list of locales associated with a Territory
+        :param territory_id: three characters country code
+        :return: list of locales
+        """
+        territory_locales = []
+        if not territory_id:
+            return territory_locales, ''
+        two_char_country_code = COUNTRY_CODE_3to2_LETTERS.get(territory_id, '')
+        if not two_char_country_code:
+            return territory_locales, ''
+        territory_locales = langtable.list_locales(
+            territoryId=two_char_country_code
+        )
+        return territory_locales, two_char_country_code
+
+    def get_territory_summary(self, territory_id):
+        """
+        Get Territory Summary
+        :param territory_id: three characters country code
+        :return: related stats: dict
+        """
+        related_locales, _ = self.get_locales_from_territory_id(territory_id)
+        location_summary = self.get_reports(report_subject='location')
+
+        if not related_locales or not location_summary:
+            return {}, ''
+
+        location_summary_dict = location_summary.get().report_json
+        last_updated = location_summary.get().report_updated
+        locales = [locale[:locale.find('.UTF-8')] for locale in related_locales]
+        filtered_stats = {k: v for k, v in location_summary_dict.items() if k in locales}
+        return filtered_stats, last_updated
+
+    def save_territory_build_system_stats(self):
+        """
+        Save Territory's Build System Stats in Percentage
+        """
+
+        latest_release = self.branch_manager.get_latest_release()
+        countries = list(COUNTRY_CODE_3to2_LETTERS.keys())
+        territory_stats = []
+
+        for country_code in countries:
+            total_translated = 0
+            total_messages = 0
+            locale_stats, _ = self.get_territory_summary(country_code)
+            for locale, data in locale_stats.items():
+                release_stats = data.get(latest_release[0], {}).get('Build System', [])
+                if release_stats and len(release_stats) == 3:
+                    total_translated += release_stats[1]
+                    total_messages += release_stats[2]
+            try:
+                territory_stats.append([country_code, int((total_translated * 100) / total_messages)])
+            except Exception:
+                territory_stats.append([country_code, 0])
+
+        if self.create_or_update_report(**{
+            'subject': 'territory', 'report_json': territory_stats
+        }):
+            return territory_stats
+        return False
+
+    def get_territory_build_system_stats(self):
+        """
+        Get Territory Build system Stats
+        :return: dict
+        """
+        reports = self.get_reports(report_subject='territory')
+        if not reports:
+            return self.save_territory_build_system_stats()
+        report = reports.get()
+        return report.report_json if report else []

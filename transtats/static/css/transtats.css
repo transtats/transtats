@@ -112,8 +112,21 @@
 }
 
 .vert-scroll-div-ts {
-    max-height: 470px;
+    max-height: 340px;
     overflow-y: auto;
+}
+
+.map-container {
+    width: 100%;
+    min-height: 420px;
+    position: relative;
+}
+
+.row-eq-height {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
 }
 
 body {
@@ -153,7 +166,12 @@ body {
 }
 
 .ts-pre {
-    white-space:pre-line;
-    background:#212121;
-    color:white;
+    white-space: pre-line;
+    background: #212121;
+    color: white;
+}
+
+.ts-loc-summary-card {
+    min-height: 250px;
+    overflow-x: auto;
 }

@@ -11,7 +11,7 @@ Transtats 0.7.5
 | We are currently working on :code:`0.7.5` release.
 
 | Backlog is `here <https://github.com/transtats/transtats/issues>`_. For release features list please look at `milestone <https://github.com/transtats/transtats/milestone/11>`_.
-| Target delivery: By end of July 2019
+| Target delivery: By mid of August 2019
 
 To Do
 =====
@@ -44,13 +44,13 @@ To Do
 
     - Interactions
         - Dashboard: Integration of `PatternFly <https://www.patternfly.org/>`_ UI (Done)
-        - Better stats representation in (**In Progress**)
+        - Better stats representation in (Done)
             - Release, Package and Job Details
-        - Use-case based UI designs
+        - Use-case based UI designs (Done)
         - More sub-commands and flags in CLI
 
     - Flexibility
-        - Scheduling of Jobs as per Release Schedule
+        - Scheduling of Jobs as per Release Schedule (**In Progress**)
             - to enable schedule based auto-sync
         - Emails about push/pull or translation status/diff
 
@@ -61,3 +61,4 @@ To Do
         - Java files (``properties``, ``dtd``)
         - PHP, JS (``ini``, ``json``)
     - More YML Job Templates
+        - ``verifytrans``

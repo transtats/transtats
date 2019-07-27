@@ -236,7 +236,7 @@ class RestClient(object):
     """
 
     SAVE_RESPONSE = True
-    EXPIRY_MIN = 30
+    EXPIRY_MIN = 60
 
     def __init__(self, service):
 
