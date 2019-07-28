@@ -57,7 +57,10 @@ def js_id_safe(id_value):
 
 @register.filter
 def subtract(value, arg):
-    return value - arg
+    try:
+        return round(value - arg, 2)
+    except FloatingPointError:
+        return value - arg
 
 
 @register.filter
