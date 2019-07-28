@@ -6,7 +6,7 @@ Django==2.0.8
 django-celery-beat
 django-crispy-forms
 django-debug-toolbar
-djangorestframework
+djangorestframework==3.9.4
 gunicorn
 langtable
 mozilla-django-oidc

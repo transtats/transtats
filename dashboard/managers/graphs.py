@@ -691,8 +691,8 @@ class ReportsManager(GraphManager):
         try:
             for lang, stats in lang_stats_data.items():
                 try:
-                    percent = int((stats[1] * 100) / stats[2])
-                except ZeroDivisionError:
+                    percent = round((stats[1] * 100) / stats[2], 2)
+                except (ZeroDivisionError, FloatingPointError):
                     percent = 0
                 trending_languages.append((lang, percent, stats))
         except Exception as e:

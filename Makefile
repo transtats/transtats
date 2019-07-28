@@ -1,7 +1,7 @@
 
 .PHONY: celeryd
 celeryd:
-	celery -A transtats worker -l info
+	celery -A transtats worker --loglevel=INFO --autoscale=4,1 --max-tasks-per-child=2
 
 .PHONY: celery
 celery:

@@ -134,7 +134,7 @@ def task_sync_packages_with_build_system():
                 # pass for now
                 pass
             finally:
-                os.rmdir(temp_path)
+                shutil.rmtree(temp_path)
 
     job_template = None
     all_packages = package_manager.get_packages().filter(
