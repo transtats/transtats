@@ -13,14 +13,14 @@
               <div class="col-xs-12 col-md-3">
                 <div class="thumbnail">
                   <div class="caption" style="min-height:250px">
-                    <h4>{{ template.job_template_name|capfirst }}
+                    <h3>{{ template.job_template_name|capfirst }}
                         {% if template.job_template_json %}
                             <small class="pull-right"> YML</small>
                         {% endif %}
-                    </h4>
-                    <p class="text-info">{{ template.job_template_desc }}</p>
+                    </h3>
+                    <p class="text-info text-faq-ans">{{ template.job_template_desc }}</p>
                     {% if template.job_template_params %}
-                        Required Values:
+                      <div class="text-faq-ans">Required Values:</div>
                         <ul>
                             {% for param in template.job_template_params %}
                                 <li>{{ param }}</li>

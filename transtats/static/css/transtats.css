@@ -175,3 +175,6 @@ body {
     min-height: 250px;
     overflow-x: auto;
 }
+.text-faq-ans {
+    font-size:13px;
+}

@@ -26,7 +26,7 @@
   {% endfor %}
   </span>
   {% if package.downstream_last_updated %} &emsp;
-  <span class="text-muted">Sync with Build System:</span>
+  <span class="text-muted">Last Sync with Build System:</span>
   {{ package.downstream_last_updated|timesince }}
   <span class="text-muted">ago</span>
   {% endif %}
