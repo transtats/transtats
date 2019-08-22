@@ -635,13 +635,14 @@ class ReportsManager(GraphManager):
             master_statistics[locale.locale_id] = {}
             master_statistics[locale.locale_id].update({'language': locale.lang_name})
             for release in all_releases:
-                master_statistics[locale.locale_id].update({
-                    release.release_slug: {
-                        'Release Name': release.release_name,
-                        'Translation Platform': [],
-                        'Build System': []
-                    }
-                })
+                if release.track_trans_flag:
+                    master_statistics[locale.locale_id].update({
+                        release.release_slug: {
+                            'Release Name': release.release_name,
+                            'Translation Platform': [],
+                            'Build System': []
+                        }
+                    })
 
         lang_locale_dict = {locale.lang_name: locale.locale_id for locale in all_locales}
 
