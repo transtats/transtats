@@ -5,7 +5,7 @@ This directory contains files required to deploy Transtats on [OpenShift](https:
 ## How to run it locally?
 
 - Install PostgreSQL Server and make it accessible over FQDN.
-- Install [minishift](https://github.com/minishift/minishift)
+- Install [minishift](https://github.com/minishift/minishift)   [installation](https://fedoramagazine.org/run-openshift-locally-minishift/
 - Modify the `database-host` in `secret.yml` which should point to PostgreSQL host.
 - Run the following commands after you login to your cluster on terminal
 
