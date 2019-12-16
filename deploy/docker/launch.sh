@@ -27,7 +27,7 @@ fi
 
 sudo -u postgres psql -c "ALTER USER $DATABASE_USER WITH PASSWORD '$DATABASE_PASSWORD';"
 if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw $DATABASE_NAME; then
-    sudo -u postgres psql -c "CREATE DATABASE $DATABASE_NAME ENCODING = 'UTF-8' LC_CTYPE = 'en_US.utf8' LC_COLLATE = 'en_US.utf8' template = template0;"
+    sudo -u postgres psql -c "CREATE DATABASE $DATABASE_NAME ENCODING = 'UTF-8' template = template0;"
 fi
 
 if [ -e run/celerybeat.pid ]
