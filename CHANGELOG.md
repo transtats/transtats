@@ -1,3 +1,6 @@
+##### Mon Dec 16 2019 Sundeep Anand <suanand@redhat.com>
+* Minor Bug fixes in sync calender and downstreamsync job
+
 ##### Sun Jul 28 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.5
 * New sections in landing page: map, trending languages, out-of-sync
 * Add language detail page and job output analysis section. 
