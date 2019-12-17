@@ -45,3 +45,6 @@ JOB_EXEC_TYPES = ('sequential', 'parallel')
 
 # Translation Workload Table Headers
 WORKLOAD_HEADERS = ('Total', 'Translated', 'Untranslated', 'Remaining')
+
+# Calendar Verbs
+CALENDAR_VERBS = ('BEGIN:VEVENT', 'END:VEVENT', 'BEGIN:VTODO', 'END:VTODO')
