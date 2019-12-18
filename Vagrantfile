@@ -93,7 +93,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision :ansible do |ansible|
     ansible.playbook    = "devel/ansible/playbook.yml"
-    ansible.sudo        = true
+  # ansible.sudo        = true
   end
 
 end

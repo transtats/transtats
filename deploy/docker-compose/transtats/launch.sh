@@ -81,7 +81,7 @@ make migrate
 python3 manage.py initlogin
 
 # start celery to run tasks
-supervisord -c /etc/supervisord.conf -j run/supervisord.pid --user root &
+supervisord -c /etc/supervisord.conf -j run/supervisord.pid &
 
 # launch application
 gunicorn transtats.wsgi:application
