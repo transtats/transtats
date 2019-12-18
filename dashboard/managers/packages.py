@@ -933,8 +933,8 @@ class PackageBranchMapping(object):
         if status2:
             return self._return_original_version(match3)
 
-        probable_branches = ['default', 'master', 'head', 'rawhide', 'devel', 'core',
-                             'translations', 'programs', self.package_name]
+        probable_branches = ['default', 'master', 'head', 'rawhide', 'devel', 'app',
+                             'core', 'translations', 'programs', self.package_name]
 
         for version in probable_branches:
             if version in from_branches:
