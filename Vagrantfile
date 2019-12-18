@@ -49,8 +49,9 @@ Vagrant.configure("2") do |config|
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
   # config.vm.synced_folder "../data", "/vagrant_data"
-
-  config.vm.synced_folder ".", "/workspace"
+  # Adding suffix :z so that docker can relabel file objects on shared volumes
+  
+  config.vm.synced_folder ".", "/workspace:z"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -92,7 +93,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision :ansible do |ansible|
     ansible.playbook    = "devel/ansible/playbook.yml"
-    ansible.sudo        = true
+  # ansible.sudo        = true
   end
 
 end

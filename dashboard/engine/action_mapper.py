@@ -516,9 +516,12 @@ class Load(JobCommandBase):
                                             if po_tarball_name in tarball and tarball in spec_obj.sources]
             if translation_related_tarballs and len(translation_related_tarballs) > 0:
                 index_in_prep = '-a {0}'.format(spec_obj.sources.index(translation_related_tarballs[0]))
-                if index_in_prep in " ".join([prep_lines for prep_lines in
-                                              spec_sections.section.get('prep', {}).get(input['package'], [])
-                                              if prep_lines.startswith('%')]):
+                prep_lines = spec_sections.section.get('prep', {}).get(input['package'], [])
+                if index_in_prep in " ".join(
+                        [prep_line for prep_line in prep_lines if prep_line.startswith('%')]):
+                    related_tarballs.append(os.path.join(root_dir, translation_related_tarballs[0]))
+                elif input['package'] in " ".join(
+                        [prep_line for prep_line in prep_lines if prep_line.startswith('tar -x')]):
                     related_tarballs.append(os.path.join(root_dir, translation_related_tarballs[0]))
         except Exception as e:
             task_log.update(self._log_task(

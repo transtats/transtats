@@ -19,7 +19,7 @@
 from collections import OrderedDict
 
 # dashboard
-from dashboard.constants import (TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS)
+from dashboard.constants import (TRANSPLATFORM_ENGINES, CALENDAR_VERBS)
 
 
 __all__ = ['parse_project_details_json', 'parse_ical_file',
@@ -154,12 +154,12 @@ def parse_ical_file(ical_content, relstream_slug):
     EVENT_BEGIN_SYMBOL = ""
     EVENT_END_SYMBOL = ""
 
-    if relstream_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2]):
-        EVENT_BEGIN_SYMBOL = "BEGIN:VEVENT"
-        EVENT_END_SYMBOL = "END:VEVENT"
-    elif relstream_slug == RELSTREAM_SLUGS[1]:
-        EVENT_BEGIN_SYMBOL = "BEGIN:VTODO"
-        EVENT_END_SYMBOL = "END:VTODO"
+    if {CALENDAR_VERBS[0], CALENDAR_VERBS[1]}.issubset(ical_content):
+        EVENT_BEGIN_SYMBOL = CALENDAR_VERBS[0]
+        EVENT_END_SYMBOL = CALENDAR_VERBS[1]
+    elif {CALENDAR_VERBS[2], CALENDAR_VERBS[3]}.issubset(ical_content):
+        EVENT_BEGIN_SYMBOL = CALENDAR_VERBS[2]
+        EVENT_END_SYMBOL = CALENDAR_VERBS[3]
 
     append_flag = False
     ical_events = OrderedDict()

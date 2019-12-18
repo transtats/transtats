@@ -3,14 +3,13 @@
 #
 # Run Command: docker run -d --name container_name -p 8080:8015 transtats/transtats
 #
-# Requires libxcrypt-compat, f30 onwards
 
 
-FROM registry.fedoraproject.org/fedora:29
+FROM registry.fedoraproject.org/fedora:latest
 LABEL maintainer="suanand@redhat.com"
 
 RUN dnf -y update && \
-    dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel \
+    dnf -y install gcc make cpio koji findutils git python python3-pip python3-devel libxcrypt-compat \
     sudo postgresql-server postgresql-contrib postgresql-devel openssh-server openssl-devel \
     redhat-rpm-config file patch intltool libtool gtk3-devel npm supervisor redis && \
     dnf clean all
