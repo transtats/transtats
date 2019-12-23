@@ -418,7 +418,7 @@ def tag_trending_languages():
     pkg_manager = PackagesManager()
     lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
 
-    if releases_summary:
+    if releases_summary and latest_release:
         releases_summary = releases_summary.get()
         trending_languages = reports_manager.get_trending_languages(
             releases_summary.report_json, *latest_release
