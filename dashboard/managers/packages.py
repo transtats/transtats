@@ -620,7 +620,8 @@ class PackagesManager(InventoryManager):
                 processed_stats_json[locale]['Total'] - processed_stats_json[locale]['Translated']
             remaining = 0
             try:
-                remaining = (filter_stat.get('untranslated', 0.0) / filter_stat.get('total', 0.0)) * 100
+                remaining = (filter_stat.get('untranslated', processed_stats_json[locale]['Untranslated']) /
+                             filter_stat.get('total', processed_stats_json[locale]['Total'])) * 100
             except ZeroDivisionError:
                 # log error, pass for now
                 pass
