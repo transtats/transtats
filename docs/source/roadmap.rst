@@ -5,13 +5,13 @@ Roadmap
 | As the project evolves, a roadmap will be published for each major release. Comments, suggestions, and requests to the current roadmap are welcome. Our goal in publishing a roadmap is transparency and community inclusion.
 | A roadmap is the team's best guess based on experience, community requests, and feedback.
 
-Transtats 0.7.5
+Transtats 0.8.0
 ===============
 
-| We are currently working on :code:`0.7.5` release.
+| We are currently working on :code:`0.8.0` release.
 
-| Backlog is `here <https://github.com/transtats/transtats/issues>`_. For release features list please look at `milestone <https://github.com/transtats/transtats/milestone/11>`_.
-| Target delivery: By mid of August 2019
+| Backlog is `here <https://github.com/transtats/transtats/issues>`_. For release features list please look at `milestones <https://github.com/transtats/transtats/milestones>`_.
+| Target delivery: By mid of March 2020
 
 To Do
 =====
