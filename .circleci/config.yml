@@ -19,7 +19,7 @@ jobs:
           name: Setup environment
           command: |
             sudo pip3 install virtualenv
-            virtualenv --python=/usr/bin/python3.7 --system-site-packages .venv
+            virtualenv --python=/usr/bin/python3 --system-site-packages .venv
             pip3 install -r requirements/ci.txt
       - run:
           name: Run tests

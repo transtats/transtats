@@ -79,7 +79,7 @@ class ServiceConfig(object):
                 '_config_dict': weblate_config,
                 '_middle_url': '/api',
                 '_service': weblate_resources.get(resource),
-                'http_auth': None
+                'http_auth': HTTPBasicAuth(*auth) if auth else None
             },
         }
         required_config = master_config_dict.get(service).copy()
@@ -308,7 +308,7 @@ class RestClient(object):
         # set auth
         auth_tuple = None
         if kwargs.get('auth_user') and kwargs.get('auth_token'):
-            if self.service == TRANSPLATFORM_ENGINES[1]:
+            if self.service == TRANSPLATFORM_ENGINES[1] or self.service == TRANSPLATFORM_ENGINES[3]:
                 auth_tuple = (kwargs['auth_user'], kwargs['auth_token'])
             elif self.service == TRANSPLATFORM_ENGINES[2]:
                 headers['X-Auth-User'] = kwargs['auth_user']
