@@ -270,7 +270,8 @@ class PackagesManager(InventoryManager):
             )
         elif transplatform.engine_name == TRANSPLATFORM_ENGINES[3]:
             resp_dict = self.api_resources.fetch_project_details(
-                transplatform.engine_name, transplatform.api_url, package_name
+                transplatform.engine_name, transplatform.api_url, package_name,
+                **dict(auth_user=transplatform.auth_login_id, auth_token=transplatform.auth_token_key)
             )
             platform_url = transplatform.api_url + "/projects/" + package_name
         return platform_url, resp_dict
