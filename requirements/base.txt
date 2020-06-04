@@ -1,12 +1,13 @@
 celery
 coreapi
-gitdb2
-GitPython
-Django==2.0.8
 django-celery-beat
 django-crispy-forms
 django-debug-toolbar
+Django==2.0.8
 djangorestframework==3.9.4
+future
+gitdb2
+GitPython
 gunicorn
 langtable
 mozilla-django-oidc
