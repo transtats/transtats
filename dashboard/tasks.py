@@ -20,6 +20,7 @@ import threading
 import yaml
 
 from datetime import timedelta
+from random import randrange
 
 from celery.schedules import crontab
 from celery.task import periodic_task
@@ -39,7 +40,7 @@ logger = get_task_logger(__name__)
 
 
 @periodic_task(
-    run_every=(crontab(minute=0, hour='8,20')),
+    run_every=(crontab(minute=0, hour='19')),
     name="sync_packages_with_platform",
     ignore_result=True
 )
@@ -55,7 +56,7 @@ def task_sync_packages_with_platform():
         package_manager.sync_update_package_stats(pkg)
 
     all_packages = package_manager.get_packages().filter(
-        platform_last_updated__lte=timezone.now() - timedelta(hours=14)
+        platform_last_updated__lte=timezone.now() - timedelta(hours=18)
     ).order_by('platform_url')
     for package in all_packages:
         th = threading.Thread(
@@ -63,7 +64,7 @@ def task_sync_packages_with_platform():
         )
         th.start()
         th.join()
-        time.sleep(4)
+        time.sleep(randrange(5, 10))
 
     logger.info("%s Packages sync'd with Translation Platform" % len(all_packages))
     if reports_manager.analyse_releases_status():
@@ -73,7 +74,7 @@ def task_sync_packages_with_platform():
 
 
 @periodic_task(
-    run_every=(crontab(minute=0, hour='2')),
+    run_every=(crontab(minute=0, hour='7')),
     name="sync_packages_with_build_system",
     ignore_result=True
 )
@@ -165,16 +166,16 @@ def task_sync_packages_with_build_system():
                 )
                 th.start()
                 th.join()
-                time.sleep(6)
+                time.sleep(randrange(5, 10))
 
             _update_diff(package)
 
     logger.info("%s Packages sync'd with Build System" % len(all_packages))
     if reports_manager.analyse_packages_status():
         logger.info("Packages Summary Updated")
-    time.sleep(2)
+    time.sleep(5)
     if reports_manager.refresh_stats_required_by_territory():
         logger.info("Location Summary Updated")
-    time.sleep(2)
+    time.sleep(5)
     if location_manager.save_territory_build_system_stats():
         logger.info("Territory Summary Updated")
