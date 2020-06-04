@@ -20,7 +20,6 @@ import threading
 import yaml
 
 from datetime import timedelta
-from random import randrange
 
 from celery.schedules import crontab
 from celery.task import periodic_task
@@ -64,7 +63,7 @@ def task_sync_packages_with_platform():
         )
         th.start()
         th.join()
-        time.sleep(randrange(5, 10))
+        time.sleep(8)
 
     logger.info("%s Packages sync'd with Translation Platform" % len(all_packages))
     if reports_manager.analyse_releases_status():
@@ -166,7 +165,7 @@ def task_sync_packages_with_build_system():
                 )
                 th.start()
                 th.join()
-                time.sleep(randrange(5, 10))
+                time.sleep(8)
 
             _update_diff(package)
 
