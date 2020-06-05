@@ -28,7 +28,7 @@ from celery.utils.log import get_task_logger
 
 from django.utils import timezone
 
-from dashboard.constants import TS_JOB_TYPES, BRANCH_MAPPING_KEYS
+from dashboard.constants import TS_JOB_TYPES, BRANCH_MAPPING_KEYS, WEBLATE_SLUGS
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.jobs import JobTemplateManager, YMLBasedJobManager
 from dashboard.managers.graphs import (
@@ -55,9 +55,22 @@ def task_sync_packages_with_platform():
     def _sync_package(pkg):
         package_manager.sync_update_package_stats(pkg)
 
-    all_packages = package_manager.get_packages().filter(
-        platform_last_updated__lte=timezone.now() - timedelta(hours=18)
+    all_packages = []
+
+    packages_except_weblate_fedora = package_manager.get_packages().filter(
+        platform_last_updated__lte=timezone.now() - timedelta(hours=12)
+    ).order_by('platform_url').exclude(platform_slug_id=WEBLATE_SLUGS[1])
+
+    weblate_fedora_packages = package_manager.get_packages().filter(
+        platform_last_updated__lte=timezone.now() - timedelta(hours=84),
+        platform_slug_id=WEBLATE_SLUGS[1]
     ).order_by('platform_url')
+
+    if packages_except_weblate_fedora:
+        all_packages.extend(packages_except_weblate_fedora)
+    if weblate_fedora_packages:
+        all_packages.extend(weblate_fedora_packages)
+
     for package in all_packages:
         th = threading.Thread(
             target=_sync_package, args=(package.package_name,)
