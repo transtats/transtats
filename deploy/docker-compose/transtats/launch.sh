@@ -75,13 +75,19 @@ then
     rm -f run/celerybeat.pid
 fi
 
+if [ ! -f transtats/logs/supervisord.log ]
+then
+    touch transtats/logs/supervisord.log
+fi
+
 # set environment
 make static
 make migrate
 python3 manage.py initlogin
 
 # start celery to run tasks
-supervisord -c /etc/supervisord.conf -j run/supervisord.pid &
+# supervisord -c /etc/supervisord.conf -j run/supervisord.pid &
+supervisord -c deploy/docker/conf/supervisord.conf &
 
 # launch application
 gunicorn transtats.wsgi:application
