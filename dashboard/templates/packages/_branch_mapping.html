@@ -2,38 +2,39 @@
 {% if branch_mapping %}
 <div class="panel panel-default">
   <div class="panel-heading">
-    <h4><strong>Branch Mapping</strong> {% if mapping_lastupdated %}<span class="pull-right text-muted">Updated
-      <span class="text-info">{{ mapping_lastupdated|timesince }}</span> ago</span>{% endif %}</h4>
+    <h4><strong>Branch Mapping</strong> {% if mapping_lastupdated %}<small class="pull-right text-muted">Updated
+      <span class="text-info">{{ mapping_lastupdated|timesince }}</span> ago</small>{% endif %}</h4>
     <span class="text-info">This mapping is the basis of comparision of statistics.</span>
   </div>
-  <table class="table table-hover table-bordered" cellspacing="0">
-    <thead>
-      <tr>
-        <th>Release Stream Branch</th>
-        <th>Translation Platform Project Version</th>
-        <th>Build System Tag</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for branch, version in branch_mapping.items %}
-      <tr>
-        <td>{{ branch }}</td>
-        <td>{{ version|get_item:mapping_keys.0 }}</td>
-        <td>
-          {{ version|get_item:mapping_keys.2 }}&nbsp;
-          {%if version|get_item:mapping_keys.1 and version|get_item:mapping_keys.2 %}
-          <a type="button" class="btn btn-small pull-right" data-toggle="tooltip" title="Sync with {{ version|get_item:mapping_keys.1 }}"
-            href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package_name }}&buildsys={{ version|get_item:'product' }}-{{ version|get_item:mapping_keys.1 }}&tag={{ version|get_item:mapping_keys.2 }}">
-            <span class="fa fa-refresh" aria-hidden="true"></span>
-          </a>
-          {% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="panel-body" style="height: 250px;overflow-y: scroll;">
+    <table class="table table-hover table-bordered" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Product Release</th>
+          <th>Translation Platform Project Branch</th>
+          <th>Build System Tag</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for branch, version in branch_mapping.items %}
+        <tr>
+          <td style="width: 30%;">{{ branch }}</td>
+          <td style="width: 35%;">{{ version|get_item:mapping_keys.0 }}</td>
+          <td style="width: 35%;">
+            {{ version|get_item:mapping_keys.2 }}&nbsp;
+            {%if version|get_item:mapping_keys.1 and version|get_item:mapping_keys.2 %}
+            <a type="button" class="btn btn-small pull-right" data-toggle="tooltip" title="Sync with {{ version|get_item:mapping_keys.1 }}"
+              href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package_name }}&buildsys={{ version|get_item:'product' }}-{{ version|get_item:mapping_keys.1 }}&tag={{ version|get_item:mapping_keys.2 }}">
+              <span class="fa fa-refresh" aria-hidden="true"></span>
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% else %}
-No mapping found.
-<span class="text-muted">Please check release branch(es) and create branch mapping.</span>
+<h4 class="text-info">No mapping found. <small>Please check release branch(es) and create branch mapping.</span></h4>
 {% endif %}

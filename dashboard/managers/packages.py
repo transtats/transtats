@@ -48,6 +48,7 @@ class PackagesManager(InventoryManager):
     """
 
     PROCESS_STATS = True
+    LATEST_BUILD_COUNT = 10
     syncstats_manager = SyncStatsManager()
     release_manager = ReleaseBranchManager()
 
@@ -811,6 +812,51 @@ class PackagesManager(InventoryManager):
         if release and release in stats_by_release:
             return stats_by_release.get(release, {})
         return stats_by_release
+
+    def fetch_latest_builds(self, package_name):
+        """
+        Fetch latest build details from build system(s)
+        """
+        if not package_name:
+            return []
+
+        package = self.get_packages([package_name]).get()
+        if not package:
+            return []
+        pkg_products = package.products or []
+        pkg_latest_builds = {}
+
+        # fetch latest builds from build systems
+        for pkg_product in pkg_products:
+            product = self.get_release_streams(stream_slug=pkg_product)
+            if product:
+                product = product.get()
+                product_build_system_hub_url = product.product_server
+                build_sys_pkg_id = self.api_resources.package_id(
+                    product_build_system_hub_url, package.package_name
+                )
+                pkg_builds = self.api_resources.list_builds(
+                    product_build_system_hub_url, build_sys_pkg_id
+                )
+                pkg_builds = pkg_builds[::-1][:self.LATEST_BUILD_COUNT]
+                for pkg_build in pkg_builds:
+                    if pkg_build.get('build_id'):
+                        build_tags = self.api_resources.list_tags(
+                            product_build_system_hub_url, pkg_build['build_id']
+                        )
+                        pkg_build.update(
+                            {'build_tags': build_tags}
+                        )
+                key = "{}-{}".format(product.product_slug, product.product_build_system)
+                pkg_latest_builds[key] = pkg_builds
+
+        # store in db
+        if pkg_latest_builds:
+            self.update_package(package, {
+                'package_latest_builds': json.dumps(pkg_latest_builds),
+                'package_latest_builds_last_updated': timezone.now()
+            })
+        return pkg_latest_builds
 
 
 class PackageBranchMapping(object):

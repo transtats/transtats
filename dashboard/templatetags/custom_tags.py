@@ -131,6 +131,28 @@ def tag_branch_mapping(package):
 
 
 @register.inclusion_tag(
+    os.path.join("packages", "_latest_builds.html")
+)
+def tag_latest_builds(package):
+    package_manager = PackagesManager()
+    return_value = OrderedDict()
+    try:
+        package_details = package_manager.get_packages([package]).get()
+    except:
+        # log event, passing for now
+        pass
+    else:
+        return_value.update(
+            {
+                'package_name': package,
+                'latest_builds': package_details.package_latest_builds_json.copy(),
+                'builds_lastupdated': package_details.package_latest_builds_last_updated
+            }
+        )
+    return return_value
+
+
+@register.inclusion_tag(
     os.path.join("packages", "_stats_diff.html")
 )
 def tag_stats_diff(package):

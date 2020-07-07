@@ -999,6 +999,20 @@ def refresh_package(request):
                     return HttpResponse(Template(template_string).render(context))
             except Exception as e:
                 return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
+        elif task_type == "latestBuilds" and post_params.get('package'):
+            ERR_MSG = "Something unexpected happened while fetching latest builds."
+            try:
+                if package_manager.fetch_latest_builds(post_params['package']):
+                    context = Context(
+                        {'META': request.META, 'package_name': post_params['package']}
+                    )
+                    template_string = """
+                        {% load tag_latest_builds from custom_tags %}
+                        {% tag_latest_builds package_name %}
+                    """
+                    return HttpResponse(Template(template_string).render(context))
+            except Exception as e:
+                return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
         elif task_type == "statsDiff" and post_params.get('package'):
             graph_manager = GraphManager()
             pkg = post_params['package']

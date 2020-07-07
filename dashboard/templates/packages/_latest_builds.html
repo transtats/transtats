@@ -1,0 +1,41 @@
+{% load get_item from custom_tags %}
+{% if latest_builds %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h4><strong>Latest Builds</strong> {% if builds_lastupdated %}<small class="pull-right text-muted">Updated
+      <span class="text-info">{{ builds_lastupdated|timesince }}</span> ago</small>{% endif %}</h4>
+      <span class="text-info">Click on the tag to run syncdownstream job.</span>
+  </div>
+  <div class="panel-body" style="height: 250px;overflow-y: scroll;">
+      {% for product, builds in latest_builds.items %}
+        <h4>{{ product }}</h4>
+        <table class="table table-hover table-striped" cellspacing="0">
+            <tr>
+                <th>Date</th>
+                <th>NVR</th>
+                <th>Tags</th>
+            </tr>
+            {% for build in builds %}
+                {% if build|get_item:"build_tags" %}
+                <tr>
+                    <td style="width: 15%;"><span class="text-primary">{{ build|get_item:"completion_time"|truncatechars:14 }}</span></td>
+                    <td style="width: 20%;">{{ build|get_item:"nvr" }}</td>
+                    <td style="width: 65%;">
+                        {% for tag in build|get_item:"build_tags" %}
+                            <a href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package_name }}&buildsys={{ product }}&&tag={{ tag }}" 
+                            data-toggle="tooltip" title="Sync for {{ tag }} stats">{{ tag }}</a>
+                            {% if not forloop.last %}&nbsp;|&nbsp;{% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+      {% empty %}
+        No latest builds fetched.        
+      {% endfor %}
+  </div>
+</div>
+{% else %}
+<h4 class="text-info">Details not found. <small>Please update latest builds.</small></h4>
+{% endif %}
