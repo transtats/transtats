@@ -1,5 +1,5 @@
 <div class="row row-cards-pf" id="row-status-cards">
-  <div class="col-xs-12 col-sm-6 col-md-3">
+  <div class="col-xs-12 col-sm-6 col-md-2">
     <div class="card-pf card-pf-accented card-pf-aggregate-status card-pf-aggregate-status-mini">
       <h2 class="card-pf-title">
         <a href="{% url 'settings-languages' %}">
@@ -16,7 +16,7 @@
       </div>
     </div>
   </div>
-  <div class="col-xs-12 col-sm-6 col-md-3">
+  <div class="col-xs-12 col-sm-6 col-md-2">
     <div class="card-pf card-pf-accented card-pf-aggregate-status card-pf-aggregate-status-mini">
       <h2 class="card-pf-title">
         <a href="{% url 'settings-packages' %}">
@@ -33,7 +33,7 @@
       </div>
     </div>
   </div>
-  <div class="col-xs-12 col-sm-6 col-md-3">
+  <div class="col-xs-12 col-sm-6 col-md-2">
     <div class="card-pf card-pf-accented card-pf-aggregate-status card-pf-aggregate-status-mini">
       <h2 class="card-pf-title">
         <a href="{% url 'settings-trans-platforms' %}">
@@ -50,7 +50,7 @@
       </div>
     </div>
   </div>
-  <div class="col-xs-12 col-sm-6 col-md-3">
+  <div class="col-xs-12 col-sm-6 col-md-2">
     <div class="card-pf card-pf-accented card-pf-aggregate-status card-pf-aggregate-status-mini">
       <h2 class="card-pf-title">
         <a href="{% url 'jobs-yml-based' %}">
@@ -63,6 +63,40 @@
           <span class="card-pf-aggregate-status-notification">
             <span class="pficon pficon-ok"></span>
           </span>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-xs-12 col-sm-6 col-md-2">
+    <div class="card-pf card-pf-accented card-pf-aggregate-status card-pf-aggregate-status-mini">
+      <h2 class="card-pf-title">
+          <span class="fa fa-user"></span>
+          <span class="card-pf-aggregate-status-count">Language</span> Maintainer
+      </h2>
+      <div class="card-pf-body">
+        <p class="card-pf-aggregate-status-notifications">
+          <a href="{% url 'settings-languages' %}">
+            <span class="card-pf-aggregate-status-notification">
+              <span class="fa fa-angle-double-right"></span>
+            </span>
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-xs-12 col-sm-6 col-md-2">
+    <div class="card-pf card-pf-accented card-pf-aggregate-status card-pf-aggregate-status-mini">
+      <h2 class="card-pf-title">
+          <span class="fa fa-user"></span>
+          <span class="card-pf-aggregate-status-count">Package</span> Maintainer
+      </h2>
+      <div class="card-pf-body">
+        <p class="card-pf-aggregate-status-notifications">
+          <a href="{% url 'settings-packages' %}">
+            <span class="card-pf-aggregate-status-notification">
+              <span class="fa fa-angle-double-right"></span>
+            </span>
+          </a>
         </p>
       </div>
     </div>
