@@ -1027,6 +1027,7 @@ class PackageBranchMapping(object):
                     branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[1]] = \
                         self.relbranch_manager.get_relstream_buildsys(stream)
                     branch_mapping_dict[branch][BRANCH_MAPPING_KEYS[2]] = \
+                        self.relbranch_manager.get_relbranch_scm_branch(branch) or \
                         self.calculate_branch_mapping(branch, sorted(
                             self.release_build_tags_dict[stream]))
 
