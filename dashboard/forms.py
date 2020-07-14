@@ -188,11 +188,13 @@ class UpdatePackageForm(forms.ModelForm):
             old_platform_engine = getattr(getattr(getattr(self, 'instance', None), 'platform_slug', None),
                                           'engine_name', None)
             if old_platform_engine:
-                packages_manager.syncstats_manager.toggle_visibility(package_name, stats_source=old_platform_engine)
+                packages_manager.syncstats_manager.toggle_visibility(
+                    package=package_name, stats_source=old_platform_engine
+                )
             new_platform_engine = packages_manager.get_engine_from_slug(platform_slug)
             if new_platform_engine:
                 packages_manager.syncstats_manager.toggle_visibility(
-                    package_name, visibility=True, stats_source=new_platform_engine
+                    package=package_name, visibility=True, stats_source=new_platform_engine
                 )
 
 

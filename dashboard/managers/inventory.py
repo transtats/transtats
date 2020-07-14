@@ -517,18 +517,22 @@ class SyncStatsManager(BaseManager):
             return True
         return False
 
-    def toggle_visibility(self, package, visibility=False, stats_source=None):
+    def toggle_visibility(self, package=None, visibility=False, stats_source=None, project_version=None):
         """
         Toggle visibility of statistics to false or true
         :param package: Package Name: str
         :param visibility: boolean
         :param stats_source: str
+        :param project_version: str
         :return: boolean
         """
         filter_kwargs = {}
-        filter_kwargs.update(dict(package_name=package))
+        if package:
+            filter_kwargs.update(dict(package_name=package))
         if stats_source:
             filter_kwargs.update(dict(source=stats_source))
+        if project_version:
+            filter_kwargs.update(dict(project_version=project_version))
         try:
             SyncStats.objects.filter(**filter_kwargs).update(sync_visibility=visibility)
         except Exception as e:
