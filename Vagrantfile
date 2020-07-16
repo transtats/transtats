@@ -19,8 +19,8 @@ Vagrant.configure("2") do |config|
   config.ssh.username   = 'root'
   config.ssh.password   = 'root'
 
-  config.hostmanager.enabled        = true
-  config.hostmanager.manage_guest   = true
+  # config.hostmanager.enabled        = true
+  # config.hostmanager.manage_guest   = true
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -89,7 +89,7 @@ Vagrant.configure("2") do |config|
   #   apt-get install -y apache2
   # SHELL
 
-  config.vm.provision :hostmanager
+  # config.vm.provision :hostmanager
 
   config.vm.provision :ansible do |ansible|
     ansible.playbook    = "devel/ansible/playbook.yml"
