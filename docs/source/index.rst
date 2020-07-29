@@ -25,5 +25,4 @@ Transtats Server is a simple django application with PostgreSQL backend. Has one
     gettingstarted
     getinvolved
     roadmap
-    releases
     license

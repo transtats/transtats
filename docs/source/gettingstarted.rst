@@ -27,3 +27,11 @@ Translation Status
 
 Summary and Details
     Transtats has two traversal options: releases and languages. One can see high level summary and can pick any of releases or languages, followed by packages. Summary can tell you: packages which are out of sync, release by release l10n effort progress and much more. Run a job to track string change.
+
+More Details
+============
+
+Transtats has been covered at a number of conferences:
+
+ - Fedora Flock 2019 `Use cases for Transtats in the Fedora community <https://www.youtube.com/watch?v=jgXJZRj43M0>`_
+ - FOSSASIA 2018 `Introduction to Transtats <https://www.youtube.com/watch?v=8q9cg-wsrUg>`_

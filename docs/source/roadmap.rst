@@ -5,16 +5,36 @@ Roadmap
 | As the project evolves, a roadmap will be published for each major release. Comments, suggestions, and requests to the current roadmap are welcome. Our goal in publishing a roadmap is transparency and community inclusion.
 | A roadmap is the team's best guess based on experience, community requests, and feedback.
 
+
+Releases
+========
+
+| Please look `github releases <https://github.com/transtats/transtats/releases>`_ for details.
+| See changelog `here <https://github.com/transtats/transtats/blob/devel/CHANGELOG.md>`_.
+
+
+Upcoming Releases
+*****************
+
+| Versioning is mostly `MAJOR.MINOR.PATCH`
+| And releases are scheduled every quarter end.
+
 Transtats 0.8.0
-===============
+---------------
+| `<https://github.com/transtats/transtats/milestone/14>`_
+| Target delivery: 18th Sept 2020
 
-| We are currently working on :code:`0.8.0` release.
 
-| Backlog is `here <https://github.com/transtats/transtats/issues>`_. For release features list please look at `milestones <https://github.com/transtats/transtats/milestones>`_.
-| Target delivery: By mid of March 2020
+Transtats 0.8.5
+---------------
+
+| Target delivery: 18th Dec 2020
+
 
 To Do
 =====
+
+| For complete list browse `github issues <https://github.com/transtats/transtats/issues>`_.
 
 - Manage Inventory
     - Languages and their Sets (Done)

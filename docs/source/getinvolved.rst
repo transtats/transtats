@@ -1,6 +1,8 @@
 Get Involved
 ============
 
+Welcome! Read Transtats `Contributing Guide <https://github.com/transtats/transtats/blob/devel/CONTRIBUTING.md>`_ for getting started.
+
 Try and test
 -------------
 
