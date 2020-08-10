@@ -57,3 +57,17 @@ Transtats APIs
     .. code-block:: http
 
         GET /api/job/2a6d4b23-6a6b-4d0e-b617-a0ece01d790f/log  HTTP/1.1
+
+6. **Run a Job** : :code:`<transtats_server>/api/job/run`
+
+    Returns the job_id against given job_type: `syncupstream` or `syncdownstream` or `stringchange`
+
+    .. code-block:: http
+
+        POST /api/job/run  HTTP/1.1
+
+        example:
+        $ curl -d '{"job_type": "syncdownstream", "package_name": "anaconda", "build_system": "koji", "build_tag": "f33"}' -H 'Content-Type: application/json' -H 'Authorization: Token <your-transtats-api-token>' -X POST http://localhost:8080/api/job/run
+
+        output:
+        {"Success":"Job created and logged. URL: http://localhost:8080/jobs/log/2a5966a9-3e5e-4ad1-b89e-1ee0e3b1651b/detail","job_id":"2a5966a9-3e5e-4ad1-b89e-1ee0e3b1651b"}
