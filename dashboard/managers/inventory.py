@@ -517,18 +517,22 @@ class SyncStatsManager(BaseManager):
             return True
         return False
 
-    def toggle_visibility(self, package, visibility=False, stats_source=None):
+    def toggle_visibility(self, package=None, visibility=False, stats_source=None, project_version=None):
         """
         Toggle visibility of statistics to false or true
         :param package: Package Name: str
         :param visibility: boolean
         :param stats_source: str
+        :param project_version: str
         :return: boolean
         """
         filter_kwargs = {}
-        filter_kwargs.update(dict(package_name=package))
+        if package:
+            filter_kwargs.update(dict(package_name=package))
         if stats_source:
             filter_kwargs.update(dict(source=stats_source))
+        if project_version:
+            filter_kwargs.update(dict(project_version=project_version))
         try:
             SyncStats.objects.filter(**filter_kwargs).update(sync_visibility=visibility)
         except Exception as e:
@@ -733,7 +737,7 @@ class ReleaseBranchManager(InventoryManager):
         try:
             kwargs['language_set_slug'] = language_set
             kwargs['product_slug'] = product
-            kwargs['scm_branch'] = None
+            kwargs['scm_branch'] = kwargs.get('scm_branch')
             kwargs['created_on'] = timezone.now()
             kwargs['sync_calendar'] = True if 'sync_calendar' in flags else False
             kwargs['notifications_flag'] = True if 'notifications_flag' in flags else False
@@ -761,3 +765,16 @@ class ReleaseBranchManager(InventoryManager):
             )[0]
             latest_release = self.get_release_branches(relbranch=latest_release_slug).get()
             return latest_release.release_slug, latest_release.release_name
+
+    def get_relbranch_scm_branch(self, release_slug):
+        """
+        Returns SCM branch of a release
+        :param release_slug: str
+        :return: str or None
+        """
+        if not release_slug:
+            return
+        release = self.get_release_branches(relbranch=release_slug)
+        if release:
+            return release.get().scm_branch
+        return

@@ -188,11 +188,13 @@ class UpdatePackageForm(forms.ModelForm):
             old_platform_engine = getattr(getattr(getattr(self, 'instance', None), 'platform_slug', None),
                                           'engine_name', None)
             if old_platform_engine:
-                packages_manager.syncstats_manager.toggle_visibility(package_name, stats_source=old_platform_engine)
+                packages_manager.syncstats_manager.toggle_visibility(
+                    package=package_name, stats_source=old_platform_engine
+                )
             new_platform_engine = packages_manager.get_engine_from_slug(platform_slug)
             if new_platform_engine:
                 packages_manager.syncstats_manager.toggle_visibility(
-                    package_name, visibility=True, stats_source=new_platform_engine
+                    package=package_name, visibility=True, stats_source=new_platform_engine
                 )
 
 
@@ -223,6 +225,10 @@ class NewReleaseBranchForm(forms.Form):
     calendar_url = forms.URLField(
         label='iCal URL', help_text='Release schedule calendar URL. (Prefer translation specific)', required=True
     )
+    scm_branch = forms.CharField(
+        label='SCM Branch', required=False,
+        help_text='Release Build System Default Tag.'
+    )
     enable_flags = TextArrayField(
         label='Enable flags', widget=forms.CheckboxSelectMultiple, choices=enable_flags_choices,
         help_text="Selected tasks will be enabled for this release version/branch.",
@@ -252,6 +258,7 @@ class NewReleaseBranchForm(forms.Form):
             Field('current_phase', css_class='selectpicker'),
             Field('lang_set', css_class='selectpicker'),
             Field('calendar_url', css_class='form-control'),
+            Field('scm_branch', css_class='form-control'),
             InlineCheckboxes('enable_flags'),
             HTML("<hr/>"),
             FormActions(

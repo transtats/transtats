@@ -443,6 +443,22 @@ class KojiResources(object):
     def list_RPMs(self, hub_url, build_id):
         return self._session(hub_url).listRPMs(buildID=build_id)
 
+    def package_id(self, hub_url, pkg):
+        return self._session(hub_url).getPackageID(pkg)
+
+    def list_builds(self, hub_url, pkg_id):
+        pkg_builds = self._session(hub_url).listBuilds(packageID=pkg_id)
+        try:
+            return sorted(pkg_builds, key=lambda x: x['build_id'])
+        except Exception as e:
+            # passing for now
+            pass
+        return pkg_builds or []
+
+    def list_tags(self, hub_url, build_id):
+        build_tags = self._session(hub_url).listTags(build=build_id)
+        return [tag['name'] for tag in build_tags if tag.get('name')]
+
     def get_path_info(self, build=None, srpm=None):
         if build and not srpm:
             path = koji.pathinfo.build(build)

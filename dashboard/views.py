@@ -18,7 +18,6 @@ import csv
 import json
 from datetime import datetime
 from pathlib import Path
-from urllib.parse import parse_qs
 
 # django
 from django.conf import settings
@@ -48,7 +47,7 @@ from dashboard.forms import (
     NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm
 )
 from dashboard.managers.inventory import (
-    InventoryManager, ReleaseBranchManager
+    InventoryManager, ReleaseBranchManager, SyncStatsManager
 )
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.jobs import (
@@ -684,6 +683,38 @@ class JobsView(ManagersMixin, TemplateView):
         return context
 
 
+class CleanUpJobs(ManagersMixin, TemplateView):
+    """
+    Predefined Jobs View
+    """
+    template_name = "jobs/jobs_cleanup.html"
+
+    def post(self, request, *args, **kwargs):
+        post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        sync_stat_to_hide = []
+        for k, v in post_data.items():
+            if '|' in k:
+                sync_stat_to_hide.append(tuple(k.split('|')))
+        if sync_stat_to_hide:
+            sync_stats_manager = SyncStatsManager()
+            for stat in sync_stat_to_hide:
+                sync_stats_manager.toggle_visibility(
+                    stats_source=stat[0], project_version=stat[1]
+                )
+        return render(request, self.template_name, self.get_context_data(**kwargs))
+
+    def get_context_data(self, **kwargs):
+        context = super(TemplateView, self).get_context_data(**kwargs)
+        sync_stats_manager = SyncStatsManager()
+        sync_stats = sync_stats_manager.get_sync_stats()
+        if sync_stats:
+            sync_stats = sync_stats.order_by().values(
+                'project_version', 'source'
+            ).distinct().exclude(project_version="Upstream").order_by('project_version')
+        context['sync_stats'] = sync_stats
+        return context
+
+
 class YMLBasedJobs(JobsView):
     """
     YML Based Jobs View
@@ -995,6 +1026,20 @@ def refresh_package(request):
                     template_string = """
                         {% load tag_branch_mapping from custom_tags %}
                         {% tag_branch_mapping package_name %}
+                    """
+                    return HttpResponse(Template(template_string).render(context))
+            except Exception as e:
+                return HttpResponse(status=500, content=ERR_MSG, content_type="text/html")
+        elif task_type == "latestBuilds" and post_params.get('package'):
+            ERR_MSG = "Something unexpected happened while fetching latest builds."
+            try:
+                if package_manager.fetch_latest_builds(post_params['package']):
+                    context = Context(
+                        {'META': request.META, 'package_name': post_params['package']}
+                    )
+                    template_string = """
+                        {% load tag_latest_builds from custom_tags %}
+                        {% tag_latest_builds package_name %}
                     """
                     return HttpResponse(Template(template_string).render(context))
             except Exception as e:

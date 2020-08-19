@@ -54,6 +54,7 @@ def task_sync_packages_with_platform():
 
     def _sync_package(pkg):
         package_manager.sync_update_package_stats(pkg)
+        package_manager.fetch_latest_builds(pkg)
 
     all_packages = []
 
@@ -62,7 +63,7 @@ def task_sync_packages_with_platform():
     ).order_by('platform_url').exclude(platform_slug_id=WEBLATE_SLUGS[1])
 
     weblate_fedora_packages = package_manager.get_packages().filter(
-        platform_last_updated__lte=timezone.now() - timedelta(hours=84),
+        platform_last_updated__lte=timezone.now() - timedelta(hours=60),
         platform_slug_id=WEBLATE_SLUGS[1]
     ).order_by('platform_url')
 
