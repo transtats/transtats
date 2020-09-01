@@ -56,6 +56,11 @@ def js_id_safe(id_value):
 
 
 @register.filter
+def underscore_to_space(string_object):
+    return string_object.replace("_", " ")
+
+
+@register.filter
 def subtract(value, arg):
     try:
         return round(value - arg, 2)
@@ -400,9 +405,10 @@ def tag_sync_from_coverage(stats, package, release, tag):
         branch_mapping = {}
         if package_details.release_branch_mapping_json:
             branch_mapping = package_details.release_branch_mapping_json.copy()
-            branch_mapping = branch_mapping.get(release)
-            branch_mapping['product'] = \
-                release_manager.get_product_by_release(release).product_slug
+            if release in branch_mapping:
+                branch_mapping = branch_mapping.get(release)
+                branch_mapping['product'] = \
+                    release_manager.get_product_by_release(release).product_slug
         return_value.update(dict(
             mapping=branch_mapping,
             package=package,
