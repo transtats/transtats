@@ -31,54 +31,50 @@ Transtats 0.8.5
 | Target delivery: 18th Dec 2020
 
 
-To Do
-=====
+ToDo List
+=========
 
-| For complete list browse `github issues <https://github.com/transtats/transtats/issues>`_.
+- New Feature, Bug fix, Enhancement
+    - Package name mapping.
+    - Provision for package sets.
+    - Search a job log.
+    - Translation snapshots.
+    - translate.f.o specific changes.
+    - Translation files in multiple tarballs.
+    - Additional upstream repository for `l10n`.
 
-- Manage Inventory
-    - Languages and their Sets (Done)
-    - Translation Platforms (Done)
-    - Product and their Releases (Done)
-
-- Translation Status of Packages, sync with:
-    - Translation Platform (Done)
-        - `DamnedLies <https://wiki.gnome.org/DamnedLies>`_
-        - `Transifex <https://www.transifex.com/>`_
-        - `Weblate <https://weblate.org>`_
-        - `Zanata <http://zanata.org/>`_
-    - Upstream Repository (Done)
-        - `git <https://git-scm.com/>`_
-
-- Transtats Jobs
-    - YML Based Jobs
-        - Parser & ActionMapper (Done)
-    - Streamline Jobs by Templates (Done)
-    - Locate String Breakage (Done)
-
-- Translation Status of Packages, sync with:
-    - Build System (Done)
-        - `koji <https://koji.fedoraproject.org/koji/>`_
-
-- Transtats Engagements
-
-    - Interactions
-        - Dashboard: Integration of `PatternFly <https://www.patternfly.org/>`_ UI (Done)
-        - Better stats representation in (Done)
-            - Release, Package and Job Details
-        - Use-case based UI designs (Done)
-        - More sub-commands and flags in CLI
-
-    - Flexibility
-        - Scheduling of Jobs as per Release Schedule (**In Progress**)
-            - to enable schedule based auto-sync
-        - Emails about push/pull or translation status/diff
+- Technical Tasks
+    - Error handling, test cases.
+    - Simultaneous jobs run (and multi-threading).
+    - Prepare deployment for OpenShift 4.
+        - Move from docker to buildah, single container to a pod.
+    - Find an alternative of vagrant in dev env.
 
 - Expanding Support
-    - Translation Platform
-        - `Pootle <https://pootle.translatehouse.org/>`_
     - Translation File Format *in Jobs*
         - Java files (``properties``, ``dtd``)
-        - PHP, JS (``ini``, ``json``)
-    - More YML Job Templates
+        - PHP, JS (``ini``, ``json``, ``js``)
+    - More YAML Job Template Implementations
         - ``verifytrans``
+
+- Automation
+    - Scheduling jobs based on release dates
+
+- User Personalization
+    - Multiple Authentication: FAS, SAML, Social.
+    - Bootstrap Transtats for different tenants.
+    - API sync for package, language-group ownerships.
+    - User panel to configure package and other settings.
+    - Customization of interfaces as per logged in user.
+    - Notifications to package and/or language maintainers.
+
+- Integration
+    - Fedora Apps, Internal tools
+    - Bugzilla, JIRA, IRC bot
+
+- Documentation
+    - Use cases (``docs``, ``blog``, ``transtats.org``)
+    - User guide (``pdf``, ``screencast``)
+    - Release notes, developers manual
+
+| For complete list please browse `github issues <https://github.com/transtats/transtats/issues>`_.
