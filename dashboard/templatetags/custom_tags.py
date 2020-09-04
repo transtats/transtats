@@ -72,7 +72,12 @@ def subtract(value, arg):
 
 @register.filter
 def tz_date(timezone):
-    tz_datetime = datetime.now(pytz.timezone(timezone)).time()
+    try:
+        tz_datetime = \
+            datetime.now(pytz.timezone(timezone)).time()
+    except:
+        # pass for now
+        return ":"
     return "{}:{}:{}".format(tz_datetime.hour,
                              tz_datetime.minute,
                              tz_datetime.second)
