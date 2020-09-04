@@ -862,14 +862,30 @@ class TerritoryView(ManagersMixin, TemplateView):
         country_name = self.request.GET.get('name', '')
         if country_name:
             context['country_name'] = country_name
-        territory_locales, two_char_country_code = \
+        territory_locales, territory_languages, two_char_country_code = \
             self.geo_location_manager.get_locales_from_territory_id(
                 kwargs.get('country_code', '')
             )
         if two_char_country_code:
             context['two_char_country_code'] = two_char_country_code
-        if territory_locales:
-            context['territory_locales'] = territory_locales
+        if territory_locales and territory_languages:
+            territory_locale_language = dict(zip(territory_locales,
+                                                 territory_languages))
+            context['territory_locales'] = territory_locale_language
+        territory_timezones = \
+            self.geo_location_manager.get_timezones_from_territory_id(
+                kwargs.get('country_code', '')
+            )
+        if territory_timezones:
+            context['territory_timezones'] = territory_timezones
+        keyboards, input_methods = \
+            self.geo_location_manager.get_keyboards_from_territory_id(
+                kwargs.get('country_code', '')
+            )
+        if keyboards:
+            context['territory_keyboards'] = keyboards
+        if input_methods:
+            context['territory_input_methods'] = input_methods
         return context
 
 

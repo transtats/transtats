@@ -15,7 +15,9 @@
 
 import os
 import json
+import pytz
 import yaml
+from datetime import datetime
 from collections import OrderedDict
 from django import template
 
@@ -66,6 +68,14 @@ def subtract(value, arg):
         return round(value - arg, 2)
     except FloatingPointError:
         return value - arg
+
+
+@register.filter
+def tz_date(timezone):
+    tz_datetime = datetime.now(pytz.timezone(timezone)).time()
+    return "{}:{}:{}".format(tz_datetime.hour,
+                             tz_datetime.minute,
+                             tz_datetime.second)
 
 
 @register.filter

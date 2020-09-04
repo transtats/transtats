@@ -712,18 +712,55 @@ class GeoLocationManager(ReportsManager):
         """
         Get list of locales associated with a Territory
         :param territory_id: three characters country code
-        :return: list of locales
+        :return: list of locales, languages, country code
         """
-        territory_locales = []
+        territory_locales, territory_languages = [], []
         if not territory_id:
-            return territory_locales, ''
+            return territory_locales, territory_languages, ''
         two_char_country_code = COUNTRY_CODE_3to2_LETTERS.get(territory_id, '')
         if not two_char_country_code:
             return territory_locales, ''
         territory_locales = langtable.list_locales(
             territoryId=two_char_country_code
         )
-        return territory_locales, two_char_country_code
+        territory_languages = list(map(
+            langtable.language_name, territory_locales
+        ))
+        return territory_locales, territory_languages, two_char_country_code
+
+    def get_timezones_from_territory_id(self, territory_id):
+        """
+        Get list of timezones associated with a Territory
+        :param territory_id: three characters country code
+        :return: list of timezones
+        """
+        territory_timezones = []
+        if not territory_id:
+            return territory_timezones
+        timezones = langtable.list_timezones(
+            territoryId=COUNTRY_CODE_3to2_LETTERS.get(territory_id, '')
+        )
+        territory_timezones = list(map(
+            langtable.timezone_name, timezones
+        ))
+        return territory_timezones
+
+    def get_keyboards_from_territory_id(self, territory_id):
+        """
+        Get list of timezones associated with a Territory
+        :param territory_id: three characters country code
+        :return: list of keyboards, input_methods
+        """
+        territory_keyboards, territory_input_methods = [], []
+        if not territory_id:
+            return territory_keyboards
+        territory_keyboards = langtable.list_keyboards(
+            territoryId=COUNTRY_CODE_3to2_LETTERS.get(territory_id, '')
+        )
+        territory_input_methods = langtable.list_inputmethods(
+            territoryId=COUNTRY_CODE_3to2_LETTERS.get(territory_id, '')
+        )
+        return territory_keyboards, territory_input_methods
 
     def get_territory_summary(self, territory_id):
         """
@@ -731,7 +768,7 @@ class GeoLocationManager(ReportsManager):
         :param territory_id: three characters country code
         :return: related stats: dict
         """
-        related_locales, _ = self.get_locales_from_territory_id(territory_id)
+        related_locales, _, _ = self.get_locales_from_territory_id(territory_id)
         location_summary = self.get_reports(report_subject='location')
 
         if not related_locales or not location_summary:
