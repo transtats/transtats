@@ -3,7 +3,7 @@
 <script src="/static/bootstrap-select/js/bootstrap-select.js"></script>
 <script type="text/javascript">
   function slugify(e) {
-    return e.toString().toLowerCase().replace(/\s+/g, "-").replace(/\-\-+/g, "-").replace(/\./g, "-").replace(/^-+/, "")
+    return e.toString().replace(/\s+/g, "-").replace(/\-\-+/g, "-").replace(/\./g, "-").replace(/^-+/, "")
     //.replace(/[^\w\-]+/g, "").replace(/-+$/, "")
   }
   function showPackageSlug() {
