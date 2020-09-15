@@ -45,6 +45,7 @@ ToDo List
 
 - Technical Tasks
     - Error handling, test cases.
+    - Bootstrap Transtats for different tenants.
     - Simultaneous jobs run (and multi-threading).
     - Prepare deployment for OpenShift 4.
         - Move from docker to buildah, single container to a pod.
@@ -62,7 +63,6 @@ ToDo List
 
 - User Personalization
     - Multiple Authentication: FAS, SAML, Social.
-    - Bootstrap Transtats for different tenants.
     - API sync for package, language-group ownerships.
     - User panel to configure package and other settings.
     - Customization of interfaces as per logged in user.
