@@ -485,7 +485,8 @@ class Load(JobCommandBase):
                     if file.endswith('.spec') and not file.startswith('.'):
                         spec_file = os.path.join(root, file)
                     zip_ext = ('.tar', '.tar.gz', '.tar.bz2', '.tar.xz', '.tgz')
-                    if file.endswith(zip_ext):
+                    # assuming translations are not packaged in tests tarball
+                    if file.endswith(zip_ext) and 'test' not in file:
                         tarballs.append(file)
                     translation_ext = ('.po', )
                     if file.endswith(translation_ext):
@@ -493,8 +494,19 @@ class Load(JobCommandBase):
             spec_obj = Spec.from_file(spec_file)
 
             if len(tarballs) > 0:
-                probable_tarball = spec_obj.sources[0].split('/')[-1].replace(
-                    "%{name}", spec_obj.name).replace("%{version}", spec_obj.version)
+                probable_tarball = spec_obj.sources[0].split('/')[-1]
+
+                replacements = {
+                    "%{name}": spec_obj.name,
+                    "%{version}": spec_obj.version,
+                    "%{realname}": spec_obj.name,
+                    "%{realversion}": spec_obj.version
+                }
+
+                for replacement_key, replacement_val in replacements.items():
+                    if replacement_key in probable_tarball:
+                        probable_tarball = probable_tarball.replace(
+                            replacement_key, replacement_val)
                 src_tar_file = os.path.join(root_dir, probable_tarball) \
                     if probable_tarball in tarballs \
                     else os.path.join(root_dir, tarballs[0])

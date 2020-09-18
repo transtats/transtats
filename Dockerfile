@@ -8,7 +8,7 @@
 #
 # Requires libxcrypt-compat, f30 onwards
 
-FROM registry.fedoraproject.org/fedora:29
+FROM fedora:29
 LABEL maintainer="spathare@redhat.com,suanand@redhat.com"
 
 # Environment variable 

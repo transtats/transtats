@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+
+{% block pagecontent %}
+<div class="row row-cards-pf">
+  <div class="col-xs-12">
+    <div class="card-pf card-pf-utilization" id="card-packages-summary" style="min-height: 750px;">
+      <div class="card-pf-heading">
+        <h2 class="card-pf-title">Clean Up</h2>
+      </div>
+      <div class="card-pf-body">
+
+        <div class="panel panel-default">
+          <div class="panel-heading">
+              <h3 class="panel-title">Hide obsolete branches
+                  <span class="text-primary pull-right">{{ sync_stats|length }}</span></h3>
+          </div>
+          <div class="panel-body">
+            This would initiate a cleanup job:
+              <span class="text-info" data-toggle="tooltip" title="caution: this operation cannot be reversed">
+                  to hide obsolete sync statistics branches.</span><hr/>
+            <form method="post" id ="syncBuildTagsForm" class="form-horizontal" action="{% url 'jobs-cleanup' %}">{% csrf_token %}
+                {% if success_msg %}<div class="text-success">{{ success_msg }}</div>{% endif %}
+                <div class="row">
+                    {% for stat in sync_stats %}
+                    <div class="form-check col-xs-3">
+                        <input type="checkbox" class="form-check-input" id="{{ stat|get_item:'project_version' }}"
+                            name="{{ stat|get_item:'source' }}|{{ stat|get_item:'project_version' }}">
+                        <label class="form-check-label" for="{{ stat|get_item:'project_version' }}">
+                            <span class="text-default">{{ stat|get_item:'project_version' }}</span>
+                            <span class="text-muted">({{ stat|get_item:'source' }})</span></label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" data-loading-text="Disabling..." class="btn btn-warning pull-right">
+                    Toggle Visibility</button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

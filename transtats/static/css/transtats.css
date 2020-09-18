@@ -178,3 +178,14 @@ body {
 .text-faq-ans {
     font-size:13px;
 }
+.territory-cards-body {
+    height: 200px;
+}
+.territory-cards {
+    max-height: 180px;
+    overflow-y: scroll;
+}
+.territory-cards-keyboard {
+    max-height: 150px;
+    overflow-y: scroll;
+}

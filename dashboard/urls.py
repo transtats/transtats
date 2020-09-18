@@ -33,7 +33,7 @@ from dashboard.views import (
     NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, graph_data,
     UpdateTransPlatformView, UpdateGraphRuleView, JobDetailView, refresh_package, release_graph, schedule_job,
     tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status, job_template,
-    DeleteGraphRuleView, LanguageDetailView, LanguageReleaseView, TerritoryView
+    DeleteGraphRuleView, LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -41,6 +41,7 @@ LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
 
 app_jobs_urls = [
     url(r'^$', login_required(JobsView.as_view(), login_url=LOGIN_URL), name="jobs"),
+    url(r'^cleanup$', login_required(CleanUpJobs.as_view(), login_url=LOGIN_URL), name="jobs-cleanup"),
     url(r'^logs$', JobsLogsView.as_view(), name="jobs-logs"),
     url(r'^archive$', JobsArchiveView.as_view(), name="jobs-archive"),
     url(r'^yml-based$', YMLBasedJobs.as_view(), name="jobs-yml-based"),

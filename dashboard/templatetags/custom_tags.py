@@ -15,7 +15,9 @@
 
 import os
 import json
+import pytz
 import yaml
+from datetime import datetime
 from collections import OrderedDict
 from django import template
 
@@ -56,11 +58,29 @@ def js_id_safe(id_value):
 
 
 @register.filter
+def underscore_to_space(string_object):
+    return string_object.replace("_", " ")
+
+
+@register.filter
 def subtract(value, arg):
     try:
         return round(value - arg, 2)
     except FloatingPointError:
         return value - arg
+
+
+@register.filter
+def tz_date(timezone):
+    try:
+        tz_datetime = \
+            datetime.now(pytz.timezone(timezone)).time()
+    except:
+        # pass for now
+        return ":"
+    return "{}:{}:{}".format(tz_datetime.hour,
+                             tz_datetime.minute,
+                             tz_datetime.second)
 
 
 @register.filter
@@ -126,6 +146,28 @@ def tag_branch_mapping(package):
                  branch_mapping if branch_mapping else package_details.release_branch_mapping_json,
              'mapping_lastupdated': package_details.release_branch_map_last_updated,
              'mapping_keys': BRANCH_MAPPING_KEYS}
+        )
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("packages", "_latest_builds.html")
+)
+def tag_latest_builds(package):
+    package_manager = PackagesManager()
+    return_value = OrderedDict()
+    try:
+        package_details = package_manager.get_packages([package]).get()
+    except:
+        # log event, passing for now
+        pass
+    else:
+        return_value.update(
+            {
+                'package_name': package,
+                'latest_builds': package_details.package_latest_builds_json.copy(),
+                'builds_lastupdated': package_details.package_latest_builds_last_updated
+            }
         )
     return return_value
 
@@ -378,9 +420,10 @@ def tag_sync_from_coverage(stats, package, release, tag):
         branch_mapping = {}
         if package_details.release_branch_mapping_json:
             branch_mapping = package_details.release_branch_mapping_json.copy()
-            branch_mapping = branch_mapping.get(release)
-            branch_mapping['product'] = \
-                release_manager.get_product_by_release(release).product_slug
+            if release in branch_mapping:
+                branch_mapping = branch_mapping.get(release)
+                branch_mapping['product'] = \
+                    release_manager.get_product_by_release(release).product_slug
         return_value.update(dict(
             mapping=branch_mapping,
             package=package,

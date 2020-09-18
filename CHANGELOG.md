@@ -1,5 +1,14 @@
-##### Mon Dec 16 2019 Sundeep Anand <suanand@redhat.com>
-* Minor Bug fixes in calender, downstream sync jobs, and container env
+##### Fri Sept 04 2020 Sundeep Anand <suanand@redhat.com> - release_0.8.0
+* Update roadmap and release plan.
+* Improved territory view page. (*covering langs, inputs, tz*)
+* Better statistics UI in coverage reports.
+* Add job run API to docs, improve overall.
+* Add statistics project_branch cleanup job.
+* Use release scm_branch in branch_mapping.
+* Add user cards on landing page.
+* Add latest builds section to package details page.
+* Hotfix: filter 'tests' tarball in downstreamsync job.
+* Minor Bug fixes in calender, downstream sync jobs, and container env.
 
 ##### Sun Jul 28 2019 Sundeep Anand <suanand@redhat.com> - release_0.7.5
 * New sections in landing page: map, trending languages, out-of-sync

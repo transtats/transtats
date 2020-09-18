@@ -259,6 +259,8 @@ class Package(ModelMixin, models.Model):
     name_map_last_updated = models.DateTimeField(null=True, blank=True)
     release_branch_mapping = models.TextField(null=True, blank=True)
     release_branch_map_last_updated = models.DateTimeField(null=True, blank=True)
+    package_latest_builds = models.TextField(null=True, blank=True)
+    package_latest_builds_last_updated = models.DateTimeField(null=True, blank=True)
     stats_diff = models.TextField(null=True, blank=True)
     stats_diff_last_updated = models.DateTimeField(null=True, blank=True)
     platform_last_updated = models.DateTimeField(null=True, blank=True)
@@ -282,6 +284,10 @@ class Package(ModelMixin, models.Model):
     @property
     def release_branch_mapping_json(self):
         return self.str2json(self.release_branch_mapping)
+
+    @property
+    def package_latest_builds_json(self):
+        return self.str2json(self.package_latest_builds)
 
     @property
     def release_branch_mapping_health(self):

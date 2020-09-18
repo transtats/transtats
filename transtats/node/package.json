@@ -1,6 +1,6 @@
 {
   "name": "transtats",
-  "version": "0.7.7",
+  "version": "0.8.0",
   "description": "Track Translation Completeness",
   "homepage": "http://transtats.org",
   "license": "Apache-2.0",
