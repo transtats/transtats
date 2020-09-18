@@ -41,6 +41,15 @@ def get_item(dict_object, key):
 
 
 @register.filter
+def id_from_email(email):
+    if isinstance(email, str) and '@' in email:
+        parts = email.split('@')
+        if parts and len(parts) > 0:
+            return parts[0]
+    return email
+
+
+@register.filter
 def pop_item(dict_object, key):
     if not isinstance(dict_object, dict):
         return ''

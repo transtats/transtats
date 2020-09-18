@@ -128,7 +128,47 @@
 
   <div class="panel panel-default col-xs-12 col-md-3" id="panel-pkg-out-of-sync">
     <div class="panel-body">
+      {% if user.is_authenticated %}
+        <h1 style="word-wrap: break-word;"><span class="text-muted">Welcome,</span>
+          {{ user.email|id_from_email }}!</h1>
+      {% else %}
+        <h2>Out of Sync <br/><small class="text-muted">
+            Statistics differ for messages translated in platform versus packaged, built.</small></h2>
+      {% endif %}
       {% tag_outofsync_packages %}
+      <div  style="padding-top:5%">
+        <ul class="list-group">
+            {% if user.is_authenticated %}
+              <li class="list-group-item">
+                <span class="i pficon pficon-add-circle-o"></span>
+                Add a new <a href="{% url 'package-new' %}">package</a>
+                  to track translation status.
+              </li>
+              <li class="list-group-item">
+                <span class="i pficon pficon-add-circle-o"></span>
+                  Create a new coverage <a href="{% url 'settings-graph-rules-new' %}">rule</a>
+                    to get into insights.
+              </li>
+            {% else %}
+              <li class="list-group-item">
+                <span class="i pficon pficon-info"></span>
+                  View coverage <a href="{% url 'settings-graph-rules' %}">rules</a>
+                    to get into insights.
+              </li>
+            {% endif %}
+            <li class="list-group-item">
+              <span class="i pficon pficon-info"></span>
+              Run a <a href="{% url 'jobs-yml-based' %}?template=stringchange">job</a>
+                to locate translation string change in the package source repository.
+            </li>
+            <li class="list-group-item">
+              <span class="i pficon pficon-info"></span>
+                Or a <a href="{% url 'jobs-yml-based' %}?template=syncdownstream">sync job</a>
+                to calculate translation statistics of a built package or at
+                <a href="{% url 'jobs-yml-based' %}?template=syncupstream">upstream</a>.
+            </li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>
