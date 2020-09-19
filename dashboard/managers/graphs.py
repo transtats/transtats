@@ -589,7 +589,7 @@ class ReportsManager(GraphManager):
             upstream_last_updated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         relbranches = self.branch_manager.get_relbranch_name_slug_tuple()
         pkg_improper_branch_mapping = 0
-        pkg_with_stats_diff = 0
+        pkg_with_stats_diff = []
         if relbranches and len(relbranches) > 0:
             relbranch_slugs = sorted([slug for slug, name in relbranches], reverse=True)
             pkgs_improper_branch_mapping = [i.package_name for i in all_packages
@@ -604,7 +604,7 @@ class ReportsManager(GraphManager):
             'pkg_transtats_week_old': pkg_transtats_week_old or 0,
             'pkg_upstream_week_old': pkg_upstream_week_old or 0,
             'pkg_improper_branch_mapping': pkg_improper_branch_mapping or 0,
-            'pkg_with_stats_diff': pkg_with_stats_diff or [],
+            'pkg_with_stats_diff': pkg_with_stats_diff,
             'pkg_having_stats_diff': len(pkg_with_stats_diff) or 0
         }
         if self.create_or_update_report(**{
