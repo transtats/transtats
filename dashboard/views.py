@@ -39,7 +39,7 @@ from django.urls import reverse, reverse_lazy
 # dashboard
 
 from dashboard.constants import (
-    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, ZANATA_SLUGS
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
@@ -451,7 +451,7 @@ class NewPackageView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
-        initials.update(dict(transplatform_slug=ZANATA_SLUGS[1]))
+        initials.update(dict(transplatform_slug=WEBLATE_SLUGS[1]))
         default_product = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0]
         initials.update(dict(release_streams=default_product))
         return initials
