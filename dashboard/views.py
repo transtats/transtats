@@ -731,7 +731,19 @@ class JobsLogsView(ManagersMixin, ListView):
 
     def get_queryset(self):
         job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[:25]
+        return job_logs[:50]
+
+
+class JobsArchiveView(ManagersMixin, ListView):
+    """
+    Archive List View
+    """
+    template_name = "jobs/archive.html"
+    context_object_name = 'logs'
+
+    def get_queryset(self):
+        job_logs = self.jobs_log_manager.get_job_logs()
+        return job_logs[50:]
 
 
 class JobsLogsPackageView(ManagersMixin, ListView):
@@ -749,18 +761,6 @@ class JobsLogsPackageView(ManagersMixin, ListView):
                 remarks=pkg_name, result=True
             )
         return job_logs
-
-
-class JobsArchiveView(ManagersMixin, ListView):
-    """
-    Archive List View
-    """
-    template_name = "jobs/archive.html"
-    context_object_name = 'logs'
-
-    def get_queryset(self):
-        job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[25:]
 
 
 class JobDetailView(DetailView):
@@ -1260,6 +1260,28 @@ def get_build_tags(request):
                                 {% tag_build_tags buildsys product %}
                             """
             return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)
+
+
+def get_repo_branches(request):
+    """
+    Get Repository Branch(es)
+    """
+
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        package = post_params.get('package', '')
+        repo_type = post_params.get('repoType', '')
+        context = Context(
+            {'META': request.META,
+             'package': package,
+             'repo_type': repo_type}
+        )
+        template_string = """
+                            {% load tag_repo_branches from custom_tags %}
+                            {% tag_repo_branches package repo_type %}
+                        """
+        return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)
 
 
