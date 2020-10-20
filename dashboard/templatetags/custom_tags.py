@@ -377,6 +377,19 @@ def tag_build_tags(buildsys, product):
 
 
 @register.inclusion_tag(
+    os.path.join("jobs", "_repo_branches.html")
+)
+def tag_repo_branches(package_name, repo_type):
+    return_value = OrderedDict()
+    package_manager = PackagesManager()
+    branches = package_manager.git_branches(
+        package_name, repo_type
+    )
+    return_value.update(dict(branches=branches))
+    return return_value
+
+
+@register.inclusion_tag(
     os.path.join("jobs", "_job_analysis.html")
 )
 def tag_job_analysis(job_details):

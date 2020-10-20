@@ -24,19 +24,31 @@ from django.utils import timezone
 from .config.damnedlies import resources as damnedlies_resources
 from .config.damnedlies import resource_config_dict as damnedlies_config
 
+# GitHub specific imports
+from .config.github import resources as github_resources
+from .config.github import resource_config_dict as github_config
+
+# GitLab specific imports
+from .config.gitlab import resources as gitlab_resources
+from .config.gitlab import resource_config_dict as gitlab_config
+
+# Pagure specific imports
+from .config.pagure import resources as pagure_resources
+from .config.pagure import resource_config_dict as pagure_config
+
 # Transifex specific imports
 from .config.transifex import resources as transifex_resources
 from .config.transifex import resource_config_dict as transifex_config
-
-# Zanata specific imports
-from .config.zanata import resources as zanata_resources
-from .config.zanata import resource_config_dict as zanata_config
 
 # Weblate specific imports
 from .config.weblate import resources as weblate_resources
 from .config.weblate import resource_config_dict as weblate_config
 
-from dashboard.constants import TRANSPLATFORM_ENGINES
+# Zanata specific imports
+from .config.zanata import resources as zanata_resources
+from .config.zanata import resource_config_dict as zanata_config
+
+from dashboard.constants import GIT_PLATFORMS, TRANSPLATFORM_ENGINES
 from dashboard.models import CacheAPI
 
 
@@ -57,6 +69,24 @@ class ServiceConfig(object):
         """
 
         master_config_dict = {
+            GIT_PLATFORMS[0]: {
+                '_config_dict': github_config,
+                '_middle_url': '',
+                '_service': github_resources.get(resource),
+                'http_auth': HTTPBasicAuth(*auth) if auth else None
+            },
+            GIT_PLATFORMS[1]: {
+                '_config_dict': gitlab_config,
+                '_middle_url': '/api/v4',
+                '_service': gitlab_resources.get(resource),
+                'http_auth': HTTPBasicAuth(*auth) if auth else None
+            },
+            GIT_PLATFORMS[2]: {
+                '_config_dict': pagure_config,
+                '_middle_url': '/api/0',
+                '_service': pagure_resources.get(resource),
+                'http_auth': HTTPBasicAuth(*auth) if auth else None
+            },
             TRANSPLATFORM_ENGINES[0]: {
                 '_config_dict': damnedlies_config,
                 '_middle_url': '',

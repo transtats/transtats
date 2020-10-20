@@ -33,7 +33,7 @@ from dashboard.views import (
     NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, graph_data,
     UpdateTransPlatformView, UpdateGraphRuleView, JobDetailView, refresh_package, release_graph, schedule_job,
     tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status, job_template,
-    DeleteGraphRuleView, LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs
+    DeleteGraphRuleView, LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs, get_repo_branches
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -70,6 +70,7 @@ ajax_urls = [
     url(r'^generate-reports$', generate_reports, name="ajax-releases-report"),
     url(r'^read-file-logs$', read_file_logs, name="ajax-read-logs"),
     url(r'^build-tags$', get_build_tags, name="ajax-build-tags"),
+    url(r'^repo-branches$', get_repo_branches, name="ajax-repo-branches"),
     url(r'^job-template$', job_template, name="ajax-job-template"),
     url(r'^change-lang-status$', staff_member_required(change_lang_status),
         name="ajax-change-lang-status"),

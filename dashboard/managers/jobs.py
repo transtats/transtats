@@ -31,7 +31,9 @@ from django.conf import settings
 from django.utils import timezone
 
 # dashboard
-from dashboard.constants import TS_JOB_TYPES, JOB_EXEC_TYPES
+from dashboard.constants import (
+    TS_JOB_TYPES, JOB_EXEC_TYPES, GIT_REPO_TYPE
+)
 from dashboard.engine.action_mapper import ActionMapper
 from dashboard.engine.ds import TaskList
 from dashboard.engine.parser import YMLPreProcessor, YMLJobParser
@@ -468,7 +470,7 @@ class ReleaseScheduleSyncManager(BaseManager):
                 .filter(sync_calendar=True).all()
         except Exception as e:
             self.job_manager.log_json[SUBJECT].update(
-                {str(datetime.now()): 'Fetch relbranches from db failed. Details: ' + str(e)}
+                {str(datetime.now()): 'Fetch release branches from db failed. Details: ' + str(e)}
             )
             self.job_result = False
         else:
@@ -612,6 +614,11 @@ class YMLBasedJobManager(BaseManager):
             self.package_manager.get_packages([self.package])
         return package_details.get()
 
+    @staticmethod
+    def _check_git_ext(upstream_url):
+        # required for cloning
+        return upstream_url if upstream_url.endswith('.git') else upstream_url + ".git"
+
     def _bootstrap(self, package=None, build_system=None):
         if build_system:
             try:
@@ -634,9 +641,13 @@ class YMLBasedJobManager(BaseManager):
                 )
                 raise Exception('Upstream URL could NOT be located for %s package.' % package)
             else:
-                self.upstream_repo_url = package_detail.upstream_url \
-                    if package_detail.upstream_url.endswith('.git') \
-                    else package_detail.upstream_url + ".git"
+                upstream_repo_url = package_detail.upstream_url
+                if getattr(self, 'REPO_TYPE', '') and self.REPO_TYPE == GIT_REPO_TYPE[1]:
+                    if not package_detail.upstream_l10n_url:
+                        raise Exception('Localization repo URL not found.')
+                    else:
+                        upstream_repo_url = package_detail.upstream_l10n_url
+                self.upstream_repo_url = self._check_git_ext(upstream_repo_url)
                 t_ext = package_detail.translation_file_ext
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()

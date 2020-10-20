@@ -8,6 +8,13 @@
   <span class="text-muted">ago</span>
   {% endif %}
 </h5>
+{% if package.upstream_l10n_url %}
+<h5>
+  <strong>Upstream Localization Repository URL: </strong>
+  <a href="{{ package.upstream_l10n_url }}" target="_blank">{{ package.upstream_l10n_url }}</a>
+  <span class="fa fa-external-link" aria-hidden="true"></span>
+</h5>
+{% endif %}
 <h5>
   <strong>Translation Platform Project URL: </strong>
   <a href="{{ package.platform_url }}" target="_blank">{{ package.platform_url }}</a>

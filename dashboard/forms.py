@@ -80,6 +80,9 @@ class NewPackageForm(forms.Form):
     upstream_url = forms.URLField(
         label='Upstream URL', help_text='Source repository location (Bitbucket, GitHub, Pagure etc).', required=True
     )
+    upstream_l10n_url = forms.URLField(
+        label='Upstream Localization URL', help_text='Source repository location with translation resources.', required=False
+    )
     transplatform_slug = forms.ChoiceField(
         label='Translation Platform',
         choices=platform_choices, help_text='Translation statistics will be fetched from this server.'
@@ -108,6 +111,7 @@ class NewPackageForm(forms.Form):
         Div(
             Field('package_name', css_class='form-control', onkeyup="showPackageSlug()"),
             Field('upstream_url', css_class='form-control'),
+            Field('upstream_l10n_url', css_class='form-control'),
             Field('transplatform_slug', css_class='selectpicker'),
             InlineCheckboxes('release_streams'),
             HTML("<hr/>"),
@@ -137,8 +141,8 @@ class UpdatePackageForm(forms.ModelForm):
 
     class Meta:
         model = Package
-        fields = ['package_name', 'upstream_url', 'platform_slug', 'platform_url',
-                  'products', 'release_branch_mapping']
+        fields = ['package_name', 'upstream_url', 'upstream_l10n_url', 'platform_slug',
+                  'platform_url', 'products', 'release_branch_mapping']
 
     helper = FormHelper()
     helper.form_method = 'POST'
@@ -147,6 +151,7 @@ class UpdatePackageForm(forms.ModelForm):
         Div(
             Field('package_name', css_class='form-control', readonly=True),
             Field('upstream_url', css_class='form-control'),
+            Field('upstream_l10n_url', css_class='form-control'),
             Field('platform_slug', css_class='selectpicker'),
             Field('platform_url', css_class='form-control'),
             InlineCheckboxes('products'),
@@ -169,7 +174,8 @@ class UpdatePackageForm(forms.ModelForm):
 
     def clean(self):
         """
-        Check if the package name exist on the selected translation platform, if not add error message for package_name
+        Check if the package name exist on the selected translation platform,
+        if not add error message for package_name
         """
         cleaned_data = super().clean()
         package_name = cleaned_data['package_name']

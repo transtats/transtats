@@ -19,11 +19,6 @@ Upcoming Releases
 | Versioning is mostly `MAJOR.MINOR.PATCH`
 | And releases are scheduled every quarter end.
 
-Transtats 0.8.0
----------------
-| `<https://github.com/transtats/transtats/milestone/14>`_
-| Target delivery: 18th Sept 2020
-
 
 Transtats 0.8.5
 ---------------
