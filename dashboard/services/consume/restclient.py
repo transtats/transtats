@@ -36,6 +36,10 @@ from .config.gitlab import resource_config_dict as gitlab_config
 from .config.pagure import resources as pagure_resources
 from .config.pagure import resource_config_dict as pagure_config
 
+# Memsource specific imports
+from .config.pagure import resources as memsource_resources
+from .config.pagure import resource_config_dict as memsource_config
+
 # Transifex specific imports
 from .config.transifex import resources as transifex_resources
 from .config.transifex import resource_config_dict as transifex_config
@@ -109,6 +113,12 @@ class ServiceConfig(object):
                 '_config_dict': weblate_config,
                 '_middle_url': '/api',
                 '_service': weblate_resources.get(resource),
+                'http_auth': HTTPBasicAuth(*auth) if auth else None
+            },
+            TRANSPLATFORM_ENGINES[3]: {
+                '_config_dict': memsource_config,
+                '_middle_url': '/api2/v1',
+                '_service': memsource_resources.get(resource),
                 'http_auth': HTTPBasicAuth(*auth) if auth else None
             },
         }

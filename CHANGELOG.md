@@ -1,3 +1,9 @@
+##### Fri Oct 23 2020 Sundeep Anand <suanand@redhat.com>
+* Add memsource.com support in Transtats
+
+##### Fri Oct 16 2020 Sundeep Anand <suanand@redhat.com> - release_0.8.1
+* Include additional upstream repository for l10n
+
 ##### Fri Sept 04 2020 Sundeep Anand <suanand@redhat.com> - release_0.8.0
 * Update roadmap and release plan.
 * Improved territory view page. (*covering langs, inputs, tz*)
