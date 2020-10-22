@@ -1,3 +1,6 @@
+##### Fri Jan 15 2020 Sundeep Anand <suanand@redhat.com>
+* Add memsource.com support in Transtats
+
 ##### Thu Jan 14 2021 Sundeep Anand <suanand@redhat.com> - release_0.8.1
 * Add package remove feature for admins
 * Add python3-pip system dependency ([vishalvvr](https://github.com/vishalvvr))
