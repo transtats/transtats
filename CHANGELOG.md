@@ -1,3 +1,6 @@
+##### Mon Dec 07 2020 Sundeep Anand <suanand@redhat.com>
+* Add memsource.com support in Transtats
+
 ##### Thu Dec 04 2020 Sundeep Anand <suanand@redhat.com> - release_0.8.1
 * Add python3-pip system dependency ([vishalvvr](https://github.com/vishalvvr))
 * add `upstream_l10n_url` for syncupstream and stringchange job
