@@ -119,7 +119,7 @@ class ServiceConfig(object):
                 '_config_dict': memsource_config,
                 '_middle_url': '/api2/v1',
                 '_service': memsource_resources.get(resource),
-                'http_auth': HTTPBasicAuth(*auth) if auth else None
+                'http_auth': None
             },
         }
         required_config = master_config_dict.get(service).copy()
