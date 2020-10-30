@@ -111,7 +111,7 @@ class Platform(ModelMixin, models.Model):
         max_length=400, unique=True, verbose_name="Platform SLUG"
     )
     server_status = models.BooleanField(verbose_name="Enable/Disable")
-    ci_status = models.BooleanField(verbose_name="Enable/Disable", default=False)
+    ci_status = models.BooleanField(verbose_name="CI Enable/Disable", default=False)
     projects_json_str = models.TextField(null=True, blank=True)
     projects_last_updated = models.DateTimeField(null=True)
     auth_login_id = models.CharField(
@@ -130,6 +130,12 @@ class Platform(ModelMixin, models.Model):
     @property
     def token_api_json(self):
         return self.str2json(self.token_api_json_str)
+
+    @property
+    def token_status(self):
+        if not self.token_expiry:
+            return
+        return self.token_expiry > timezone.now()
 
     def __str__(self):
         return "{0} {1}".format(self.engine_name, self.subject)

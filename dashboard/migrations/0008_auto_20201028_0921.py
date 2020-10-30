@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='platform',
             name='ci_status',
-            field=models.BooleanField(default=False, verbose_name='Enable/Disable'),
+            field=models.BooleanField(default=False, verbose_name='CI Enable/Disable'),
         ),
         migrations.AddField(
             model_name='platform',
