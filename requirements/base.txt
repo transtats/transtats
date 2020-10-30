@@ -9,6 +9,7 @@ future
 gitdb2
 GitPython
 gunicorn
+iso8601
 langtable
 mozilla-django-oidc
 polib

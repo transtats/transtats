@@ -28,7 +28,7 @@ from dashboard.constants import (
     GIT_PLATFORMS, TRANSPLATFORM_ENGINES, BUILD_SYSTEMS, RELSTREAM_SLUGS
 )
 from dashboard.converters.xml2dict import parse
-from dashboard.decorators import call_service
+from dashboard.services.consume import call_service
 
 
 __all__ = ['APIResources']
@@ -38,7 +38,8 @@ class ResourcesBase(object):
     """
     Base class for resources
     """
-    def _execute_method(self, api_config, *args, **kwargs):
+    @staticmethod
+    def _execute_method(api_config, *args, **kwargs):
         """
         Executes located method with required params
         """
