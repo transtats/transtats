@@ -17,7 +17,7 @@ import inspect
 import logging
 
 # dashboard
-from dashboard.managers.resources import APIResources
+from dashboard.services.resources import APIResources
 
 
 __all__ = ['BaseManager']

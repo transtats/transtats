@@ -13,6 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# Transtats exposes following API URL(s)
+
 from django.conf.urls import url
 from dashboard.services.expose.views import (
     PingServer, PackageStatus, GraphRuleCoverage, ReleaseStatus, ReleaseStatusDetail,

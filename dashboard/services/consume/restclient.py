@@ -13,12 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
-import requests
-from datetime import timedelta
 from requests.auth import HTTPBasicAuth
-
-from django.utils import timezone
+import requests
 
 # DamnedLies specific imports
 from .config.damnedlies import resources as damnedlies_resources
@@ -53,7 +49,8 @@ from .config.zanata import resources as zanata_resources
 from .config.zanata import resource_config_dict as zanata_config
 
 from dashboard.constants import GIT_PLATFORMS, TRANSPLATFORM_ENGINES
-from dashboard.models import CacheAPI
+from dashboard.services.consume.cache import CacheAPIManager
+from dashboard.services.consume.decorators import set_api_auth
 
 
 NO_CERT_VALIDATION = True
@@ -115,7 +112,7 @@ class ServiceConfig(object):
                 '_service': weblate_resources.get(resource),
                 'http_auth': HTTPBasicAuth(*auth) if auth else None
             },
-            TRANSPLATFORM_ENGINES[3]: {
+            TRANSPLATFORM_ENGINES[4]: {
                 '_config_dict': memsource_config,
                 '_middle_url': '/api2/v1',
                 '_service': memsource_resources.get(resource),
@@ -244,31 +241,6 @@ class RestHandle(object):
         return response_dict
 
 
-def cache_api_response():
-    """
-    decorator to check db for API response
-    :return: response dict
-    """
-    def response_decorator(caller):
-        def inner_decorator(obj, base_url, resource, *args, **kwargs):
-            try:
-                fields = ['expiry', 'response_raw']
-                filter_params = {
-                    'base_url': base_url,
-                    'resource': resource,
-                }
-                cache = CacheAPI.objects.only(*fields).filter(**filter_params).first() or []
-            except Exception as e:
-                # log error
-                pass
-            else:
-                if timezone.now() > cache[0]:
-                    return cache[1]
-            return caller(obj, base_url, resource, *args, **kwargs)
-        return inner_decorator
-    return response_decorator
-
-
 class RestClient(object):
 
     """
@@ -276,7 +248,7 @@ class RestClient(object):
     """
 
     SAVE_RESPONSE = True
-    EXPIRY_MIN = 60
+    cache_manager = CacheAPIManager()
 
     def __init__(self, service):
 
@@ -286,53 +258,7 @@ class RestClient(object):
     def disable_ssl_cert_validation(self):
         self.disable_ssl_certificate_validation = True
 
-    def _save_response(self, req_base_url, req_resource, resp_content, resp_content_json,
-                       *req_args, **req_kwargs):
-        """
-        Save API responses in db
-        """
-        cache_params = {}
-        match_params = {
-            'base_url': req_base_url,
-            'resource': req_resource,
-        }
-        cache_params.update(match_params)
-        cache_params['request_args'] = req_args
-        cache_params['request_kwargs'] = str(req_kwargs)
-        cache_params['response_content'] = resp_content
-        cache_params['response_content_json_str'] = json.dumps(resp_content_json)
-        cache_params['expiry'] = timezone.now() + timedelta(minutes=self.EXPIRY_MIN)
-        try:
-            CacheAPI.objects.update_or_create(
-                base_url=req_base_url, resource=req_resource, defaults=cache_params
-            )
-        except Exception as e:
-            # log error
-            pass
-
-    def _return_cached_response(self, base_url, resource):
-        """
-        Check cached response in db
-        :param base_url:
-        :param resource:
-        :return:
-        """
-        try:
-            fields = ['expiry', 'response_content', 'response_content_json_str']
-            filter_params = {
-                'base_url': base_url,
-                'resource': resource,
-            }
-            cache = CacheAPI.objects.only(*fields).filter(**filter_params).first()
-        except Exception as e:
-            # log error
-            pass
-        else:
-            if cache:
-                if cache.expiry > timezone.now():
-                    return cache.response_content, cache.response_content_json
-        return False, False
-
+    @set_api_auth()
     def process_request(self, base_url, resource, *args, **kwargs):
         """
         Process REST Request
@@ -342,35 +268,33 @@ class RestClient(object):
         :param kwargs: dict
         :return: dict
         """
+
         headers = kwargs['headers'] if 'headers' in kwargs else {}
         body = kwargs['body'] if 'body' in kwargs else None
         extension = kwargs.get('ext')
-        # set auth
-        auth_tuple = None
-        if kwargs.get('auth_user') and kwargs.get('auth_token'):
-            if self.service == TRANSPLATFORM_ENGINES[1] or self.service == TRANSPLATFORM_ENGINES[3]:
-                auth_tuple = (kwargs['auth_user'], kwargs['auth_token'])
-            elif self.service == TRANSPLATFORM_ENGINES[2]:
-                headers['X-Auth-User'] = kwargs['auth_user']
-                headers['X-Auth-Token'] = kwargs['auth_token']
         # set headers
+        auth_tuple = kwargs.get('auth_tuple')
         service_details = ServiceConfig(self.service, resource, auth=auth_tuple)
         if hasattr(service_details, 'response_media_type') and service_details.response_media_type:
             headers['Accept'] = service_details.response_media_type
         if hasattr(service_details, 'request_media_type') and service_details.request_media_type:
             headers['Content-Type'] = service_details.request_media_type
-        # set resource
+        # format resource
         resource = (
             service_details.resource.format(**dict(zip(service_details.path_params or [], args)))
             if args else service_details.resource
         )
+        # handle extensions
         if isinstance(extension, bool):   # extension should be boolean
             ext = "&".join(service_details.query_params)
             resource = resource + "?" + ext
         elif isinstance(extension, str):
             resource = resource + "?" + extension
+        if 'auth_token_ext' in kwargs and kwargs.get('auth_token_ext'):
+            separator = "&" if "?" in resource else "?"
+            resource = resource + separator + kwargs.get('auth_token_ext')
         # Lets check with cache
-        c_content, c_json_content = self._return_cached_response(base_url, resource)
+        c_content, c_json_content = self.cache_manager.get_cached_response(base_url, resource)
         if c_content:
             return {'content': c_content, 'json_content': c_json_content}
         # initiate service call
@@ -381,6 +305,8 @@ class RestClient(object):
         )
         api_response_dict = rest_handle.get_response_dict()
         if self.SAVE_RESPONSE:
-            self._save_response(base_url, resource, api_response_dict['content'],
-                                api_response_dict['json_content'], *args, **kwargs)
+            self.cache_manager.save_api_response(
+                base_url, resource, api_response_dict['content'],
+                api_response_dict['json_content'], *args, **kwargs
+            )
         return api_response_dict
