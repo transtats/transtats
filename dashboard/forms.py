@@ -34,7 +34,7 @@ from dashboard.managers.inventory import InventoryManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES,
-    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS, WEBLATE_SLUGS
+    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS, WEBLATE_SLUGS, MEMSOURCE_SLUGS
 )
 
 __all__ = ['NewPackageForm', 'UpdatePackageForm', 'NewReleaseBranchForm',
@@ -50,6 +50,7 @@ all_platform_slugs.extend(TRANSIFEX_SLUGS)
 all_platform_slugs.extend(ZANATA_SLUGS)
 all_platform_slugs.extend(DAMNEDLIES_SLUGS)
 all_platform_slugs.extend(WEBLATE_SLUGS)
+all_platform_slugs.extend(MEMSOURCE_SLUGS)
 SLUG_CHOICES = tuple([(slug, slug) for slug in all_platform_slugs])
 
 
@@ -541,8 +542,8 @@ class NewTransPlatformForm(forms.ModelForm):
 
     class Meta:
         model = Platform
-        fields = ['engine_name', 'subject', 'api_url', 'platform_slug', 'server_status', 'server_status',
-                  'auth_login_id', 'auth_token_key']
+        fields = ['engine_name', 'subject', 'api_url', 'platform_slug',
+                  'server_status', 'ci_status', 'auth_login_id', 'auth_token_key']
 
     engine_name = forms.ChoiceField(
         choices=ENGINE_CHOICES, label="Platform Engine",
@@ -564,6 +565,7 @@ class NewTransPlatformForm(forms.ModelForm):
             Field('server_status', css_class='bootstrap-switch'),
             Field('auth_login_id', css_class='form-control'),
             Field('auth_token_key', css_class='form-control'),
+            Field('ci_status', css_class='bootstrap-switch'),
             FormActions(
                 Submit('addTransPlatform', 'Add Translation Platform'), Reset('reset', 'Reset', css_class='btn-danger')
             )
@@ -581,7 +583,7 @@ class UpdateTransPlatformForm(forms.ModelForm):
     class Meta:
         model = Platform
         fields = ['engine_name', 'subject', 'api_url', 'platform_slug', 'server_status',
-                  'auth_login_id', 'auth_token_key']
+                  'auth_login_id', 'auth_token_key', 'token_expiry', 'ci_status']
 
     helper = FormHelper()
     helper.form_method = 'POST'
@@ -595,9 +597,11 @@ class UpdateTransPlatformForm(forms.ModelForm):
             Field('server_status', css_class='bootstrap-switch'),
             Field('auth_login_id', css_class='form-control'),
             Field('auth_token_key', css_class='form-control'),
+            Field('token_expiry', css_class='form-control', readonly=True),
+            Field('ci_status', css_class='bootstrap-switch'),
             HTML("<hr/>"),
-            HTML("<h5>After update, please run <span class='text-info'>Sync Translation Platforms</span>"
-                 " in <span class='text-info'>Predefined Jobs</span>.</h5>"),
+            HTML("<h5 class='pull-right'>Run <span class='text-info'>Sync Translation Platforms</span>"
+                 " in <span class='text-info'>Predefined Jobs</span> to update projects.</h5>"),
             FormActions(
                 Submit('updateTransPlatform', 'Update Translation Platform'),
                 Reset('reset', 'Reset', css_class='btn-danger')
