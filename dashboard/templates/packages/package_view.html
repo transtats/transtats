@@ -90,12 +90,16 @@
           </li>
         </ul>
       </span>
+        &nbsp;&nbsp;
       <span>
-          {% if user.is_staff %}
-            <a href="{% url 'package-update' package_name %}" class="btn btn-default btn-small">Edit</a>
-          {% endif %}
           <a type="button" class="btn btn-default" href="{% url 'jobs-logs-package' package_name %}"data-toggle="tooltip" title="Job logs of {{ package_name }}">
           <span class="fa fa-bolt" aria-hidden="true"></span> Related Jobs</a>
+          {% if user.is_staff %}&nbsp;&nbsp;
+            <a href="{% url 'package-update' package_name %}" class="btn btn-default btn-small">
+              <span class="fa fa-gear" aria-hidden="true"></span> Settings
+            </a>
+          {% endif %}
+          &nbsp;&nbsp;
           <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default btn-small">Go Back</a>
       </span>
       <br/>
@@ -123,14 +127,15 @@
       <div id="div-graph-area" class="graph-area-ts graph-area"></div>
       <div id="div-graph-disclaimer" class="panel-footer"></div>
     </div>
-    <div class="row">
-      <div id="div-branch-mapping" class="col-sm-6">
-        {% tag_branch_mapping package_name %}
-      </div>
-      <div id="div-latest-builds" class="col-sm-6">
-        {% tag_latest_builds package_name %}
-      </div>
-    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div id="div-branch-mapping" class="col-sm-6">
+    {% tag_branch_mapping package_name %}
+  </div>
+  <div id="div-latest-builds" class="col-sm-6">
+    {% tag_latest_builds package_name %}
   </div>
 </div>
 
