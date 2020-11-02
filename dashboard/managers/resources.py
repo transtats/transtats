@@ -34,7 +34,32 @@ from dashboard.decorators import call_service
 __all__ = ['APIResources']
 
 
-class GitPlatformResources(object):
+class ResourcesBase(object):
+    """
+    Base class for resources
+    """
+    def _execute_method(self, api_config, *args, **kwargs):
+        """
+        Executes located method with required params
+        """
+        try:
+            if api_config.get('ext'):
+                kwargs.update(dict(ext=True))
+            service_resource = api_config['resources'][0]
+            if len(api_config['resources']) > 1:
+                kwargs.update(dict(more_resources=api_config['resources'][1:]))
+            if api_config.get('combine_results'):
+                kwargs['combine_results'] = []
+            return api_config['method'](
+                api_config['base_url'], service_resource, *args, **kwargs
+            )
+        except (KeyError, Exception):
+            # log error
+            pass
+        return {}
+
+
+class GitPlatformResources(ResourcesBase):
     """
     Git Platform related Resources
     """
@@ -79,22 +104,6 @@ class GitPlatformResources(object):
         response = kwargs.get('rest_response', {})
         return response.get('json_content', {}).get('branches', [])
 
-    def _execute_method(self, api_config, *args, **kwargs):
-        """
-        Executes located method with required params
-        """
-        try:
-            service_resource = api_config['resources'][0]
-            if len(api_config['resources']) > 1:
-                kwargs.update(dict(more_resources=api_config['resources'][1:]))
-            return api_config['method'](
-                api_config['base_url'], service_resource, *args, **kwargs
-            )
-        except (KeyError, Exception):
-            # log error
-            pass
-        return {}
-
     def fetch_repo_branches(self, git_platform, instance_url, *args, **kwargs):
         """
         Fetches all projects or modules json from API
@@ -125,7 +134,7 @@ class GitPlatformResources(object):
         return self._execute_method(selected_config, *args, **kwargs)
 
 
-class TransplatformResources(object):
+class TransplatformResources(ResourcesBase):
     """
     Translation Platform related Resources
     """
@@ -315,26 +324,6 @@ class TransplatformResources(object):
                 base_url, resource, *url_params, **kwargs
             )
         return dict(id=url_params[1], stats=kwargs['combine_results'])
-
-    def _execute_method(self, api_config, *args, **kwargs):
-        """
-        Executes located method with required params
-        """
-        try:
-            if api_config.get('ext'):
-                kwargs.update(dict(ext=True))
-            service_resource = api_config['resources'][0]
-            if len(api_config['resources']) > 1:
-                kwargs.update(dict(more_resources=api_config['resources'][1:]))
-            if api_config.get('combine_results'):
-                kwargs['combine_results'] = []
-            return api_config['method'](
-                api_config['base_url'], service_resource, *args, **kwargs
-            )
-        except (KeyError, Exception):
-            # log error
-            pass
-        return {}
 
     def fetch_all_projects(self, translation_platform, instance_url, *args, **kwargs):
         """
