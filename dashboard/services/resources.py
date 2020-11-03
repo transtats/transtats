@@ -254,6 +254,12 @@ class TransplatformResources(ResourcesBase):
         return kwargs['combine_results']
 
     @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[4])
+    def _fetch_memsource_project_details(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('json_content')
+
+    @staticmethod
     def _locate_damnedlies_stats(module_stat):
         translated, fuzzy, untranslated, total = 0, 0, 0, 0
         if isinstance(module_stat.get('domain'), list):
@@ -395,6 +401,12 @@ class TransplatformResources(ResourcesBase):
                 'base_url': instance_url,
                 'resources': ['project_details', 'project_components'],
                 'combine_results': True,
+                'project': args[0],
+            },
+            TRANSPLATFORM_ENGINES[4]: {
+                'method': self._fetch_memsource_project_details,
+                'base_url': instance_url,
+                'resources': ['project_details'],
                 'project': args[0],
             }
         }

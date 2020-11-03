@@ -16,9 +16,10 @@
                   <span class="text-primary pull-right">{{ sync_stats|length }}</span></h3>
           </div>
           <div class="panel-body">
-            This would initiate a cleanup job:
+            <span class="pficon pficon-warning-triangle-o" aria-hidden="true"></span>
+              This would initiate a cleanup job:
               <span class="text-info" data-toggle="tooltip" title="caution: this operation cannot be reversed">
-                  to hide obsolete sync statistics branches.</span><hr/>
+                  to hide obsolete sync statistics branches <b>across packages</b>.</span><hr/>
             <form method="post" id ="syncBuildTagsForm" class="form-horizontal" action="{% url 'jobs-cleanup' %}">{% csrf_token %}
                 {% if success_msg %}<div class="text-success">{{ success_msg }}</div>{% endif %}
                 <div class="row">
@@ -32,8 +33,11 @@
                     </div>
                     {% endfor %}
                 </div>
-                <button type="submit" data-loading-text="Disabling..." class="btn btn-warning pull-right">
+                <div class="pull-right">
+                <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default btn-small">Cancel</a>
+                <button type="submit" data-loading-text="Disabling..." class="btn btn-warning">
                     Toggle Visibility</button>
+                </div>
             </form>
           </div>
         </div>
