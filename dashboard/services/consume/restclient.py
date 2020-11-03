@@ -33,8 +33,8 @@ from .config.pagure import resources as pagure_resources
 from .config.pagure import resource_config_dict as pagure_config
 
 # Memsource specific imports
-from .config.pagure import resources as memsource_resources
-from .config.pagure import resource_config_dict as memsource_config
+from .config.memsource import resources as memsource_resources
+from .config.memsource import resource_config_dict as memsource_config
 
 # Transifex specific imports
 from .config.transifex import resources as transifex_resources
@@ -268,7 +268,6 @@ class RestClient(object):
         :param kwargs: dict
         :return: dict
         """
-
         headers = kwargs['headers'] if 'headers' in kwargs else {}
         body = kwargs['body'] if 'body' in kwargs else None
         extension = kwargs.get('ext')
