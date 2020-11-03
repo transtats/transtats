@@ -90,10 +90,10 @@
             <li>
               {% if auth == 'fas' %}
                   <form id="logout" action="{% url 'oidc_logout' %}" method="post">{% csrf_token %}
-                      <button type="submit" class="btn btn-logout">
-                  <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
-                  <span class="nounderline">&nbsp;Logout</span></button>
-              </form>
+                      <button type="submit" class="link btn-logout">
+                      <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
+                      <span class="nounderline">&nbsp;Logout</span></button>
+                  </form>
               {% else %}
                 <a href="{% url 'admin:logout' %}">
                     <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
