@@ -176,6 +176,21 @@ class TransplatformResources(ResourcesBase):
         return kwargs['combine_results']
 
     @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[4])
+    def _fetch_memsource_projects(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        if response.get("json_content").get("content"):
+            kwargs['combine_results'].extend(response['json_content']['content'])
+        resp_page_number = response.get("json_content").get("pageNumber", 0)
+        resp_total_pages = response.get("json_content").get("totalPages", 0)
+        if resp_page_number < resp_total_pages:
+            kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
+            TransplatformResources._fetch_memsource_projects(
+                base_url, resource, *url_params, **kwargs
+            )
+        return kwargs['combine_results']
+
+    @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
     def _fetch_damnedlies_releases(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
@@ -359,6 +374,12 @@ class TransplatformResources(ResourcesBase):
             },
             TRANSPLATFORM_ENGINES[3]: {
                 'method': self._fetch_weblate_projects,
+                'base_url': instance_url,
+                'resources': ['list_projects'],
+                'combine_results': True,
+            },
+            TRANSPLATFORM_ENGINES[4]: {
+                'method': self._fetch_memsource_projects,
                 'base_url': instance_url,
                 'resources': ['list_projects'],
                 'combine_results': True,

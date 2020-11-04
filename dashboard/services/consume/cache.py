@@ -98,7 +98,10 @@ class CacheAPIManager(object):
         else:
             # API auth token is still valid
             if platform and platform.engine_name == TRANSPLATFORM_ENGINES[4]:
-                if platform.token_status and platform.token_api_json:
+                if platform.token_status and \
+                        platform.token_api_json and \
+                        platform.auth_login_id == \
+                        platform.token_api_json.get("user", {}).get("userName", ""):
                     return platform.token_api_json.get("token", "")
                 else:
                     # either no or invalid API auth token, prepare and call API
