@@ -6,9 +6,10 @@
     <div class="col-xs-12 col-sm-4 col-md-3">
       <div class="card-pf card-pf-utilization card-pf-accented card-releases-ts">
         <h2 class="card-pf-title">
-          <a href="{% url 'trans-status-release' summary.slug %}" data-toggle="tooltip" title="Show stats for {{ release }}">
-            {{ release }}
-          </a>
+          {{ release }}
+          <span class="pull-right">
+            <a href="{% url 'trans-status-release' summary.slug %}" class="btn btn-default">Stats</a>
+          </span>
         </h2>
         <div class="card-pf-body">
           <p class="card-pf-utilization-details">
@@ -49,7 +50,7 @@
   </div>
 </div>
 <div class="panel-footer">
-  <span>Click a <span class="text-info">release</span> or a <span class="text-info">language</span> to see details!</span>
+  <span>Click a <span class="text-info">language</span> to see details!</span>
   <span class="pull-right text-muted">Updated <span class="text-info">{{ last_updated|timesince }}</span> ago</span>
 </div>
 {% else %}
