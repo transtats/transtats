@@ -42,6 +42,29 @@
 {% if package.created_by and user.is_authenticated %}
   <strong>Maintainer: </strong>
   <span class="text-info">{{ package.created_by }}</span>
+  {% if user.is_staff or package.created_by == user.email %}
+    <span class="pull-right">
+      <a href="{% url 'package-update' package.package_name %}" class="btn btn-default"
+         data-toggle="tooltip" title="Settings">
+        <span class="pficon pficon-maintenance" aria-hidden="true"></span>
+      </a>&nbsp;&nbsp;
+      <span class="dropdown dropdown-kebab-pf">
+        <button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+          <span class="fa fa-ellipsis-v"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right">
+          <li><a href="{% url 'package-add-ci-pipeline' package.package_name %}">
+            <span class="pficon pficon-add-circle-o" aria-hidden="true"></span> CI Pipeline</a>
+          </li>
+          <li><a href="#"><span class="fa fa-calendar" aria-hidden="true"></span> Schedules</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="{% url 'jobs-cleanup' %}">
+                <span class="fa fa-eye-slash" aria-hidden="true"></span> Hide Branches
+              </a></li>
+        </ul>
+      </span>
+    </span>
+  {% endif %}
 {% endif %}
 </h5>
 

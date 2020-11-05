@@ -89,21 +89,14 @@
               <input type="hidden" value="statsDiff" id="stats-diff-identifier" />Statistics Diff</a>
           </li>
         </ul>
-      </span>
-        &nbsp;&nbsp;
+      </span>&nbsp;&nbsp;
       <span>
-          <a type="button" class="btn btn-default" href="{% url 'jobs-logs-package' package_name %}"data-toggle="tooltip" title="Job logs of {{ package_name }}">
-          <span class="fa fa-bolt" aria-hidden="true"></span> Related Jobs</a>
-          {% if user.is_staff %}&nbsp;&nbsp;
-            <a href="{% url 'package-update' package_name %}" class="btn btn-default btn-small">
-              <span class="fa fa-gear" aria-hidden="true"></span> Settings
-            </a>
-          {% endif %}
-          &nbsp;&nbsp;
+          <a type="button" class="btn btn-default" href="{% url 'jobs-logs-package' package_name %}"
+             data-toggle="tooltip" title="{{ package_name }} logs">
+          <span class="fa fa-bolt" aria-hidden="true"></span> Related Jobs</a>&nbsp;&nbsp;
           <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default btn-small">Go Back</a>
       </span>
-      <br/>
-      <br/>
+      <br/><br/>
       <span id="span-alerts" class="text-warning pull-right"></span>
     </span>
   </div>
@@ -128,6 +121,10 @@
       <div id="div-graph-disclaimer" class="panel-footer"></div>
     </div>
   </div>
+</div>
+
+<div>
+  {% include "ci/_ci_pipeline.html" %}
 </div>
 
 <div class="row">

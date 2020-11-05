@@ -27,7 +27,7 @@ from rest_framework.documentation import include_docs_urls
 from dashboard.services.urls import api_urls
 from dashboard.views import (
     TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
-    TransPlatformSettingsView, LanguagesSettingsView, PackageSettingsView,
+    TransPlatformSettingsView, LanguagesSettingsView, PackageSettingsView, AddPackageCIPipeline,
     JobsView, JobsLogsView, JobsArchiveView, JobsLogsPackageView, NewPackageView, UpdatePackageView, TransCoverageView,
     StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, YMLBasedJobs,
     NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, graph_data,
@@ -112,6 +112,8 @@ packages_urls = [
     url(r'^view/(?P<package_name>[\w\-\+]+)$', TranStatusPackageView.as_view(), name="package-view"),
     url(r'^edit/(?P<slug>[\w-]+)$', login_required(UpdatePackageView.as_view(), login_url=LOGIN_URL),
         name="package-update"),
+    url(r'^add/(?P<slug>[\w-]+)/ci-pipeline$', login_required(AddPackageCIPipeline.as_view(), login_url=LOGIN_URL),
+        name="package-add-ci-pipeline"),
     url(r'^export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
 ]
 

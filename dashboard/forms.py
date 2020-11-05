@@ -28,7 +28,7 @@ from django import forms
 
 # dashboard
 from dashboard.models import (
-    Language, LanguageSet, Platform, Package, GraphRule
+    Language, LanguageSet, Platform, Package, GraphRule, CIPipeline
 )
 from dashboard.managers.inventory import InventoryManager
 from dashboard.managers.packages import PackagesManager
@@ -558,10 +558,10 @@ class NewTransPlatformForm(forms.ModelForm):
     helper.form_class = 'dynamic-form'
     helper.layout = Layout(
         Div(
-            Field('engine_name', css_class='form-control'),
+            Field('engine_name', css_class='selectpicker'),
             Field('subject', css_class='form-control'),
             Field('api_url', css_class='form-control'),
-            Field('platform_slug', css_class='form-control'),
+            Field('platform_slug', css_class='selectpicker'),
             Field('server_status', css_class='bootstrap-switch'),
             Field('auth_login_id', css_class='form-control'),
             Field('auth_token_key', css_class='form-control'),
@@ -584,6 +584,10 @@ class UpdateTransPlatformForm(forms.ModelForm):
         model = Platform
         fields = ['engine_name', 'subject', 'api_url', 'platform_slug', 'server_status',
                   'auth_login_id', 'auth_token_key', 'token_expiry', 'ci_status']
+
+    auth_token_key = forms.CharField(label="Auth Password/Token",
+                                     widget=forms.PasswordInput(render_value=True),
+                                     required=False)
 
     helper = FormHelper()
     helper.form_method = 'POST'
@@ -628,3 +632,43 @@ class UpdateTransPlatformForm(forms.ModelForm):
             return platform_slug
         else:
             return self.cleaned_data.get('platform_slug', None)
+
+
+class NewCIPipelineForm(forms.ModelForm):
+    """
+    Add new CI Pipeline form
+    """
+
+    ci_project_web_url = forms.URLField(
+        label='CI Platform Project URL', required=True,
+        help_text='CI Pipeline will be associated with this project.'
+    )
+
+    def __init__(self, *args, **kwargs):
+        ci_platform_choices = kwargs.pop('ci_platform_choices')
+        pkg_release_choices = kwargs.pop('pkg_release_choices')
+        super(NewCIPipelineForm, self).__init__(*args, **kwargs)
+        self.fields['ci_platform'].choices = ci_platform_choices
+        self.fields['ci_release'].choices = pkg_release_choices
+
+    class Meta:
+        model = CIPipeline
+        fields = ['ci_platform', 'ci_release', 'ci_push_job_template',
+                  'ci_pull_job_template', 'ci_project_web_url']
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('ci_platform', css_class='selectpicker'),
+            Field('ci_release', css_class='selectpicker'),
+            Field('ci_push_job_template', css_class='selectpicker'),
+            Field('ci_pull_job_template', css_class='selectpicker'),
+            Field('ci_project_web_url', css_class='form-control'),
+            FormActions(
+                Submit('addCIPipeline', 'Add CI Pipeline'),
+                Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
