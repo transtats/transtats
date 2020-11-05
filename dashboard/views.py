@@ -43,13 +43,14 @@ from dashboard.constants import (
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
-    NewLanguageForm, UpdateLanguageForm, LanguageSetForm,
+    NewLanguageForm, UpdateLanguageForm, LanguageSetForm, NewCIPipelineForm,
     NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager, SyncStatsManager
 )
 from dashboard.managers.packages import PackagesManager
+from dashboard.managers.pipelines import CIPipelineManager
 from dashboard.managers.jobs import (
     YMLBasedJobManager, JobsLogManager, TransplatformSyncManager,
     ReleaseScheduleSyncManager, BuildTagsSyncManager
@@ -74,6 +75,7 @@ class ManagersMixin(object):
     graph_manager = GraphManager()
     reports_manager = ReportsManager()
     geo_location_manager = GeoLocationManager()
+    ci_pipeline_manager = CIPipelineManager()
 
     def get_summary(self):
         """
@@ -881,6 +883,86 @@ class UpdateTransPlatformView(SuccessMessageMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('transplatform-update', args=[self.object.platform_slug])
+
+
+class AddPackageCIPipeline(ManagersMixin, FormView):
+    """
+    Add Package CI Pipeline View
+    """
+    template_name = 'ci/add_pipeline.html'
+    success_message = '%(ci_pipeline_uuid)s was added successfully!'
+
+    def get(self, request, *args, **kwargs):
+        if kwargs.get('slug') and not request.user.is_staff:
+            pkg = self.packages_manager.get_packages(pkgs=[kwargs['slug']]).get()
+            if not pkg.created_by == request.user.email and \
+                    not request.user.is_superuser:
+                raise PermissionDenied
+        return super(AddPackageCIPipeline, self).get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context_data = super(AddPackageCIPipeline, self).get_context_data(**kwargs)
+        if self.kwargs.get("slug"):
+            context_data["package_name"] = self.kwargs.get("slug")
+        return context_data
+
+    def get_form(self, form_class=None, data=None):
+        kwargs = {}
+        ci_platforms = self.inventory_manager.get_translation_platforms(ci=True)
+        ci_platform_choices = tuple([(platform.platform_id, platform.__str__)
+                                     for platform in ci_platforms])
+        kwargs.update(dict(ci_platform_choices=ci_platform_choices))
+        pkg_releases = self.packages_manager.get_package_releases(
+            package_name=self.kwargs['slug']
+        )
+        pkg_release_choices = tuple([(release.release_id, release.__str__)
+                                     for release in pkg_releases])
+        kwargs.update(dict(pkg_release_choices=pkg_release_choices))
+        if data:
+            kwargs.update({'data': data})
+        return NewCIPipelineForm(**kwargs)
+
+    def get_success_url(self):
+        return reverse('package-add-ci-pipeline', args=[self.kwargs.get('slug')])
+
+    def post(self, request, *args, **kwargs):
+        post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_data)
+
+        context_data = {}
+        package_name = self.kwargs.get('slug')
+        context_data.update(dict(package_name=package_name))
+
+        if form.is_valid():
+            post_params = form.cleaned_data
+            # Assumption: Project URL starts with Platform API URL (which is saved in db)
+            if post_params['ci_platform'].api_url not in post_params['ci_project_web_url']:
+                errors = form._errors.setdefault('ci_project_web_url', ErrorList())
+                errors.append("Seems like project URL does NOT belong to the selected platform.")
+                context_data['form'] = form
+                return render(request, self.template_name, context=context_data)
+            post_params['ci_package'] = self.packages_manager.get_packages(
+                pkgs=[package_name]).get()
+            p_uuid, p_details = self.ci_pipeline_manager.ci_platform_project_details(
+                post_params['ci_platform'], post_params['ci_project_web_url']
+            )
+            if not p_details:
+                context_data = {}
+                errors = form._errors.setdefault('ci_project_web_url', ErrorList())
+                errors.append("Project details could not be fetched for the given URL.")
+                context_data['form'] = form
+                return render(request, self.template_name, context=context_data)
+            post_params['ci_project_details_json_str'] = json.dumps(p_details)
+            if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
+                messages.add_message(request, messages.ERROR, (
+                    'Alas! Something unexpected happened. Please try adding pipeline again!'
+                ))
+            else:
+                messages.add_message(request, messages.SUCCESS, (
+                    'Great! CI Pipeline added successfully.'
+                ))
+            return HttpResponseRedirect(self.get_success_url())
+        return render(request, self.template_name, context=context_data)
 
 
 class TerritoryView(ManagersMixin, TemplateView):

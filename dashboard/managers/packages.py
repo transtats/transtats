@@ -90,6 +90,22 @@ class PackagesManager(InventoryManager):
                 'ERROR', "Package could not be updated, details: " + str(e)
             )
 
+    def get_package_releases(self, package_name):
+        """
+        Get releases (whose translation are being tracked) of a package
+        :param package_name: str
+        :return: [releases]
+        """
+        releases = []
+        package = self.get_packages(pkgs=[package_name])
+        if package:
+            package = package.get()
+            for product in package.products:
+                releases.extend(
+                    self.release_manager.get_release_branches(relstream=product)
+                )
+        return releases
+
     def get_relbranch_specific_pkgs(self, release_branch, fields=None):
         """
         fetch release branch specific packages from db
