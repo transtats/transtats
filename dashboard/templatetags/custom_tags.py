@@ -28,6 +28,7 @@ from dashboard.managers.graphs import (
 from dashboard.managers.jobs import JobTemplateManager, JobsLogManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
+from dashboard.managers.pipelines import CIPipelineManager
 
 
 register = template.Library()
@@ -525,4 +526,18 @@ def tag_location_summary(country_code):
     if last_updated:
         return_value["last_updated"] = last_updated
     return_value["country_code"] = country_code
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("ci", "_ci_pipeline.html")
+)
+def tag_ci_pipelines(package_name):
+    return_value = OrderedDict()
+    package_manager = PackagesManager()
+    ci_pipeline_manager = CIPipelineManager()
+    pipelines = ci_pipeline_manager.get_ci_pipelines(
+        packages=package_manager.get_packages(pkgs=[package_name])
+    )
+    return_value['pipelines'] = pipelines
     return return_value

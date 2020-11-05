@@ -906,7 +906,7 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
             # Assumption: Project URL starts with Platform API URL (which is saved in db)
             if post_params['ci_platform'].api_url not in post_params['ci_project_web_url']:
                 errors = form._errors.setdefault('ci_project_web_url', ErrorList())
-                errors.append("Seems like project URL does NOT belong to the selected platform.")
+                errors.append("Project URL does NOT belong to the selected platform.")
                 context_data['form'] = form
                 return render(request, self.template_name, context=context_data)
             post_params['ci_package'] = self.packages_manager.get_packages(
@@ -915,7 +915,6 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
                 post_params['ci_platform'], post_params['ci_project_web_url']
             )
             if not p_details:
-                context_data = {}
                 errors = form._errors.setdefault('ci_project_web_url', ErrorList())
                 errors.append("Project details could not be fetched for the given URL.")
                 context_data['form'] = form
