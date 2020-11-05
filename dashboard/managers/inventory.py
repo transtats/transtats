@@ -198,7 +198,7 @@ class InventoryManager(BaseManager):
             )
         return required_locales
 
-    def get_translation_platforms(self, engine=None, only_active=None):
+    def get_translation_platforms(self, engine=None, only_active=None, ci=None):
         """
         fetch all translation platforms from db
         """
@@ -207,6 +207,8 @@ class InventoryManager(BaseManager):
             filter_kwargs.update(dict(engine_name=engine))
         if only_active:
             filter_kwargs.update(dict(server_status=True))
+        if ci:
+            filter_kwargs.update(dict(ci_status=True))
 
         platforms = None
         try:

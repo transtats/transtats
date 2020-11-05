@@ -142,12 +142,20 @@ class InventoryManagerTest(FixtureTestCase):
         self.assertEqual(transplatforms[1].api_url, 'https://translate.zanata.org')
         self.assertEqual(transplatforms[1].platform_slug, 'ZNTAPUB')
 
+    def test_get_ci_platforms(self):
+        """
+        Test get_translation_platforms
+        """
+        ciplatforms = self.inventory_manager.get_translation_platforms(ci=True)
+        self.assertEqual(ciplatforms[0].api_url, 'https://cloud.memsource.com/web')
+        self.assertEqual(ciplatforms[0].platform_slug, 'MSRCPUB')
+
     def test_get_transplatforms_set(self):
         """
         Test get_transplatforms_set
         """
         active_platforms, inactive_platforms = self.inventory_manager.get_transplatforms_set()
-        self.assertEqual(len(active_platforms), 2)
+        self.assertEqual(len(active_platforms), 3)
         self.assertEqual(len(inactive_platforms), 0)
 
     def test_get_transplatform_slug_url(self):
@@ -155,7 +163,8 @@ class InventoryManagerTest(FixtureTestCase):
         test get_transplatform_slug_url
         """
         slug_url_tuple = self.inventory_manager.get_transplatform_slug_url()
-        self.assertTupleEqual(slug_url_tuple, (('ZNTAFED', 'https://fedora.zanata.org'),
+        self.assertTupleEqual(slug_url_tuple, (('MSRCPUB', 'https://cloud.memsource.com/web'),
+                                               ('ZNTAFED', 'https://fedora.zanata.org'),
                                                ('ZNTAPUB', 'https://translate.zanata.org')))
 
     def test_get_relbranch_locales(self):

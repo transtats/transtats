@@ -87,6 +87,14 @@ class PlatformData(DataSet):
         platform_slug = 'ZNTAFED'
         server_status = True
 
+    class platform_memsource_cloud:
+        engine_name = 'memsource'
+        subject = 'cloud'
+        api_url = 'https://cloud.memsource.com/web'
+        platform_slug = 'MSRCPUB'
+        server_status = True
+        ci_status = True
+
 
 class ProductData(DataSet):
     class Meta:
