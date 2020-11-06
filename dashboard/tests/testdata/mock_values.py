@@ -15,7 +15,8 @@
 #
 # This file contains mock functions used for tests
 
-from dashboard.tests.testdata.test_data import mock_response_add_package, mock_response_validate_package
+from dashboard.tests.testdata.test_data import mock_response_add_package, \
+    mock_response_validate_package, mock_response_repo_branches
 
 
 def mock_requests_get_add_package(uri, **kwargs):
@@ -35,4 +36,14 @@ def mock_requests_get_validate_package(uri, **kwargs):
     :return: mock response object
     """
     response = mock_response_validate_package()
+    return response
+
+
+def mock_requests_get_git_branches(uri, **kwargs):
+    """
+    Mock function to patch requests.get for test_git_branches
+    :param uri: uri of api end point
+    :return: mock response object
+    """
+    response = mock_response_repo_branches()
     return response

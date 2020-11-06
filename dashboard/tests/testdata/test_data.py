@@ -80,3 +80,15 @@ class mock_response_validate_package(mock_response):
                 '"status":"ACTIVE",' \
                 '"defaultType":"Gettext"}]'
     resp_url = 'https://translate.zanata.org/rest/projects'
+
+
+class mock_response_repo_branches(mock_response):
+    """
+    Mock object for 'mock_values.mock_request_get_validate_package'
+    """
+    resp_text = '[{"name":"autoupdate-potfiles","commit":{"sha":"911be667af645fe1db70018295f5d7aed759b916",' \
+                '"url":"https://api.github.com/repos/rhinstaller/anaconda-l10n/commits/911be667af645fe1db70018295f5d7aed759b916"},' \
+                '"protected":false},{"name":"master","commit":{"sha":"59bd18f076e04692607dc74539f8f84f31809a99",' \
+                '"url":"https://api.github.com/repos/rhinstaller/anaconda-l10n/commits/59bd18f076e04692607dc74539f8f84f31809a99"}' \
+                ',"protected":false}]'
+    resp_url = 'https://api.github.com/repos/rhinstaller/anaconda-l10n/branches'
