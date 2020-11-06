@@ -201,7 +201,7 @@ class UpdatePackageForm(forms.ModelForm):
             new_platform_engine = packages_manager.get_engine_from_slug(platform_slug)
             if new_platform_engine:
                 packages_manager.syncstats_manager.toggle_visibility(
-                    package=package_name, visibility=True, stats_source=new_platform_engine
+                    package=package_name, stats_source=new_platform_engine
                 )
 
 
