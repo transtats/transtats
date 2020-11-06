@@ -26,9 +26,8 @@ from rest_framework.documentation import include_docs_urls
 # dashboard
 from dashboard.services.urls import api_urls
 from dashboard.views import (
-    TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
-    TransPlatformSettingsView, LanguagesSettingsView, PackageSettingsView, DeletePackageView,
-    TransPlatformSettingsView, LanguagesSettingsView, PackageSettingsView, AddPackageCIPipeline,
+    TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView, DeletePackageView,
+    TransPlatformSettingsView, LanguagesSettingsView, PackageSettingsView, AddPackageCIPipeline, hide_ci_pipeline,
     JobsView, JobsLogsView, JobsArchiveView, JobsLogsPackageView, NewPackageView, UpdatePackageView, TransCoverageView,
     StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, YMLBasedJobs,
     NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, graph_data,
@@ -75,6 +74,8 @@ ajax_urls = [
     url(r'^job-template$', job_template, name="ajax-job-template"),
     url(r'^change-lang-status$', staff_member_required(change_lang_status),
         name="ajax-change-lang-status"),
+    url(r'^remove-pipeline$', login_required(hide_ci_pipeline),
+        name="ajax-remove-pipeline"),
 ]
 
 coverage_urls = [

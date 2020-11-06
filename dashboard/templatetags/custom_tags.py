@@ -532,12 +532,13 @@ def tag_location_summary(country_code):
 @register.inclusion_tag(
     os.path.join("ci", "_ci_pipeline.html")
 )
-def tag_ci_pipelines(package_name):
+def tag_ci_pipelines(request, package_name):
     return_value = OrderedDict()
     package_manager = PackagesManager()
     ci_pipeline_manager = CIPipelineManager()
     pipelines = ci_pipeline_manager.get_ci_pipelines(
         packages=package_manager.get_packages(pkgs=[package_name])
     )
+    return_value['request'] = request
     return_value['pipelines'] = pipelines
     return return_value

@@ -8,7 +8,6 @@
         <h4 class="modal-title">API Authentication Token</h4>
       </div>
       <div class="modal-body">
-        <p>
           <h4>
             Your token is <span class="text-info">{{ user.auth_token.pk }}</span>
           </h4>
@@ -16,7 +15,6 @@
           <hr/>
           <h4>For API calls, add HTTP Header:</h4>
           <pre>Authorization: Token {{ user.auth_token.pk }}</pre>
-        </p>
       </div>
       <div class="modal-footer">
         <span class="text-muted pull-left">
