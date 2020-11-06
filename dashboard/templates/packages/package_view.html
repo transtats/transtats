@@ -103,8 +103,8 @@
   <div class="panel-body">
     <div id="div-package-details">
       {% tag_package_details package_name user %}
-      <hr/>
     </div>
+    <hr/>
     <div id="div-stats-diff">
       {% tag_stats_diff package_name %}
     </div>
@@ -123,7 +123,9 @@
   </div>
 </div>
 
-{% tag_ci_pipelines package_name %}
+<div id="div-ci-pipelines">
+  {% tag_ci_pipelines request package_name %}
+</div>
 
 <div class="row">
   <div id="div-branch-mapping" class="col-sm-6">
