@@ -14,7 +14,7 @@
 # under the License.
 
 # django
-from django.db.models import F
+from django.db.models import Case, Value, When
 
 # dadhboard
 from dashboard.constants import TRANSPLATFORM_ENGINES
@@ -102,7 +102,12 @@ class CIPipelineManager(BaseManager):
         filter_kwargs.update(dict(ci_pipeline_id=pipeline_id))
         try:
             CIPipeline.objects.filter(**filter_kwargs).update(
-                ci_pipeline_visibility=not F('ci_pipeline_visibility'))
+                ci_pipeline_visibility=Case(
+                    When(ci_pipeline_visibility=True, then=Value(False)),
+                    When(ci_pipeline_visibility=False, then=Value(True)),
+                    default=Value(True)
+                )
+            )
         except Exception as e:
             self.app_logger(
                 'ERROR', "CI Pipeline visibility could not be toggled, details: " + str(e)

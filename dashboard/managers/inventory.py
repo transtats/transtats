@@ -31,6 +31,7 @@ from slugify import slugify
 
 # django
 from django.conf import settings
+from django.db.models import Case, Value, When
 from django.utils import timezone
 
 # dashboard
@@ -521,11 +522,10 @@ class SyncStatsManager(BaseManager):
             return True
         return False
 
-    def toggle_visibility(self, package=None, visibility=False, stats_source=None, project_version=None):
+    def toggle_visibility(self, package=None, stats_source=None, project_version=None):
         """
         Toggle visibility of statistics to false or true
         :param package: Package Name: str
-        :param visibility: boolean
         :param stats_source: str
         :param project_version: str
         :return: boolean
@@ -538,7 +538,13 @@ class SyncStatsManager(BaseManager):
         if project_version:
             filter_kwargs.update(dict(project_version=project_version))
         try:
-            SyncStats.objects.filter(**filter_kwargs).update(sync_visibility=visibility)
+            SyncStats.objects.filter(**filter_kwargs).update(
+                sync_visibility=Case(
+                    When(sync_visibility=True, then=Value(False)),
+                    When(sync_visibility=False, then=Value(True)),
+                    default=Value(True)
+                )
+            )
         except Exception as e:
             self.app_logger(
                 'ERROR', "version stats could not be saved, details: " + str(e))
