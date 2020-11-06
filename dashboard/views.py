@@ -1418,3 +1418,24 @@ def change_lang_status(request):
             return HttpResponse("Parameters missing", status=422)
     else:
         return HttpResponse("Not an ajax call", status=400)
+
+
+def hide_ci_pipeline(request):
+    """
+    Hide CI Pipeline
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+    post_params = request.POST.dict()
+    package_owner = post_params.get('user', '')
+    ci_pipeline_id = post_params.get('pipeline_id', '')
+    if not package_owner and not ci_pipeline_id:
+        return HttpResponse("Invalid Parameters", status=422)
+    if not request.user.email == package_owner and not request.user.is_staff:
+        return HttpResponse("Access Denied", status=403)
+    ci_pipeline_manager = CIPipelineManager()
+    if ci_pipeline_manager.toggle_visibility(ci_pipeline_id):
+        return HttpResponse("Pipeline successfully removed.", status=202)
+    return HttpResponse(status=500)

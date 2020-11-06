@@ -13,18 +13,25 @@
           <!--</div>-->
           <div class="list-view-pf-actions">
             <button class="btn btn-default">Details</button>
-            <div class="dropdown pull-right dropdown-kebab-pf">
-              <button class="btn btn-link dropdown-toggle" type="button" id="dropdownKebabRight9" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                <span class="fa fa-ellipsis-v"></span>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight9">
-                <li><a href="#">Configure</a></li>
-                <li><a href="#">View Logs</a></li>
-                <!--<li><a href="#">Configure</a></li>-->
-                <li role="separator" class="divider"></li>
-                <li><a href="#">Remove</a></li>
-              </ul>
-            </div>
+            {% if request.user.is_staff or pipeline.ci_package.created_by == request.user.email %}
+              <script>
+                function removePipeline(e){waitSpinner.show(),$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-remove-pipeline' %}",data:{pipeline_id:e,user:"{{ pipeline.ci_package.created_by }}"},success:function(e){waitSpinner.hide(),$("#div-ci-pipelines").load(location.href+" #div-ci-pipelines"),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>CI Pipeline</strong> removed successfully!</div>')},error:function(e){waitSpinner.hide(),console.error(e.status,e.responseText),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>CI Pipeline</strong> could not be removed!</div>')}})}
+              </script>
+              <div class="dropdown pull-right dropdown-kebab-pf">
+                <button class="btn btn-link dropdown-toggle" type="button" id="dropdownKebabRight9" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                  <span class="fa fa-ellipsis-v"></span>
+                </button>
+                  <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight9">
+                    <li><a href="#"><span class="pficon pficon-settings" aria-hidden="true"></span> Configure</a></li>
+                    <li><a href="#"><span class="pficon pficon-orders" aria-hidden="true"></span> Sync Logs</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li><a id="idRemovePipeline"
+                           onClick='javascript:removePipeline({{ pipeline.ci_pipeline_id }})'>
+                      <span class="pficon pficon-error-circle-o" aria-hidden="true"></span>
+                      <span class="text-danger">Remove</span></a></li>
+                  </ul>
+              </div>
+            {% endif %}
         </div>
 
           <div class="list-view-pf-main-info">
@@ -100,120 +107,7 @@
               </span>
             </span>
           </div>
-
-<script>
-  var c3ChartDefaults = $().c3ChartDefaults();
-
-  // Donut configuration 1
-  var donutConfig1 = c3ChartDefaults.getDefaultDonutConfig('A');
-
-  donutConfig1.bindto = '#utilizationDonutChart11';
-  donutConfig1.data = {
-    type: "donut",
-    columns: [
-      ["Used", 60],
-      ["Available", 40],
-    ],
-    groups: [
-      ["used", "available"]
-    ],
-    order: null
-  };
-  donutConfig1.size = {
-    width: 180,
-    height: 180
-  };
-
-  donutConfig1.tooltip = {
-    contents: $().pfGetUtilizationDonutTooltipContentsFn('MHz')
-  };
-
-  c3.generate(donutConfig1);
-  $().pfSetDonutChartTitle("#utilizationDonutChart11", "60", "MHz Used");
-
-  // Donut configuration 2
-  var donutConfig2 = c3ChartDefaults.getDefaultDonutConfig('A');
-
-  donutConfig2.bindto = '#utilizationDonutChart12';
-  donutConfig2.data = {
-    type: "donut",
-    columns: [
-      ["Used", 60],
-      ["Available", 40]
-    ],
-    groups: [
-      ["used", "available"]
-    ],
-    order: null
-  };
-  donutConfig2.size = {
-    width: 180,
-    height: 180
-  };
-
-  donutConfig2.tooltip = {
-    contents: $().pfGetUtilizationDonutTooltipContentsFn('MHz')
-  };
-
-  c3.generate(donutConfig2);
-  $().pfSetDonutChartTitle("#utilizationDonutChart12", "60", "MHz Used");
-
-  // Donut configuration 3
-  var donutConfig3 = c3ChartDefaults.getDefaultDonutConfig('A');
-
-  donutConfig3.bindto = '#utilizationDonutChart13';
-  donutConfig3.data = {
-    type: "donut",
-    columns: [
-      ["Used", 60],
-      ["Available", 40]
-    ],
-    groups: [
-      ["used", "available"]
-    ],
-    order: null
-  };
-  donutConfig3.size = {
-    width: 140,
-    height: 140
-  };
-
-  donutConfig3.tooltip = {
-    contents: $().pfGetUtilizationDonutTooltipContentsFn('MHz')
-  };
-
-  c3.generate(donutConfig3);
-  $().pfSetDonutChartTitle("#utilizationDonutChart13", "60", "MHz Used");
-
-  // Donut configuration 4
-  var donutConfig4 = c3ChartDefaults.getDefaultDonutConfig('A');
-
-  donutConfig4.bindto = '#utilizationDonutChart14';
-  donutConfig4.data = {
-    type: "donut",
-    columns: [
-      ["Used", 60],
-      ["Available", 40]
-    ],
-    groups: [
-      ["used", "available"]
-    ],
-    order: null
-  };
-  donutConfig4.size = {
-    width: 140,
-    height: 140
-  };
-
-  donutConfig4.tooltip = {
-    contents: $().pfGetUtilizationDonutTooltipContentsFn('MHz')
-  };
-
-  c3.generate(donutConfig4);
-  $().pfSetDonutChartTitle("#utilizationDonutChart14", "60", "MHz Used");
-</script>
-
-</div>
+        </div>
 
         <div class="col-md-9">
           <dl class="dl-horizontal">

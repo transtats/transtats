@@ -13,6 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# django
+from django.db.models import F
+
 # dadhboard
 from dashboard.constants import TRANSPLATFORM_ENGINES
 from dashboard.managers import BaseManager
@@ -84,6 +87,25 @@ class CIPipelineManager(BaseManager):
         except Exception as e:
             self.app_logger(
                 'ERROR', "CI Pipeline could not be saved, details: " + str(e)
+            )
+        else:
+            return True
+        return False
+
+    def toggle_visibility(self, pipeline_id):
+        """
+        Toggle CI Pipeline Visibility
+        :param pipeline_id: int
+        :return: boolean
+        """
+        filter_kwargs = {}
+        filter_kwargs.update(dict(ci_pipeline_id=pipeline_id))
+        try:
+            CIPipeline.objects.filter(**filter_kwargs).update(
+                ci_pipeline_visibility=not F('ci_pipeline_visibility'))
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "CI Pipeline visibility could not be toggled, details: " + str(e)
             )
         else:
             return True

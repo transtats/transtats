@@ -40,7 +40,8 @@ from dashboard.models import (
 )
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, ZANATA_SLUGS, DAMNEDLIES_SLUGS,
-    TRANSIFEX_SLUGS, RELSTREAM_SLUGS, WEBLATE_SLUGS, BUILD_SYSTEMS
+    TRANSIFEX_SLUGS, RELSTREAM_SLUGS, WEBLATE_SLUGS,
+    BUILD_SYSTEMS, MEMSOURCE_SLUGS
 )
 from dashboard.managers.utilities import parse_ical_file
 
@@ -240,7 +241,8 @@ class InventoryManager(BaseManager):
         """
         count = 0
         platform_relation = {}
-        platform_slugs = [DAMNEDLIES_SLUGS, TRANSIFEX_SLUGS, ZANATA_SLUGS, WEBLATE_SLUGS]
+        platform_slugs = [DAMNEDLIES_SLUGS, TRANSIFEX_SLUGS,
+                          ZANATA_SLUGS, WEBLATE_SLUGS, MEMSOURCE_SLUGS]
 
         for engine in TRANSPLATFORM_ENGINES:
             platform_relation.update({engine: platform_slugs[count]})
