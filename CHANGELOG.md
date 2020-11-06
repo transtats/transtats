@@ -1,4 +1,9 @@
 ##### Fri Jan 15 2020 Sundeep Anand <suanand@redhat.com>
+* Add ci pipeline feature, list and hide pipelines
+* Implement Memsource projects and project_details API
+* Handle memsource token authentication
+* Memsource platform UI changes
+* database changes for CI pipeline module
 * Add memsource.com support in Transtats
 
 ##### Thu Jan 14 2021 Sundeep Anand <suanand@redhat.com> - release_0.8.1

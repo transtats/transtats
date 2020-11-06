@@ -22,8 +22,9 @@
                   <span class="fa fa-ellipsis-v"></span>
                 </button>
                   <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight9">
+                    <li><a href="#"><span class="fa fa-refresh" aria-hidden="true"></span> Refresh</a></li>
                     <li><a href="#"><span class="pficon pficon-settings" aria-hidden="true"></span> Configure</a></li>
-                    <li><a href="#"><span class="pficon pficon-orders" aria-hidden="true"></span> Sync Logs</a></li>
+                    <li><a href="#"><span class="pficon pficon-orders" aria-hidden="true"></span> View Logs</a></li>
                     <li role="separator" class="divider"></li>
                     <li><a id="idRemovePipeline"
                            onClick='javascript:removePipeline({{ pipeline.ci_pipeline_id }})'>
@@ -123,7 +124,7 @@
                 <dt>Status</dt>
                 <dd>{{ pipeline.ci_project_details_json|get_item:"status" }}</dd>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-5">
                 <dt>Push Job Template</dt>
                 <dd><code>{{ pipeline.ci_push_job_template.job_template_name }}</code></dd>
                 <dt>Pull Job Template</dt>
