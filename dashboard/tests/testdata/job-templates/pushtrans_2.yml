@@ -1,0 +1,20 @@
+job:
+  release: %RELEASE_SLUG%
+  exception: raise
+  execution: sequential
+  name: push translations
+  package: %PACKAGE_NAME%
+  return_type: json
+  tasks:
+  - clone:
+    - name: git repo
+    - type: l10n
+    - branch: %REPO_BRANCH%
+    - recursive: false
+  - push:
+    - name: Push file
+    - ext: PO
+    - target_langs: %TARGET_LANGS%
+    - prehook: skip
+    - posthook: skip
+  type: pushtrans

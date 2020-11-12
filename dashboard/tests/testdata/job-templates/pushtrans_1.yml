@@ -2,7 +2,7 @@ job:
   release: %RELEASE_SLUG%
   exception: raise
   execution: sequential
-  name: string change
+  name: push translations
   package: %PACKAGE_NAME%
   return_type: json
   tasks:
@@ -10,14 +10,16 @@ job:
     - name: git repo
     - type: %REPO_TYPE%
     - branch: %REPO_BRANCH%
-    - recursive: true
+    - recursive: false
   - generate:
     - name: POT file
     - cmd: cd po && intltool-update --pot --gettext-package=%PACKAGE_NAME%
     - domain: %PACKAGE_NAME%
     - overwrite: false
-  - download:
-    - name: Platform POT file
-    - dir: ''
-  - calculate: Diff
-  type: stringchange
+  - push:
+    - name: Push file
+    - ext: PO
+    - target_langs: %TARGET_LANGS%
+    - prehook: merge_POT
+    - posthook: skip
+  type: pushtrans

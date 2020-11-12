@@ -1,0 +1,19 @@
+job:
+  release: %RELEASE_SLUG%
+  exception: raise
+  execution: sequential
+  name: pull translations
+  package: %PACKAGE_NAME%
+  return_type: json
+  tasks:
+  - pull:
+    - name: Pull file
+    - ext: PO
+    - target_langs: %TARGET_LANGS%
+    - prehook: skip
+    - posthook: repair_fuzzy
+  - pullrequest:
+    - name: git repo
+    - type: %REPO_TYPE%
+    - branch: %REPO_BRANCH%
+  type: pulltrans
