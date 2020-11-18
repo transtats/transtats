@@ -316,7 +316,7 @@ class Generate(JobCommandBase):
         elif '&&' in command:
             sh_commands = [cmd.strip() for cmd in command.split('&&')]
         with open(os.path.join(
-                'dashboard', 'engine', 'commands.acl'), 'r'
+                'dashboard', 'jobs_framework', 'commands.acl'), 'r'
         ) as acl_values:
             allowed_base_commands = acl_values.read().splitlines()
             not_allowed = [cmd for cmd in sh_commands if cmd.split()[0] not in allowed_base_commands]
