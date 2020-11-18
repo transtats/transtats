@@ -11,10 +11,13 @@ job:
     - type: l10n
     - branch: %REPO_BRANCH%
     - recursive: false
-  - push:
-    - name: Push file
+  - filter:
+    - name: files
     - ext: PO
+  - upload:
+    - name: Push files
     - target_langs: %TARGET_LANGS%
     - prehook: skip
     - posthook: skip
+    - update: false
   type: pushtrans
