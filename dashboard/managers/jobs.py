@@ -34,9 +34,9 @@ from django.utils import timezone
 from dashboard.constants import (
     TS_JOB_TYPES, JOB_EXEC_TYPES, GIT_REPO_TYPE
 )
-from dashboard.engine.action_mapper import ActionMapper
-from dashboard.engine.ds import TaskList
-from dashboard.engine.parser import YMLPreProcessor, YMLJobParser
+from dashboard.jobs_framework.action_mapper import ActionMapper
+from dashboard.jobs_framework.ds import TaskList
+from dashboard.jobs_framework.parser import YMLPreProcessor, YMLJobParser
 from dashboard.managers import BaseManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
@@ -771,7 +771,7 @@ class YMLBasedJobManager(BaseManager):
         elif self.type == TS_JOB_TYPES[3] and self.buildsys:
             self._bootstrap(build_system=self.buildsys)
         # for sequential jobs, tasks should be pushed to linked list
-        # and output of previous task should be input for next task
+        # and output of previous task will be input for next task
         if JOB_EXEC_TYPES[0] in yml_job.execution:
             self.tasks_ds = TaskList()
         else:
