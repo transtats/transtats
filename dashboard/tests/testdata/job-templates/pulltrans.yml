@@ -6,12 +6,18 @@ job:
   package: %PACKAGE_NAME%
   return_type: json
   tasks:
-  - pull:
-    - name: Pull file
-    - ext: PO
+  - clone:
+    - name: git repo
+    - type: %REPO_TYPE%
+    - branch: %REPO_BRANCH%
+    - recursive: false
+  - download:
+    - name: Pull translated file
     - target_langs: %TARGET_LANGS%
+    - dir: ''
     - prehook: skip
     - posthook: repair_fuzzy
+  - replace: Downloaded files
   - pullrequest:
     - name: git repo
     - type: %REPO_TYPE%
