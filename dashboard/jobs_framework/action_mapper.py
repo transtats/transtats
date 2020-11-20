@@ -659,6 +659,8 @@ class Filter(JobCommandBase):
         try:
             trans_files = []
             search_dir = input['extract_dir'] if 'extract_dir' in input else input['src_tar_dir']
+            if kwargs.get('dir'):
+                search_dir = os.path.join(search_dir, kwargs['dir'])
             for root, dirs, files in os.walk(search_dir):
                 for file in files:
                     if file.endswith('.%s' % file_ext):
@@ -674,6 +676,98 @@ class Filter(JobCommandBase):
                 text_prefix='%s %s files filtered' % (len(trans_files), file_ext.upper())
             ))
             return {'trans_files': trans_files}, {task_subject: task_log}
+
+
+class Upload(JobCommandBase):
+    """
+    Handles all operations for UPLOAD Command
+    """
+
+    def push_files(self, input, kwargs):
+        """
+        Push translations to CI Platform
+        """
+        task_subject = "Push translations files"
+        task_log = OrderedDict()
+
+        job_post_resp = OrderedDict()
+        platform_project = input.get('ci_project_uid') or input.get('package')
+
+        file_ext = 'po'
+        if kwargs.get('ext'):
+            file_ext = kwargs['ext'].lower()
+
+        comma_delimiter = ','
+
+        target_langs = []
+        if kwargs.get('target_langs'):
+            if isinstance(kwargs['target_langs'], (list, tuple)):
+                target_langs = kwargs['target_langs']
+            elif isinstance(kwargs['target_langs'], str):
+                target_langs = kwargs['target_langs'].split(comma_delimiter) \
+                    if comma_delimiter in kwargs['target_langs'] \
+                    else [kwargs['target_langs']]
+
+        if target_langs and input.get('ci_pipeline_uuid') and input.get('ci_target_langs'):
+            if not set(target_langs).issubset(set(input['ci_target_langs'])):
+                raise Exception("Provided target langs do NOT belong to CI Pipeline.")
+
+        # filter files to be uploaded
+        collected_files = {}
+
+        def __file_filter_helper(z_file, z_lang):
+            z_file_lang = z_file.split('/')[-1].replace('.{}'.format(file_ext), '')
+            return z_lang in z_file_lang or z_lang in z_file_lang.lower()
+
+        for x_lang in target_langs:
+            for x_file in input.get('trans_files', []):
+                if __file_filter_helper(x_file, x_lang):
+                    collected_files[x_lang] = x_file
+
+        if collected_files and len(collected_files) > 0:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, str(collected_files),
+                text_prefix='%s %s files collected' % (len(collected_files), file_ext.upper())
+            ))
+
+            # let's try pushing the collected files, one by one
+            for lang, file_path in collected_files.items():
+                kwargs = dict()
+                with open(file_path, 'rb') as f:
+                    kwargs['data'] = f.read()
+
+                file_name = file_path.split('/')[-1]
+                platform_engine = input.get('pkg_ci_engine') or input.get('pkg_tp_engine')
+                platform_api_url = input.get('pkg_ci_url') or input.get('pkg_tp_url')
+                platform_auth_user = input.get('pkg_ci_auth_usr') or input.get('pkg_tp_auth_usr')
+                platform_auth_token = input.get('pkg_ci_auth_token') or input.get('pkg_tp_auth_token')
+
+                kwargs['headers'] = dict()
+                if platform_engine == TRANSPLATFORM_ENGINES[4]:
+                    kwargs['headers']["Memsource"] = str({"targetLangs": [lang], "continuous": True})
+                    kwargs['headers']["Content-Disposition"] = 'attachment; filename="{}"'.format(file_name)
+                kwargs['auth_user'] = platform_auth_user
+                kwargs['auth_token'] = platform_auth_token
+
+                try:
+                    upload_resp = self.api_resources.push_translations(
+                        platform_engine, platform_api_url, platform_project, **kwargs
+                    )
+
+                except Exception as e:
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject,
+                        'Something went wrong in uploading: %s' % str(e)
+                    ))
+                else:
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject, str(upload_resp),
+                        text_prefix='{} Uploaded'.format(file_name)
+                    ))
+                    upload_resp.update(dict(project=dict(uid=platform_project)))
+                    job_post_resp[lang] = upload_resp
+
+        return {'push_files_resp': {platform_project: job_post_resp}}, {task_subject: task_log}
 
 
 class Calculate(JobCommandBase):
@@ -787,7 +881,10 @@ class ActionMapper(BaseManager):
         'APPLY',        # Apply patch on source tree
         'CALCULATE',    # Do some maths/try formulae
         'CLONE',        # Clone source repository
-        'GENERATE'      # Exec command to create
+        'GENERATE',     # Exec command to create
+        'UPLOAD',       # Upload some resource
+        'REPLACE',      # Replace files, dirs, patterns
+        'PULLREQUEST'   # Git add, commit and create pull request
     ]
 
     def __init__(self,
@@ -798,6 +895,7 @@ class ActionMapper(BaseManager):
                  server_url,
                  build_system,
                  release_slug,
+                 ci_pipeline_uuid,
                  upstream_url,
                  trans_file_ext,
                  pkg_upstream_name,
@@ -806,6 +904,13 @@ class ActionMapper(BaseManager):
                  pkg_tp_auth_usr,
                  pkg_tp_auth_token,
                  pkg_tp_url,
+                 pkg_ci_engine,
+                 pkg_ci_url,
+                 pkg_ci_auth_usr,
+                 pkg_ci_auth_token,
+                 ci_release,
+                 ci_target_langs,
+                 ci_project_uid,
                  job_log_file):
         super(ActionMapper, self).__init__()
         self.tasks = tasks_structure
@@ -815,6 +920,7 @@ class ActionMapper(BaseManager):
         self.base_dir = job_base_dir
         self.buildsys = build_system
         self.release = release_slug
+        self.ci_pipeline_uuid = ci_pipeline_uuid
         self.upstream_url = upstream_url
         self.trans_file_ext = trans_file_ext
         self.pkg_upstream_name = pkg_upstream_name
@@ -823,6 +929,13 @@ class ActionMapper(BaseManager):
         self.pkg_tp_auth_usr = pkg_tp_auth_usr
         self.pkg_tp_auth_token = pkg_tp_auth_token
         self.pkg_tp_url = pkg_tp_url
+        self.pkg_ci_engine = pkg_ci_engine
+        self.pkg_ci_url = pkg_ci_url
+        self.pkg_ci_auth_usr = pkg_ci_auth_usr
+        self.pkg_ci_auth_token = pkg_ci_auth_token
+        self.ci_release = ci_release
+        self.ci_target_langs = ci_target_langs
+        self.ci_project_uid = ci_project_uid
         self.log_f = job_log_file
         self.cleanup_resources = {}
         self.__build = None
@@ -874,7 +987,11 @@ class ActionMapper(BaseManager):
             'pkg_branch_map': self.pkg_branch_map, 'pkg_tp_engine': self.pkg_tp_engine,
             'release_slug': self.release, 'pkg_tp_auth_usr': self.pkg_tp_auth_usr,
             'pkg_tp_url': self.pkg_tp_url, 'pkg_tp_auth_token': self.pkg_tp_auth_token,
-            'pkg_upstream_name': self.pkg_upstream_name
+            'pkg_upstream_name': self.pkg_upstream_name, 'ci_pipeline_uuid': self.ci_pipeline_uuid,
+            'pkg_ci_engine': self.pkg_ci_engine, 'pkg_ci_url': self.pkg_ci_url,
+            'pkg_ci_auth_usr': self.pkg_ci_auth_usr, 'pkg_ci_auth_token': self.pkg_ci_auth_token,
+            'ci_release': self.ci_release, 'ci_target_langs': self.ci_target_langs,
+            'ci_project_uid': self.ci_project_uid
         }
 
         while current_node is not None:
@@ -917,8 +1034,10 @@ class ActionMapper(BaseManager):
                 d = {'platform_pot_path': current_node.output.get('platform_pot_path')}
                 initials.update(d)
                 self.cleanup_resources.update(d)
-            if current_node.output and 'trans_stats' in current_node.output \
-                    or 'pot_diff' in current_node.output:
+            if current_node.output and \
+                    'trans_stats' in current_node.output or \
+                    'pot_diff' in current_node.output or \
+                    'push_files_resp' in current_node.output:
                 self.__result = current_node.output.get('trans_stats')
                 if not self.__result:
                     self.__result = current_node.output.copy()

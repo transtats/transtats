@@ -1,5 +1,5 @@
 job:
-  release: %RELEASE_SLUG%
+  ci_pipeline: %PIPELINE_UUID%
   exception: raise
   execution: sequential
   name: push translations
@@ -11,18 +11,13 @@ job:
     - type: %REPO_TYPE%
     - branch: %REPO_BRANCH%
     - recursive: false
-  - generate:
-    - name: POT file
-    - cmd: cd po && intltool-update --pot --gettext-package=%PACKAGE_NAME%
-    - domain: %PACKAGE_NAME%
-    - overwrite: false
   - filter:
     - name: files
     - ext: PO
   - upload:
     - name: Push files
     - target_langs: %TARGET_LANGS%
-    - prehook: merge_POT
+    - prehook: skip
     - posthook: skip
     - update: false
   type: pushtrans

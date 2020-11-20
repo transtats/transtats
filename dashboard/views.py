@@ -997,7 +997,9 @@ def schedule_job(request):
                 relschedule_sync_manager.sync_release_schedule()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
-        elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5], TS_JOB_TYPES[6], 'YMLbasedJob'):
+        elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5],
+                          TS_JOB_TYPES[6], TS_JOB_TYPES[7], 'YMLbasedJob'):
+
             job_params = request.POST.dict().get('params')
             if not job_params:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Job params missing.</span>"
@@ -1052,7 +1054,7 @@ def read_file_logs(request):
             **{'params': job_params, 'type': post_params.get('job', 'YMLbasedJob')}
         )
         suffix = job_manager.job_suffix(
-            [post_params.get(param, '') for param in job_params]
+            [post_params.get(param, '') for param in job_params][:3]
         )
         log_file_path = job_manager.job_log_file + ".%s.%s" % (suffix, job_manager.type)
         log_file = Path(log_file_path)
@@ -1437,4 +1439,44 @@ def hide_ci_pipeline(request):
     ci_pipeline_manager = CIPipelineManager()
     if ci_pipeline_manager.toggle_visibility(ci_pipeline_id):
         return HttpResponse("Pipeline successfully removed.", status=202)
+    return HttpResponse(status=500)
+
+
+def refresh_ci_pipeline(request):
+    """
+    Refresh CI Pipeline
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+    post_params = request.POST.dict()
+    package_owner = post_params.get('user', '')
+    ci_pipeline_id = post_params.get('pipeline_id', '')
+    if not package_owner and not ci_pipeline_id:
+        return HttpResponse("Invalid Parameters", status=422)
+    ci_pipeline_manager = CIPipelineManager()
+    if ci_pipeline_manager.refresh_ci_pipeline(ci_pipeline_id):
+        return HttpResponse("Pipeline successfully refreshed.", status=202)
+    return HttpResponse(status=500)
+
+
+def get_target_langs(request):
+    """
+    Get Target Languages for a CI Pipeline
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        ci_pipeline = post_params.get('ci_pipeline', '')
+        context = Context(
+            {'META': request.META,
+             'ci_pipeline': ci_pipeline}
+        )
+        template_string = """
+                            {% load tag_target_langs from custom_tags %}
+                            {% tag_target_langs ci_pipeline %}
+                        """
+        return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)
