@@ -8,7 +8,6 @@ job:
   tasks:
   - clone:
     - name: git repo
-    - type: %REPO_TYPE%
     - branch: %REPO_BRANCH%
     - recursive: true
   - generate:
