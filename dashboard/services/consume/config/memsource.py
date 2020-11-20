@@ -199,6 +199,8 @@ resource_config_dict = {
                 'response_media_type': media_types[0],
             },
         }),
+    ]),
+    'JobResourcePOST': OrderedDict([
         # https://cloud.memsource.com/web/api2/v1/projects/{projectUid}/jobs
         ('/projects/{project_slug}/jobs', {
             http_methods[1]: {
@@ -209,7 +211,6 @@ resource_config_dict = {
             },
         }),
     ]),
-
 }
 
 resource = namedtuple('service', 'rest_resource mount_point http_method')
@@ -232,22 +233,22 @@ project_trans_memories = resource(
 project_analyses = resource(
     'ProjectResource', list(resource_config_dict['ProjectResource'].keys())[5], http_methods[0]
 )
-# project_jobs = resource('JobResource', list(resource_config_dict['JobResource'].keys())[9], http_methods[0])
-# job_details = resource('JobResource', list(resource_config_dict['JobResource'].keys())[0], http_methods[0])
-# job_segments = resource('JobResource', list(resource_config_dict['JobResource'].keys())[1], http_methods[0])
-# job_status_changes = resource('JobResource', list(resource_config_dict['JobResource'].keys())[2], http_methods[0])
-# job_translation_resources = resource(
-#     'JobResource', list(resource_config_dict['JobResource'].keys())[3], http_methods[0]
-# )
-# job_original_file = resource('JobResource', list(resource_config_dict['JobResource'].keys())[4], http_methods[0])
-# job_preview_file = resource('JobResource', list(resource_config_dict['JobResource'].keys())[5], http_methods[0])
-# job_download_target_file = resource(
-#     'JobResource', list(resource_config_dict['JobResource'].keys())[6], http_methods[0]
-# )
-# job_pdf_preview = resource('JobResource', list(resource_config_dict['JobResource'].keys())[7], http_methods[0])
-# job_workflow_step = resource('JobResource', list(resource_config_dict['JobResource'].keys())[8], http_methods[0])
-# job_analyses = resource('JobResource', list(resource_config_dict['JobResource'].keys())[10], http_methods[0])
-# create_job = resource('JobResource', list(resource_config_dict['JobResource'].keys())[11], http_methods[1])
+project_jobs = resource('JobResource', list(resource_config_dict['JobResource'].keys())[9], http_methods[0])
+job_details = resource('JobResource', list(resource_config_dict['JobResource'].keys())[0], http_methods[0])
+job_segments = resource('JobResource', list(resource_config_dict['JobResource'].keys())[1], http_methods[0])
+job_status_changes = resource('JobResource', list(resource_config_dict['JobResource'].keys())[2], http_methods[0])
+job_translation_resources = resource(
+    'JobResource', list(resource_config_dict['JobResource'].keys())[3], http_methods[0]
+)
+job_original_file = resource('JobResource', list(resource_config_dict['JobResource'].keys())[4], http_methods[0])
+job_preview_file = resource('JobResource', list(resource_config_dict['JobResource'].keys())[5], http_methods[0])
+job_download_target_file = resource(
+    'JobResource', list(resource_config_dict['JobResource'].keys())[6], http_methods[0]
+)
+job_pdf_preview = resource('JobResource', list(resource_config_dict['JobResource'].keys())[7], http_methods[0])
+job_workflow_step = resource('JobResource', list(resource_config_dict['JobResource'].keys())[8], http_methods[0])
+job_analyses = resource('JobResource', list(resource_config_dict['JobResource'].keys())[10], http_methods[0])
+create_job = resource('JobResourcePOST', list(resource_config_dict['JobResourcePOST'].keys())[0], http_methods[1])
 
 # Transtats Memsource support operates on resources listed here
 resources = {
@@ -259,16 +260,16 @@ resources = {
     'project_term_bases': project_term_bases,
     'project_trans_memories': project_trans_memories,
     'project_analyses': project_analyses,
-    # 'project_jobs': project_jobs,
-    # 'job_details': job_details,
-    # 'job_segments': job_segments,
-    # 'job_status_changes': job_status_changes,
-    # 'job_translation_resources': job_translation_resources,
-    # 'job_original_file': job_original_file,
-    # 'job_preview_file': job_preview_file,
-    # 'job_download_target_file': job_download_target_file,
-    # 'job_pdf_preview': job_pdf_preview,
-    # 'job_workflow_step': job_workflow_step,
-    # 'job_analyses': job_analyses,
-    # 'create_job': create_job,
+    'project_jobs': project_jobs,
+    'job_details': job_details,
+    'job_segments': job_segments,
+    'job_status_changes': job_status_changes,
+    'job_translation_resources': job_translation_resources,
+    'job_original_file': job_original_file,
+    'job_preview_file': job_preview_file,
+    'job_download_target_file': job_download_target_file,
+    'job_pdf_preview': job_pdf_preview,
+    'job_workflow_step': job_workflow_step,
+    'job_analyses': job_analyses,
+    'create_job': create_job,
 }

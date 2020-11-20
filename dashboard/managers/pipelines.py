@@ -13,13 +13,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import json
+
 # django
 from django.db.models import Case, Value, When
 
 # dadhboard
 from dashboard.constants import TRANSPLATFORM_ENGINES
 from dashboard.managers import BaseManager
-from dashboard.models import CIPipeline
+from dashboard.models import CIPipeline, CIPlatformJob
+
+
+__all__ = ['CIPipelineManager']
 
 
 class CIPipelineManager(BaseManager):
@@ -27,7 +32,8 @@ class CIPipelineManager(BaseManager):
     Continuous Integration Pipeline Manager
     """
 
-    def get_ci_pipelines(self, fields=None, packages=None, platforms=None, releases=None):
+    def get_ci_pipelines(self, fields=None, packages=None, platforms=None,
+                         releases=None, uuids=None, pipeline_ids=None):
         """
         fetch ci pipeline(s) from db
         :return: queryset
@@ -44,6 +50,10 @@ class CIPipelineManager(BaseManager):
             kwargs.update(dict(ci_platform__in=platforms))
         if releases:
             kwargs.update(dict(ci_release__in=releases))
+        if uuids:
+            kwargs.update(dict(ci_pipeline_uuid__in=uuids))
+        if pipeline_ids:
+            kwargs.update(dict(ci_pipeline_id__in=pipeline_ids))
 
         try:
             ci_pipelines = CIPipeline.objects.only(*required_params).filter(**kwargs).all()
@@ -73,6 +83,25 @@ class CIPipelineManager(BaseManager):
         ) or response_dict
         return project_uuid, response_dict
 
+    def refresh_ci_pipeline(self, pipeline_id):
+        """
+        Refresh a CI Pipeline
+        :param pipeline_id: int
+        :return: boolean
+        """
+        ci_pipeline = self.get_ci_pipelines(pipeline_ids=[pipeline_id])
+        if ci_pipeline:
+            ci_pipeline = ci_pipeline.get()
+        _, resp_dict = self.ci_platform_project_details(
+            ci_pipeline.ci_platform, ci_pipeline.ci_project_web_url,
+        )
+        pipeline_params = dict()
+        pipeline_params['ci_project_web_url'] = ci_pipeline.ci_project_web_url
+        pipeline_params['ci_project_details_json_str'] = json.dumps(resp_dict)
+        if self.save_ci_pipeline(pipeline_params):
+            return True
+        return False
+
     def save_ci_pipeline(self, ci_pipeline):
         """
         Save CI Pipeline in db
@@ -81,9 +110,16 @@ class CIPipelineManager(BaseManager):
         """
         if not ci_pipeline:
             return
+
+        match_params = {}
+        match_params.update(dict(
+            ci_project_web_url=ci_pipeline.get('ci_project_web_url'))
+        )
+
         try:
-            pipeline = CIPipeline(**ci_pipeline)
-            pipeline.save()
+            CIPipeline.objects.update_or_create(
+                **match_params, defaults=ci_pipeline
+            )
         except Exception as e:
             self.app_logger(
                 'ERROR', "CI Pipeline could not be saved, details: " + str(e)
@@ -111,6 +147,44 @@ class CIPipelineManager(BaseManager):
         except Exception as e:
             self.app_logger(
                 'ERROR', "CI Pipeline visibility could not be toggled, details: " + str(e)
+            )
+        else:
+            return True
+        return False
+
+    def get_ci_platform_job(self, ci_pipelines=None):
+        """
+        fetch ci pipeline(s) from db
+        :return: queryset
+        """
+        ci_platform_jobs = None
+        kwargs = {}
+        kwargs.update(dict(ci_platform_job_visibility=True))
+        if ci_pipelines:
+            kwargs.update(dict(ci_pipeline__in=ci_pipelines))
+
+        try:
+            ci_platform_jobs = CIPlatformJob.objects.filter(**kwargs).all()
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "CI Pipelines could not be fetched, details: " + str(e)
+            )
+        return ci_platform_jobs
+
+    def save_ci_platform_job(self, platform_job):
+        """
+        Save CI Platform Job in db
+        :param platform_job: dict
+        :return: boolean
+        """
+        if not platform_job:
+            return
+        try:
+            ci_platform_job = CIPlatformJob(**platform_job)
+            ci_platform_job.save()
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "CI Platform Job could not be saved, details: " + str(e)
             )
         else:
             return True

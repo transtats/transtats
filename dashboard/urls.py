@@ -26,14 +26,15 @@ from rest_framework.documentation import include_docs_urls
 # dashboard
 from dashboard.services.urls import api_urls
 from dashboard.views import (
-    TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView, DeletePackageView,
+    TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView, DeletePackageView, DeleteGraphRuleView,
     TransPlatformSettingsView, LanguagesSettingsView, PackageSettingsView, AddPackageCIPipeline, hide_ci_pipeline,
     JobsView, JobsLogsView, JobsArchiveView, JobsLogsPackageView, NewPackageView, UpdatePackageView, TransCoverageView,
     StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, YMLBasedJobs,
-    NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, graph_data,
+    NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView,
     UpdateTransPlatformView, UpdateGraphRuleView, JobDetailView, refresh_package, release_graph, schedule_job,
-    tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status, job_template,
-    DeleteGraphRuleView, LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs, get_repo_branches
+    tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status,
+    LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs, get_repo_branches, get_target_langs,
+    refresh_ci_pipeline, graph_data, job_template
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -76,6 +77,9 @@ ajax_urls = [
         name="ajax-change-lang-status"),
     url(r'^remove-pipeline$', login_required(hide_ci_pipeline),
         name="ajax-remove-pipeline"),
+    url(r'^refresh-pipeline$', refresh_ci_pipeline,
+        name="ajax-refresh-pipeline"),
+    url(r'^target-langs$', get_target_langs, name="ajax-target-langs"),
 ]
 
 coverage_urls = [

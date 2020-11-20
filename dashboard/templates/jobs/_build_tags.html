@@ -5,7 +5,7 @@ $(function(){$(".dropdown-menu a").click(function(){console.log($(this).attr("da
     <input id="buildTag" type="text" class="form-control options dropdown-toggle" placeholder="Select Build Tag">
     <ul class="dropdown-menu scrollable-menu">
         {% for build_tag in build_tags %}
-            <li><a href="#" data-value="{{ build_tag }}">{{ build_tag }}</a></li>
+            <li><a data-value="{{ build_tag }}">{{ build_tag }}</a></li>
         {% endfor %}
     </ul>
     <span role="button" class="input-group-addon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="caret"></span></span>
