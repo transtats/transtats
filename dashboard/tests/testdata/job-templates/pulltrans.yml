@@ -1,5 +1,5 @@
 job:
-  release: %RELEASE_SLUG%
+  ci_pipeline: %PIPELINE_UUID%
   exception: raise
   execution: sequential
   name: pull translations

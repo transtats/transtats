@@ -380,6 +380,7 @@ class JobTemplate(ModelMixin, models.Model):
     )
     job_template_json_str = models.TextField(null=True, blank=True)
     job_template_last_accessed = models.DateTimeField(null=True)
+    job_template_derived = models.BooleanField(default=False)
 
     @property
     def job_template_json(self):

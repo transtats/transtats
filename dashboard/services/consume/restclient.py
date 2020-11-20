@@ -184,16 +184,13 @@ class RestHandle(object):
             if hasattr(self, 'ext') else '%s%s' % (self.base_url, self.uri)
 
     def _call_request(self, uri, http_method, **kwargs):
-        # TS consumes read APIs only
-
-        if http_method != 'GET':
-            return
+        # TS gateway to services
         try:
             # filter kwargs
             kwargs.pop('body')
             kwargs.pop('connection_type')
             # send request
-            rest_response = requests.get(uri, **kwargs)
+            rest_response = requests.request(http_method, uri, **kwargs)
             return rest_response
         except requests.ConnectionError:
             # event of a network problem (e.g. DNS failure, refused connection, etc)
@@ -217,7 +214,7 @@ class RestHandle(object):
             return False
 
     def get_response_dict(self):
-        request_args = ('body', 'headers', 'connection_type', 'auth')
+        request_args = ('body', 'data', 'headers', 'connection_type', 'auth')
         args_dict = dict(zip(
             request_args, [getattr(self, arg, None) for arg in request_args]
         ))
@@ -270,6 +267,7 @@ class RestClient(object):
         """
         headers = kwargs['headers'] if 'headers' in kwargs else {}
         body = kwargs['body'] if 'body' in kwargs else None
+        data = kwargs['data'] if 'data' in kwargs else None
         extension = kwargs.get('ext')
         # set headers
         auth_tuple = kwargs.get('auth_tuple')
@@ -292,14 +290,15 @@ class RestClient(object):
         if 'auth_token_ext' in kwargs and kwargs.get('auth_token_ext'):
             separator = "&" if "?" in resource else "?"
             resource = resource + separator + kwargs.get('auth_token_ext')
-        # Lets check with cache
-        c_content, c_json_content = self.cache_manager.get_cached_response(base_url, resource)
-        if c_content:
-            return {'content': c_content, 'json_content': c_json_content}
+        # Lets check with cache, if it's a GET request
+        if service_details.http_method == 'GET':
+            c_content, c_json_content = self.cache_manager.get_cached_response(base_url, resource)
+            if c_content:
+                return {'content': c_content, 'json_content': c_json_content}
         # initiate service call
         rest_handle = RestHandle(
             base_url, resource, service_details.http_method, auth=service_details.auth,
-            body=body, headers=headers, connection_type=None, cache=None,
+            body=body, data=data, headers=headers, connection_type=None, cache=None,
             disable_ssl_certificate_validation=self.disable_ssl_certificate_validation
         )
         api_response_dict = rest_handle.get_response_dict()
