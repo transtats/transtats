@@ -70,6 +70,10 @@ class YMLJobParser(object):
         return self.data.get('release', '')
 
     @property
+    def ci_pipeline(self):
+        return self.data.get('ci_pipeline', '')
+
+    @property
     def exception(self):
         return self.data.get('exception', '')
 

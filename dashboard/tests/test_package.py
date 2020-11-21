@@ -61,7 +61,7 @@ class PackagesManagerTest(FixtureTestCase):
         self.assertTrue(self.packages_manager.is_package_exist(PackageData.package_anaconda.package_name))
         self.assertFalse(self.packages_manager.is_package_exist('otherpackage'))
 
-    @patch('requests.get', new=mock_requests_get_add_package)
+    @patch('requests.request', new=mock_requests_get_add_package)
     def test_add_package(self):
         """
         Test add_package
@@ -90,7 +90,7 @@ class PackagesManagerTest(FixtureTestCase):
         self.assertEqual(len(tuples), 4)
         self.assertEquals(tuples[0], ('anaconda', 'anaconda'))
 
-    @patch('requests.get', new=mock_requests_get_validate_package)
+    @patch('requests.request', new=mock_requests_get_validate_package)
     def test_validate_package(self):
         """
         Test validate_package
@@ -126,13 +126,14 @@ class PackagesManagerTest(FixtureTestCase):
         self.assertEquals(package_releases[0].product_slug.product_name, 'Fedora')
         self.assertEquals(package_releases[0].language_set_slug.lang_set_name, 'F27 Set')
 
-    @patch('requests.get', new=mock_requests_get_git_branches)
+    @patch('requests.request', new=mock_requests_get_git_branches)
     def test_git_branches(self):
         """
         Test git_branches
         """
         scm_branch = self.packages_manager.git_branches(
-            package_name=PackageData.package_anaconda.package_name
+            package_name=PackageData.package_anaconda.package_name,
+            repo_type='l10n'
         )
         self.assertEqual(len(scm_branch), 2)
         self.assertListEqual(scm_branch, ['autoupdate-potfiles', 'master'])

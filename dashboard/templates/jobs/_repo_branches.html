@@ -5,7 +5,7 @@ $(function(){$(".dropdown-menu a").click(function(){console.log($(this).attr("da
     <input id="repoBranch" type="text" class="form-control options dropdown-toggle" placeholder="Select Repo Branch">
     <ul class="dropdown-menu scrollable-menu">
         {% for branch in branches %}
-            <li><a href="#" data-value="{{ branch }}">{{ branch }}</a></li>
+            <li><a data-value="{{ branch }}">{{ branch }}</a></li>
         {% endfor %}
     </ul>
     <span role="button" class="input-group-addon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="caret"></span></span>

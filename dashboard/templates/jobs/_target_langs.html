@@ -1,0 +1,10 @@
+<div class="form-check form-check-inline">
+{% for lang in target_langs %}
+  <span style="padding-right:2%">
+    <input class="form-check-input" type="checkbox" id="inlineCheckbox{{ forloop.counter }}" value="{{ lang }}">
+    <label class="form-check-label" for="inlineCheckbox{{ forloop.counter }}">{{ lang }}</label>
+  </span>
+{% empty %}
+<span class="text-info">No target languages found. Select a pipeline.</span>
+{% endfor %}
+</div>

@@ -359,6 +359,10 @@ def tag_job_form(template_type):
     release_branches = relbranch_manager.get_relbranch_name_slug_tuple()
     if release_branches:
         return_value['releases'] = release_branches
+    ci_pipeline_manager = CIPipelineManager()
+    ci_pipelines = ci_pipeline_manager.get_ci_pipelines()
+    if ci_pipelines:
+        return_value['ci_pipelines'] = ci_pipelines.all()
     return return_value
 
 
@@ -541,4 +545,29 @@ def tag_ci_pipelines(request, package_name):
     )
     return_value['request'] = request
     return_value['pipelines'] = pipelines
+    platform_jobs = dict()
+    for pipeline in pipelines:
+        pipeline_platform_jobs = \
+            ci_pipeline_manager.get_ci_platform_job(ci_pipelines=[pipeline])
+        if pipeline_platform_jobs:
+            platform_jobs[pipeline.ci_pipeline_uuid] = pipeline_platform_jobs
+    if platform_jobs:
+        return_value['platform_jobs'] = platform_jobs
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("jobs", "_target_langs.html")
+)
+def tag_target_langs(ci_pipeline):
+    return_value = OrderedDict()
+    if not ci_pipeline:
+        return return_value
+    ci_pipeline_manager = CIPipelineManager()
+    pipelines = ci_pipeline_manager.get_ci_pipelines(
+        uuids=[ci_pipeline])
+    pipeline = pipelines.first()
+    if pipeline:
+        return_value['target_langs'] = \
+            pipeline.ci_project_details_json.get('targetLangs') or []
     return return_value

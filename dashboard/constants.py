@@ -13,7 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# == always append tuples with new values ==
+# IMP: always APPEND tuples with new values
+# this defines scope of the application
 
 # Supported translation platforms
 TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata', 'weblate', 'memsource')
@@ -33,7 +34,7 @@ DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
 
 # Job Types
 TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream', 'syncdownstream',
-                'syncbuildtags', 'stringchange', 'verifytrans')
+                'syncbuildtags', 'stringchange', 'verifytrans', 'pushtrans', 'pulltrans')
 
 # Branch Mapping Keys
 BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys', 'buildsys_tag', 'upstream_release')

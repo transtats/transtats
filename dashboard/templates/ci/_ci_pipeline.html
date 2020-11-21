@@ -16,13 +16,16 @@
             {% if request.user.is_staff or pipeline.ci_package.created_by == request.user.email %}
               <script>
                 function removePipeline(e){waitSpinner.show(),$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-remove-pipeline' %}",data:{pipeline_id:e,user:"{{ pipeline.ci_package.created_by }}"},success:function(e){waitSpinner.hide(),$("#div-ci-pipelines").load(location.href+" #div-ci-pipelines"),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>CI Pipeline</strong> removed successfully!</div>')},error:function(e){waitSpinner.hide(),console.error(e.status,e.responseText),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>CI Pipeline</strong> could not be removed!</div>')}})}
+                function refreshPipeline(e){waitSpinner.show(),$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-refresh-pipeline' %}",data:{pipeline_id:e,user:"{{ pipeline.ci_package.created_by }}"},success:function(e){waitSpinner.hide(),location.reload(),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>CI Pipeline</strong> refreshed successfully!</div>')},error:function(e){waitSpinner.hide(),console.error(e.status,e.responseText),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>CI Pipeline</strong> could not be refreshed!</div>')}})}
               </script>
               <div class="dropdown pull-right dropdown-kebab-pf">
                 <button class="btn btn-link dropdown-toggle" type="button" id="dropdownKebabRight9" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                   <span class="fa fa-ellipsis-v"></span>
                 </button>
                   <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight9">
-                    <li><a href="#"><span class="fa fa-refresh" aria-hidden="true"></span> Refresh</a></li>
+                    <li><a id="idRefreshPipeline"
+                           onClick='javascript:refreshPipeline({{ pipeline.ci_pipeline_id }})'>
+                      <span class="fa fa-refresh" aria-hidden="true"></span> Refresh</a></li>
                     <li><a href="#"><span class="pficon pficon-settings" aria-hidden="true"></span> Configure</a></li>
                     <li><a href="#"><span class="pficon pficon-orders" aria-hidden="true"></span> View Logs</a></li>
                     <li role="separator" class="divider"></li>
@@ -132,13 +135,30 @@
               </div>
             </div>
           </dl>
-          <!--<p class="ts-pre">{{ pipeline.ci_project_details_json }}</p>-->
+          {% if platform_jobs %}
+            <hr/><h3>CI Platform Jobs</h3>
+            <div class="row">
+              <ol>
+              {% for platform_job in platform_jobs|get_item:pipeline.ci_pipeline_uuid %}
+              <li class="col-md-3">
+                {% for job in platform_job.ci_platform_job_json|get_item:"jobs" %}
+                  <h5>Created On: <code>{{ job|get_item:"dateCreated" }}</code></h5>
+                  <h5>Job UID: <code>{{ job|get_item:"uid" }}</code></h5>
+                  <h5>Target Language: <code>{{ job|get_item:"targetLang" }}</code></h5>
+                  <h5>Status: <code>{{ job|get_item:"status" }}</code></h5>
+                {% empty %}
+                  <code>{{ platform_job.ci_platform_job_json }}</code>
+                {% endfor %}
+              </li>
+              {% endfor %}
+              </ol>
+            </div>
+          {% endif %}
+          <pre>{{ pipeline.ci_project_details_json }}</pre>
         </div>
       </div>
     </div>
   </div>
-
-
 {% endfor %}
 
   <script>
