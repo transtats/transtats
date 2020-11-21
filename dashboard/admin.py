@@ -20,8 +20,8 @@ from django.contrib import admin
 # dashboard
 from dashboard.forms import TextArrayField
 from dashboard.constants import (
-    TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
-    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS, WEBLATE_SLUGS
+    TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, TRANSIFEX_SLUGS, ZANATA_SLUGS,
+    DAMNEDLIES_SLUGS, WEBLATE_SLUGS, MEMSOURCE_SLUGS
 )
 from dashboard.models import (
     Language, LanguageSet, Platform, Product, Release, Package, GraphRule, Visitor
@@ -39,6 +39,7 @@ all_platform_slugs.extend(TRANSIFEX_SLUGS)
 all_platform_slugs.extend(ZANATA_SLUGS)
 all_platform_slugs.extend(DAMNEDLIES_SLUGS)
 all_platform_slugs.extend(WEBLATE_SLUGS)
+all_platform_slugs.extend(MEMSOURCE_SLUGS)
 SLUG_CHOICES = tuple([(slug, slug) for slug in all_platform_slugs])
 
 
