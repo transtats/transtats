@@ -929,7 +929,8 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
         post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
         form = self.get_form(data=post_data)
 
-        context_data = {}
+        context_data = dict()
+        context_data['form'] = form
         package_name = self.kwargs.get('slug')
         context_data.update(dict(package_name=package_name))
 
@@ -939,7 +940,6 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
             if post_params['ci_platform'].api_url not in post_params['ci_project_web_url']:
                 errors = form._errors.setdefault('ci_project_web_url', ErrorList())
                 errors.append("Project URL does NOT belong to the selected platform.")
-                context_data['form'] = form
                 return render(request, self.template_name, context=context_data)
             post_params['ci_package'] = self.packages_manager.get_packages(
                 pkgs=[package_name]).get()
@@ -949,7 +949,6 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
             if not p_details:
                 errors = form._errors.setdefault('ci_project_web_url', ErrorList())
                 errors.append("Project details could not be fetched for the given URL.")
-                context_data['form'] = form
                 return render(request, self.template_name, context=context_data)
             post_params['ci_project_details_json_str'] = json.dumps(p_details)
             if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
