@@ -78,8 +78,10 @@ class CIPipelineManager(BaseManager):
         if ci_platform.engine_name == TRANSPLATFORM_ENGINES[4] and "/" in project_url:
             project_uuid = project_url.split("/")[-1:][0]
         response_dict = dict()
+        kwargs = dict()
+        kwargs.update(dict(no_cache_api=True))
         response_dict = self.api_resources.fetch_project_details(
-            ci_platform.engine_name, ci_platform.api_url, project_uuid
+            ci_platform.engine_name, ci_platform.api_url, project_uuid, **kwargs
         ) or response_dict
         return project_uuid, response_dict
 
@@ -117,6 +119,7 @@ class CIPipelineManager(BaseManager):
         )
 
         try:
+            ci_pipeline['ci_pipeline_visibility'] = True
             CIPipeline.objects.update_or_create(
                 **match_params, defaults=ci_pipeline
             )
