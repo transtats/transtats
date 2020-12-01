@@ -15,8 +15,7 @@
             <button class="btn btn-default">Details</button>
             {% if request.user.is_staff or pipeline.ci_package.created_by == request.user.email %}
               <script>
-                function removePipeline(e){waitSpinner.show(),$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-remove-pipeline' %}",data:{pipeline_id:e,user:"{{ pipeline.ci_package.created_by }}"},success:function(e){waitSpinner.hide(),$("#div-ci-pipelines").load(location.href+" #div-ci-pipelines"),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>CI Pipeline</strong> removed successfully!</div>')},error:function(e){waitSpinner.hide(),console.error(e.status,e.responseText),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>CI Pipeline</strong> could not be removed!</div>')}})}
-                function refreshPipeline(e){waitSpinner.show(),$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-refresh-pipeline' %}",data:{pipeline_id:e,user:"{{ pipeline.ci_package.created_by }}"},success:function(e){waitSpinner.hide(),location.reload(),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>CI Pipeline</strong> refreshed successfully!</div>')},error:function(e){waitSpinner.hide(),console.error(e.status,e.responseText),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>CI Pipeline</strong> could not be refreshed!</div>')}})}
+                function removePipeline(e){waitSpinner.show(),$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-remove-pipeline' %}",data:{pipeline_id:e,user:"{{ pipeline.ci_package.created_by }}"},success:function(e){waitSpinner.hide(),$("#div-ci-pipelines").load(location.href+" #div-ci-pipelines"),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>CI Pipeline</strong> removed successfully!</div>')},error:function(e){waitSpinner.hide(),console.error(e.status,e.responseText),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>CI Pipeline</strong> could not be removed!</div>')}})}function refreshPipeline(e){waitSpinner.show(),$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-refresh-pipeline' %}",data:{pipeline_id:e,user:"{{ pipeline.ci_package.created_by }}"},success:function(e){waitSpinner.hide(),location.reload()},error:function(e){waitSpinner.hide(),console.error(e.status,e.responseText),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>CI Pipeline</strong> could not be refreshed!</div>')}})}
               </script>
               <div class="dropdown pull-right dropdown-kebab-pf">
                 <button class="btn btn-link dropdown-toggle" type="button" id="dropdownKebabRight9" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -48,13 +47,13 @@
                   {{ pipeline.ci_project_details_json|get_item:"name" }}
                 </div>
                 <div class="list-group-item-text">
-                  Pipeline UUID <a href="#">{{ pipeline.ci_pipeline_uuid }}</a>
+                  UUID <span class="text-info" style="font-size: large;">{{ pipeline.ci_pipeline_uuid }}</span>
                 </div>
               </div>
               <div class="list-view-pf-additional-info">
                 <div class="list-view-pf-additional-info-item">
                   <span class="pficon pficon-server"></span>
-                  <a href="{{ pipeline.ci_project_web_url }}" target="_blank">{{ pipeline.ci_platform.engine_name|title }}</a>
+                  {{ pipeline.ci_platform.engine_name|title }}
                 </div>
                 <div class="list-view-pf-additional-info-item">
                   <span class="fa fa-bolt"></span>
@@ -119,9 +118,18 @@
               <div class="col-md-6">
                 <dt>CI Platform Project</dt>
                 <dd>{{ pipeline.ci_project_details_json|get_item:"name" }}
-                  &nbsp;&nbsp;<span class="text-info">{{ pipeline.ci_project_details_json|get_item:"uid" }}</span></dd>
+                    <a href="{{ pipeline.ci_project_web_url }}" target="_blank">
+                      {{ pipeline.ci_project_details_json|get_item:"uid" }}</a>
+                      <span class="fa fa-external-link" aria-hidden="true"></span>
+                </dd>
                 <dt>Target Languages</dt>
-                <dd><code>{{ pipeline.ci_project_details_json|get_item:"targetLangs"|join:", " }}</code></dd>
+                <dd>
+                  <div>
+                    {% for lang in pipeline.ci_project_details_json|get_item:"targetLangs" %}
+                      <code>{{ lang }}</code>&nbsp;
+                    {% endfor %}
+                  </div>
+                </dd>
                 <dt>Created On</dt>
                 <dd><span class="text-info">{{ pipeline.ci_project_details_json|get_item:"dateCreated" }}</span></dd>
                 <dt>Status</dt>
@@ -129,9 +137,11 @@
               </div>
               <div class="col-md-5">
                 <dt>Push Job Template</dt>
-                <dd><code>{{ pipeline.ci_push_job_template.job_template_name }}</code></dd>
+                <dd><a href="{% url 'jobs-yml-based' %}?template={{ pipeline.ci_push_job_template.job_template_type }}">
+                  {{ pipeline.ci_push_job_template.job_template_name }}</a></dd>
                 <dt>Pull Job Template</dt>
-                <dd><code>{{ pipeline.ci_pull_job_template.job_template_name }}</code></dd>
+                <dd><a href="{% url 'jobs-yml-based' %}?template={{ pipeline.ci_pull_job_template.job_template_type }}">
+                  {{ pipeline.ci_pull_job_template.job_template_name }}</a></dd>
               </div>
             </div>
           </dl>
@@ -154,7 +164,7 @@
               </ol>
             </div>
           {% endif %}
-          <pre>{{ pipeline.ci_project_details_json }}</pre>
+          <!--<pre>{{ pipeline.ci_project_details_json }}</pre>-->
         </div>
       </div>
     </div>
