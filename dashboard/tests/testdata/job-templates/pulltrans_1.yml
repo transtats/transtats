@@ -12,14 +12,8 @@ job:
     - branch: %REPO_BRANCH%
     - recursive: false
   - download:
-    - name: Pull translated file
+    - name: Pull translated files
     - target_langs: %TARGET_LANGS%
-    - dir: ''
     - prehook: skip
     - posthook: repair_fuzzy
-  - replace: Downloaded files
-  - pullrequest:
-    - name: git repo
-    - type: %REPO_TYPE%
-    - branch: %REPO_BRANCH%
   type: pulltrans
