@@ -705,6 +705,9 @@ class YMLBasedJobManager(BaseManager):
                 self.ci_release = ci_pipeline_detail.ci_release.release_slug
                 self.ci_target_langs = ci_pipeline_detail.ci_project_details_json.get('targetLangs', [])
                 self.ci_project_uid = ci_pipeline_detail.ci_project_details_json.get('uid', '')
+                ci_lang_job_map = self.ci_pipeline_manager.ci_lang_job_map(pipelines=[ci_pipeline_detail])
+                if ci_lang_job_map.get(ci_pipeline_detail.ci_pipeline_uuid):
+                    self.ci_lang_job_map = ci_lang_job_map[ci_pipeline_detail.ci_pipeline_uuid]
 
     def _save_stats_in_db(self, stats_dict, build_details):
         """
@@ -882,6 +885,7 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'ci_release', ''),
             getattr(self, 'ci_target_langs', []),
             getattr(self, 'ci_project_uid', ''),
+            getattr(self, 'ci_lang_job_map', {}),
             log_file
         )
         action_mapper.set_actions()

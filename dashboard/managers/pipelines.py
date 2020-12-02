@@ -100,7 +100,8 @@ class CIPipelineManager(BaseManager):
         pipeline_params = dict()
         pipeline_params['ci_project_web_url'] = ci_pipeline.ci_project_web_url
         pipeline_params['ci_project_details_json_str'] = json.dumps(resp_dict)
-        if self.save_ci_pipeline(pipeline_params):
+        if self.save_ci_pipeline(pipeline_params) \
+                if resp_dict else self.toggle_visibility(pipeline_id):
             return True
         return False
 
@@ -155,7 +156,7 @@ class CIPipelineManager(BaseManager):
             return True
         return False
 
-    def get_ci_platform_job(self, ci_pipelines=None):
+    def get_ci_platform_jobs(self, ci_pipelines=None):
         """
         fetch ci pipeline(s) from db
         :return: queryset
@@ -192,3 +193,22 @@ class CIPipelineManager(BaseManager):
         else:
             return True
         return False
+
+    def ci_lang_job_map(self, pipelines):
+        """
+        Get CI Platform Target Language: Job UID map
+        :param pipelines: Query Objects
+        :return: dict
+        """
+        ci_lang_job_map = dict()
+        if not pipelines:
+            return ci_lang_job_map
+        ci_platform_jobs = self.get_ci_platform_jobs(ci_pipelines=pipelines) or []
+        for ci_job in ci_platform_jobs:
+            if ci_job.ci_platform_job_json.get("jobs"):
+                job_details = ci_job.ci_platform_job_json["jobs"][0] or {}
+                if ci_job.ci_pipeline_id not in ci_lang_job_map:
+                    ci_lang_job_map[ci_job.ci_pipeline_id] = dict()
+                if job_details.get('targetLang'):
+                    ci_lang_job_map[ci_job.ci_pipeline_id][job_details['targetLang']] = job_details['uid']
+        return ci_lang_job_map

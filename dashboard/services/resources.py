@@ -353,6 +353,12 @@ class TransplatformResources(ResourcesBase):
         response = kwargs.get('rest_response', {})
         return response.get('json_content')
 
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[4])
+    def _pull_memsource_translations(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('content')
+
     def fetch_all_projects(self, translation_platform, instance_url, *args, **kwargs):
         """
         Fetches all projects or modules json from API
@@ -500,6 +506,25 @@ class TransplatformResources(ResourcesBase):
                 'method': self._push_memsource_translations,
                 'base_url': instance_url,
                 'resources': ['create_job'],
+            }
+        }
+        selected_config = method_mapper[translation_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def pull_translations(self, translation_platform, instance_url, *args, **kwargs):
+        """
+        Pull translations from CI Platform
+        :param translation_platform: Translation Platform API
+        :param instance_url: Translation Platform Server URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: dict
+        """
+        method_mapper = {
+            TRANSPLATFORM_ENGINES[4]: {
+                'method': self._pull_memsource_translations,
+                'base_url': instance_url,
+                'resources': ['job_download_target_file'],
             }
         }
         selected_config = method_mapper[translation_platform]
