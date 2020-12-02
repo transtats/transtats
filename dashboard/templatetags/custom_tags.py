@@ -548,7 +548,7 @@ def tag_ci_pipelines(request, package_name):
     platform_jobs = dict()
     for pipeline in pipelines:
         pipeline_platform_jobs = \
-            ci_pipeline_manager.get_ci_platform_job(ci_pipelines=[pipeline])
+            ci_pipeline_manager.get_ci_platform_jobs(ci_pipelines=[pipeline])
         if pipeline_platform_jobs:
             platform_jobs[pipeline.ci_pipeline_uuid] = pipeline_platform_jobs
     if platform_jobs:
