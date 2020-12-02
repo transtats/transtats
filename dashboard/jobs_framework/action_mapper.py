@@ -44,6 +44,8 @@ __all__ = ['ActionMapper']
 
 class JobCommandBase(BaseManager):
 
+    comma_delimiter = ','
+
     def __init__(self):
 
         kwargs = {
@@ -82,6 +84,16 @@ class JobCommandBase(BaseManager):
             if root[len(path) + 1:].count(os.sep) < 2:
                 if dirname in dirs:
                     return os.path.join(root, dirname)
+
+    def format_target_langs(self, langs):
+        target_langs = []
+        if isinstance(langs, (list, tuple)):
+            target_langs = langs
+        elif isinstance(langs, str):
+            target_langs = langs.split(self.comma_delimiter) \
+                if self.comma_delimiter in langs \
+                else [langs]
+        return target_langs
 
 
 class Get(JobCommandBase):
@@ -254,6 +266,78 @@ class Download(JobCommandBase):
                     'POT downloaded successfully. URL: %s' % platform_pot_url
                 ))
         return {'platform_pot_path': platform_pot_path}, {task_subject: task_log}
+
+    def pull_translated_files(self, input, kwargs):
+
+        task_subject = "Pull translated files"
+        task_log = OrderedDict()
+
+        target_langs = []
+        translated_files = []
+
+        file_ext = 'po'
+        if kwargs.get('ext'):
+            file_ext = kwargs['ext'].lower()
+
+        download_folder = os.path.join(
+            self.sandbox_path, kwargs['dir'] if kwargs.get('dir') else 'downloads'
+        )
+
+        platform_project = input.get('ci_project_uid') or input.get('package')
+        if kwargs.get('target_langs'):
+            target_langs = self.format_target_langs(langs=kwargs['target_langs'])
+
+        if not set(target_langs).issubset(set(input.get('ci_lang_job_map').keys() or [])):
+            raise Exception('Job UID could NOT be found for target langs.')
+
+        if not target_langs and kwargs.get('target_langs'):
+            target_langs = kwargs['target_langs']
+
+        for t_lang in target_langs:
+
+            platform_engine = input.get('pkg_ci_engine') or input.get('pkg_tp_engine')
+            platform_api_url = input.get('pkg_ci_url') or input.get('pkg_tp_url')
+            platform_auth_user = input.get('pkg_ci_auth_usr') or input.get('pkg_tp_auth_usr')
+            platform_auth_token = input.get('pkg_ci_auth_token') or input.get('pkg_tp_auth_token')
+
+            service_kwargs = dict()
+            service_kwargs['auth_user'] = platform_auth_user
+            service_kwargs['auth_token'] = platform_auth_token
+
+            project_version = input.get('ci_lang_job_map').get(t_lang) or \
+                input.get('pkg_branch_map', {}).get(input.get('ci_release'), {}).get('platform_version')
+
+            try:
+                pull_resp = self.api_resources.pull_translations(
+                    platform_engine, platform_api_url, platform_project, project_version, **kwargs
+                )
+            except Exception as e:
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject,
+                    'Something went wrong in pulling: %s' % str(e)
+                ))
+            else:
+                downloaded_file_name = "{}.{}".format(t_lang, file_ext)
+                d_file_path = os.path.join(download_folder, downloaded_file_name)
+                try:
+                    if not os.path.exists(download_folder):
+                        os.makedirs(download_folder)
+                    with open(d_file_path, 'w') as f:
+                        f.write(pull_resp)
+                except Exception as e:
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject,
+                        'Something went wrong in writing: %s' % d_file_path
+                    ))
+                else:
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject, '{} downloaded successfully.'.format(
+                            downloaded_file_name)
+                    ))
+                translated_files.append(d_file_path)
+
+        return {'download_dir': download_folder, 'downloaded_files': translated_files}, \
+               {task_subject: task_log}
 
 
 class Clone(JobCommandBase):
@@ -697,16 +781,9 @@ class Upload(JobCommandBase):
         if kwargs.get('ext'):
             file_ext = kwargs['ext'].lower()
 
-        comma_delimiter = ','
-
         target_langs = []
         if kwargs.get('target_langs'):
-            if isinstance(kwargs['target_langs'], (list, tuple)):
-                target_langs = kwargs['target_langs']
-            elif isinstance(kwargs['target_langs'], str):
-                target_langs = kwargs['target_langs'].split(comma_delimiter) \
-                    if comma_delimiter in kwargs['target_langs'] \
-                    else [kwargs['target_langs']]
+            target_langs = self.format_target_langs(langs=kwargs['target_langs'])
 
         if target_langs and input.get('ci_pipeline_uuid') and input.get('ci_target_langs'):
             if not set(target_langs).issubset(set(input['ci_target_langs'])):
@@ -753,7 +830,6 @@ class Upload(JobCommandBase):
                     upload_resp = self.api_resources.push_translations(
                         platform_engine, platform_api_url, platform_project, **kwargs
                     )
-
                 except Exception as e:
                     task_log.update(self._log_task(
                         input['log_f'], task_subject,
@@ -911,6 +987,7 @@ class ActionMapper(BaseManager):
                  ci_release,
                  ci_target_langs,
                  ci_project_uid,
+                 ci_lang_job_map,
                  job_log_file):
         super(ActionMapper, self).__init__()
         self.tasks = tasks_structure
@@ -936,6 +1013,7 @@ class ActionMapper(BaseManager):
         self.ci_release = ci_release
         self.ci_target_langs = ci_target_langs
         self.ci_project_uid = ci_project_uid
+        self.ci_lang_job_map = ci_lang_job_map
         self.log_f = job_log_file
         self.cleanup_resources = {}
         self.__build = None
@@ -991,7 +1069,7 @@ class ActionMapper(BaseManager):
             'pkg_ci_engine': self.pkg_ci_engine, 'pkg_ci_url': self.pkg_ci_url,
             'pkg_ci_auth_usr': self.pkg_ci_auth_usr, 'pkg_ci_auth_token': self.pkg_ci_auth_token,
             'ci_release': self.ci_release, 'ci_target_langs': self.ci_target_langs,
-            'ci_project_uid': self.ci_project_uid
+            'ci_project_uid': self.ci_project_uid, 'ci_lang_job_map': self.ci_lang_job_map
         }
 
         while current_node is not None:
@@ -1034,6 +1112,10 @@ class ActionMapper(BaseManager):
                 d = {'platform_pot_path': current_node.output.get('platform_pot_path')}
                 initials.update(d)
                 self.cleanup_resources.update(d)
+            if current_node.output and 'download_dir' in current_node.output:
+                d = {'download_dir': current_node.output.get('download_dir')}
+                initials.update(d)
+                self.cleanup_resources.update(d)
             if current_node.output and \
                     'trans_stats' in current_node.output or \
                     'pot_diff' in current_node.output or \
@@ -1072,5 +1154,7 @@ class ActionMapper(BaseManager):
                 rmtree(self.cleanup_resources.get('src_tar_dir'), ignore_errors=True)
             if self.cleanup_resources.get('extract_dir'):
                 rmtree(self.cleanup_resources.get('extract_dir'), ignore_errors=True)
+            if self.cleanup_resources.get('download_dir'):
+                rmtree(self.cleanup_resources.get('download_dir'), ignore_errors=True)
         except OSError as e:
             self.app_logger('ERROR', "Failed to clean sandbox! Due to %s" % e)
