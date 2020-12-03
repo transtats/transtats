@@ -20,7 +20,7 @@ Upcoming Releases
 | And releases are scheduled every quarter end.
 
 
-Transtats 0.8.5
+Transtats 0.8.1
 ---------------
 
 | Target delivery: 18th Dec 2020
@@ -36,7 +36,6 @@ ToDo List
     - Translation snapshots.
     - translate.f.o specific changes.
     - Translation files in multiple tarballs.
-    - Additional upstream repository for `l10n`.
 
 - Technical Tasks
     - Error handling, test cases.
