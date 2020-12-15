@@ -1,4 +1,6 @@
+
 ##### Fri Jan 15 2020 Sundeep Anand <suanand@redhat.com>
+* Extend push job to enable weblate git clone as well
 * Add ci pipeline feature, list and hide pipelines
 * Implement Memsource projects and project_details API
 * Handle memsource token authentication

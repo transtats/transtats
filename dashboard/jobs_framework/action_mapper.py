@@ -22,14 +22,16 @@ import difflib
 import requests
 import polib
 import tarfile
+
 from collections import OrderedDict
 from datetime import datetime
 from git import Repo
+from inspect import getmembers, isfunction
+from pyrpm.spec import Spec
 from shlex import split
 from shutil import copy2, rmtree
-from pyrpm.spec import Spec
 from subprocess import Popen, PIPE, call
-from inspect import getmembers, isfunction
+from urllib.parse import urlparse
 
 # dashboard
 from dashboard.constants import (
@@ -261,6 +263,14 @@ class Clone(JobCommandBase):
     Handles all operations for CLONE Command
     """
 
+    def _format_weblate_git_url(self, input_params):
+        clone_url = input_params['upstream_repo_url']
+        parsed_url = urlparse(clone_url)
+        return "{}://{}:{}@{}".format(
+            parsed_url.scheme, input_params['pkg_tp_auth_usr'],
+            input_params['pkg_tp_auth_token'], parsed_url.netloc + parsed_url.path
+        )
+
     def git_repository(self, input, kwargs):
         """
         Clone GIT repository
@@ -274,8 +284,12 @@ class Clone(JobCommandBase):
         clone_kwargs.update(dict(config='http.sslVerify=false'))
         if kwargs.get('recursive'):
             clone_kwargs.update(dict(recursive=True))
-        if kwargs.get('branch'):
+        if kwargs.get('branch') and not kwargs.get('type') == TRANSPLATFORM_ENGINES[3]:
             clone_kwargs.update(dict(branch=kwargs['branch']))
+
+        repo_clone_url = input['upstream_repo_url']
+        if kwargs.get('type') == TRANSPLATFORM_ENGINES[3]:
+            repo_clone_url = self._format_weblate_git_url(input)
 
         try:
             task_log.update(self._log_task(
@@ -283,7 +297,7 @@ class Clone(JobCommandBase):
                 'Start cloning %s repository.' % input['upstream_repo_url']
             ))
             clone_result = Repo.clone_from(
-                input['upstream_repo_url'], src_tar_dir, **clone_kwargs
+                repo_clone_url, src_tar_dir, **clone_kwargs
             )
         except Exception as e:
             task_log.update(self._log_task(
@@ -883,8 +897,6 @@ class ActionMapper(BaseManager):
         'CLONE',        # Clone source repository
         'GENERATE',     # Exec command to create
         'UPLOAD',       # Upload some resource
-        'REPLACE',      # Replace files, dirs, patterns
-        'PULLREQUEST'   # Git add, commit and create pull request
     ]
 
     def __init__(self,

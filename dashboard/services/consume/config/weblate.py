@@ -106,6 +106,14 @@ resource_config_dict = {
                 'response_media_type': media_types[0],
             },
         }),
+        ('/translations/{project_slug}/{component_slug}/{locale}/file/', {
+            http_methods[0]: {
+                'path_params': ('project_slug', 'component_slug', 'locale'),
+                'query_params': None,
+                'request_media_type': media_types[0],
+                'response_media_type': media_types[0],
+            },
+        }),
     ]),
 }
 
@@ -126,6 +134,8 @@ project_component_stats = resource('StatisticsResource', list(resource_config_di
                                    http_methods[0])
 locale_stats = resource('TranslationResource', list(resource_config_dict['TranslationResource'].keys())[0],
                         http_methods[0])
+translated_doc = resource('TranslationResource', list(resource_config_dict['TranslationResource'].keys())[1],
+                          http_methods[0])
 # Transtats Weblate support operates on resources listed here
 resources = {
     'list_projects': list_projects,
@@ -136,5 +146,6 @@ resources = {
     'source_doc': source_doc,
     'project_stats': project_stats,
     'project_component_stats': project_component_stats,
-    'locale_stats': locale_stats
+    'locale_stats': locale_stats,
+    'translated_doc': translated_doc
 }
