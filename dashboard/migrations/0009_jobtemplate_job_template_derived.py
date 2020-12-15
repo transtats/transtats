@@ -13,8 +13,8 @@ def add_push_trans_template(apps, schema_editor):
 
     job_templates = [
         JobTemplate(job_template_type="pushtrans", job_template_name="Push Translations",
-                    job_template_desc="Clone package upstream repository, "
-                                      "filter translations and upload to the platform.",
+                    job_template_desc="Clone package source repository, "
+                                      "filter translations and upload to the CI platform.",
                     job_template_params="{package_name,repo_type,repo_branch,pipeline_uuid,target_langs}",
                     job_template_json_str='{"job":{"ci_pipeline":"%PIPELINE_UUID%","exception":"raise",'
                                           '"execution":"sequential","name":"push translations",'
