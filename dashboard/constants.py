@@ -19,6 +19,11 @@
 # Supported translation platforms
 TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata', 'weblate', 'memsource')
 
+API_TOKEN_PREFIX = {
+    TRANSPLATFORM_ENGINES[1]: "api",
+    TRANSPLATFORM_ENGINES[3]: "Token",
+}
+
 DAMNEDLIES_SLUGS = ('DMLSPUB', )
 MEMSOURCE_SLUGS = ('MSRCPUB', )
 TRANSIFEX_SLUGS = ('TNFXPUB', )
@@ -53,4 +58,4 @@ CALENDAR_VERBS = ('BEGIN:VEVENT', 'END:VEVENT', 'BEGIN:VTODO', 'END:VTODO')
 
 # Git Repositories
 GIT_PLATFORMS = ('GitHub', 'GitLab', 'Pagure')
-GIT_REPO_TYPE = ('default', 'l10n')
+GIT_REPO_TYPE = ('default', 'l10n', 'weblate')

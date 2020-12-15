@@ -916,6 +916,10 @@ class PackagesManager(InventoryManager):
         upstream_url = package.upstream_url
         if package.upstream_l10n_url and repo_type == GIT_REPO_TYPE[1]:
             upstream_url = package.upstream_l10n_url
+        if repo_type == GIT_REPO_TYPE[2]:
+            return [item['slug'] for item in package.package_details_json['components'] if item.get('slug')] \
+                if package.package_details_json and package.package_details_json.get('components') \
+                else default_branch
         instance_url, git_owner_repo = self._parse_git_url(upstream_url)
         branches = self.api_resources.fetch_repo_branches(
             self._determine_git_platform(instance_url), instance_url, *git_owner_repo

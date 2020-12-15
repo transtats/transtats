@@ -17,7 +17,7 @@
 from django.utils import timezone
 
 # dashboard
-from dashboard.constants import TRANSPLATFORM_ENGINES
+from dashboard.constants import TRANSPLATFORM_ENGINES, API_TOKEN_PREFIX
 from dashboard.models import CacheAPI
 from dashboard.services.consume.cache import CacheAPIManager
 
@@ -68,7 +68,10 @@ def set_api_auth():
                 if rest_client.service == TRANSPLATFORM_ENGINES[1] or \
                         rest_client.service == TRANSPLATFORM_ENGINES[3]:
                     # Tx and Weblate need auth_tuple for HTTPBasicAuth
-                    auth_tuple = (kwargs['auth_user'], kwargs['auth_token'])
+                    auth_tuple = (
+                        API_TOKEN_PREFIX.get(rest_client.service) or kwargs['auth_user'],
+                        kwargs['auth_token']
+                    )
                 elif rest_client.service == TRANSPLATFORM_ENGINES[2]:
                     # Zanata needs credentials in the header
                     kwargs['headers']['X-Auth-User'] = kwargs['auth_user']

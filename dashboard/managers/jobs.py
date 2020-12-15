@@ -24,6 +24,7 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 from uuid import uuid4
+from urllib.parse import urlparse
 from yaml import load, FullLoader
 
 # django
@@ -635,6 +636,14 @@ class YMLBasedJobManager(BaseManager):
         # required for cloning
         return upstream_url if upstream_url.endswith('.git') else upstream_url + ".git"
 
+    def _weblate_git_url(self, package):
+        platform_url = package.platform_slug.api_url
+        parsed_url = urlparse(platform_url)
+        return "{}://{}/git/{}/{}/".format(
+            parsed_url.scheme, parsed_url.netloc,
+            package.package_name, self.REPO_BRANCH
+        )
+
     def __bootstrap(self, package=None, build_system=None, ci_pipeline=None):
         if build_system:
             try:
@@ -663,7 +672,12 @@ class YMLBasedJobManager(BaseManager):
                         raise Exception('Localization repo URL not found.')
                     else:
                         upstream_repo_url = package_detail.upstream_l10n_url
-                self.upstream_repo_url = self._check_git_ext(upstream_repo_url)
+                if getattr(self, 'REPO_TYPE', '') and self.REPO_TYPE == GIT_REPO_TYPE[2]:
+                    if not self.REPO_TYPE == package_detail.platform_slug.engine_name:
+                        raise Exception('Package Platform is NOT Weblate.')
+                    self.upstream_repo_url = self._weblate_git_url(package_detail)
+                else:
+                    self.upstream_repo_url = self._check_git_ext(upstream_repo_url)
                 t_ext = package_detail.translation_file_ext
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
