@@ -269,9 +269,9 @@ class Download(JobCommandBase):
                 ))
         return {'platform_pot_path': platform_pot_path}, {task_subject: task_log}
 
-    def pull_translated_files(self, input, kwargs):
+    def pull_translations(self, input, kwargs):
 
-        task_subject = "Pull translated files"
+        task_subject = "Pull translations"
         task_log = OrderedDict()
 
         target_langs = []
@@ -384,8 +384,12 @@ class Clone(JobCommandBase):
                 repo_clone_url, src_tar_dir, **clone_kwargs
             )
         except Exception as e:
+            trace_back = str(e)
+            # hide auth_token in logs
+            if input['pkg_tp_auth_token'] in trace_back:
+                trace_back = trace_back.replace(input['pkg_tp_auth_token'], 'XXX')
             task_log.update(self._log_task(
-                input['log_f'], task_subject, 'Cloning failed. Details: %s' % str(e)
+                input['log_f'], task_subject, 'Cloning failed. Details: %s' % trace_back
             ))
             raise Exception("Cloning '%s' branch failed." % kwargs.get('branch', 'master'))
         else:
