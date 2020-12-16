@@ -115,6 +115,20 @@ resource_config_dict = {
             },
         }),
     ]),
+    'TranslationResourcePOST': OrderedDict([
+        # curl -X POST \
+        #     -F file=@strings.xml \
+        #     -H "Authorization: Token TOKEN" \
+        #     http://example.com/api/translations/hello/android/cs/file/
+        ('/translations/{project_slug}/{component_slug}/{locale}/file/', {
+            http_methods[1]: {
+                'path_params': ('project_slug', 'component_slug', 'locale'),
+                'query_params': None,
+                'request_media_type': media_types[0],
+                'response_media_type': media_types[0],
+            },
+        }),
+    ]),
 }
 
 resource = namedtuple('service', 'rest_resource mount_point http_method')
@@ -136,6 +150,9 @@ locale_stats = resource('TranslationResource', list(resource_config_dict['Transl
                         http_methods[0])
 translated_doc = resource('TranslationResource', list(resource_config_dict['TranslationResource'].keys())[1],
                           http_methods[0])
+upload_translation = resource(
+    'TranslationResourcePOST', list(resource_config_dict['TranslationResourcePOST'].keys())[0], http_methods[1]
+)
 # Transtats Weblate support operates on resources listed here
 resources = {
     'list_projects': list_projects,
@@ -147,5 +164,6 @@ resources = {
     'project_stats': project_stats,
     'project_component_stats': project_component_stats,
     'locale_stats': locale_stats,
-    'translated_doc': translated_doc
+    'translated_doc': translated_doc,
+    'upload_translation': upload_translation
 }
