@@ -6,14 +6,14 @@ job:
   package: %PACKAGE_NAME%
   return_type: json
   tasks:
-  - clone:
-    - name: git repo
-    - type: %REPO_TYPE%
-    - branch: %REPO_BRANCH%
-    - recursive: false
   - download:
-    - name: Pull translated files
+    - name: Pull translations
     - target_langs: %TARGET_LANGS%
-    - prehook: skip
-    - posthook: repair_fuzzy
+  - upload:
+      - name: Submit translations
+      - type: %REPO_TYPE%
+      - branch: %REPO_BRANCH%
+      - conflicts: replace-approved
+      - method: translate
+      - fuzzy: empty
   type: pulltrans
