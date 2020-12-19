@@ -474,7 +474,7 @@ class CIPipeline(ModelMixin, models.Model):
         return str(self.ci_pipeline_uuid)
 
     class Meta:
-        db_table = TABLE_PREFIX + 'ci'
+        db_table = TABLE_PREFIX + 'cipipeline'
         verbose_name = "CI Pipeline"
 
 
