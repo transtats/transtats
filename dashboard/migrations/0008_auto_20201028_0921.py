@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'verbose_name': 'CI Pipeline',
-                'db_table': 'ts_ci',
+                'db_table': 'ts_cipipeline',
             },
             bases=(dashboard.models.ModelMixin, models.Model),
         ),
