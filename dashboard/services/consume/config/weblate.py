@@ -124,7 +124,6 @@ resource_config_dict = {
             http_methods[1]: {
                 'path_params': ('project_slug', 'component_slug', 'locale'),
                 'query_params': None,
-                'request_media_type': media_types[0],
                 'response_media_type': media_types[0],
             },
         }),

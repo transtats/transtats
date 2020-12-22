@@ -348,6 +348,12 @@ class TransplatformResources(ResourcesBase):
         return dict(id=url_params[1], stats=kwargs['combine_results'])
 
     @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[3])
+    def _push_weblate_translations(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('json_content')
+
+    @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _push_memsource_translations(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
@@ -502,6 +508,11 @@ class TransplatformResources(ResourcesBase):
         :return: dict
         """
         method_mapper = {
+            TRANSPLATFORM_ENGINES[3]: {
+                'method': self._push_weblate_translations,
+                'base_url': instance_url,
+                'resources': ['upload_translation'],
+            },
             TRANSPLATFORM_ENGINES[4]: {
                 'method': self._push_memsource_translations,
                 'base_url': instance_url,

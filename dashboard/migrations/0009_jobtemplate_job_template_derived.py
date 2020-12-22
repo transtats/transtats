@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import migrations, models
 
 
-def add_push_trans_template(apps, schema_editor):
+def add_push_pull_trans_template(apps, schema_editor):
 
     if not settings.MIGRATE_INITIAL_DATA:
         return
@@ -25,6 +25,18 @@ def add_push_trans_template(apps, schema_editor):
                                           '{"target_langs":"%TARGET_LANGS%"},{"prehook":"skip"},{"posthook":"skip"},'
                                           '{"update":false}]}],"type":"pushtrans"}}'
                     ),
+        JobTemplate(job_template_type="pulltrans", job_template_name="Pull Translations",
+                    job_template_desc="Download translated file and submit back.",
+                    job_template_params="{package_name,repo_type,repo_branch,pipeline_uuid,target_langs}",
+                    job_template_json_str='{"job":{"ci_pipeline":"%PIPELINE_UUID%","exception":"raise",'
+                                          '"execution":"sequential","name":"pull translations",'
+                                          '"package":"%PACKAGE_NAME%","return_type":"json",'
+                                          '"tasks":[{"download":[{"name":"Pull translations"},'
+                                          '{"target_langs":"%TARGET_LANGS%"}]},'
+                                          '{"upload":[{"name":"Submit translations"},{"type":"%REPO_TYPE%"},'
+                                          '{"branch":"%REPO_BRANCH%"},{"conflicts":"replace-translated"},'
+                                          '{"method":"translate"}]}],"type":"pulltrans"}}'
+                    ),
     ]
 
     JobTemplate.objects.bulk_create(job_templates)
@@ -42,5 +54,5 @@ class Migration(migrations.Migration):
             name='job_template_derived',
             field=models.BooleanField(default=False),
         ),
-        migrations.RunPython(add_push_trans_template, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(add_push_pull_trans_template, reverse_code=migrations.RunPython.noop),
     ]
