@@ -57,7 +57,7 @@ def set_api_auth():
             if 'headers' not in kwargs:
                 kwargs['headers'] = dict()
             if rest_client.service == TRANSPLATFORM_ENGINES[4]:
-                # Memsource needs active token as an extension
+                # Memsource needs active token as an extension.
                 cache_api_manager = CacheAPIManager()
                 latest_token = cache_api_manager.tally_auth_token(url)
                 kwargs.update(dict(
@@ -65,17 +65,22 @@ def set_api_auth():
                 ))
             if kwargs.get('auth_user') and kwargs.get('auth_token'):
                 auth_tuple = tuple()
-                if rest_client.service == TRANSPLATFORM_ENGINES[1] or \
-                        rest_client.service == TRANSPLATFORM_ENGINES[3]:
-                    # Tx and Weblate need auth_tuple for HTTPBasicAuth
+                if rest_client.service == TRANSPLATFORM_ENGINES[1]:
+                    # Transifex need auth_tuple for HTTPBasicAuth.
                     auth_tuple = (
                         API_TOKEN_PREFIX.get(rest_client.service) or kwargs['auth_user'],
                         kwargs['auth_token']
                     )
                 elif rest_client.service == TRANSPLATFORM_ENGINES[2]:
-                    # Zanata needs credentials in the header
+                    # Zanata needs credentials in the header.
                     kwargs['headers']['X-Auth-User'] = kwargs['auth_user']
                     kwargs['headers']['X-Auth-Token'] = kwargs['auth_token']
+                elif rest_client.service == TRANSPLATFORM_ENGINES[3]:
+                    # Weblate needs credentials in the headers either.
+                    kwargs['headers']['Authorization'] = "{} {}".format(
+                        API_TOKEN_PREFIX.get(rest_client.service) or kwargs['auth_user'],
+                        kwargs['auth_token']
+                    )
                 kwargs.update(dict(auth_tuple=auth_tuple))
             return caller(rest_client, url, resource, *args, **kwargs)
         return inner_decorator

@@ -110,7 +110,7 @@ class ServiceConfig(object):
                 '_config_dict': weblate_config,
                 '_middle_url': '/api',
                 '_service': weblate_resources.get(resource),
-                'http_auth': HTTPBasicAuth(*auth) if auth else None
+                'http_auth': None
             },
             TRANSPLATFORM_ENGINES[4]: {
                 '_config_dict': memsource_config,
@@ -209,12 +209,15 @@ class RestHandle(object):
         except requests.TooManyRedirects:
             # exceeds the configured number of maximum redirections
             return False
+        except requests.exceptions.ChunkedEncodingError:
+            # server declared chunk(ed) encoding but sent an invalid chunk
+            return False
         except Exception:
             # requests.exceptions.RequestException.
             return False
 
     def get_response_dict(self):
-        request_args = ('body', 'data', 'headers', 'connection_type', 'auth')
+        request_args = ('body', 'data', 'files', 'headers', 'connection_type', 'auth')
         args_dict = dict(zip(
             request_args, [getattr(self, arg, None) for arg in request_args]
         ))
@@ -268,6 +271,7 @@ class RestClient(object):
         headers = kwargs['headers'] if 'headers' in kwargs else {}
         body = kwargs['body'] if 'body' in kwargs else None
         data = kwargs['data'] if 'data' in kwargs else None
+        files = kwargs['files'] if 'files' in kwargs else None
         extension = kwargs.get('ext')
         # set headers
         auth_tuple = kwargs.get('auth_tuple')
@@ -298,7 +302,7 @@ class RestClient(object):
         # initiate service call
         rest_handle = RestHandle(
             base_url, resource, service_details.http_method, auth=service_details.auth,
-            body=body, data=data, headers=headers, connection_type=None, cache=None,
+            body=body, data=data, files=files, headers=headers, connection_type=None, cache=None,
             disable_ssl_certificate_validation=self.disable_ssl_certificate_validation
         )
         api_response_dict = rest_handle.get_response_dict()
