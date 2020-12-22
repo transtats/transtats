@@ -1,5 +1,6 @@
 
 ##### Fri Jan 15 2020 Sundeep Anand <suanand@redhat.com>
+* Implement `submit_finished_translations` job template
 * Extend push job to enable weblate git clone as well
 * Add ci pipeline feature, list and hide pipelines
 * Implement Memsource projects and project_details API

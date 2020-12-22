@@ -17,6 +17,7 @@
 # Every command has its own class and task gets matched
 #   with most appropriate method therein
 
+import re
 import os
 import difflib
 import requests
@@ -198,6 +199,8 @@ class Download(JobCommandBase):
                 '{platform_url}/rest/file/source/{project}/{version}/pot?docId={domain}',
             TRANSPLATFORM_ENGINES[3]:
                 '{platform_url}/api/components/{project}/{version}/new_template/',
+            TRANSPLATFORM_ENGINES[4]:
+                '{platform_url}/api2/v1/projects/{project}/jobs/{version}/original',
         }
 
         if not (input.get('pkg_branch_map') or {}).get(input.get('release_slug')):
@@ -209,6 +212,7 @@ class Download(JobCommandBase):
             ))
             raise Exception(err_msg)
 
+        # ToDO: 'version' for memsource
         url_kwargs = {
             'platform_url': input['pkg_tp_url'],
             'project': input['package'],
@@ -270,8 +274,12 @@ class Download(JobCommandBase):
         return {'platform_pot_path': platform_pot_path}, {task_subject: task_log}
 
     def pull_translations(self, input, kwargs):
+        """
+        Download translations from a Platform
+            - Preference to CI Platform over translation
+        """
 
-        task_subject = "Pull translations"
+        task_subject = "Download translations"
         task_log = OrderedDict()
 
         target_langs = []
@@ -309,9 +317,11 @@ class Download(JobCommandBase):
             project_version = input.get('ci_lang_job_map').get(t_lang) or \
                 input.get('pkg_branch_map', {}).get(input.get('ci_release'), {}).get('platform_version')
 
+            service_kwargs.update(dict(no_cache_api=True))
+
             try:
                 pull_resp = self.api_resources.pull_translations(
-                    platform_engine, platform_api_url, platform_project, project_version, **kwargs
+                    platform_engine, platform_api_url, platform_project, project_version, **service_kwargs
                 )
             except Exception as e:
                 task_log.update(self._log_task(
@@ -338,8 +348,8 @@ class Download(JobCommandBase):
                     ))
                 translated_files.append(d_file_path)
 
-        return {'download_dir': download_folder, 'downloaded_files': translated_files}, \
-               {task_subject: task_log}
+        return {'download_dir': download_folder, 'downloaded_files': translated_files,
+                'target_langs': target_langs}, {task_subject: task_log}
 
 
 class Clone(JobCommandBase):
@@ -785,9 +795,42 @@ class Upload(JobCommandBase):
     Handles all operations for UPLOAD Command
     """
 
+    @staticmethod
+    def _format_locale(locale, alias_zh=False):
+
+        zh_alias = {
+            'CN': 'Hans',
+            'TW': 'Hant'
+        }
+
+        parsed_locale = re.split(r'[_.@]', locale)
+        if '_' in locale and len(parsed_locale) >= 2:
+            lang = parsed_locale[0].lower()
+            territory = parsed_locale[1].upper()
+            if alias_zh and zh_alias.get(territory):
+                territory = zh_alias[territory]
+            return "{}_{}".format(lang, territory)
+        return locale
+
+    @staticmethod
+    def _collect_files(t_files, file_ext, target_langs):
+        collected_files = {}
+
+        def __file_filter_helper(z_file, z_lang):
+            z_file_lang = z_file.split('/')[-1].replace('.{}'.format(file_ext), '')
+            return z_lang in z_file_lang or z_lang in z_file_lang.lower()
+
+        for x_lang in target_langs:
+            for x_file in t_files:
+                if __file_filter_helper(x_file, x_lang):
+                    collected_files[x_lang] = x_file
+
+        return collected_files
+
     def push_files(self, input, kwargs):
         """
-        Push translations to CI Platform
+        Push translations to a Platform
+            - Preference to CI Platform over translation
         """
         task_subject = "Push translations files"
         task_log = OrderedDict()
@@ -808,16 +851,9 @@ class Upload(JobCommandBase):
                 raise Exception("Provided target langs do NOT belong to CI Pipeline.")
 
         # filter files to be uploaded
-        collected_files = {}
-
-        def __file_filter_helper(z_file, z_lang):
-            z_file_lang = z_file.split('/')[-1].replace('.{}'.format(file_ext), '')
-            return z_lang in z_file_lang or z_lang in z_file_lang.lower()
-
-        for x_lang in target_langs:
-            for x_file in input.get('trans_files', []):
-                if __file_filter_helper(x_file, x_lang):
-                    collected_files[x_lang] = x_file
+        collected_files = self._collect_files(
+            input.get('trans_files', []), file_ext, target_langs
+        )
 
         if collected_files and len(collected_files) > 0:
             task_log.update(self._log_task(
@@ -827,9 +863,9 @@ class Upload(JobCommandBase):
 
             # let's try pushing the collected files, one by one
             for lang, file_path in collected_files.items():
-                kwargs = dict()
+                api_kwargs = dict()
                 with open(file_path, 'rb') as f:
-                    kwargs['data'] = f.read()
+                    api_kwargs['data'] = f.read()
 
                 file_name = file_path.split('/')[-1]
                 platform_engine = input.get('pkg_ci_engine') or input.get('pkg_tp_engine')
@@ -837,16 +873,16 @@ class Upload(JobCommandBase):
                 platform_auth_user = input.get('pkg_ci_auth_usr') or input.get('pkg_tp_auth_usr')
                 platform_auth_token = input.get('pkg_ci_auth_token') or input.get('pkg_tp_auth_token')
 
-                kwargs['headers'] = dict()
+                api_kwargs['headers'] = dict()
                 if platform_engine == TRANSPLATFORM_ENGINES[4]:
-                    kwargs['headers']["Memsource"] = str({"targetLangs": [lang], "continuous": True})
-                    kwargs['headers']["Content-Disposition"] = 'attachment; filename="{}"'.format(file_name)
-                kwargs['auth_user'] = platform_auth_user
-                kwargs['auth_token'] = platform_auth_token
+                    api_kwargs['headers']["Memsource"] = str({"targetLangs": [lang], "continuous": True})
+                    api_kwargs['headers']["Content-Disposition"] = 'attachment; filename="{}"'.format(file_name)
+                api_kwargs['auth_user'] = platform_auth_user
+                api_kwargs['auth_token'] = platform_auth_token
 
                 try:
                     upload_resp = self.api_resources.push_translations(
-                        platform_engine, platform_api_url, platform_project, **kwargs
+                        platform_engine, platform_api_url, platform_project, **api_kwargs
                     )
                 except Exception as e:
                     task_log.update(self._log_task(
@@ -862,6 +898,97 @@ class Upload(JobCommandBase):
                     job_post_resp[lang] = upload_resp
 
         return {'push_files_resp': {platform_project: job_post_resp}}, {task_subject: task_log}
+
+    def submit_translations(self, input, kwargs):
+        """
+        Submit finished translations (downloaded from a CI Platform)
+            to a translation platform or an upstream
+        """
+        task_subject = "Submit translations"
+        task_log = OrderedDict()
+
+        trans_submit_resp = OrderedDict()
+        platform_project = input.get('package')
+
+        if not kwargs.get('type'):
+            raise Exception("Please provide REPO_TYPE.")
+        repo_type = kwargs.get('type')
+
+        if not kwargs.get('branch'):
+            raise Exception("Please provide REPO_BRANCH.")
+        repo_branch = kwargs.get('branch')
+
+        file_ext = 'po'
+        if kwargs.get('ext'):
+            file_ext = kwargs['ext'].lower()
+
+        target_langs = []
+        if input.get('target_langs'):
+            target_langs = self.format_target_langs(langs=input['target_langs'])
+
+        if target_langs and input.get('ci_pipeline_uuid') and input.get('ci_target_langs'):
+            if not set(target_langs).issubset(set(input['ci_target_langs'])):
+                raise Exception("Provided target langs do NOT belong to CI Pipeline.")
+
+        # filter files to be submitted
+        collected_files = self._collect_files(
+            input.get('downloaded_files', []), file_ext, target_langs
+        )
+
+        if collected_files and len(collected_files) > 0:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, str(collected_files),
+                text_prefix='%s %s files collected' % (len(collected_files), file_ext.upper())
+            ))
+
+            # let's try uploading the collected files, one by one
+            for lang, file_path in collected_files.items():
+                api_kwargs = dict()
+
+                file_name = file_path.split('/')[-1]
+
+                # where repo_type belongs to translation platform(s)
+                # todo: extend support for scm repositories
+                if repo_type in TRANSPLATFORM_ENGINES:
+
+                    api_kwargs['data'], api_kwargs['files'] = dict(), dict()
+                    platform_engine, platform_api_url, platform_auth_user, platform_auth_token = \
+                        input.get('pkg_tp_engine'), input.get('pkg_tp_url'), \
+                        input.get('pkg_tp_auth_usr'), input.get('pkg_tp_auth_token')
+
+                    if platform_engine == TRANSPLATFORM_ENGINES[3]:
+                        # format lang as per weblate
+                        lang = self._format_locale(lang, alias_zh=kwargs.get('alias_zh', False))
+
+                        with open(file_path, 'rb') as f:
+                            api_kwargs['files'] = dict(file=f.read())
+                        # multipart/form upload
+                        api_kwargs['data']['overwrite'] = "yes"
+                        api_kwargs['data']['conflicts'] = kwargs.get('conflicts', 'replace-translated')
+                        api_kwargs['data']['method'] = kwargs.get('method', 'translate')
+
+                    api_kwargs['auth_user'] = platform_auth_user
+                    api_kwargs['auth_token'] = platform_auth_token
+
+                    try:
+                        submit_resp = self.api_resources.push_translations(
+                            platform_engine, platform_api_url, platform_project,
+                            repo_branch, lang, **api_kwargs
+                        )
+                    except Exception as e:
+                        task_log.update(self._log_task(
+                            input['log_f'], task_subject,
+                            'Something went wrong in uploading: %s' % str(e)
+                        ))
+                    else:
+                        t_prefix = '{} uploaded for {}'.format(file_name, lang) if submit_resp \
+                            else 'Could not upload: {} for {}'.format(file_name, lang)
+                        task_log.update(self._log_task(
+                            input['log_f'], task_subject, str(submit_resp), text_prefix=t_prefix
+                        ))
+                        trans_submit_resp[lang] = submit_resp
+
+        return {'submit_translations': trans_submit_resp}, {task_subject: task_log}
 
 
 class Calculate(JobCommandBase):

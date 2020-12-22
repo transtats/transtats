@@ -13,7 +13,6 @@ job:
       - name: Submit translations
       - type: %REPO_TYPE%
       - branch: %REPO_BRANCH%
-      - conflicts: replace-approved
+      - conflicts: replace-translated
       - method: translate
-      - fuzzy: empty
   type: pulltrans
