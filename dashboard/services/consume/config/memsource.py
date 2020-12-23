@@ -210,6 +210,15 @@ resource_config_dict = {
                 'response_media_type': media_types[0],
             },
         }),
+        # https://cloud.memsource.com/web/api2/v1/projects/{projectUid}/jobs/source
+        ('/projects/{project_slug}/jobs/source', {
+            http_methods[1]: {
+                'path_params': ('project_slug', ),
+                'query_params': None,
+                'request_media_type': media_types[2],
+                'response_media_type': media_types[0],
+            },
+        }),
     ]),
 }
 
@@ -249,6 +258,7 @@ job_pdf_preview = resource('JobResource', list(resource_config_dict['JobResource
 job_workflow_step = resource('JobResource', list(resource_config_dict['JobResource'].keys())[8], http_methods[0])
 job_analyses = resource('JobResource', list(resource_config_dict['JobResource'].keys())[10], http_methods[0])
 create_job = resource('JobResourcePOST', list(resource_config_dict['JobResourcePOST'].keys())[0], http_methods[1])
+update_source = resource('JobResourcePOST', list(resource_config_dict['JobResourcePOST'].keys())[1], http_methods[1])
 
 # Transtats Memsource support operates on resources listed here
 resources = {
@@ -272,4 +282,5 @@ resources = {
     'job_workflow_step': job_workflow_step,
     'job_analyses': job_analyses,
     'create_job': create_job,
+    'update_source': update_source,
 }

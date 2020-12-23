@@ -873,26 +873,34 @@ class Upload(JobCommandBase):
                 platform_auth_user = input.get('pkg_ci_auth_usr') or input.get('pkg_tp_auth_usr')
                 platform_auth_token = input.get('pkg_ci_auth_token') or input.get('pkg_tp_auth_token')
 
+                if kwargs.get('update') and input.get('ci_lang_job_map') \
+                        and lang not in input.get('ci_lang_job_map'):
+                    raise Exception("Job ID NOT found for lang: {}.".format(lang))
+
                 api_kwargs['headers'] = dict()
                 if platform_engine == TRANSPLATFORM_ENGINES[4]:
-                    api_kwargs['headers']["Memsource"] = str({"targetLangs": [lang], "continuous": True})
+                    api_kwargs['headers']["Memsource"] = str(
+                        {"jobs": [{"uid": input.get('ci_lang_job_map', {}).get(lang)}], "preTranslate": "false"}
+                    ) if kwargs.get('update') else str({"targetLangs": [lang], "continuous": True})
                     api_kwargs['headers']["Content-Disposition"] = 'attachment; filename="{}"'.format(file_name)
                 api_kwargs['auth_user'] = platform_auth_user
                 api_kwargs['auth_token'] = platform_auth_token
 
                 try:
-                    upload_resp = self.api_resources.push_translations(
-                        platform_engine, platform_api_url, platform_project, **api_kwargs
-                    )
+                    upload_resp = self.api_resources.update_source(
+                        platform_engine, platform_api_url, platform_project, **api_kwargs) \
+                        if kwargs.get('update') else self.api_resources.push_translations(
+                        platform_engine, platform_api_url, platform_project, **api_kwargs)
                 except Exception as e:
                     task_log.update(self._log_task(
                         input['log_f'], task_subject,
                         'Something went wrong in uploading: %s' % str(e)
                     ))
                 else:
+                    t_prefix = '{} uploaded for {}'.format(file_name, lang) if upload_resp \
+                        else 'Could not upload: {} for {}'.format(file_name, lang)
                     task_log.update(self._log_task(
-                        input['log_f'], task_subject, str(upload_resp),
-                        text_prefix='{} Uploaded'.format(file_name)
+                        input['log_f'], task_subject, str(upload_resp), text_prefix=t_prefix
                     ))
                     upload_resp.update(dict(project=dict(uid=platform_project)))
                     job_post_resp[lang] = upload_resp
