@@ -7,7 +7,8 @@ job:
   tasks:
   - clone:
     - name: git repo
-    - branch: master
+    - type: %REPO_TYPE%
+    - branch: %REPO_BRANCH%
   - filter:
     - name: files
     - ext: PO

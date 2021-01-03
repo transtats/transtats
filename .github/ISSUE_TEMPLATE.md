@@ -6,7 +6,7 @@
  - Feature Idea
  - Documentation Report
 
-##### OS / ENVIRONMENT
+##### OS / ENVIRONMENT / VERSION
 <!--- Describe OS and Environment -->
 
 <!--- May be paste output from `make env-info` between the quotes below -->

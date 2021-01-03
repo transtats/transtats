@@ -25,7 +25,7 @@ from urllib.parse import urlparse
 
 # dashboard
 from dashboard.constants import (
-    TRANSPLATFORM_ENGINES, BUILD_SYSTEMS, RELSTREAM_SLUGS
+    GIT_PLATFORMS, TRANSPLATFORM_ENGINES, BUILD_SYSTEMS, RELSTREAM_SLUGS
 )
 from dashboard.converters.xml2dict import parse
 from dashboard.decorators import call_service
@@ -34,7 +34,107 @@ from dashboard.decorators import call_service
 __all__ = ['APIResources']
 
 
-class TransplatformResources(object):
+class ResourcesBase(object):
+    """
+    Base class for resources
+    """
+    def _execute_method(self, api_config, *args, **kwargs):
+        """
+        Executes located method with required params
+        """
+        try:
+            if api_config.get('ext'):
+                kwargs.update(dict(ext=True))
+            service_resource = api_config['resources'][0]
+            if len(api_config['resources']) > 1:
+                kwargs.update(dict(more_resources=api_config['resources'][1:]))
+            if api_config.get('combine_results'):
+                kwargs['combine_results'] = []
+            return api_config['method'](
+                api_config['base_url'], service_resource, *args, **kwargs
+            )
+        except (KeyError, Exception):
+            # log error
+            pass
+        return {}
+
+
+class GitPlatformResources(ResourcesBase):
+    """
+    Git Platform related Resources
+    """
+
+    @staticmethod
+    @call_service(GIT_PLATFORMS[0])
+    def _fetch_github_repo_branches(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        git_branches = []
+        if isinstance(response.get('json_content'), list):
+            git_branches = [branch.get('name', '')
+                            for branch in response.get('json_content')]
+        return git_branches
+
+    @staticmethod
+    @call_service(GIT_PLATFORMS[1])
+    def _gitlab_repo_branches_by_id(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        project_id = response.get('json_content', {}).get("id", int())
+
+        if kwargs.get('more_resources'):
+            for next_resource in kwargs['more_resources']:
+                if next_resource == 'list_branches':
+                    return GitPlatformResources._fetch_gitlab_repo_branches(
+                        base_url, next_resource, *[project_id], **kwargs
+                    )
+        return project_id
+
+    @staticmethod
+    @call_service(GIT_PLATFORMS[1])
+    def _fetch_gitlab_repo_branches(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        git_branches = []
+        if isinstance(response.get('json_content'), list):
+            git_branches = [branch.get('name', '')
+                            for branch in response.get('json_content')]
+        return git_branches
+
+    @staticmethod
+    @call_service(GIT_PLATFORMS[2])
+    def _fetch_pagure_repo_branches(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('json_content', {}).get('branches', [])
+
+    def fetch_repo_branches(self, git_platform, instance_url, *args, **kwargs):
+        """
+        Fetches all projects or modules json from API
+        :param git_platform: Git Platform API URL
+        :param instance_url: Git Platform Instance URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: list
+        """
+        method_mapper = {
+            GIT_PLATFORMS[0]: {
+                'method': self._fetch_github_repo_branches,
+                'base_url': 'https://api.github.com',
+                'resources': ['list_branches'],
+            },
+            GIT_PLATFORMS[1]: {
+                'method': self._gitlab_repo_branches_by_id,
+                'base_url': instance_url,
+                'resources': ['project_id', 'list_branches'],
+            },
+            GIT_PLATFORMS[2]: {
+                'method': self._fetch_pagure_repo_branches,
+                'base_url': instance_url,
+                'resources': ['list_branches'],
+            },
+        }
+        selected_config = method_mapper[git_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+
+class TransplatformResources(ResourcesBase):
     """
     Translation Platform related Resources
     """
@@ -224,26 +324,6 @@ class TransplatformResources(object):
                 base_url, resource, *url_params, **kwargs
             )
         return dict(id=url_params[1], stats=kwargs['combine_results'])
-
-    def _execute_method(self, api_config, *args, **kwargs):
-        """
-        Executes located method with required params
-        """
-        try:
-            if api_config.get('ext'):
-                kwargs.update(dict(ext=True))
-            service_resource = api_config['resources'][0]
-            if len(api_config['resources']) > 1:
-                kwargs.update(dict(more_resources=api_config['resources'][1:]))
-            if api_config.get('combine_results'):
-                kwargs['combine_results'] = []
-            return api_config['method'](
-                api_config['base_url'], service_resource, *args, **kwargs
-            )
-        except (KeyError, Exception):
-            # log error
-            pass
-        return {}
 
     def fetch_all_projects(self, translation_platform, instance_url, *args, **kwargs):
         """
@@ -467,7 +547,8 @@ class KojiResources(object):
             return koji.pathinfo.rpm(srpm)
 
 
-class APIResources(KojiResources,
+class APIResources(GitPlatformResources,
+                   KojiResources,
                    TransplatformResources):
     """
     Single Entry Point to

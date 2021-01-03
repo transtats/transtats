@@ -48,3 +48,7 @@ WORKLOAD_HEADERS = ('Total', 'Translated', 'Untranslated', 'Remaining')
 
 # Calendar Verbs
 CALENDAR_VERBS = ('BEGIN:VEVENT', 'END:VEVENT', 'BEGIN:VTODO', 'END:VTODO')
+
+# Git Repositories
+GIT_PLATFORMS = ('GitHub', 'GitLab', 'Pagure')
+GIT_REPO_TYPE = ('default', 'l10n')

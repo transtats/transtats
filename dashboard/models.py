@@ -240,6 +240,8 @@ class Package(ModelMixin, models.Model):
                                      verbose_name="Upstream Name")
     component = models.CharField(max_length=200, null=True, blank=True, verbose_name="Component")
     upstream_url = models.URLField(max_length=2000, unique=True, verbose_name="Upstream URL")
+    upstream_l10n_url = models.URLField(max_length=2000, unique=True, null=True, blank=True,
+                                        verbose_name="Upstream Localization URL")
     platform_slug = models.ForeignKey(
         Platform, on_delete=models.PROTECT,
         to_field='platform_slug', verbose_name="Translation Platform"

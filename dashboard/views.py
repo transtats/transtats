@@ -39,7 +39,7 @@ from django.urls import reverse, reverse_lazy
 # dashboard
 
 from dashboard.constants import (
-    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, ZANATA_SLUGS
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
@@ -451,7 +451,7 @@ class NewPackageView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
-        initials.update(dict(transplatform_slug=ZANATA_SLUGS[1]))
+        initials.update(dict(transplatform_slug=WEBLATE_SLUGS[1]))
         default_product = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0]
         initials.update(dict(release_streams=default_product))
         return initials
@@ -731,7 +731,19 @@ class JobsLogsView(ManagersMixin, ListView):
 
     def get_queryset(self):
         job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[:25]
+        return job_logs[:50]
+
+
+class JobsArchiveView(ManagersMixin, ListView):
+    """
+    Archive List View
+    """
+    template_name = "jobs/archive.html"
+    context_object_name = 'logs'
+
+    def get_queryset(self):
+        job_logs = self.jobs_log_manager.get_job_logs()
+        return job_logs[50:]
 
 
 class JobsLogsPackageView(ManagersMixin, ListView):
@@ -749,18 +761,6 @@ class JobsLogsPackageView(ManagersMixin, ListView):
                 remarks=pkg_name, result=True
             )
         return job_logs
-
-
-class JobsArchiveView(ManagersMixin, ListView):
-    """
-    Archive List View
-    """
-    template_name = "jobs/archive.html"
-    context_object_name = 'logs'
-
-    def get_queryset(self):
-        job_logs = self.jobs_log_manager.get_job_logs()
-        return job_logs[25:]
 
 
 class JobDetailView(DetailView):
@@ -1260,6 +1260,28 @@ def get_build_tags(request):
                                 {% tag_build_tags buildsys product %}
                             """
             return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)
+
+
+def get_repo_branches(request):
+    """
+    Get Repository Branch(es)
+    """
+
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        package = post_params.get('package', '')
+        repo_type = post_params.get('repoType', '')
+        context = Context(
+            {'META': request.META,
+             'package': package,
+             'repo_type': repo_type}
+        )
+        template_string = """
+                            {% load tag_repo_branches from custom_tags %}
+                            {% tag_repo_branches package repo_type %}
+                        """
+        return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)
 
 
