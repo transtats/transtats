@@ -22,8 +22,7 @@ import yaml
 from datetime import timedelta
 from random import randrange
 
-from celery.schedules import crontab
-from celery.task import periodic_task
+from celery import shared_task
 from celery.utils.log import get_task_logger
 
 from django.utils import timezone
@@ -39,15 +38,13 @@ from dashboard.managers.graphs import (
 logger = get_task_logger(__name__)
 
 
-@periodic_task(
-    run_every=(crontab(minute=0, hour='19')),
-    name="sync_packages_with_platform",
-    ignore_result=True
-)
+@shared_task()
 def task_sync_packages_with_platform():
     """
     sync all packages with translation platform
     """
+
+    logger.info("Starting task_sync_packages_with_platform ..")
 
     package_manager = PackagesManager()
     reports_manager = ReportsManager()
@@ -73,6 +70,8 @@ def task_sync_packages_with_platform():
         all_packages.extend(weblate_fedora_packages)
 
     for package in all_packages:
+        logger.info("Attempting sync for {}.".format(package))
+
         th = threading.Thread(
             target=_sync_package, args=(package.package_name,)
         )
@@ -87,15 +86,13 @@ def task_sync_packages_with_platform():
         logger.info("Packages Summary Updated")
 
 
-@periodic_task(
-    run_every=(crontab(minute=0, hour='7')),
-    name="sync_packages_with_build_system",
-    ignore_result=True
-)
+@shared_task()
 def task_sync_packages_with_build_system():
     """
     sync all packages with build system
     """
+
+    logger.info("Starting task_sync_packages_with_build_system ..")
 
     package_manager = PackagesManager()
     graph_manager = GraphManager()
@@ -163,6 +160,8 @@ def task_sync_packages_with_build_system():
 
     if all_packages and job_template:
         for package in all_packages:
+            logger.info("Attempting sync for {}.".format(package))
+
             candidates = []
             mapping = package.release_branch_mapping_json or {}
 

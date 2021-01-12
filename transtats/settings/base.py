@@ -14,6 +14,8 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 import json
 
+from celery.schedules import crontab
+
 # Core Django imports
 from django.core.exceptions import ImproperlyConfigured
 
@@ -110,7 +112,22 @@ SESSION_COOKIE_SECURE = False
 WSGI_APPLICATION = 'transtats.wsgi.application'
 
 LOGIN_REDIRECT_URL = '/'
-BROKER_URL = 'redis://localhost:6379'
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_ENABLE_UTC = True
+
+CELERY_BEAT_SCHEDULE = {
+    'task_sync_packages_with_platform': {
+        'task': 'dashboard.tasks.task_sync_packages_with_platform',
+        'schedule': crontab(minute=0, hour='19'),
+    },
+    'task_sync_packages_with_build_system': {
+        'task': 'dashboard.tasks.task_sync_packages_with_build_system',
+        'schedule': crontab(minute=0, hour='7'),
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
