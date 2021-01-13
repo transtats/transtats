@@ -4,11 +4,11 @@
   <div class="row row-cards-pf">
     {% for release, summary in relsummary.items %}
     <div class="col-xs-12 col-sm-4 col-md-3">
-      <div class="card-pf card-pf-utilization card-pf-accented card-releases-ts">
+      <div class="card-pf card-releases-ts">
         <h2 class="card-pf-title">
           {{ release }}
           <span class="pull-right">
-            <a href="{% url 'trans-status-release' summary.slug %}" class="btn btn-default">Stats</a>
+            <a href="{% url 'trans-status-release' summary.slug %}" class="btn btn-default">Reports</a>
           </span>
         </h2>
         <div class="card-pf-body">
