@@ -158,14 +158,14 @@
             {% endif %}
             <li class="list-group-item">
               <span class="i pficon pficon-info"></span>
-              Run a <a href="{% url 'jobs-yml-based' %}?template=stringchange">job</a>
-                to locate translation string change in the package source repository.
+                Run a <a href="{% url 'jobs-yml-based' %}?template=syncdownstream">sync job</a>
+                to calculate translation statistics of a built package or for the
+                <a href="{% url 'jobs-yml-based' %}?template=syncupstream">upstream</a>.
             </li>
             <li class="list-group-item">
               <span class="i pficon pficon-info"></span>
-                Or a <a href="{% url 'jobs-yml-based' %}?template=syncdownstream">sync job</a>
-                to calculate translation statistics of a built package or at
-                <a href="{% url 'jobs-yml-based' %}?template=syncupstream">upstream</a>.
+              Run a <a href="{% url 'jobs-yml-based' %}?template=stringchange">job</a>
+              to locate translation string change in the package source repository <i>not pushed to platform</i>.
             </li>
         </ul>
       </div>
@@ -177,7 +177,7 @@
 <div class="panel panel-default" id="panel-release-list">
   <div class="panel-heading">
     <h3 class="panel-title">
-      Product Releases
+      <span style="margin-right: 1%">Product Releases</span>
       {% if releases %}
       <select id="relBranch" class="selectpicker" data-live-search="true">
         <option selected disabled>Select Release</option>

@@ -53,7 +53,7 @@ from dashboard.managers.packages import PackagesManager
 from dashboard.managers.pipelines import CIPipelineManager
 from dashboard.managers.jobs import (
     YMLBasedJobManager, JobsLogManager, TransplatformSyncManager,
-    ReleaseScheduleSyncManager, BuildTagsSyncManager
+    ReleaseScheduleSyncManager, BuildTagsSyncManager, JobTemplateManager
 )
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
@@ -70,6 +70,7 @@ class ManagersMixin(object):
     inventory_manager = InventoryManager()
     packages_manager = PackagesManager()
     jobs_log_manager = JobsLogManager()
+    jobs_template_manager = JobTemplateManager()
     release_branch_manager = ReleaseBranchManager()
     graph_manager = GraphManager()
     reports_manager = ReportsManager()
@@ -91,9 +92,8 @@ class ManagersMixin(object):
         # relbranches = self.release_branch_manager.get_release_branches()
         # summary['releases_len'] = relbranches.count() if relbranches else 0
         summary['packages_len'] = self.packages_manager.count_packages()
-        jobs_count, last_ran_on, last_ran_type = \
-            self.jobs_log_manager.get_joblog_stats()
-        summary['jobs_len'] = jobs_count
+        jobs_templates_count = self.jobs_template_manager.get_job_templates().count()
+        summary['jobs_templates_len'] = jobs_templates_count
         # coverage = self.graph_manager.get_graph_rules(only_active=True)
         # summary['graph_rules_len'] = coverage.count() if coverage else 0
         return summary
