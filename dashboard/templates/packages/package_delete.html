@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block pagecontent %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+      <h3 class="panel-title">Remove Package
+        <a class="pull-right" data-toggle="tooltip" title="Close and return" href="{% url 'settings-packages' %}">
+          <i class="pficon-close"></i>
+        </a>
+      </h3>
+  </div>
+  <div class="panel-body">
+    <form action="" method="post">{% csrf_token %}
+        <h4>Are you sure you want to remove <a href="{%url 'package-view' object %}">{{ object }}</a> package?</h4>
+        <input {% if not user.is_superuser %}disabled{% endif %} type="submit" value="Delete"
+               class="btn btn-danger pull-right" />
+    </form>
+  </div>
+</div>
+{% endblock %}

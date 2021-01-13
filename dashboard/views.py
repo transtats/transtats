@@ -58,7 +58,8 @@ from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
 )
 from dashboard.models import (
-    Job, Language, LanguageSet, Platform, Visitor, Package, GraphRule
+    Job, Language, LanguageSet, Platform, Visitor, Package,
+    GraphRule, SyncStats, CacheBuildDetails
 )
 
 
@@ -520,6 +521,37 @@ class UpdatePackageView(ManagersMixin, SuccessMessageMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('package-update', args=[self.object.package_name])
+
+
+class DeletePackageView(ManagersMixin, SuccessMessageMixin, DeleteView):
+    """
+    Delete Package view
+    """
+    template_name = 'packages/package_delete.html'
+    model = Package
+    slug_field = 'package_name'
+    success_message = '%(package_name)s was removed successfully!'
+
+    def get(self, request, *args, **kwargs):
+        if kwargs.get('slug') and not request.user.is_superuser:
+            raise PermissionDenied
+        return super(DeletePackageView, self).get(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('settings-packages')
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        # delete all associated jobs
+        Job.objects.filter(job_remarks=self.object.package_name).delete()
+        # delete all related sync stats
+        SyncStats.objects.filter(package_name=self.object).delete()
+        # delete all cached build details
+        CacheBuildDetails.objects.filter(package_name=self.object).delete()
+        # now, remove the package
+        self.object.delete()
+        # return to packages list view
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class GraphRulesSettingsView(ManagersMixin, ListView):
