@@ -169,11 +169,6 @@
             <span>Jobs</span>
           </div>
           <ul class="list-group">
-            {% if user.is_authenticated %}
-            <li class="list-group-item" id="li-jobs-jobs" data-toggle="tooltip" title="Tasks">
-              <a href="{% url 'jobs' %}"><span class="list-group-item-value">Tasks</span></a>
-            </li>
-            {% endif %}
             <li class="list-group-item" id="li-jobs-yml-based" data-toggle="tooltip" title="Templates">
               <a href="{% url 'jobs-yml-based' %}">
             <span class="list-group-item-value">Templates</span>
@@ -184,17 +179,26 @@
             <span class="list-group-item-value">Logs</span>
               </a>
             </li>
-            {% if user.is_authenticated %}
-            <li class="list-group-item" id="li-jobs-cleanup" data-toggle="tooltip" title="Clean Up">
-              <a href="{% url 'jobs-cleanup' %}"><span class="list-group-item-value">Clean Up</span></a>
-            </li>
-            {% endif %}
             <li class="list-group-item" id="li-jobs-archive" data-toggle="tooltip" title="Archive">
               <a href="{% url 'jobs-archive' %}">
             <span class="list-group-item-value">Archive</span>
               </a>
             </li>
           </ul>
+          {% if user.is_staff %}
+          <div class="nav-item-pf-header">
+            <a href="#1" class="secondary-collapse-toggle-pf" data-toggle="collapse-secondary-nav"></a>
+            <span>Maintenance</span>
+          </div>
+          <ul class="list-group">
+            <li class="list-group-item" id="li-jobs-jobs" data-toggle="tooltip" title="Tasks">
+              <a href="{% url 'jobs' %}"><span class="list-group-item-value">Tasks</span></a>
+            </li>
+            <li class="list-group-item" id="li-jobs-cleanup" data-toggle="tooltip" title="Clean Up">
+              <a href="{% url 'jobs-cleanup' %}"><span class="list-group-item-value">Clean Up</span></a>
+            </li>
+          </ul>
+          {% endif %}
         </div>
       </li>
       <li class="list-group-item" id="li-coverage">
