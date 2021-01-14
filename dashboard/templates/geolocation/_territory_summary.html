@@ -13,7 +13,7 @@
             </h3><hr/>
             <div class="card-pf-body ts-loc-summary-card">
                 {% for rel, stats_data in data.items %}
-                  <h4><a href="{% url 'trans-status-release' rel %}" style="text-decoration: none !important">
+                  <h4><a href="{% url 'language-release-view' locale rel %}" style="text-decoration: none !important">
                     {{ stats_data|pop_item:"Release Name" }}</a>
                     <small class="text-muted pull-right">In messages</small></h4>
                   <!-- ToDo: replace table with bullet chart -->
