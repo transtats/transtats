@@ -1,4 +1,5 @@
-##### Thu Dec 04 2020 Sundeep Anand <suanand@redhat.com> - release_0.8.1
+##### Thu Jan 14 2021 Sundeep Anand <suanand@redhat.com> - release_0.8.1
+* Add package remove feature for admins
 * Add python3-pip system dependency ([vishalvvr](https://github.com/vishalvvr))
 * add `upstream_l10n_url` for syncupstream and stringchange job
 

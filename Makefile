@@ -1,11 +1,11 @@
 
 .PHONY: celeryd
 celeryd:
-	celery -A transtats worker --loglevel=INFO --autoscale=4,1 --max-tasks-per-child=2
+	celery --app=transtats worker --loglevel=INFO --autoscale=4,1 --max-tasks-per-child=2
 
 .PHONY: celery
 celery:
-	celery -A transtats beat -l info -S django_celery_beat.schedulers:DatabaseScheduler
+	celery --app=transtats beat -l info -S django_celery_beat.schedulers:DatabaseScheduler
 
 .PHONY: clean-pyc
 clean-pyc:
