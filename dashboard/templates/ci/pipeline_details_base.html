@@ -1,0 +1,25 @@
+{% extends "jobs/jobs_base.html" %}
+{% load custom_tags %}
+
+{% block extrascript %}
+{% endblock %}
+
+{% block pagecontent %}
+<div class="row row-cards-pf">
+  <div class="col-xs-12">
+    <div class="card-pf card-pf-utilization content-area">
+      <div class="card-pf-heading">
+        <h1>Pipeline Details
+          {% block pipeline-heading %}{% endblock %}
+        </h1>
+      </div>
+
+      {% block pipeline-navigation %}{% endblock %}
+
+      <div class="card-pf-body">
+        {% block pipeline-content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

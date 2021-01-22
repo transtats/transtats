@@ -60,7 +60,7 @@ from dashboard.managers.graphs import (
 )
 from dashboard.models import (
     Job, Language, LanguageSet, Platform, Visitor, Package,
-    GraphRule, SyncStats, CacheBuildDetails
+    GraphRule, SyncStats, CacheBuildDetails, CIPlatformJob, CIPipeline
 )
 
 
@@ -806,6 +806,42 @@ class JobDetailView(DetailView):
     model = Job
     slug_field = 'job_uuid'
     slug_url_kwarg = 'job_id'
+
+
+class PipelineDetailView(ListView):
+    """
+    Pipeline Detail View
+    - Platform Jobs List View
+    """
+    template_name = "ci/pipeline_details.html"
+    context_object_name = 'platform_jobs'
+    model = CIPlatformJob
+    slug_field = 'ci_pipeline'
+    slug_url_kwarg = 'pipeline_id'
+
+
+class PipelineSyncLogsView(DetailView):
+    """
+    Pipeline Sync Logs View
+        - CI Pipeline Detail View
+    """
+    template_name = "ci/pipeline_sync_logs.html"
+    context_object_name = 'ci_pipeline'
+    model = CIPipeline
+    slug_field = 'ci_pipeline_uuid'
+    slug_url_kwarg = 'pipeline_id'
+
+
+class PipelineConfigurationsView(DetailView):
+    """
+    Pipeline Configurations View
+        - CI Pipeline Detail View
+    """
+    template_name = "ci/pipeline_configurations.html"
+    context_object_name = 'ci_pipeline'
+    model = CIPipeline
+    slug_field = 'ci_pipeline_uuid'
+    slug_url_kwarg = 'pipeline_id'
 
 
 class NewLanguageView(SuccessMessageMixin, CreateView):
