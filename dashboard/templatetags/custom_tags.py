@@ -108,6 +108,8 @@ def percent(value):
 
 @register.filter
 def parse_memsource_time(date_time):
+    if not isinstance(date_time, str):
+        return date_time
     return str(datetime.strptime(
         date_time, '%Y-%m-%dT%H:%M:%S+0000'
     ))

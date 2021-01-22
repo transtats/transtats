@@ -31,8 +31,8 @@
 
 {% block pipeline-navigation %}
   <ul class="nav nav-tabs nav-tabs-pf">
-    <li><a href="{% url 'pipeline-details' ci_pipeline %}">Platform Jobs</a></li>
-    <li><a href="{% url 'pipeline-sync-logs' ci_pipeline.ci_pipeline_uuid %}">Sync Logs</a></li>
+    <li><a href="{% url 'pipeline-details' ci_pipeline.ci_pipeline_uuid %}">Platform Jobs</a></li>
+    <li><a href="{% url 'pipeline-sync-logs' ci_pipeline %}">Sync Logs</a></li>
     <li class="active"><a href="{% url 'pipeline-configurations' ci_pipeline.ci_pipeline_uuid %}">
       Configurations</a></li>
   </ul>

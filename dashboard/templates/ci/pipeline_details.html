@@ -8,32 +8,52 @@
 {% endblock %}
 
 {% block pipeline-heading %}
-  {% if platform_jobs.0.ci_pipeline.ci_project_details_json|get_item:"name" %}
+  {% if ci_pipeline.ci_project_details_json|get_item:"name" %}
     <small class="pull-right">
-     <a href="{{ platform_jobs.0.ci_pipeline.ci_project_web_url }}" target="_blank">
-       {{ platform_jobs.0.ci_pipeline.ci_project_details_json|get_item:"name" }}</a>&nbsp;&nbsp;
+     <a href="{{ ci_pipeline.ci_project_web_url }}" target="_blank">
+       {{ ci_pipeline.ci_project_details_json|get_item:"name" }}</a>&nbsp;&nbsp;
      <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
       data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
       title="Copy URL"><span class="fa fa-clipboard"></span></button>
-     <a class="btn btn-default" href="{% url 'package-view' platform_jobs.0.ci_pipeline.ci_package.package_name %}">
-       Back to {{ platform_jobs.0.ci_pipeline.ci_package.package_name|title }}</a>
+     <a class="btn btn-default" href="{% url 'package-view' ci_pipeline.ci_package.package_name %}">
+       Back to {{ ci_pipeline.ci_package.package_name|title }}</a>
     </small>
   {% endif %}
 {% endblock %}
 
 {% block pipeline-navigation %}
   <ul class="nav nav-tabs nav-tabs-pf">
-    <li class="active"><a href="{% url 'pipeline-details' platform_jobs.0.ci_pipeline %}">Platform Jobs</a></li>
-    <li><a href="{% url 'pipeline-sync-logs' platform_jobs.0.ci_pipeline.ci_pipeline_uuid %}">Sync Logs</a></li>
-    <li><a href="{% url 'pipeline-configurations' platform_jobs.0.ci_pipeline.ci_pipeline_uuid %}">
+    <li class="active"><a href="{% url 'pipeline-details' ci_pipeline.ci_pipeline_uuid %}">Platform Jobs</a></li>
+    <li><a href="{% url 'pipeline-sync-logs' ci_pipeline %}">Sync Logs</a></li>
+    <li><a href="{% url 'pipeline-configurations' ci_pipeline.ci_pipeline_uuid %}">
       Configurations</a></li>
   </ul>
 {% endblock %}
 
 {% block pipeline-content %}
-  {% for p_job in platform_jobs %}
-    <p class="ts-pre">{{ p_job.ci_platform_job_json }}</p>
-  {% empty %}
-    <h2>No details found.</h2>
-  {% endfor %}
+  <div class="container-fluid container-cards-pf">
+    <div class="row row-cards-pf">
+      {% for p_job in ci_pipeline.ci_platform_jobs_json %}
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="card-pf card-pf-accented">
+              <div class="card-pf-body">
+              {% for k, v in p_job.items %}
+                <div><span>{{ k|title }}</span>:
+                  <span class="text-info" style="font-size:small; margin-left:2%">
+                    {% if not v %}
+                      ..
+                    {% elif 'date' in k %}
+                      {{ v|parse_memsource_time }}
+                    {% else %}{{ v }}{% endif %}
+                  </span>
+                </div>
+              {% endfor %}
+              </div>
+            </div>
+        </div>
+      {% empty %}
+        <h2>No details found.</h2>
+      {% endfor %}
+    </div>
+  </div>
 {% endblock %}

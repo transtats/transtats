@@ -157,7 +157,7 @@ class JobsLogManager(BaseManager):
 
     package_manager = PackagesManager()
 
-    def get_job_logs(self, remarks=None, result=None):
+    def get_job_logs(self, remarks=None, result=None, no_pipeline=True):
         """
         Fetch all job logs from the db
         """
@@ -167,6 +167,10 @@ class JobsLogManager(BaseManager):
             filters.update(dict(job_remarks=remarks))
         if result:
             filters.update(dict(job_result=True))
+        if no_pipeline:
+            filters.update(dict(ci_pipeline__isnull=True))
+        else:
+            filters.update(dict(ci_pipeline__isnull=False))
         try:
             job_logs = Job.objects.filter(**filters).order_by('-job_start_time')
         except:
