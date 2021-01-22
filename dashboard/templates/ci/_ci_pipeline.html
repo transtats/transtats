@@ -1,4 +1,4 @@
-{% load get_item from custom_tags %}
+{% load custom_tags %}
 
 <div id="pf-list-simple-expansion" class="list-group list-view-pf list-view-pf-view">
 
@@ -64,7 +64,7 @@
                 </div>
                 <div class="list-view-pf-additional-info-item">
                   <span class="fa fa-refresh"></span>
-                  Sync Status&nbsp;<span class="pficon pficon-ok"></span>
+                  Sync Status&nbsp;<span class="pficon pficon-off"></span>
                 </div>
               </div>
             </div>
@@ -84,7 +84,7 @@
               <div id="utilizationDonutChart12"></div>
             </div>
             <span class="pct-donut-chart-pf-label">
-              Last Sync: <code>{% now "jS F Y H:i" %}</code>
+              Last Sync: <code>N/A</code>
             </span>
           </div>
 
@@ -94,7 +94,7 @@
                 <div id="utilizationDonutChart13"></div>
               </div>
               <span class="pct-donut-chart-pf-label text-right">
-                Next Sync: <code>{% now "jS F Y H:i" %}</code>
+                Next Sync: <code>N/A</code>
               </span>
             </span>
           </div>
@@ -105,7 +105,7 @@
                 <div id="utilizationDonutChart14"></div>
               </div>
               <span class="pct-donut-chart-pf-label text-left">
-                Polling Frequency: <b>Bi-Weekly</b>
+                Polling Frequency: <code>N/A</code>
               </span>
             </span>
           </div>
@@ -130,7 +130,8 @@
                   </div>
                 </dd>
                 <dt>Created On</dt>
-                <dd><span class="text-info">{{ pipeline.ci_project_details_json|get_item:"dateCreated" }}</span></dd>
+                <dd><span class="text-info">
+                  {{ pipeline.ci_project_details_json|get_item:"dateCreated"|parse_memsource_time }}</span></dd>
                 <dt>Status</dt>
                 <dd>{{ pipeline.ci_project_details_json|get_item:"status" }}</dd>
               </div>
@@ -144,20 +145,16 @@
               </div>
             </div>
           </dl>
-          {% if platform_jobs %}
+          {% if pipeline.ci_platform_jobs_json %}
             <hr/><h3>CI Platform Jobs</h3>
             <div class="row">
               <ol>
-              {% for platform_job in platform_jobs|get_item:pipeline.ci_pipeline_uuid %}
+              {% for platform_job in pipeline.ci_platform_jobs_json %}
               <li class="col-md-3">
-                {% for job in platform_job.ci_platform_job_json|get_item:"jobs" %}
-                  <h5>Created On: <code>{{ job|get_item:"dateCreated" }}</code></h5>
-                  <h5>Job UID: <code>{{ job|get_item:"uid" }}</code></h5>
-                  <h5>Target Language: <code>{{ job|get_item:"targetLang" }}</code></h5>
-                  <h5>Status: <code>{{ job|get_item:"status" }}</code></h5>
-                {% empty %}
-                  <code>{{ platform_job.ci_platform_job_json }}</code>
-                {% endfor %}
+                  <h5>Created On: <code>{{ platform_job|get_item:"dateCreated"|parse_memsource_time }}</code></h5>
+                  <h5>Job UID: <code>{{ platform_job|get_item:"uid" }}</code></h5>
+                  <h5>Target Language: <code>{{ platform_job|get_item:"targetLang" }}</code></h5>
+                  <h5>Status: <code>{{ platform_job|get_item:"status" }}</code></h5>
               </li>
               {% endfor %}
               </ol>

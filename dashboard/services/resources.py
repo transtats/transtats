@@ -199,7 +199,7 @@ class TransplatformResources(ResourcesBase):
             kwargs['combine_results'].extend(response['json_content']['content'])
         resp_page_number = response.get("json_content").get("pageNumber", 0)
         resp_total_pages = response.get("json_content").get("totalPages", 0)
-        if resp_page_number < resp_total_pages:
+        if resp_total_pages > 1 and resp_page_number < resp_total_pages:
             kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
             TransplatformResources._fetch_memsource_projects(
                 base_url, resource, *url_params, **kwargs
@@ -288,7 +288,29 @@ class TransplatformResources(ResourcesBase):
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _fetch_memsource_project_details(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        return response.get('json_content')
+        resp_json_content = response.get('json_content')
+        if kwargs.get('more_resources'):
+            for next_resource in kwargs['more_resources']:
+                if next_resource == 'project_jobs':
+                    resp_json_content['project_jobs'] = \
+                        TransplatformResources._fetch_memsource_project_jobs(
+                            base_url, next_resource, *url_params, **kwargs)
+        return resp_json_content
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[4])
+    def _fetch_memsource_project_jobs(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        if response.get("json_content").get("content"):
+            kwargs['combine_results'].extend(response['json_content']['content'])
+        resp_page_number = response.get("json_content").get("pageNumber", 0)
+        resp_total_pages = response.get("json_content").get("totalPages", 0)
+        if resp_total_pages > 1 and resp_page_number < resp_total_pages:
+            kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
+            TransplatformResources._fetch_memsource_project_jobs(
+                base_url, resource, *url_params, **kwargs
+            )
+        return kwargs['combine_results']
 
     @staticmethod
     def _locate_damnedlies_stats(module_stat):
@@ -467,7 +489,8 @@ class TransplatformResources(ResourcesBase):
             TRANSPLATFORM_ENGINES[4]: {
                 'method': self._fetch_memsource_project_details,
                 'base_url': instance_url,
-                'resources': ['project_details'],
+                'resources': ['project_details', 'project_jobs'],
+                'combine_results': True,
                 'project': args[0],
             }
         }

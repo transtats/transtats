@@ -1046,7 +1046,7 @@ def schedule_job(request):
         job_type = request.POST.dict().get('job')
         active_user = getattr(request, 'user', None)
         active_user_email = active_user.email \
-            if active_user and not active_user.is_anonymous else 'anonymous'
+            if active_user and not active_user.is_anonymous else 'anonymous@transtats.org'
         if job_type == TS_JOB_TYPES[0]:
             transplatform_sync_manager = TransplatformSyncManager(**{'active_user_email': active_user_email})
             job_uuid = transplatform_sync_manager.syncstats_initiate_job()
