@@ -819,18 +819,18 @@ class PipelineDetailView(DetailView):
     slug_url_kwarg = 'pipeline_id'
 
 
-class PipelineSyncLogsView(ManagersMixin, ListView):
+class PipelineSyncLogsView(ManagersMixin, PipelineDetailView):
     """
     Pipeline Sync Logs View
     """
     template_name = "ci/pipeline_sync_logs.html"
-    context_object_name = 'logs'
-    slug_field = 'ci_pipeline'
-    slug_url_kwarg = 'pipeline_id'
 
-    def get_queryset(self):
-        job_logs = self.jobs_log_manager.get_job_logs(no_pipeline=False)
-        return job_logs
+    def get_context_data(self, **kwargs):
+        context_data = super(PipelineSyncLogsView, self).get_context_data(**kwargs)
+        sync_logs = self.jobs_log_manager.get_job_logs(no_pipeline=False)
+        if sync_logs:
+            context_data["logs"] = sync_logs
+        return context_data
 
 
 class PipelineConfigurationsView(PipelineDetailView):
