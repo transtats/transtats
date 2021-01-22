@@ -808,40 +808,36 @@ class JobDetailView(DetailView):
     slug_url_kwarg = 'job_id'
 
 
-class PipelineDetailView(ListView):
+class PipelineDetailView(DetailView):
     """
     Pipeline Detail View
-    - Platform Jobs List View
     """
     template_name = "ci/pipeline_details.html"
-    context_object_name = 'platform_jobs'
-    model = CIPlatformJob
+    context_object_name = 'ci_pipeline'
+    model = CIPipeline
+    slug_field = 'ci_pipeline_uuid'
+    slug_url_kwarg = 'pipeline_id'
+
+
+class PipelineSyncLogsView(ManagersMixin, ListView):
+    """
+    Pipeline Sync Logs View
+    """
+    template_name = "ci/pipeline_sync_logs.html"
+    context_object_name = 'logs'
     slug_field = 'ci_pipeline'
     slug_url_kwarg = 'pipeline_id'
 
-
-class PipelineSyncLogsView(DetailView):
-    """
-    Pipeline Sync Logs View
-        - CI Pipeline Detail View
-    """
-    template_name = "ci/pipeline_sync_logs.html"
-    context_object_name = 'ci_pipeline'
-    model = CIPipeline
-    slug_field = 'ci_pipeline_uuid'
-    slug_url_kwarg = 'pipeline_id'
+    def get_queryset(self):
+        job_logs = self.jobs_log_manager.get_job_logs(no_pipeline=False)
+        return job_logs
 
 
-class PipelineConfigurationsView(DetailView):
+class PipelineConfigurationsView(PipelineDetailView):
     """
     Pipeline Configurations View
-        - CI Pipeline Detail View
     """
     template_name = "ci/pipeline_configurations.html"
-    context_object_name = 'ci_pipeline'
-    model = CIPipeline
-    slug_field = 'ci_pipeline_uuid'
-    slug_url_kwarg = 'pipeline_id'
 
 
 class NewLanguageView(SuccessMessageMixin, CreateView):
