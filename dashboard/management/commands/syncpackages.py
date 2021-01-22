@@ -95,7 +95,7 @@ class Command(BaseCommand):
             job_manager = YMLBasedJobManager(
                 **job_data, **{'params': [p.upper() for p in t_params],
                                'type': TS_JOB_TYPES[3]},
-                **{'active_user_email': 'system@transtats.org'},
+                **{'active_user_email': 'anonymous@transtats.org'},
                 **{'sandbox_path': temp_path},
                 **{'job_log_file': temp_path + '.log'}
             )
