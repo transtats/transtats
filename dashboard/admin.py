@@ -24,7 +24,8 @@ from dashboard.constants import (
     DAMNEDLIES_SLUGS, WEBLATE_SLUGS, MEMSOURCE_SLUGS
 )
 from dashboard.models import (
-    Language, LanguageSet, Platform, Product, Release, Package, GraphRule, Visitor
+    Language, LanguageSet, Platform, Product, Release,
+    Package, GraphRule, Visitor, CIPipeline
 )
 from dashboard.managers.inventory import InventoryManager
 
@@ -131,6 +132,18 @@ class GraphRuleAdmin(admin.ModelAdmin):
 
     search_fields = ('rule_name', )
     exclude = ('created_on', )
+
+
+@admin.register(CIPipeline)
+class CIPipelineAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    search_fields = ('ci_project_web_url', )
+    exclude = ('ci_project_details_json_str', 'ci_platform_jobs_json_str', 'ci_project_analyses_json_str',
+               'ci_project_import_settings_json_str', 'ci_project_assign_templates_json_str',
+               'ci_project_workflow_steps_json_str', 'ci_project_providers_json_str',
+               'ci_project_term_bases_json_str', 'ci_project_qa_checks_json_str', 'ci_project_trans_memory_json_str')
 
 
 @admin.register(Visitor)
