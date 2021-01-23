@@ -34,7 +34,7 @@
                         {% if log.job_end_time %} and completed at <strong>{{ log.job_end_time|time:"H:i:s" }}</strong>
                         &nbsp;&nbsp;<em>({{ log.duration|floatformat:"0" }} seconds)</em>{% endif %}</span>
                         {% if log.triggered_by %}
-                        &nbsp;&nbsp;&nbsp;<span><i>Triggered By</i> <span class="text-info">{{ log.triggered_by }}</span> </span>
+                        &nbsp;&nbsp;&nbsp;<i class="text-muted">Triggered by</i> <span class="text-info">{{ log.triggered_by }}</span>
                         {% endif %}
                         {% if log.job_visible_on_url %}
                             <span class="pull-right btn btn-default"><a href="{% url 'log-detail' log.job_uuid %}" style="text-decoration: none;">Job Details</a>&nbsp;
@@ -42,27 +42,27 @@
                         {% endif %}
                     </p>
                     <hr/><h3>Tasks</h3>
-                    <p>
-                        <div class="list-group">
-                            {% for task, details in log.job_log_json.items %}
-                            <a href="#" class="list-group-item">
-                              <h4 class="list-group-item-heading">{{ task }}</h4>
-                                {% for datetime, event in details.items|dictsortreversed:0 %}
-                                    <p class="list-group-item-text">
-                                        <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
-                                        {{ event|truncatechars:200 }}
-                                    </p>
-                                {% endfor %}
-                            </a>
+                    <div class="list-group">
+                        {% for task, details in log.job_log_json.items %}
+                        <a href="#" class="list-group-item">
+                          <h4 class="list-group-item-heading">{{ task }}</h4>
+                            {% for datetime, event in details.items|dictsortreversed:0 %}
+                                <p class="list-group-item-text">
+                                    <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
+                                    {{ event|truncatechars:200 }}
+                                </p>
                             {% endfor %}
-                        </div>
-                    </p>
+                        </a>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
     {% endfor %}
 </div>
 {% else %}
-    <h3>No Sync Logs <small>here!</small></h3>
+    <div class="container-fluid row-cards-pf">
+        <h3>No Sync Logs <small>here!</small></h3>
+    </div>
 {% endif %}
 {% endblock %}

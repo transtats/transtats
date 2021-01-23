@@ -898,6 +898,7 @@ class YMLBasedJobManager(BaseManager):
             action_mapper.execute_tasks()
         except Exception as e:
             job_manager.job_result = False
+            setattr(self, 'exception', e)
             raise Exception(e)
         else:
             job_manager.output_json = action_mapper.result
@@ -915,6 +916,9 @@ class YMLBasedJobManager(BaseManager):
             job_manager.job_result = True
         finally:
             job_manager.job_yml = yml_preprocessed
+            if getattr(self, 'exception', ''):
+                action_mapper.log.update(dict(
+                    Exception={str(datetime.now()): '%s' % getattr(self, 'exception', '')}))
             job_manager.log_json = action_mapper.log
             if getattr(self, 'ci_pipeline_uuid', ''):
                 job_manager.ci_pipeline = self._get_ci_pipeline()

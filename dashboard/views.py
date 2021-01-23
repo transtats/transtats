@@ -39,7 +39,7 @@ from django.urls import reverse, reverse_lazy
 # dashboard
 
 from dashboard.constants import (
-    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS, TS_CI_JOBS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
@@ -60,7 +60,7 @@ from dashboard.managers.graphs import (
 )
 from dashboard.models import (
     Job, Language, LanguageSet, Platform, Visitor, Package,
-    GraphRule, SyncStats, CacheBuildDetails, CIPlatformJob, CIPipeline
+    GraphRule, SyncStats, CacheBuildDetails, CIPipeline
 )
 
 
@@ -827,7 +827,8 @@ class PipelineSyncLogsView(ManagersMixin, PipelineDetailView):
 
     def get_context_data(self, **kwargs):
         context_data = super(PipelineSyncLogsView, self).get_context_data(**kwargs)
-        sync_logs = self.jobs_log_manager.get_job_logs(no_pipeline=False)
+        sync_logs = self.jobs_log_manager.get_job_logs(
+            remarks=self.object.ci_package.package_name, no_pipeline=False)
         if sync_logs:
             context_data["logs"] = sync_logs
         return context_data
@@ -1064,6 +1065,9 @@ def schedule_job(request):
         elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5],
                           TS_JOB_TYPES[6], TS_JOB_TYPES[7], TS_JOB_TYPES[8], 'YMLbasedJob'):
 
+            if job_type in TS_CI_JOBS and 'anonymous' in active_user_email:
+                message = "&nbsp;&nbsp;<span class='text-warning'>Please login to continue.</span>"
+                return HttpResponse(message, status=403)
             job_params = request.POST.dict().get('params')
             if not job_params:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Job params missing.</span>"

@@ -29,6 +29,7 @@
             {% if log.job_params_json %}<br/><span class="text-info">Params#</span>
                 {% for param, value in log.job_params_json.items %}
                     <span class="text-muted">{{ param|title }}: </span>{{ value }}&nbsp;&nbsp;
+                    {% if log.job_params_json|length > 3 and forloop.counter == 3 %}<br/>{% endif %}
                 {% endfor %}
             {% endif %}
             <span class="pull-right">
@@ -52,10 +53,7 @@
                         <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
                                 data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
                                 title="Copy URL"><span class="fa fa-clipboard"></span></button>
-                        <!--<a href="mailto:recipient@transtats.org?subject={{ log.job_type }}{% if log.job_remarks %}: {{ log.job_remarks }}{% endif %}-->
-                        <!--&body={{ request.build_absolute_uri }}{{ object.get_absolute_url }}"-->
-                           <!--class="btn btn-default btn-copy js-tooltip" type="button" data-toggle="tooltip"-->
-                                <!--data-placement="bottom" title="Share">Compose <span class="fa fa-envelope"></span></a>-->
+                        <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default">Go Back</a>
                     </span>
                 {% endif %}
             </h4><hr/>{% tag_job_analysis log.job_log_json %}
@@ -68,22 +66,20 @@
                         {% endif %}
                     </div>
                     <div class="col-sm-6 col-md-8">
-                        <div class="list-group">
-                            <h2>Job Log <small>(output)</small></h2>
-                            {% for task, details in log.job_log_json.items %}
-                            <div class="list-group-item">
-                              <h3 class="list-group-item-heading">{{ task }}</h3>
-                                {% for datetime, event in details.items|dictsortreversed:0 %}
-                                    <p class="list-group-item-text">
-                                        <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
-                                        <span class="text-muted">
-                                            <pre class="ts-pre" style="max-height:400px;overflow-y:scroll !important;">{{ event.strip|pprint }}</pre>
-                                        </span>
-                                    </p>
-                                {% endfor %}
-                            </div>
+                        <h2>Job Log <small>(output)</small></h2>
+                        {% for task, details in log.job_log_json.items %}
+                        <div class="list-group-item">
+                          <h3 class="list-group-item-heading">{{ task }}</h3>
+                            {% for datetime, event in details.items|dictsortreversed:0 %}
+                                <p class="list-group-item-text">
+                                    <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
+                                    <span class="text-muted">
+                                        <pre class="ts-pre" style="max-height:400px;overflow-y:scroll !important;">{{ event.strip|pprint }}</pre>
+                                    </span>
+                                </p>
                             {% endfor %}
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
