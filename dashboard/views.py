@@ -830,7 +830,7 @@ class PipelineSyncLogsView(ManagersMixin, PipelineDetailView):
         sync_logs = self.jobs_log_manager.get_job_logs(
             remarks=self.object.ci_package.package_name, no_pipeline=False)
         if sync_logs:
-            context_data["logs"] = sync_logs
+            context_data["logs"] = sync_logs.filter(**dict(ci_pipeline=self.object))
         return context_data
 
 

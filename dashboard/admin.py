@@ -94,7 +94,7 @@ class LanguageSetAdmin(admin.ModelAdmin):
 @admin.register(Platform)
 class PlatformAdmin(admin.ModelAdmin):
     form = PlatformAdminForm
-    exclude = ('projects_json_str', 'projects_last_updated')
+    exclude = ('auth_token_key', 'projects_json_str', 'projects_last_updated')
     search_fields = ('subject', )
 
 
