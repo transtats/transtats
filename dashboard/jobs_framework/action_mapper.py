@@ -881,7 +881,7 @@ class Upload(JobCommandBase):
                 if platform_engine == TRANSPLATFORM_ENGINES[4]:
                     api_kwargs['headers']["Memsource"] = str(
                         {"jobs": [{"uid": input.get('ci_lang_job_map', {}).get(lang)}], "preTranslate": "false"}
-                    ) if kwargs.get('update') else str({"targetLangs": [lang], "continuous": True})
+                    ) if kwargs.get('update') else str({"targetLangs": [lang], "useProjectFileImportSettings": "true"})
                     api_kwargs['headers']["Content-Disposition"] = 'attachment; filename="{}"'.format(file_name)
                 api_kwargs['auth_user'] = platform_auth_user
                 api_kwargs['auth_token'] = platform_auth_token
