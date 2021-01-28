@@ -709,6 +709,7 @@ class YMLBasedJobManager(BaseManager):
                 self.ci_release = ci_pipeline_detail.ci_release.release_slug
                 self.ci_target_langs = ci_pipeline_detail.ci_project_details_json.get('targetLangs', [])
                 self.ci_project_uid = ci_pipeline_detail.ci_project_details_json.get('uid', '')
+                self.ci_pipeline_id = ci_pipeline_detail.ci_pipeline_id
                 ci_lang_job_map = self.ci_pipeline_manager.ci_lang_job_map(pipelines=[ci_pipeline_detail])
                 if ci_lang_job_map.get(ci_pipeline_detail.ci_pipeline_uuid):
                     self.ci_lang_job_map = ci_lang_job_map[ci_pipeline_detail.ci_pipeline_uuid]
@@ -770,17 +771,21 @@ class YMLBasedJobManager(BaseManager):
 
     def _save_push_results_in_db(self, job_details):
         """
-        Save job details which are created in CI Platform for a project
+        Save jobs which are created/updated in CI Platform for a project
         """
         try:
             for platform_project, jobs in job_details.items():
                 if platform_project != self.ci_project_uid:
-                    raise Exception('Save: CI Pipeline UUID did NOT match.')
-                for lang, job_details in jobs.items():
-                    platform_job = dict()
-                    platform_job['ci_pipeline'] = self._get_ci_pipeline()
-                    platform_job['ci_platform_job_json_str'] = json.dumps(job_details)
-                    self.ci_pipeline_manager.save_ci_platform_job(platform_job)
+                    raise Exception('Save: CI Pipeline UID did NOT match.')
+                # disable storing push_resp_data in CIPlatformJob, temporarily
+                # and just refreshing the pipeline_details
+
+                # for lang, job_details in jobs.items():
+                #     platform_job = dict()
+                #     platform_job['ci_pipeline'] = self._get_ci_pipeline()
+                #     platform_job['ci_platform_job_json_str'] = json.dumps(job_details)
+                #     self.ci_pipeline_manager.save_ci_platform_job(platform_job)
+                self.ci_pipeline_manager.refresh_ci_pipeline(self.ci_pipeline_id)
         except Exception as e:
             self.app_logger(
                 'ERROR', "Platform job could not be updated, details: " + str(e)
