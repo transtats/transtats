@@ -20,6 +20,7 @@ from django.db.models import Case, Value, When
 
 # dadhboard
 from dashboard.constants import TRANSPLATFORM_ENGINES
+from dashboard.managers.packages import PackagesManager
 from dashboard.managers import BaseManager
 from dashboard.models import CIPipeline, CIPlatformJob
 
@@ -31,6 +32,8 @@ class CIPipelineManager(BaseManager):
     """
     Continuous Integration Pipeline Manager
     """
+
+    package_manager = PackagesManager()
 
     def get_ci_pipelines(self, fields=None, packages=None, platforms=None,
                          releases=None, uuids=None, pipeline_ids=None):
@@ -107,6 +110,17 @@ class CIPipelineManager(BaseManager):
                 if resp_dict else self.toggle_visibility(pipeline_id):
             return True
         return False
+
+    def refresh_pkg_pipelines(self, package_name):
+        """
+        Refresh CI Pipelines that belong to a package
+        :param package_name: str
+        """
+        pipelines = self.get_ci_pipelines(
+            packages=self.package_manager.get_packages(pkgs=[package_name])
+        )
+        for pipeline in pipelines or []:
+            self.refresh_ci_pipeline(pipeline_id=pipeline.ci_pipeline_id)
 
     def save_ci_pipeline(self, ci_pipeline):
         """
