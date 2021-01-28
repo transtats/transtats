@@ -812,21 +812,21 @@ class PipelineDetailView(DetailView):
     """
     Pipeline Detail View
     """
-    template_name = "ci/pipeline_details.html"
+    template_name = "ci/pipeline_jobs.html"
     context_object_name = 'ci_pipeline'
     model = CIPipeline
     slug_field = 'ci_pipeline_uuid'
     slug_url_kwarg = 'pipeline_id'
 
 
-class PipelineSyncLogsView(ManagersMixin, PipelineDetailView):
+class PipelineHistoryView(ManagersMixin, PipelineDetailView):
     """
     Pipeline Sync Logs View
     """
-    template_name = "ci/pipeline_sync_logs.html"
+    template_name = "ci/pipeline_history.html"
 
     def get_context_data(self, **kwargs):
-        context_data = super(PipelineSyncLogsView, self).get_context_data(**kwargs)
+        context_data = super(PipelineHistoryView, self).get_context_data(**kwargs)
         sync_logs = self.jobs_log_manager.get_job_logs(
             remarks=self.object.ci_package.package_name, no_pipeline=False)
         if sync_logs:
@@ -834,11 +834,11 @@ class PipelineSyncLogsView(ManagersMixin, PipelineDetailView):
         return context_data
 
 
-class PipelineConfigurationsView(PipelineDetailView):
+class PipelineConfigurationView(PipelineDetailView):
     """
     Pipeline Configurations View
     """
-    template_name = "ci/pipeline_configurations.html"
+    template_name = "ci/pipeline_configuration.html"
 
 
 class NewLanguageView(SuccessMessageMixin, CreateView):
