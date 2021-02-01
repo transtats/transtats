@@ -1,5 +1,9 @@
 
-##### Fri Jan 15 2020 Sundeep Anand <suanand@redhat.com>
+##### Mon Feb 01 2020 Sundeep Anand <suanand@redhat.com>
+* An option for `importSetting` in pushtrans job template
+* Include memsource jobs in the pipeline refresh
+* CI Pipeline details and history (_sync logs_) pages
+* Overall UI changes across application to make them uniform
 * Update translation source on Memsource in the push job
 * Implement `submit_finished_translations` job template
 * Extend push job to enable weblate git clone as well

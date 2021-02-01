@@ -430,7 +430,9 @@ class CIPipeline(ModelMixin, models.Model):
     ci_project_qa_checks_json_str = models.TextField(null=True, blank=True)
     ci_project_trans_memory_json_str = models.TextField(null=True, blank=True)
     ci_pipeline_last_updated = models.DateTimeField(null=True, blank=True)
-    ci_pipeline_visibility = models.BooleanField(default=True)
+    ci_pipeline_visibility = models.BooleanField(
+        default=True, verbose_name='CI Pipeline Visibility'
+    )
 
     @property
     def ci_project_details_json(self):

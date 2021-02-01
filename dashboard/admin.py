@@ -143,7 +143,8 @@ class CIPipelineAdmin(admin.ModelAdmin):
     exclude = ('ci_project_details_json_str', 'ci_platform_jobs_json_str', 'ci_project_analyses_json_str',
                'ci_project_import_settings_json_str', 'ci_project_assign_templates_json_str',
                'ci_project_workflow_steps_json_str', 'ci_project_providers_json_str',
-               'ci_project_term_bases_json_str', 'ci_project_qa_checks_json_str', 'ci_project_trans_memory_json_str')
+               'ci_project_term_bases_json_str', 'ci_project_qa_checks_json_str', 'ci_project_trans_memory_json_str',
+               'ci_pipeline_last_updated')
 
 
 @admin.register(Visitor)
