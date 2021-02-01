@@ -98,6 +98,15 @@ resource_config_dict = {
                 'response_media_type': media_types[0],
             },
         }),
+        # https://cloud.memsource.com/web/api2/v1/projects/{projectUid}/importSettings
+        ('/projects/{project_slug}/importSettings', {
+            http_methods[0]: {
+                'path_params': ('project_slug',),
+                'query_params': None,
+                'request_media_type': media_types[0],
+                'response_media_type': media_types[0],
+            },
+        }),
     ]),
     'JobResource': OrderedDict([
         # https://cloud.memsource.com/web/api2/v1/projects/{projectUid}/jobs/{jobUid}
@@ -200,6 +209,26 @@ resource_config_dict = {
             },
         }),
     ]),
+    'ImportSettingsResource': OrderedDict([
+        # https://cloud.memsource.com/web/api2/v1/importSettings
+        ('/importSettings', {
+            http_methods[0]: {
+                'path_params': None,
+                'query_params': None,
+                'request_media_type': media_types[0],
+                'response_media_type': media_types[0],
+            },
+        }),
+        # https://cloud.memsource.com/web/api2/v1/importSettings/{uid}
+        ('/importSettings/{import_setting_uid}', {
+            http_methods[0]: {
+                'path_params': ('import_setting_uid', ),
+                'query_params': None,
+                'request_media_type': media_types[0],
+                'response_media_type': media_types[0],
+            },
+        }),
+    ]),
     'JobResourcePOST': OrderedDict([
         # https://cloud.memsource.com/web/api2/v1/projects/{projectUid}/jobs
         ('/projects/{project_slug}/jobs', {
@@ -242,6 +271,9 @@ project_trans_memories = resource(
 project_analyses = resource(
     'ProjectResource', list(resource_config_dict['ProjectResource'].keys())[5], http_methods[0]
 )
+project_import_settings = resource(
+    'ProjectResource', list(resource_config_dict['ProjectResource'].keys())[6], http_methods[0]
+)
 project_jobs = resource('JobResource', list(resource_config_dict['JobResource'].keys())[9], http_methods[0])
 job_details = resource('JobResource', list(resource_config_dict['JobResource'].keys())[0], http_methods[0])
 job_segments = resource('JobResource', list(resource_config_dict['JobResource'].keys())[1], http_methods[0])
@@ -257,6 +289,12 @@ job_download_target_file = resource(
 job_pdf_preview = resource('JobResource', list(resource_config_dict['JobResource'].keys())[7], http_methods[0])
 job_workflow_step = resource('JobResource', list(resource_config_dict['JobResource'].keys())[8], http_methods[0])
 job_analyses = resource('JobResource', list(resource_config_dict['JobResource'].keys())[10], http_methods[0])
+list_import_settings = resource(
+    'ImportSettingsResource', list(resource_config_dict['ImportSettingsResource'].keys())[0], http_methods[0]
+)
+import_setting_details = resource(
+    'ImportSettingsResource', list(resource_config_dict['ImportSettingsResource'].keys())[1], http_methods[0]
+)
 create_job = resource('JobResourcePOST', list(resource_config_dict['JobResourcePOST'].keys())[0], http_methods[1])
 update_source = resource('JobResourcePOST', list(resource_config_dict['JobResourcePOST'].keys())[1], http_methods[1])
 
@@ -270,6 +308,7 @@ resources = {
     'project_term_bases': project_term_bases,
     'project_trans_memories': project_trans_memories,
     'project_analyses': project_analyses,
+    'project_import_settings': project_import_settings,
     'project_jobs': project_jobs,
     'job_details': job_details,
     'job_segments': job_segments,
@@ -281,6 +320,8 @@ resources = {
     'job_pdf_preview': job_pdf_preview,
     'job_workflow_step': job_workflow_step,
     'job_analyses': job_analyses,
+    'list_import_settings': list_import_settings,
+    'import_setting_details': import_setting_details,
     'create_job': create_job,
     'update_source': update_source,
 }

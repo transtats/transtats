@@ -120,7 +120,7 @@ class Platform(ModelMixin, models.Model):
     auth_token_key = models.CharField(
         max_length=200, null=True, blank=True, verbose_name="Auth Password/Token"
     )
-    token_api_json_str = models.TextField(null=True, blank=True)
+    token_api_json_str = models.TextField(null=True, blank=True, verbose_name="Auth Token JSON")
     token_expiry = models.DateTimeField(null=True, blank=True, verbose_name="Auth Token Expiry")
 
     @property
@@ -429,6 +429,7 @@ class CIPipeline(ModelMixin, models.Model):
     ci_project_term_bases_json_str = models.TextField(null=True, blank=True)
     ci_project_qa_checks_json_str = models.TextField(null=True, blank=True)
     ci_project_trans_memory_json_str = models.TextField(null=True, blank=True)
+    ci_pipeline_last_updated = models.DateTimeField(null=True, blank=True)
     ci_pipeline_visibility = models.BooleanField(default=True)
 
     @property

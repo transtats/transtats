@@ -771,8 +771,8 @@ class Filter(JobCommandBase):
         try:
             trans_files = []
             search_dir = input['extract_dir'] if 'extract_dir' in input else input['src_tar_dir']
-            if kwargs.get('dir'):
-                search_dir = os.path.join(search_dir, kwargs['dir'])
+            if kwargs.get('dir') and isinstance(kwargs.get('dir'), str):
+                search_dir = os.path.join(search_dir, *kwargs['dir'].split(os.sep))
             for root, dirs, files in os.walk(search_dir):
                 for file in files:
                     if file.endswith('.%s' % file_ext):
@@ -878,13 +878,40 @@ class Upload(JobCommandBase):
                     raise Exception("Job ID NOT found for lang: {}.".format(lang))
 
                 api_kwargs['headers'] = dict()
-                if platform_engine == TRANSPLATFORM_ENGINES[4]:
-                    api_kwargs['headers']["Memsource"] = str(
-                        {"jobs": [{"uid": input.get('ci_lang_job_map', {}).get(lang)}], "preTranslate": "false"}
-                    ) if kwargs.get('update') else str({"targetLangs": [lang], "useProjectFileImportSettings": "true"})
-                    api_kwargs['headers']["Content-Disposition"] = 'attachment; filename="{}"'.format(file_name)
                 api_kwargs['auth_user'] = platform_auth_user
                 api_kwargs['auth_token'] = platform_auth_token
+
+                if platform_engine == TRANSPLATFORM_ENGINES[4]:
+                    memsource_kwargs = dict()
+                    if kwargs.get('update'):
+                        memsource_kwargs.update(dict(jobs=[{"uid": input.get('ci_lang_job_map', {}).get(lang)}]))
+                        memsource_kwargs.update(dict(preTranslate="false"))
+                    else:
+                        memsource_kwargs.update(dict(targetLangs=[lang]))
+                        if isinstance(kwargs.get('import_settings'), str):
+                            if kwargs.get('import_settings', '') == 'project':
+                                task_log.update(self._log_task(
+                                    input['log_f'], task_subject, 'Using Project Import Settings.'
+                                ))
+                                memsource_kwargs.update(dict(useProjectFileImportSettings="true"))
+                            elif re.match(r"^[a-zA-Z0-9]{22}$", kwargs.get('import_settings', '')):
+                                import_setting_uid = kwargs['import_settings']
+                                import_setting_resp = self.api_resources.import_setting_details(
+                                    platform_engine, platform_api_url, import_setting_uid, **api_kwargs
+                                )
+                                if not import_setting_resp:
+                                    raise Exception("Invalid ImportSetting: {}".format(import_setting_uid))
+
+                                if import_setting_resp.get('uid') == import_setting_uid:
+                                    task_log.update(self._log_task(
+                                        input['log_f'], task_subject, 'Using Import Settings: {} - {}'.format(
+                                            import_setting_resp.get('name', ''), import_setting_resp.get('uid', '')
+                                        )
+                                    ))
+                                    memsource_kwargs.update(dict(importSettings=dict(uid=import_setting_uid)))
+
+                    api_kwargs['headers']["Memsource"] = str(memsource_kwargs)
+                    api_kwargs['headers']["Content-Disposition"] = 'attachment; filename="{}"'.format(file_name)
 
                 try:
                     upload_resp = self.api_resources.update_source(

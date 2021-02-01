@@ -161,6 +161,12 @@
             </div>
           {% endif %}
           <!--<pre>{{ pipeline.ci_project_details_json }}</pre>-->
+          <div class="pull-right" style="margin-top: 1%">
+            {% if pipeline.ci_pipeline_last_updated %}
+              <i class="text-muted">Last refresh <span class="text-info">
+                {{ pipeline.ci_pipeline_last_updated|timesince }}</span> ago.</i>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>
