@@ -17,6 +17,7 @@ import json
 
 # django
 from django.db.models import Case, Value, When
+from django.utils import timezone
 
 # dadhboard
 from dashboard.constants import TRANSPLATFORM_ENGINES
@@ -106,6 +107,7 @@ class CIPipelineManager(BaseManager):
         pipeline_params['ci_platform_jobs_json_str'] = json.dumps(
             resp_dict.get('project_jobs', {})
         )
+        pipeline_params['ci_pipeline_last_updated'] = timezone.now()
         if self.save_ci_pipeline(pipeline_params) \
                 if resp_dict else self.toggle_visibility(pipeline_id):
             return True
