@@ -1055,9 +1055,11 @@ class Calculate(JobCommandBase):
                         'Something went wrong while parsing %s: %s' % (po_file, str(e))
                     ))
                 else:
-                    temp_trans_stats = {}
+                    temp_trans_stats = dict()
                     temp_trans_stats['unit'] = "MESSAGE"
                     locale = po_file.split('/')[-1].split('.')[0]
+                    if locale == input.get('package', ''):
+                        locale = po_file.split('/')[-2]
                     temp_trans_stats['locale'] = locale
                     temp_trans_stats['translated'] = len(po.translated_entries())
                     temp_trans_stats['untranslated'] = len(po.untranslated_entries())

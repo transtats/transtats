@@ -684,7 +684,7 @@ class ReleaseBranchManager(InventoryManager):
         DELIMITER = ":"
         branch_schedule_dict = OrderedDict()
 
-        if product_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2]):
+        if product_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2], RELSTREAM_SLUGS[3]):
             try:
                 for event in required_events:
                     for event_dict in ical_events:
@@ -767,6 +767,7 @@ class ReleaseBranchManager(InventoryManager):
             - releases for which translation tracking is ON
         :return: query obj
         """
+        # needs adjustment for other products
         product_slug = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0]
         releases = self.get_release_branches(relstream=product_slug)
         if releases and len(releases) > 0:

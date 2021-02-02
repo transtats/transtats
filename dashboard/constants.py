@@ -31,7 +31,7 @@ WEBLATE_SLUGS = ('WLTEPUB', 'WLTEFED')
 ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTAVDR')
 
 # Supported products
-RELSTREAM_SLUGS = ('RHEL', 'fedora', 'RHV', 'oVirt')
+RELSTREAM_SLUGS = ('RHEL', 'fedora', 'RHV', 'satellite')
 
 # Environment variables
 DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
