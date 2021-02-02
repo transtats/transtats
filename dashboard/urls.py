@@ -34,13 +34,13 @@ from dashboard.views import (
     UpdateTransPlatformView, UpdateGraphRuleView, JobDetailView, refresh_package, release_graph, schedule_job,
     tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status,
     LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs, get_repo_branches, get_target_langs,
-    refresh_ci_pipeline, graph_data, job_template
+    refresh_ci_pipeline, graph_data, job_template, PipelineDetailView, PipelineHistoryView, PipelineConfigurationView
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
 
 
-app_jobs_urls = [
+app_job_urls = [
     url(r'^$', login_required(JobsView.as_view(), login_url=LOGIN_URL), name="jobs"),
     url(r'^cleanup$', login_required(CleanUpJobs.as_view(), login_url=LOGIN_URL), name="jobs-cleanup"),
     url(r'^logs$', JobsLogsView.as_view(), name="jobs-logs"),
@@ -49,6 +49,13 @@ app_jobs_urls = [
     url(r'^log/(?P<job_id>[0-9a-f-]+)/detail$', JobDetailView.as_view(), name="log-detail"),
     url(r'^logs/package/(?P<package_name>[\w\-\+]+)$', JobsLogsPackageView.as_view(),
         name="jobs-logs-package")
+]
+
+app_pipeline_urls = [
+    url(r'^(?P<pipeline_id>[0-9a-f-]+)/details$', PipelineDetailView.as_view(), name="pipeline-details"),
+    url(r'^(?P<pipeline_id>[0-9a-f-]+)/history$', PipelineHistoryView.as_view(), name="pipeline-history"),
+    url(r'^(?P<pipeline_id>[0-9a-f-]+)/configuration$', PipelineConfigurationView.as_view(),
+        name="pipeline-configuration"),
 ]
 
 app_setting_urls = [
@@ -158,7 +165,8 @@ urlpatterns = [
     url(r'^api-docs/', include_docs_urls(title='Transtats APIs')),
     url(r'^ajax/', include(ajax_urls)),
     url(r'^settings/', include(app_setting_urls)),
-    url(r'^jobs/', include(app_jobs_urls)),
+    url(r'^jobs/', include(app_job_urls)),
+    url(r'^pipelines/', include(app_pipeline_urls)),
     # landing URLs
     url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/'), name="home"),
     url(r'^translation-status/', include(trans_status_urls)),

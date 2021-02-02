@@ -17,9 +17,11 @@ import json
 
 # django
 from django.db.models import Case, Value, When
+from django.utils import timezone
 
 # dadhboard
 from dashboard.constants import TRANSPLATFORM_ENGINES
+from dashboard.managers.packages import PackagesManager
 from dashboard.managers import BaseManager
 from dashboard.models import CIPipeline, CIPlatformJob
 
@@ -31,6 +33,8 @@ class CIPipelineManager(BaseManager):
     """
     Continuous Integration Pipeline Manager
     """
+
+    package_manager = PackagesManager()
 
     def get_ci_pipelines(self, fields=None, packages=None, platforms=None,
                          releases=None, uuids=None, pipeline_ids=None):
@@ -100,10 +104,25 @@ class CIPipelineManager(BaseManager):
         pipeline_params = dict()
         pipeline_params['ci_project_web_url'] = ci_pipeline.ci_project_web_url
         pipeline_params['ci_project_details_json_str'] = json.dumps(resp_dict)
+        pipeline_params['ci_platform_jobs_json_str'] = json.dumps(
+            resp_dict.get('project_jobs', {})
+        )
+        pipeline_params['ci_pipeline_last_updated'] = timezone.now()
         if self.save_ci_pipeline(pipeline_params) \
                 if resp_dict else self.toggle_visibility(pipeline_id):
             return True
         return False
+
+    def refresh_pkg_pipelines(self, package_name):
+        """
+        Refresh CI Pipelines that belong to a package
+        :param package_name: str
+        """
+        pipelines = self.get_ci_pipelines(
+            packages=self.package_manager.get_packages(pkgs=[package_name])
+        )
+        for pipeline in pipelines or []:
+            self.refresh_ci_pipeline(pipeline_id=pipeline.ci_pipeline_id)
 
     def save_ci_pipeline(self, ci_pipeline):
         """
@@ -203,12 +222,12 @@ class CIPipelineManager(BaseManager):
         ci_lang_job_map = dict()
         if not pipelines:
             return ci_lang_job_map
-        ci_platform_jobs = self.get_ci_platform_jobs(ci_pipelines=pipelines) or []
-        for ci_job in ci_platform_jobs:
-            if ci_job.ci_platform_job_json.get("jobs"):
-                job_details = ci_job.ci_platform_job_json["jobs"][0] or {}
-                if ci_job.ci_pipeline_id not in ci_lang_job_map:
-                    ci_lang_job_map[ci_job.ci_pipeline_id] = dict()
-                if job_details.get('targetLang'):
-                    ci_lang_job_map[ci_job.ci_pipeline_id][job_details['targetLang']] = job_details['uid']
+        for pipeline in pipelines:
+            if pipeline.ci_platform_jobs_json:
+                ci_lang_job_map[pipeline.ci_pipeline_uuid] = dict()
+                for job_detail in pipeline.ci_platform_jobs_json:
+                    if job_detail.get('targetLang') and job_detail.get('uid'):
+                        ci_lang_job_map[pipeline.ci_pipeline_uuid].update(
+                            {job_detail['targetLang']: job_detail['uid']}
+                        )
         return ci_lang_job_map

@@ -1,4 +1,4 @@
-{% load get_item from custom_tags %}
+{% load custom_tags %}
 
 <div id="pf-list-simple-expansion" class="list-group list-view-pf list-view-pf-view">
 
@@ -12,7 +12,7 @@
             <!--<input type="checkbox">-->
           <!--</div>-->
           <div class="list-view-pf-actions">
-            <button class="btn btn-default">Details</button>
+            <a href="{% url 'pipeline-details' pipeline.ci_pipeline_uuid %}" class="btn btn-default">Details</a>
             {% if request.user.is_staff or pipeline.ci_package.created_by == request.user.email %}
               <script>
                 function removePipeline(e){waitSpinner.show(),$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-remove-pipeline' %}",data:{pipeline_id:e,user:"{{ pipeline.ci_package.created_by }}"},success:function(e){waitSpinner.hide(),$("#div-ci-pipelines").load(location.href+" #div-ci-pipelines"),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>CI Pipeline</strong> removed successfully!</div>')},error:function(e){waitSpinner.hide(),console.error(e.status,e.responseText),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>CI Pipeline</strong> could not be removed!</div>')}})}function refreshPipeline(e){waitSpinner.show(),$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-refresh-pipeline' %}",data:{pipeline_id:e,user:"{{ pipeline.ci_package.created_by }}"},success:function(e){waitSpinner.hide(),location.reload()},error:function(e){waitSpinner.hide(),console.error(e.status,e.responseText),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>CI Pipeline</strong> could not be refreshed!</div>')}})}
@@ -25,8 +25,7 @@
                     <li><a id="idRefreshPipeline"
                            onClick='javascript:refreshPipeline({{ pipeline.ci_pipeline_id }})'>
                       <span class="fa fa-refresh" aria-hidden="true"></span> Refresh</a></li>
-                    <li><a href="#"><span class="pficon pficon-settings" aria-hidden="true"></span> Configure</a></li>
-                    <li><a href="#"><span class="pficon pficon-orders" aria-hidden="true"></span> View Logs</a></li>
+                    <li class="disabled"><a href="#"><span class="pficon pficon-edit" aria-hidden="true"></span> Edit</a></li>
                     <li role="separator" class="divider"></li>
                     <li><a id="idRemovePipeline"
                            onClick='javascript:removePipeline({{ pipeline.ci_pipeline_id }})'>
@@ -65,7 +64,7 @@
                 </div>
                 <div class="list-view-pf-additional-info-item">
                   <span class="fa fa-refresh"></span>
-                  Sync Status&nbsp;<span class="pficon pficon-ok"></span>
+                  Sync Status&nbsp;<span class="pficon pficon-off"></span>
                 </div>
               </div>
             </div>
@@ -85,7 +84,7 @@
               <div id="utilizationDonutChart12"></div>
             </div>
             <span class="pct-donut-chart-pf-label">
-              Last Sync: <code>{% now "jS F Y H:i" %}</code>
+              Last Sync: <code>N/A</code>
             </span>
           </div>
 
@@ -95,7 +94,7 @@
                 <div id="utilizationDonutChart13"></div>
               </div>
               <span class="pct-donut-chart-pf-label text-right">
-                Next Sync: <code>{% now "jS F Y H:i" %}</code>
+                Next Sync: <code>N/A</code>
               </span>
             </span>
           </div>
@@ -106,7 +105,7 @@
                 <div id="utilizationDonutChart14"></div>
               </div>
               <span class="pct-donut-chart-pf-label text-left">
-                Polling Frequency: <b>Bi-Weekly</b>
+                Polling Frequency: <code>N/A</code>
               </span>
             </span>
           </div>
@@ -131,7 +130,8 @@
                   </div>
                 </dd>
                 <dt>Created On</dt>
-                <dd><span class="text-info">{{ pipeline.ci_project_details_json|get_item:"dateCreated" }}</span></dd>
+                <dd><span class="text-info">
+                  {{ pipeline.ci_project_details_json|get_item:"dateCreated"|parse_memsource_time }}</span></dd>
                 <dt>Status</dt>
                 <dd>{{ pipeline.ci_project_details_json|get_item:"status" }}</dd>
               </div>
@@ -145,26 +145,28 @@
               </div>
             </div>
           </dl>
-          {% if platform_jobs %}
+          {% if pipeline.ci_platform_jobs_json %}
             <hr/><h3>CI Platform Jobs</h3>
             <div class="row">
               <ol>
-              {% for platform_job in platform_jobs|get_item:pipeline.ci_pipeline_uuid %}
+              {% for platform_job in pipeline.ci_platform_jobs_json %}
               <li class="col-md-3">
-                {% for job in platform_job.ci_platform_job_json|get_item:"jobs" %}
-                  <h5>Created On: <code>{{ job|get_item:"dateCreated" }}</code></h5>
-                  <h5>Job UID: <code>{{ job|get_item:"uid" }}</code></h5>
-                  <h5>Target Language: <code>{{ job|get_item:"targetLang" }}</code></h5>
-                  <h5>Status: <code>{{ job|get_item:"status" }}</code></h5>
-                {% empty %}
-                  <code>{{ platform_job.ci_platform_job_json }}</code>
-                {% endfor %}
+                  <h5>Created On: <code>{{ platform_job|get_item:"dateCreated"|parse_memsource_time }}</code></h5>
+                  <h5>Job UID: <code>{{ platform_job|get_item:"uid" }}</code></h5>
+                  <h5>Target Language: <code>{{ platform_job|get_item:"targetLang" }}</code></h5>
+                  <h5>Status: <code>{{ platform_job|get_item:"status" }}</code></h5>
               </li>
               {% endfor %}
               </ol>
             </div>
           {% endif %}
           <!--<pre>{{ pipeline.ci_project_details_json }}</pre>-->
+          <div class="pull-right" style="margin-top: 1%">
+            {% if pipeline.ci_pipeline_last_updated %}
+              <i class="text-muted">Last refresh <span class="text-info">
+                {{ pipeline.ci_pipeline_last_updated|timesince }}</span> ago.</i>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>

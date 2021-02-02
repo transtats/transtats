@@ -14,10 +14,12 @@ job:
   - filter:
     - name: files
     - ext: PO
+    - dir: ''
   - upload:
     - name: Push files
     - target_langs: %TARGET_LANGS%
     - prehook: skip
     - posthook: skip
+    - import_settings: project
     - update: false
   type: pushtrans

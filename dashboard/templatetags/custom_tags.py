@@ -106,6 +106,15 @@ def percent(value):
         return 0
 
 
+@register.filter
+def parse_memsource_time(date_time):
+    if not isinstance(date_time, str):
+        return date_time
+    return str(datetime.strptime(
+        date_time, '%Y-%m-%dT%H:%M:%S+0000'
+    ))
+
+
 @register.inclusion_tag(
     os.path.join("packages", "_package_details.html")
 )
@@ -545,14 +554,6 @@ def tag_ci_pipelines(request, package_name):
     )
     return_value['request'] = request
     return_value['pipelines'] = pipelines
-    platform_jobs = dict()
-    for pipeline in pipelines:
-        pipeline_platform_jobs = \
-            ci_pipeline_manager.get_ci_platform_jobs(ci_pipelines=[pipeline])
-        if pipeline_platform_jobs:
-            platform_jobs[pipeline.ci_pipeline_uuid] = pipeline_platform_jobs
-    if platform_jobs:
-        return_value['platform_jobs'] = platform_jobs
     return return_value
 
 

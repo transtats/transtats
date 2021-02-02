@@ -157,7 +157,7 @@ class JobsLogManager(BaseManager):
 
     package_manager = PackagesManager()
 
-    def get_job_logs(self, remarks=None, result=None):
+    def get_job_logs(self, remarks=None, result=None, no_pipeline=True):
         """
         Fetch all job logs from the db
         """
@@ -167,6 +167,10 @@ class JobsLogManager(BaseManager):
             filters.update(dict(job_remarks=remarks))
         if result:
             filters.update(dict(job_result=True))
+        if no_pipeline:
+            filters.update(dict(ci_pipeline__isnull=True))
+        else:
+            filters.update(dict(ci_pipeline__isnull=False))
         try:
             job_logs = Job.objects.filter(**filters).order_by('-job_start_time')
         except:
@@ -705,6 +709,7 @@ class YMLBasedJobManager(BaseManager):
                 self.ci_release = ci_pipeline_detail.ci_release.release_slug
                 self.ci_target_langs = ci_pipeline_detail.ci_project_details_json.get('targetLangs', [])
                 self.ci_project_uid = ci_pipeline_detail.ci_project_details_json.get('uid', '')
+                self.ci_pipeline_id = ci_pipeline_detail.ci_pipeline_id
                 ci_lang_job_map = self.ci_pipeline_manager.ci_lang_job_map(pipelines=[ci_pipeline_detail])
                 if ci_lang_job_map.get(ci_pipeline_detail.ci_pipeline_uuid):
                     self.ci_lang_job_map = ci_lang_job_map[ci_pipeline_detail.ci_pipeline_uuid]
@@ -766,17 +771,21 @@ class YMLBasedJobManager(BaseManager):
 
     def _save_push_results_in_db(self, job_details):
         """
-        Save job details which are created in CI Platform for a project
+        Save jobs which are created/updated in CI Platform for a project
         """
         try:
             for platform_project, jobs in job_details.items():
                 if platform_project != self.ci_project_uid:
-                    raise Exception('Save: CI Pipeline UUID did NOT match.')
-                for lang, job_details in jobs.items():
-                    platform_job = dict()
-                    platform_job['ci_pipeline'] = self._get_ci_pipeline()
-                    platform_job['ci_platform_job_json_str'] = json.dumps(job_details)
-                    self.ci_pipeline_manager.save_ci_platform_job(platform_job)
+                    raise Exception('Save: CI Pipeline UID did NOT match.')
+                # disable storing push_resp_data in CIPlatformJob, temporarily
+                # and just refreshing the pipeline_details
+
+                # for lang, job_details in jobs.items():
+                #     platform_job = dict()
+                #     platform_job['ci_pipeline'] = self._get_ci_pipeline()
+                #     platform_job['ci_platform_job_json_str'] = json.dumps(job_details)
+                #     self.ci_pipeline_manager.save_ci_platform_job(platform_job)
+                self.ci_pipeline_manager.refresh_ci_pipeline(self.ci_pipeline_id)
         except Exception as e:
             self.app_logger(
                 'ERROR', "Platform job could not be updated, details: " + str(e)
@@ -894,6 +903,7 @@ class YMLBasedJobManager(BaseManager):
             action_mapper.execute_tasks()
         except Exception as e:
             job_manager.job_result = False
+            setattr(self, 'exception', e)
             raise Exception(e)
         else:
             job_manager.output_json = action_mapper.result
@@ -911,6 +921,9 @@ class YMLBasedJobManager(BaseManager):
             job_manager.job_result = True
         finally:
             job_manager.job_yml = yml_preprocessed
+            if getattr(self, 'exception', ''):
+                action_mapper.log.update(dict(
+                    Exception={str(datetime.now()): '%s' % getattr(self, 'exception', '')}))
             job_manager.log_json = action_mapper.log
             if getattr(self, 'ci_pipeline_uuid', ''):
                 job_manager.ci_pipeline = self._get_ci_pipeline()

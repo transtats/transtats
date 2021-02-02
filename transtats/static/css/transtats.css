@@ -135,7 +135,11 @@ body {
 }
 .content-area {
     padding: 20px;
-    min-height: 600px
+    min-height: 750px
+}
+.sub-content-area {
+    padding-left: 1%;
+    padding-right: 1%;
 }
 .ribbon {
     position: absolute;

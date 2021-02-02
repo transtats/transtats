@@ -39,7 +39,7 @@ from django.urls import reverse, reverse_lazy
 # dashboard
 
 from dashboard.constants import (
-    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS, TS_CI_JOBS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
@@ -53,14 +53,14 @@ from dashboard.managers.packages import PackagesManager
 from dashboard.managers.pipelines import CIPipelineManager
 from dashboard.managers.jobs import (
     YMLBasedJobManager, JobsLogManager, TransplatformSyncManager,
-    ReleaseScheduleSyncManager, BuildTagsSyncManager
+    ReleaseScheduleSyncManager, BuildTagsSyncManager, JobTemplateManager
 )
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
 )
 from dashboard.models import (
     Job, Language, LanguageSet, Platform, Visitor, Package,
-    GraphRule, SyncStats, CacheBuildDetails
+    GraphRule, SyncStats, CacheBuildDetails, CIPipeline
 )
 
 
@@ -71,6 +71,7 @@ class ManagersMixin(object):
     inventory_manager = InventoryManager()
     packages_manager = PackagesManager()
     jobs_log_manager = JobsLogManager()
+    jobs_template_manager = JobTemplateManager()
     release_branch_manager = ReleaseBranchManager()
     graph_manager = GraphManager()
     reports_manager = ReportsManager()
@@ -92,9 +93,8 @@ class ManagersMixin(object):
         # relbranches = self.release_branch_manager.get_release_branches()
         # summary['releases_len'] = relbranches.count() if relbranches else 0
         summary['packages_len'] = self.packages_manager.count_packages()
-        jobs_count, last_ran_on, last_ran_type = \
-            self.jobs_log_manager.get_joblog_stats()
-        summary['jobs_len'] = jobs_count
+        jobs_templates_count = self.jobs_template_manager.get_job_templates().count()
+        summary['jobs_templates_len'] = jobs_templates_count
         # coverage = self.graph_manager.get_graph_rules(only_active=True)
         # summary['graph_rules_len'] = coverage.count() if coverage else 0
         return summary
@@ -808,6 +808,39 @@ class JobDetailView(DetailView):
     slug_url_kwarg = 'job_id'
 
 
+class PipelineDetailView(DetailView):
+    """
+    Pipeline Detail View
+    """
+    template_name = "ci/pipeline_jobs.html"
+    context_object_name = 'ci_pipeline'
+    model = CIPipeline
+    slug_field = 'ci_pipeline_uuid'
+    slug_url_kwarg = 'pipeline_id'
+
+
+class PipelineHistoryView(ManagersMixin, PipelineDetailView):
+    """
+    Pipeline Sync Logs View
+    """
+    template_name = "ci/pipeline_history.html"
+
+    def get_context_data(self, **kwargs):
+        context_data = super(PipelineHistoryView, self).get_context_data(**kwargs)
+        sync_logs = self.jobs_log_manager.get_job_logs(
+            remarks=self.object.ci_package.package_name, no_pipeline=False)
+        if sync_logs:
+            context_data["logs"] = sync_logs.filter(**dict(ci_pipeline=self.object))
+        return context_data
+
+
+class PipelineConfigurationView(PipelineDetailView):
+    """
+    Pipeline Configurations View
+    """
+    template_name = "ci/pipeline_configuration.html"
+
+
 class NewLanguageView(SuccessMessageMixin, CreateView):
     """
     New language view
@@ -1010,7 +1043,7 @@ def schedule_job(request):
         job_type = request.POST.dict().get('job')
         active_user = getattr(request, 'user', None)
         active_user_email = active_user.email \
-            if active_user and not active_user.is_anonymous else 'anonymous'
+            if active_user and not active_user.is_anonymous else 'anonymous@transtats.org'
         if job_type == TS_JOB_TYPES[0]:
             transplatform_sync_manager = TransplatformSyncManager(**{'active_user_email': active_user_email})
             job_uuid = transplatform_sync_manager.syncstats_initiate_job()
@@ -1032,6 +1065,9 @@ def schedule_job(request):
         elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5],
                           TS_JOB_TYPES[6], TS_JOB_TYPES[7], TS_JOB_TYPES[8], 'YMLbasedJob'):
 
+            if job_type in TS_CI_JOBS and 'anonymous' in active_user_email:
+                message = "&nbsp;&nbsp;<span class='text-warning'>Please login to continue.</span>"
+                return HttpResponse(message, status=403)
             job_params = request.POST.dict().get('params')
             if not job_params:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Job params missing.</span>"

@@ -68,12 +68,27 @@ class GitPlatformResources(ResourcesBase):
     @staticmethod
     @call_service(GIT_PLATFORMS[0])
     def _fetch_github_repo_branches(base_url, resource, *url_params, **kwargs):
+
+        def _get_github_next_page(header_link):
+            page_ref = [page_ref for page_ref in header_link.split(',') if 'next' in page_ref]
+            next_url, rel = '', ''
+            if len(page_ref) >= 1 and ";" in page_ref[0]:
+                next_url, rel = page_ref[0].split(";")
+                next_url = next_url[next_url.index("?") + 1: next_url.index(">")]
+            return next_url
+
         response = kwargs.get('rest_response', {})
-        git_branches = []
         if isinstance(response.get('json_content'), list):
-            git_branches = [branch.get('name', '')
-                            for branch in response.get('json_content')]
-        return git_branches
+            kwargs['combine_results'].extend(response.get('json_content'))
+
+        if 'link' in response['raw'].headers and response['raw'].headers.get('link'):
+            next_page = _get_github_next_page(response['raw'].headers['link'])
+            if next_page:
+                kwargs['ext'] = next_page
+                GitPlatformResources._fetch_github_repo_branches(
+                    base_url, resource, *url_params, **kwargs
+                )
+        return [branch.get('name', '') for branch in kwargs['combine_results']]
 
     @staticmethod
     @call_service(GIT_PLATFORMS[1])
@@ -119,6 +134,7 @@ class GitPlatformResources(ResourcesBase):
                 'method': self._fetch_github_repo_branches,
                 'base_url': 'https://api.github.com',
                 'resources': ['list_branches'],
+                'combine_results': True,
             },
             GIT_PLATFORMS[1]: {
                 'method': self._gitlab_repo_branches_by_id,
@@ -183,7 +199,7 @@ class TransplatformResources(ResourcesBase):
             kwargs['combine_results'].extend(response['json_content']['content'])
         resp_page_number = response.get("json_content").get("pageNumber", 0)
         resp_total_pages = response.get("json_content").get("totalPages", 0)
-        if resp_page_number < resp_total_pages:
+        if resp_total_pages > 1 and resp_page_number < resp_total_pages:
             kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
             TransplatformResources._fetch_memsource_projects(
                 base_url, resource, *url_params, **kwargs
@@ -272,7 +288,29 @@ class TransplatformResources(ResourcesBase):
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _fetch_memsource_project_details(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        return response.get('json_content')
+        resp_json_content = response.get('json_content')
+        if kwargs.get('more_resources'):
+            for next_resource in kwargs['more_resources']:
+                if next_resource == 'project_jobs':
+                    resp_json_content['project_jobs'] = \
+                        TransplatformResources._fetch_memsource_project_jobs(
+                            base_url, next_resource, *url_params, **kwargs)
+        return resp_json_content
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[4])
+    def _fetch_memsource_project_jobs(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        if response.get("json_content").get("content"):
+            kwargs['combine_results'].extend(response['json_content']['content'])
+        resp_page_number = response.get("json_content").get("pageNumber", 0)
+        resp_total_pages = response.get("json_content").get("totalPages", 0)
+        if resp_total_pages > 1 and resp_page_number < resp_total_pages:
+            kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
+            TransplatformResources._fetch_memsource_project_jobs(
+                base_url, resource, *url_params, **kwargs
+            )
+        return kwargs['combine_results']
 
     @staticmethod
     def _locate_damnedlies_stats(module_stat):
@@ -371,6 +409,12 @@ class TransplatformResources(ResourcesBase):
         response = kwargs.get('rest_response', {})
         return response.get('content')
 
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[4])
+    def _memsource_import_setting_details(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('json_content')
+
     def fetch_all_projects(self, translation_platform, instance_url, *args, **kwargs):
         """
         Fetches all projects or modules json from API
@@ -451,7 +495,8 @@ class TransplatformResources(ResourcesBase):
             TRANSPLATFORM_ENGINES[4]: {
                 'method': self._fetch_memsource_project_details,
                 'base_url': instance_url,
-                'resources': ['project_details'],
+                'resources': ['project_details', 'project_jobs'],
+                'combine_results': True,
                 'project': args[0],
             }
         }
@@ -561,6 +606,25 @@ class TransplatformResources(ResourcesBase):
                 'method': self._pull_memsource_translations,
                 'base_url': instance_url,
                 'resources': ['job_download_target_file'],
+            }
+        }
+        selected_config = method_mapper[translation_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def import_setting_details(self, translation_platform, instance_url, *args, **kwargs):
+        """
+        Fetch import setting from CI Platform
+        :param translation_platform: Translation Platform API
+        :param instance_url: Translation Platform Server URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: dict
+        """
+        method_mapper = {
+            TRANSPLATFORM_ENGINES[4]: {
+                'method': self._memsource_import_setting_details,
+                'base_url': instance_url,
+                'resources': ['import_setting_details'],
             }
         }
         selected_config = method_mapper[translation_platform]
