@@ -82,9 +82,9 @@ function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}var poll_t
             <label class="control-label">Repository</label>
             <div style="padding-bottom:10px">
                 <select id="repoType" class="selectpicker">
-                    <option selected value="default">default</option>
-                    <option value="l10n">localization</option>
-                    <option value="weblate">weblate</option>
+                    {% for git_repo_type in git_repo_types %}
+                        <option value="{{ git_repo_type }}">{{ git_repo_type }}</option>
+                    {% endfor %}
                 </select>
             </div>
           </div>

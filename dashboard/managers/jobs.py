@@ -937,7 +937,7 @@ class YMLBasedJobManager(BaseManager):
         if action_mapper.result and not getattr(self, 'DRY_RUN', None):
             if self.type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3]):
                 self._save_stats_in_db(action_mapper.result, action_mapper.build)
-            if self.type == TS_JOB_TYPES[7]:
+            if self.type in ([TS_JOB_TYPES[7], TS_JOB_TYPES[9]]):
                 self._save_push_results_in_db(action_mapper.result.get('push_files_resp', {}))
         if os.path.exists(log_file):
             os.unlink(log_file)

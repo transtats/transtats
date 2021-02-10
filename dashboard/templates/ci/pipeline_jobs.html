@@ -25,7 +25,11 @@
                     {% elif 'date' in k %}
                       {{ v|parse_memsource_time }}
                     {% elif k == 'providers' %}
-                      {{ v.0|get_item:'firstName' }} {{ v.0|get_item:'lastName' }}
+                      {% if v.0|get_item:'firstName' and v.0|get_item:'lastName' %}
+                        {{ v.0|get_item:'firstName' }} {{ v.0|get_item:'lastName' }}
+                      {% else %}
+                        <span class="text-muted">..</span>
+                      {% endif %}
                     {% elif k == 'status' and v == 'COMPLETED' %}
                       <span class="text-success">{{ v }}</span>
                     {% else %}{{ v }}{% endif %}

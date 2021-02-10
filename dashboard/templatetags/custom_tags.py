@@ -21,7 +21,7 @@ from datetime import datetime
 from collections import OrderedDict
 from django import template
 
-from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
+from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
 )
@@ -372,6 +372,7 @@ def tag_job_form(template_type):
     ci_pipelines = ci_pipeline_manager.get_ci_pipelines()
     if ci_pipelines:
         return_value['ci_pipelines'] = ci_pipelines.all()
+    return_value['git_repo_types'] = GIT_REPO_TYPE
     return return_value
 
 

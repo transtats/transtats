@@ -920,6 +920,10 @@ class PackagesManager(InventoryManager):
             return [item['slug'] for item in package.package_details_json['components'] if item.get('slug')] \
                 if package.package_details_json and package.package_details_json.get('components') \
                 else default_branch
+        if repo_type == GIT_REPO_TYPE[3]:
+            return [item['slug'] for item in package.package_details_json['resources'] if item.get('slug')] \
+                if package.package_details_json and package.package_details_json.get('resources') \
+                else default_branch
         instance_url, git_owner_repo = self._parse_git_url(upstream_url)
         branches = self.api_resources.fetch_repo_branches(
             self._determine_git_platform(instance_url), instance_url, *git_owner_repo

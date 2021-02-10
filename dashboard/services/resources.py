@@ -392,6 +392,12 @@ class TransplatformResources(ResourcesBase):
         return response.get('json_content')
 
     @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[1])
+    def _push_transifex_translations(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('json_content')
+
+    @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[3])
     def _push_weblate_translations(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
@@ -406,6 +412,18 @@ class TransplatformResources(ResourcesBase):
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _pull_memsource_translations(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('content')
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[1])
+    def _pull_transifex_translations(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('content')
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[3])
+    def _pull_weblate_translations(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
         return response.get('content')
 
@@ -524,7 +542,7 @@ class TransplatformResources(ResourcesBase):
             TRANSPLATFORM_ENGINES[1]: {
                 'method': self._fetch_transifex_proj_tran_stats,
                 'base_url': instance_url,
-                'resources': ['proj_trans_stats'],
+                'resources': ['project_trans_stats'],
                 'project': args[0],
                 'version': args[1],
 
@@ -578,6 +596,11 @@ class TransplatformResources(ResourcesBase):
         :return: dict
         """
         method_mapper = {
+            TRANSPLATFORM_ENGINES[1]: {
+                'method': self._push_transifex_translations,
+                'base_url': instance_url,
+                'resources': ['upload_trans_file'],
+            },
             TRANSPLATFORM_ENGINES[3]: {
                 'method': self._push_weblate_translations,
                 'base_url': instance_url,
@@ -602,6 +625,16 @@ class TransplatformResources(ResourcesBase):
         :return: dict
         """
         method_mapper = {
+            TRANSPLATFORM_ENGINES[1]: {
+                'method': self._pull_transifex_translations,
+                'base_url': instance_url,
+                'resources': ['project_trans_file'],
+            },
+            TRANSPLATFORM_ENGINES[3]: {
+                'method': self._pull_weblate_translations,
+                'base_url': instance_url,
+                'resources': ['translated_doc'],
+            },
             TRANSPLATFORM_ENGINES[4]: {
                 'method': self._pull_memsource_translations,
                 'base_url': instance_url,

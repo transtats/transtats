@@ -546,8 +546,9 @@ class DeletePackageView(ManagersMixin, SuccessMessageMixin, DeleteView):
         self.object = self.get_object()
         # delete all associated jobs
         Job.objects.filter(job_remarks=self.object.package_name).delete()
-        # delete all related sync stats
+        # delete all related sync stats and pipelines
         SyncStats.objects.filter(package_name=self.object).delete()
+        CIPipeline.objects.filter(ci_package=self.object).delete()
         # delete all cached build details
         CacheBuildDetails.objects.filter(package_name=self.object).delete()
         # now, remove the package
@@ -1062,8 +1063,8 @@ def schedule_job(request):
                 relschedule_sync_manager.sync_release_schedule()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
-        elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5],
-                          TS_JOB_TYPES[6], TS_JOB_TYPES[7], TS_JOB_TYPES[8], 'YMLbasedJob'):
+        elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5], TS_JOB_TYPES[6], TS_JOB_TYPES[7],
+                          TS_JOB_TYPES[8], TS_JOB_TYPES[9], 'YMLbasedJob'):
 
             if job_type in TS_CI_JOBS and 'anonymous' in active_user_email:
                 message = "&nbsp;&nbsp;<span class='text-warning'>Please login to continue.</span>"

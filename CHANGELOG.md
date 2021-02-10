@@ -1,5 +1,7 @@
 
-##### Mon Feb 01 2020 Sundeep Anand <suanand@redhat.com>
+##### Thu Feb 11 2020 Sundeep Anand <suanand@redhat.com>
+* Add and implement `dpushtrans` job template
+* Add support for foreman product and `podir` projects
 * An option for `importSetting` in pushtrans job template
 * Include memsource jobs in the pipeline refresh
 * CI Pipeline details and history (_sync logs_) pages

@@ -20,6 +20,7 @@
 import re
 import os
 import difflib
+from requests.auth import HTTPBasicAuth
 import requests
 import polib
 import tarfile
@@ -36,8 +37,8 @@ from urllib.parse import urlparse
 
 # dashboard
 from dashboard.constants import (
-    TRANSPLATFORM_ENGINES,
-    BRANCH_MAPPING_KEYS, BUILD_SYSTEMS
+    TRANSPLATFORM_ENGINES, BRANCH_MAPPING_KEYS,
+    BUILD_SYSTEMS, API_TOKEN_PREFIX
 )
 from dashboard.converters.specfile import RpmSpecFile
 from dashboard.managers import BaseManager
@@ -98,6 +99,23 @@ class JobCommandBase(BaseManager):
                 else [langs]
         return target_langs
 
+    @staticmethod
+    def _format_locale(locale, alias_zh=False):
+
+        zh_alias = {
+            'CN': 'Hans',
+            'TW': 'Hant'
+        }
+
+        parsed_locale = re.split(r'[_.@]', locale)
+        if '_' in locale and len(parsed_locale) >= 2:
+            lang = parsed_locale[0].lower()
+            territory = parsed_locale[1].upper()
+            if alias_zh and zh_alias.get(territory):
+                territory = zh_alias[territory]
+            return "{}_{}".format(lang, territory)
+        return locale
+
 
 class Get(JobCommandBase):
     """
@@ -130,8 +148,8 @@ class Download(JobCommandBase):
     Handles all operations for DOWNLOAD Command
     """
 
-    def _download_file(self, file_link, file_path=None, headers=None):
-        req = requests.get(file_link, headers=headers)
+    def _download_file(self, file_link, file_path=None, headers=None, auth=None):
+        req = requests.get(file_link, headers=headers, auth=auth)
         if req.status_code == 404:
             return '404'
         if not file_path:
@@ -194,7 +212,7 @@ class Download(JobCommandBase):
             TRANSPLATFORM_ENGINES[0]:
                 '{platform_url}/POT/{project}.{version}/{project}.{version}.pot',
             TRANSPLATFORM_ENGINES[1]:
-                '{platform_url}/api/2/project/{project}/resource/{version}/content/',
+                '{platform_url}/api/2/project/{project}/resource/{version}/content/?file',
             TRANSPLATFORM_ENGINES[2]:
                 '{platform_url}/rest/file/source/{project}/{version}/pot?docId={domain}',
             TRANSPLATFORM_ENGINES[3]:
@@ -224,16 +242,27 @@ class Download(JobCommandBase):
         platform_pot_path = ''
         if input.get('pkg_tp_engine'):
             platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
+            auth = None
             headers = {}
+            if input.get('pkg_tp_auth_usr') and input.get('pkg_tp_auth_token') \
+                    and input['pkg_tp_engine'] == TRANSPLATFORM_ENGINES[1]:
+                auth = HTTPBasicAuth(*(API_TOKEN_PREFIX.get(input['pkg_tp_engine']),
+                                       input['pkg_tp_auth_token']))
             if input.get('pkg_tp_auth_usr') and input.get('pkg_tp_auth_token') \
                     and input['pkg_tp_engine'] == TRANSPLATFORM_ENGINES[2]:
                 headers['X-Auth-User'] = input['pkg_tp_auth_usr']
                 headers['X-Auth-Token'] = input['pkg_tp_auth_token']
+            if input.get('pkg_tp_auth_usr') and input.get('pkg_tp_auth_token') \
+                    and input['pkg_tp_engine'] == TRANSPLATFORM_ENGINES[3]:
+                headers['Authorization'] = "{} {}".format(
+                    API_TOKEN_PREFIX.get(input['pkg_tp_engine']),
+                    input['pkg_tp_auth_token']
+                )
             try:
                 platform_pot_path = self._download_file(
                     platform_pot_url,
                     self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot',
-                    headers=headers
+                    headers=headers, auth=auth
                 )
                 if platform_pot_path == '404' and input.get('pkg_upstream_name') and \
                     input['package'] != input.get('pkg_upstream_name', '') and \
@@ -297,7 +326,8 @@ class Download(JobCommandBase):
         if kwargs.get('target_langs'):
             target_langs = self.format_target_langs(langs=kwargs['target_langs'])
 
-        if not set(target_langs).issubset(set(input.get('ci_lang_job_map').keys() or [])):
+        if input.get('ci_project_uid') and \
+                not set(target_langs).issubset(set(input.get('ci_lang_job_map').keys() or [])):
             raise Exception('Job UID could NOT be found for target langs.')
 
         if not target_langs and kwargs.get('target_langs'):
@@ -314,14 +344,30 @@ class Download(JobCommandBase):
             service_kwargs['auth_user'] = platform_auth_user
             service_kwargs['auth_token'] = platform_auth_token
 
-            project_version = input.get('ci_lang_job_map').get(t_lang) or \
+            project_version = input.get('ci_lang_job_map', {}).get(t_lang) or \
                 input.get('pkg_branch_map', {}).get(input.get('ci_release'), {}).get('platform_version')
+
+            if not input.get('ci_project_uid') and kwargs.get('branch'):
+                project_version = kwargs.get('branch')
 
             service_kwargs.update(dict(no_cache_api=True))
 
+            service_args = list()
+            service_args.append(platform_project)
+            service_args.append(project_version)
+
+            # Transifex
+            if platform_engine == TRANSPLATFORM_ENGINES[1]:
+                service_args.append(self._format_locale(t_lang))
+                service_kwargs.update(dict(ext=True))
+
+            # Weblate
+            if platform_engine == TRANSPLATFORM_ENGINES[3]:
+                service_args.append(self._format_locale(t_lang, alias_zh=kwargs.get('alias_zh', False)))
+
             try:
                 pull_resp = self.api_resources.pull_translations(
-                    platform_engine, platform_api_url, platform_project, project_version, **service_kwargs
+                    platform_engine, platform_api_url, *service_args, **service_kwargs
                 )
             except Exception as e:
                 task_log.update(self._log_task(
@@ -329,27 +375,39 @@ class Download(JobCommandBase):
                     'Something went wrong in pulling: %s' % str(e)
                 ))
             else:
-                downloaded_file_name = "{}.{}".format(t_lang, file_ext)
-                d_file_path = os.path.join(download_folder, downloaded_file_name)
-                try:
-                    if not os.path.exists(download_folder):
-                        os.makedirs(download_folder)
-                    with open(d_file_path, 'w') as f:
-                        f.write(pull_resp)
-                except Exception as e:
-                    task_log.update(self._log_task(
-                        input['log_f'], task_subject,
-                        'Something went wrong in writing: %s' % d_file_path
-                    ))
-                else:
-                    task_log.update(self._log_task(
-                        input['log_f'], task_subject, '{} downloaded successfully.'.format(
-                            downloaded_file_name)
-                    ))
-                translated_files.append(d_file_path)
+                if pull_resp:
+                    downloaded_file_name = "{}.{}".format(t_lang, file_ext)
+                    d_file_path = os.path.join(download_folder, downloaded_file_name)
+                    try:
+                        if not os.path.exists(download_folder):
+                            os.makedirs(download_folder)
+                        with open(d_file_path, 'w') as f:
+                            f.write(pull_resp)
+                    except Exception as e:
+                        task_log.update(self._log_task(
+                            input['log_f'], task_subject,
+                            'Something went wrong in writing: %s' % d_file_path
+                        ))
+                    else:
+                        task_log.update(self._log_task(
+                            input['log_f'], task_subject, '{} downloaded successfully.'.format(
+                                downloaded_file_name)
+                        ))
+                    translated_files.append(d_file_path)
 
-        return {'download_dir': download_folder, 'downloaded_files': translated_files,
+        return {'download_dir': download_folder, 'trans_files': translated_files,
                 'target_langs': target_langs}, {task_subject: task_log}
+
+    def translation_files(self, input, kwargs):
+        """
+        Download translations from a translation Platform
+        """
+        input_params = input.copy()
+        eliminate_items = ['ci_project_uid', 'pkg_ci_engine', 'pkg_ci_url',
+                           'pkg_ci_auth_usr', 'pkg_ci_auth_token', 'ci_lang_job_map']
+        for item in eliminate_items:
+            input_params.pop(item)
+        return self.pull_translations(input_params, kwargs)
 
 
 class Clone(JobCommandBase):
@@ -448,6 +506,8 @@ class Generate(JobCommandBase):
         if kwargs.get('cmd'):
             command = self._verify_command(kwargs['cmd'])
             po_dir = self.find_dir('po', input['src_tar_dir'])
+            if not po_dir:
+                po_dir = self.find_dir('locale', input['src_tar_dir']) or ''
             pot_file = os.path.join(
                 po_dir, '%s.pot' % kwargs.get('domain', input['package'])
             )
@@ -757,6 +817,18 @@ class Filter(JobCommandBase):
     Handles all operations for FILTER Command
     """
 
+    @staticmethod
+    def _determine_podir(files, domain):
+        if not domain:
+            return False
+        for file in files:
+            file_path_parts = file.split(os.sep)
+            expected_locale = file_path_parts[-1].split('.')[0]
+            super_dir = file_path_parts[-3]
+            if expected_locale == domain and super_dir == 'locale':
+                return True
+        return False
+
     def files(self, input, kwargs):
         """
         Filter files from tarball
@@ -787,7 +859,12 @@ class Filter(JobCommandBase):
                 input['log_f'], task_subject, trans_files,
                 text_prefix='%s %s files filtered' % (len(trans_files), file_ext.upper())
             ))
-            return {'trans_files': trans_files}, {task_subject: task_log}
+            result_dict = dict()
+            result_dict.update({'trans_files': trans_files})
+
+            if self._determine_podir(trans_files, kwargs.get('domain')):
+                result_dict.update(dict(podir=True))
+            return result_dict, {task_subject: task_log}
 
 
 class Upload(JobCommandBase):
@@ -796,28 +873,13 @@ class Upload(JobCommandBase):
     """
 
     @staticmethod
-    def _format_locale(locale, alias_zh=False):
-
-        zh_alias = {
-            'CN': 'Hans',
-            'TW': 'Hant'
-        }
-
-        parsed_locale = re.split(r'[_.@]', locale)
-        if '_' in locale and len(parsed_locale) >= 2:
-            lang = parsed_locale[0].lower()
-            territory = parsed_locale[1].upper()
-            if alias_zh and zh_alias.get(territory):
-                territory = zh_alias[territory]
-            return "{}_{}".format(lang, territory)
-        return locale
-
-    @staticmethod
-    def _collect_files(t_files, file_ext, target_langs):
+    def _collect_files(t_files, file_ext, target_langs, podir=False):
         collected_files = {}
 
         def __file_filter_helper(z_file, z_lang):
-            z_file_lang = z_file.split('/')[-1].replace('.{}'.format(file_ext), '')
+            z_file_lang = z_file.split(os.sep)[-1].replace('.{}'.format(file_ext), '')
+            if podir:
+                z_file_lang = z_file.split(os.sep)[-2]
             return z_lang in z_file_lang or z_lang in z_file_lang.lower()
 
         for x_lang in target_langs:
@@ -852,7 +914,7 @@ class Upload(JobCommandBase):
 
         # filter files to be uploaded
         collected_files = self._collect_files(
-            input.get('trans_files', []), file_ext, target_langs
+            input.get('trans_files', []), file_ext, target_langs, podir=input.get('podir')
         )
 
         if collected_files and len(collected_files) > 0:
@@ -867,7 +929,10 @@ class Upload(JobCommandBase):
                 with open(file_path, 'rb') as f:
                     api_kwargs['data'] = f.read()
 
-                file_name = file_path.split('/')[-1]
+                file_name = file_path.split(os.sep)[-1]
+                if input.get('podir'):
+                    file_ext = file_path.split(os.sep)[-1].split('.')[1]
+                    file_name = "{}.{}".format(file_path.split(os.sep)[-2], file_ext)
                 platform_engine = input.get('pkg_ci_engine') or input.get('pkg_tp_engine')
                 platform_api_url = input.get('pkg_ci_url') or input.get('pkg_tp_url')
                 platform_auth_user = input.get('pkg_ci_auth_usr') or input.get('pkg_tp_auth_usr')
@@ -967,7 +1032,7 @@ class Upload(JobCommandBase):
 
         # filter files to be submitted
         collected_files = self._collect_files(
-            input.get('downloaded_files', []), file_ext, target_langs
+            input.get('trans_files', []), file_ext, target_langs
         )
 
         if collected_files and len(collected_files) > 0:
@@ -980,7 +1045,7 @@ class Upload(JobCommandBase):
             for lang, file_path in collected_files.items():
                 api_kwargs = dict()
 
-                file_name = file_path.split('/')[-1]
+                file_name = file_path.split(os.sep)[-1]
 
                 # where repo_type belongs to translation platform(s)
                 # todo: extend support for scm repositories
@@ -991,12 +1056,13 @@ class Upload(JobCommandBase):
                         input.get('pkg_tp_engine'), input.get('pkg_tp_url'), \
                         input.get('pkg_tp_auth_usr'), input.get('pkg_tp_auth_token')
 
-                    if platform_engine == TRANSPLATFORM_ENGINES[3]:
-                        # format lang as per weblate
-                        lang = self._format_locale(lang, alias_zh=kwargs.get('alias_zh', False))
+                    # format lang zh_cn to zh_CN, alias_zh could be used for weblate
+                    lang = self._format_locale(lang, alias_zh=kwargs.get('alias_zh', False))
 
-                        with open(file_path, 'rb') as f:
-                            api_kwargs['files'] = dict(file=f.read())
+                    with open(file_path, 'rb') as f:
+                        api_kwargs['files'] = dict(file=f.read())
+
+                    if platform_engine == TRANSPLATFORM_ENGINES[3]:
                         # multipart/form upload
                         api_kwargs['data']['overwrite'] = "yes"
                         api_kwargs['data']['conflicts'] = kwargs.get('conflicts', 'replace-translated')
@@ -1057,10 +1123,8 @@ class Calculate(JobCommandBase):
                 else:
                     temp_trans_stats = dict()
                     temp_trans_stats['unit'] = "MESSAGE"
-                    locale = po_file.split('/')[-1].split('.')[0]
-                    if locale == input.get('package', ''):
-                        locale = po_file.split('/')[-2]
-                    temp_trans_stats['locale'] = locale
+                    temp_trans_stats['locale'] = po_file.split(os.sep)[-2] if input.get('podir') \
+                        else po_file.split(os.sep)[-1].split('.')[0]
                     temp_trans_stats['translated'] = len(po.translated_entries())
                     temp_trans_stats['untranslated'] = len(po.untranslated_entries())
                     temp_trans_stats['fuzzy'] = len(po.fuzzy_entries())
