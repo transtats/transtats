@@ -6,7 +6,7 @@ After=network.target
 User=transtats
 Group=nginx
 WorkingDirectory=/home/transtats/transtats
-ExecStart=/home/transtats/transtats/projectenv/bin/gunicorn --workers 3 --bind unix:/home/transtats/transtats/transtats/transtats.sock transtats.wsgi:application
+ExecStart=/home/transtats/transtats/projectenv/bin/gunicorn --workers 3 --bind unix:/home/transtats/transtats/transtats/transtats.sock transtats.wsgi:application --timeout 300
 
 [Install]
 WantedBy=multi-user.target
