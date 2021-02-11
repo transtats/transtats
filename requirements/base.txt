@@ -1,6 +1,6 @@
 celery
 coreapi
-django-celery-beat
+django-celery-beat==2.1.0
 django-crispy-forms
 django-debug-toolbar
 Django==2.2.13
