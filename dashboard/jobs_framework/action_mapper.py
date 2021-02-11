@@ -366,7 +366,7 @@ class Download(JobCommandBase):
                 service_args.append(self._format_locale(t_lang, alias_zh=kwargs.get('alias_zh', False)))
 
             try:
-                pull_resp = self.api_resources.pull_translations(
+                pull_status, pull_resp = self.api_resources.pull_translations(
                     platform_engine, platform_api_url, *service_args, **service_kwargs
                 )
             except Exception as e:
@@ -375,13 +375,13 @@ class Download(JobCommandBase):
                     'Something went wrong in pulling: %s' % str(e)
                 ))
             else:
-                if pull_resp:
+                if pull_status:
                     downloaded_file_name = "{}.{}".format(t_lang, file_ext)
                     d_file_path = os.path.join(download_folder, downloaded_file_name)
                     try:
                         if not os.path.exists(download_folder):
                             os.makedirs(download_folder)
-                        with open(d_file_path, 'w') as f:
+                        with open(d_file_path, 'wb') as f:
                             f.write(pull_resp)
                     except Exception as e:
                         task_log.update(self._log_task(
@@ -394,6 +394,14 @@ class Download(JobCommandBase):
                                 downloaded_file_name)
                         ))
                     translated_files.append(d_file_path)
+                else:
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject,
+                        'Something went wrong in pulling translation file for {}: {}'.format(
+                            t_lang, str(pull_resp)
+                        )
+                    ))
+                    raise Exception("Pull failed: {}".format(pull_resp))
 
         return {'download_dir': download_folder, 'trans_files': translated_files,
                 'target_langs': target_langs}, {task_subject: task_log}
@@ -979,7 +987,7 @@ class Upload(JobCommandBase):
                     api_kwargs['headers']["Content-Disposition"] = 'attachment; filename="{}"'.format(file_name)
 
                 try:
-                    upload_resp = self.api_resources.update_source(
+                    upload_status, upload_resp = self.api_resources.update_source(
                         platform_engine, platform_api_url, platform_project, **api_kwargs) \
                         if kwargs.get('update') else self.api_resources.push_translations(
                         platform_engine, platform_api_url, platform_project, **api_kwargs)
@@ -989,13 +997,16 @@ class Upload(JobCommandBase):
                         'Something went wrong in uploading: %s' % str(e)
                     ))
                 else:
-                    t_prefix = '{} uploaded for {}'.format(file_name, lang) if upload_resp \
+                    t_prefix = '{} uploaded for {}'.format(file_name, lang) if upload_status \
                         else 'Could not upload: {} for {}'.format(file_name, lang)
                     task_log.update(self._log_task(
                         input['log_f'], task_subject, str(upload_resp), text_prefix=t_prefix
                     ))
                     upload_resp.update(dict(project=dict(uid=platform_project)))
-                    job_post_resp[lang] = upload_resp
+                    if upload_status:
+                        job_post_resp[lang] = upload_resp
+                    else:
+                        raise Exception("Push failed: {}".format(upload_resp))
 
         return {'push_files_resp': {platform_project: job_post_resp}}, {task_subject: task_log}
 
@@ -1072,7 +1083,7 @@ class Upload(JobCommandBase):
                     api_kwargs['auth_token'] = platform_auth_token
 
                     try:
-                        submit_resp = self.api_resources.push_translations(
+                        submit_status, submit_resp = self.api_resources.push_translations(
                             platform_engine, platform_api_url, platform_project,
                             repo_branch, lang, **api_kwargs
                         )
@@ -1082,12 +1093,15 @@ class Upload(JobCommandBase):
                             'Something went wrong in uploading: %s' % str(e)
                         ))
                     else:
-                        t_prefix = '{} uploaded for {}'.format(file_name, lang) if submit_resp \
+                        t_prefix = '{} uploaded for {}'.format(file_name, lang) if submit_status \
                             else 'Could not upload: {} for {}'.format(file_name, lang)
                         task_log.update(self._log_task(
                             input['log_f'], task_subject, str(submit_resp), text_prefix=t_prefix
                         ))
-                        trans_submit_resp[lang] = submit_resp
+                        if submit_status:
+                            trans_submit_resp[lang] = submit_resp
+                        else:
+                            raise Exception("Submit failed: {}".format(submit_resp))
 
         return {'submit_translations': trans_submit_resp}, {task_subject: task_log}
 

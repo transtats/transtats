@@ -162,9 +162,9 @@ function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}var poll_t
           <button class="btn btn-default prevBtn pull-left" type="button">Previous</button>
           <span style="padding-left:10px">
             <label class="checkbox-inline"><input id="chkDryRun" type="checkbox" value="NoSave" checked> Dry Run
-                <small>(<i>Derived details will not be saved.</i>)</small></label>
+                <small>(<i class="text-info"> derived details will NOT be saved </i>)</small></label>
             <label class="checkbox-inline"><input id="chkScratch" type="checkbox" value="ScratchRun">Scratch
-                <small>(<i>Job will not be logged.</i>)</small></label>
+                <small>(<i class="text-info"> job will NOT be logged </i>)</small></label>
           </span>
           <button id="fireJobLink" class="btn btn-default pull-right">
             <input type="hidden" value="{% if job_template %}{{ job_template.job_template_type }}{% else %}YMLbasedJob{% endif %}" id="ymlBasedJobIdentifier"/>

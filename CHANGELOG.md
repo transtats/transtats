@@ -1,5 +1,6 @@
 
 ##### Thu Feb 11 2020 Sundeep Anand <suanand@redhat.com>
+* Make push/pull jobs explicit to show exceptions
 * Add and implement `dpushtrans` job template
 * Add support for foreman product and `podir` projects
 * An option for `importSetting` in pushtrans job template
