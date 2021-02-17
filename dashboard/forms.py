@@ -154,7 +154,7 @@ class UpdatePackageForm(forms.ModelForm):
             Field('upstream_url', css_class='form-control'),
             Field('upstream_l10n_url', css_class='form-control'),
             Field('platform_slug', css_class='selectpicker'),
-            Field('platform_url', css_class='form-control'),
+            Field('platform_url', css_class='form-control', readonly=True),
             InlineCheckboxes('products'),
             Field('release_branch_mapping', css_class='form-control', rows=4, readonly=True),
             FormActions(
@@ -572,6 +572,16 @@ class NewTransPlatformForm(forms.ModelForm):
         )
     )
 
+    def clean_api_url(self):
+        """
+        Remove trailing slash if any
+        """
+        api_url = getattr(self.instance, 'api_url', None)
+        if api_url:
+            return api_url if not api_url.endswith('/') else api_url[:-1]
+        else:
+            return self.cleaned_data.get('engine_name', None)
+
 
 class UpdateTransPlatformForm(forms.ModelForm):
     """
@@ -632,6 +642,16 @@ class UpdateTransPlatformForm(forms.ModelForm):
             return platform_slug
         else:
             return self.cleaned_data.get('platform_slug', None)
+
+    def clean_api_url(self):
+        """
+        Remove trailing slash if any
+        """
+        api_url = getattr(self.instance, 'api_url', None)
+        if api_url:
+            return api_url if not api_url.endswith('/') else api_url[:-1]
+        else:
+            return self.cleaned_data.get('engine_name', None)
 
 
 class NewCIPipelineForm(forms.ModelForm):
