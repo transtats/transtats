@@ -6,7 +6,7 @@
     {% if 'meta_data' in job_info %}
         {% with meta=job_info|get_item:"meta_data" %}
             {% if 'package' in meta and 'nvr' in meta and 'built_on' in meta %}
-                <a href="{% url 'package-view' meta|get_item:'package' %}">{{ meta|get_item:"nvr" }}</a> built on
+                <span class="text-info">{{ meta|get_item:"nvr" }}</span> built on
                 <span class="text-info">{{ meta|get_item:"built_on" }}</span>
             {% endif %}
         {% endwith %}

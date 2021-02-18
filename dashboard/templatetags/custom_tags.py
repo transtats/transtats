@@ -115,6 +115,12 @@ def parse_memsource_time(date_time):
     ))
 
 
+@register.filter
+def is_pkg_exist(pkg_name):
+    package_manager = PackagesManager()
+    return package_manager.is_package_exist(pkg_name)
+
+
 @register.inclusion_tag(
     os.path.join("packages", "_package_details.html")
 )

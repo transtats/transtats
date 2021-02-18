@@ -50,10 +50,15 @@
                     &nbsp;&nbsp;<em>( <span class="text-info">{{ log.duration|floatformat:"0" }}</span> seconds )</em>{% endif %}</span>
                 {% if log.job_visible_on_url %}
                     <span class="pull-right">
+                        <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-default" data-toggle="tooltip"
+                           data-placement="bottom" title="Go Back"><span class="fa fa-chevron-left"></span></a>
                         <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
                                 data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
                                 title="Copy URL"><span class="fa fa-clipboard"></span></button>
-                        <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default">Go Back</a>
+                        {% if log.job_remarks|is_pkg_exist %}
+                            <a href="{% url 'package-view' log.job_remarks %}" class="btn btn-default" style="margin-left: 5px;">
+                                Go to {{ log.job_remarks|title }} </a>
+                        {% endif %}
                     </span>
                 {% endif %}
             </h4><hr/>{% tag_job_analysis log.job_log_json %}
