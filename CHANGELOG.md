@@ -1,5 +1,7 @@
 
-##### Thu Feb 11 2020 Sundeep Anand <suanand@redhat.com>
+##### Sat Feb 20 2021 Sundeep Anand <suanand@redhat.com>
+* handle trailing slash in platform url and ui changes
+* warning for translations found in multiple dirs
 * Make push/pull jobs explicit to show exceptions
 * Add and implement `dpushtrans` job template
 * Add support for foreman product and `podir` projects

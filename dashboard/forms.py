@@ -576,11 +576,11 @@ class NewTransPlatformForm(forms.ModelForm):
         """
         Remove trailing slash if any
         """
-        api_url = getattr(self.instance, 'api_url', None)
+        api_url = self.cleaned_data.get('api_url')
         if api_url:
-            return api_url if not api_url.endswith('/') else api_url[:-1]
+            return api_url if not api_url.endswith('/') else api_url.rstrip('/')
         else:
-            return self.cleaned_data.get('engine_name', None)
+            return self.cleaned_data.get('api_url')
 
 
 class UpdateTransPlatformForm(forms.ModelForm):
@@ -631,7 +631,7 @@ class UpdateTransPlatformForm(forms.ModelForm):
         if engine_name:
             return engine_name
         else:
-            return self.cleaned_data.get('engine_name', None)
+            return self.cleaned_data.get('engine_name')
 
     def clean_platform_slug(self):
         """
@@ -641,7 +641,7 @@ class UpdateTransPlatformForm(forms.ModelForm):
         if platform_slug:
             return platform_slug
         else:
-            return self.cleaned_data.get('platform_slug', None)
+            return self.cleaned_data.get('platform_slug')
 
     def clean_api_url(self):
         """
@@ -649,9 +649,9 @@ class UpdateTransPlatformForm(forms.ModelForm):
         """
         api_url = getattr(self.instance, 'api_url', None)
         if api_url:
-            return api_url if not api_url.endswith('/') else api_url[:-1]
+            return api_url if not api_url.endswith('/') else api_url.rstrip('/')
         else:
-            return self.cleaned_data.get('engine_name', None)
+            return self.cleaned_data.get('api_url')
 
 
 class NewCIPipelineForm(forms.ModelForm):
