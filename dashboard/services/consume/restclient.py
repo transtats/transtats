@@ -227,6 +227,8 @@ class RestHandle(object):
 
         response = self._call_request(self._get_url(), self.method, **args_dict)
         response_dict = {}
+        if not response:
+            return response_dict
         if response.ok:
             try:
                 response_dict.update(dict(json_content=response.json()))
