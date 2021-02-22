@@ -22,6 +22,7 @@ from crispy_forms.bootstrap import (
     FormActions, InlineRadios, Div, InlineCheckboxes
 )
 from slugify import slugify
+from urllib.parse import urlparse
 
 # django
 from django import forms
@@ -692,3 +693,12 @@ class NewCIPipelineForm(forms.ModelForm):
             )
         )
     )
+
+    def clean_ci_project_web_url(self):
+        """
+        Remove CI Project Web URL
+        """
+        if self.cleaned_data.get('ci_project_web_url'):
+            parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])
+            return "{}://{}{}".format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
+        return ""
