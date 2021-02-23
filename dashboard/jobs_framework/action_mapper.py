@@ -837,6 +837,17 @@ class Filter(JobCommandBase):
                 return True
         return False
 
+    @staticmethod
+    def _test_multiple_trans_dir(t_files, is_podir):
+        trans_dirs = []
+        for trans_file in t_files:
+            trans_dir = trans_file.rsplit(os.sep, 1)[0]
+            if is_podir:
+                trans_dir = trans_file.rsplit(os.sep, 3)[0]
+            if trans_dir not in trans_dirs:
+                trans_dirs.append(trans_dir)
+        return len(trans_dirs) > 1, trans_dirs
+
     def files(self, input, kwargs):
         """
         Filter files from tarball
@@ -863,14 +874,23 @@ class Filter(JobCommandBase):
                 'Something went wrong in filtering %s files: %s' % file_ext, str(e)
             ))
         else:
+            is_podir = self._determine_podir(trans_files, kwargs.get('domain'))
+            is_multiple_trans_dir, trans_dirs = self._test_multiple_trans_dir(trans_files, is_podir)
+            if is_multiple_trans_dir:
+                trans_dirs = [trans_dir.replace(search_dir, "") if trans_dir.replace(search_dir, "") else trans_dir
+                              for trans_dir in trans_dirs]
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject, trans_dirs,
+                    text_prefix="[WARN] Translations are found in {} directories. "
+                                "Setting 'dir' may help.".format(len(trans_dirs))
+                ))
             task_log.update(self._log_task(
                 input['log_f'], task_subject, trans_files,
                 text_prefix='%s %s files filtered' % (len(trans_files), file_ext.upper())
             ))
             result_dict = dict()
             result_dict.update({'trans_files': trans_files})
-
-            if self._determine_podir(trans_files, kwargs.get('domain')):
+            if is_podir:
                 result_dict.update(dict(podir=True))
             return result_dict, {task_subject: task_log}
 

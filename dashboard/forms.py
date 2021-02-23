@@ -22,6 +22,7 @@ from crispy_forms.bootstrap import (
     FormActions, InlineRadios, Div, InlineCheckboxes
 )
 from slugify import slugify
+from urllib.parse import urlparse
 
 # django
 from django import forms
@@ -154,7 +155,7 @@ class UpdatePackageForm(forms.ModelForm):
             Field('upstream_url', css_class='form-control'),
             Field('upstream_l10n_url', css_class='form-control'),
             Field('platform_slug', css_class='selectpicker'),
-            Field('platform_url', css_class='form-control'),
+            Field('platform_url', css_class='form-control', readonly=True),
             InlineCheckboxes('products'),
             Field('release_branch_mapping', css_class='form-control', rows=4, readonly=True),
             FormActions(
@@ -572,6 +573,16 @@ class NewTransPlatformForm(forms.ModelForm):
         )
     )
 
+    def clean_api_url(self):
+        """
+        Remove trailing slash if any
+        """
+        api_url = self.cleaned_data.get('api_url')
+        if api_url:
+            return api_url if not api_url.endswith('/') else api_url.rstrip('/')
+        else:
+            return self.cleaned_data.get('api_url')
+
 
 class UpdateTransPlatformForm(forms.ModelForm):
     """
@@ -621,7 +632,7 @@ class UpdateTransPlatformForm(forms.ModelForm):
         if engine_name:
             return engine_name
         else:
-            return self.cleaned_data.get('engine_name', None)
+            return self.cleaned_data.get('engine_name')
 
     def clean_platform_slug(self):
         """
@@ -631,7 +642,17 @@ class UpdateTransPlatformForm(forms.ModelForm):
         if platform_slug:
             return platform_slug
         else:
-            return self.cleaned_data.get('platform_slug', None)
+            return self.cleaned_data.get('platform_slug')
+
+    def clean_api_url(self):
+        """
+        Remove trailing slash if any
+        """
+        api_url = getattr(self.instance, 'api_url', None)
+        if api_url:
+            return api_url if not api_url.endswith('/') else api_url.rstrip('/')
+        else:
+            return self.cleaned_data.get('api_url')
 
 
 class NewCIPipelineForm(forms.ModelForm):
@@ -672,3 +693,12 @@ class NewCIPipelineForm(forms.ModelForm):
             )
         )
     )
+
+    def clean_ci_project_web_url(self):
+        """
+        Remove CI Project Web URL
+        """
+        if self.cleaned_data.get('ci_project_web_url'):
+            parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])
+            return "{}://{}{}".format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
+        return ""

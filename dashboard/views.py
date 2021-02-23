@@ -1506,6 +1506,8 @@ def hide_ci_pipeline(request):
     if not request.user.email == package_owner and not request.user.is_staff:
         return HttpResponse("Access Denied", status=403)
     ci_pipeline_manager = CIPipelineManager()
+    # delete all associated jobs
+    Job.objects.filter(ci_pipeline_id=ci_pipeline_id).delete()
     if ci_pipeline_manager.toggle_visibility(ci_pipeline_id):
         return HttpResponse("Pipeline successfully removed.", status=202)
     return HttpResponse(status=500)
