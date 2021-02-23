@@ -1,3 +1,25 @@
+
+##### Wed Feb 24 2021 Sundeep Anand <suanand@redhat.com>
+* delete associated jobs while removing pipeline
+* handle trailing slash in platform url and ui changes
+* warning for translations found in multiple dirs
+* Make push/pull jobs explicit to show exceptions
+* Add and implement `dpushtrans` job template
+* Add support for foreman product and `podir` projects
+* An option for `importSetting` in pushtrans job template
+* Include memsource jobs in the pipeline refresh
+* CI Pipeline details and history (_sync logs_) pages
+* Overall UI changes across application to make them uniform
+* Update translation source on Memsource in the push job
+* Implement `submit_finished_translations` job template
+* Extend push job to enable weblate git clone as well
+* Add ci pipeline feature, list and hide pipelines
+* Implement Memsource projects and project_details API
+* Handle memsource token authentication
+* Memsource platform UI changes
+* database changes for CI pipeline module
+* Add memsource.com support in Transtats
+
 ##### Thu Jan 14 2021 Sundeep Anand <suanand@redhat.com> - release_0.8.1
 * Add package remove feature for admins
 * Add python3-pip system dependency ([vishalvvr](https://github.com/vishalvvr))

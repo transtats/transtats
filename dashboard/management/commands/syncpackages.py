@@ -32,6 +32,7 @@ from dashboard.managers.graphs import (
 from dashboard.managers.jobs import (
     JobTemplateManager, YMLBasedJobManager
 )
+from dashboard.managers.pipelines import CIPipelineManager
 
 
 class Command(BaseCommand):
@@ -43,9 +44,12 @@ class Command(BaseCommand):
     reports_manager = ReportsManager()
     job_template_manager = JobTemplateManager()
     location_manager = GeoLocationManager()
+    pipeline_manager = CIPipelineManager()
 
     def _sync_package(self, pkg):
         self.package_manager.sync_update_package_stats(pkg)
+        self.package_manager.fetch_latest_builds(pkg)
+        self.pipeline_manager.refresh_pkg_pipelines(pkg)
 
     def sync_with_platform(self):
 
@@ -95,7 +99,7 @@ class Command(BaseCommand):
             job_manager = YMLBasedJobManager(
                 **job_data, **{'params': [p.upper() for p in t_params],
                                'type': TS_JOB_TYPES[3]},
-                **{'active_user_email': 'system@transtats.org'},
+                **{'active_user_email': 'anonymous@transtats.org'},
                 **{'sandbox_path': temp_path},
                 **{'job_log_file': temp_path + '.log'}
             )

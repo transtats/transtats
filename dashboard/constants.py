@@ -13,18 +13,25 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# == always append tuples with new values ==
+# IMP: always APPEND tuples with new values
+# this defines scope of the application
 
 # Supported translation platforms
-TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata', 'weblate')
+TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata', 'weblate', 'memsource')
+
+API_TOKEN_PREFIX = {
+    TRANSPLATFORM_ENGINES[1]: "api",
+    TRANSPLATFORM_ENGINES[3]: "Token",
+}
+
 DAMNEDLIES_SLUGS = ('DMLSPUB', )
+MEMSOURCE_SLUGS = ('MSRCPUB', )
 TRANSIFEX_SLUGS = ('TNFXPUB', )
 WEBLATE_SLUGS = ('WLTEPUB', 'WLTEFED')
-# Supported Zanata Instances
 ZANATA_SLUGS = ('ZNTAPUB', 'ZNTAFED', 'ZNTAJBS', 'ZNTARHT', 'ZNTAVDR')
 
 # Supported products
-RELSTREAM_SLUGS = ('RHEL', 'fedora', 'RHV', 'oVirt')
+RELSTREAM_SLUGS = ('RHEL', 'fedora', 'RHV', 'satellite')
 
 # Environment variables
 DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
@@ -32,7 +39,10 @@ DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
 
 # Job Types
 TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream', 'syncdownstream',
-                'syncbuildtags', 'stringchange', 'verifytrans')
+                'syncbuildtags', 'stringchange', 'verifytrans', 'pushtrans', 'pulltrans',
+                'dpushtrans')
+
+TS_CI_JOBS = (TS_JOB_TYPES[7], TS_JOB_TYPES[8], TS_JOB_TYPES[9])
 
 # Branch Mapping Keys
 BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys', 'buildsys_tag', 'upstream_release')
@@ -51,4 +61,4 @@ CALENDAR_VERBS = ('BEGIN:VEVENT', 'END:VEVENT', 'BEGIN:VTODO', 'END:VTODO')
 
 # Git Repositories
 GIT_PLATFORMS = ('GitHub', 'GitLab', 'Pagure')
-GIT_REPO_TYPE = ('default', 'l10n')
+GIT_REPO_TYPE = ('default', 'localization', TRANSPLATFORM_ENGINES[3], TRANSPLATFORM_ENGINES[1])

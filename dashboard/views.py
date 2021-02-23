@@ -39,27 +39,28 @@ from django.urls import reverse, reverse_lazy
 # dashboard
 
 from dashboard.constants import (
-    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS, TS_CI_JOBS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
-    NewLanguageForm, UpdateLanguageForm, LanguageSetForm,
+    NewLanguageForm, UpdateLanguageForm, LanguageSetForm, NewCIPipelineForm,
     NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager, SyncStatsManager
 )
 from dashboard.managers.packages import PackagesManager
+from dashboard.managers.pipelines import CIPipelineManager
 from dashboard.managers.jobs import (
     YMLBasedJobManager, JobsLogManager, TransplatformSyncManager,
-    ReleaseScheduleSyncManager, BuildTagsSyncManager
+    ReleaseScheduleSyncManager, BuildTagsSyncManager, JobTemplateManager
 )
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
 )
 from dashboard.models import (
     Job, Language, LanguageSet, Platform, Visitor, Package,
-    GraphRule, SyncStats, CacheBuildDetails
+    GraphRule, SyncStats, CacheBuildDetails, CIPipeline
 )
 
 
@@ -70,10 +71,12 @@ class ManagersMixin(object):
     inventory_manager = InventoryManager()
     packages_manager = PackagesManager()
     jobs_log_manager = JobsLogManager()
+    jobs_template_manager = JobTemplateManager()
     release_branch_manager = ReleaseBranchManager()
     graph_manager = GraphManager()
     reports_manager = ReportsManager()
     geo_location_manager = GeoLocationManager()
+    ci_pipeline_manager = CIPipelineManager()
 
     def get_summary(self):
         """
@@ -90,9 +93,8 @@ class ManagersMixin(object):
         # relbranches = self.release_branch_manager.get_release_branches()
         # summary['releases_len'] = relbranches.count() if relbranches else 0
         summary['packages_len'] = self.packages_manager.count_packages()
-        jobs_count, last_ran_on, last_ran_type = \
-            self.jobs_log_manager.get_joblog_stats()
-        summary['jobs_len'] = jobs_count
+        jobs_templates_count = self.jobs_template_manager.get_job_templates().count()
+        summary['jobs_templates_len'] = jobs_templates_count
         # coverage = self.graph_manager.get_graph_rules(only_active=True)
         # summary['graph_rules_len'] = coverage.count() if coverage else 0
         return summary
@@ -544,8 +546,9 @@ class DeletePackageView(ManagersMixin, SuccessMessageMixin, DeleteView):
         self.object = self.get_object()
         # delete all associated jobs
         Job.objects.filter(job_remarks=self.object.package_name).delete()
-        # delete all related sync stats
+        # delete all related sync stats and pipelines
         SyncStats.objects.filter(package_name=self.object).delete()
+        CIPipeline.objects.filter(ci_package=self.object).delete()
         # delete all cached build details
         CacheBuildDetails.objects.filter(package_name=self.object).delete()
         # now, remove the package
@@ -806,6 +809,39 @@ class JobDetailView(DetailView):
     slug_url_kwarg = 'job_id'
 
 
+class PipelineDetailView(DetailView):
+    """
+    Pipeline Detail View
+    """
+    template_name = "ci/pipeline_jobs.html"
+    context_object_name = 'ci_pipeline'
+    model = CIPipeline
+    slug_field = 'ci_pipeline_uuid'
+    slug_url_kwarg = 'pipeline_id'
+
+
+class PipelineHistoryView(ManagersMixin, PipelineDetailView):
+    """
+    Pipeline Sync Logs View
+    """
+    template_name = "ci/pipeline_history.html"
+
+    def get_context_data(self, **kwargs):
+        context_data = super(PipelineHistoryView, self).get_context_data(**kwargs)
+        sync_logs = self.jobs_log_manager.get_job_logs(
+            remarks=self.object.ci_package.package_name, no_pipeline=False)
+        if sync_logs:
+            context_data["logs"] = sync_logs.filter(**dict(ci_pipeline=self.object))
+        return context_data
+
+
+class PipelineConfigurationView(PipelineDetailView):
+    """
+    Pipeline Configurations View
+    """
+    template_name = "ci/pipeline_configuration.html"
+
+
 class NewLanguageView(SuccessMessageMixin, CreateView):
     """
     New language view
@@ -883,6 +919,84 @@ class UpdateTransPlatformView(SuccessMessageMixin, UpdateView):
         return reverse('transplatform-update', args=[self.object.platform_slug])
 
 
+class AddPackageCIPipeline(ManagersMixin, FormView):
+    """
+    Add Package CI Pipeline View
+    """
+    template_name = 'ci/add_pipeline.html'
+    success_message = '%(ci_pipeline_uuid)s was added successfully!'
+
+    def get(self, request, *args, **kwargs):
+        if kwargs.get('slug') and not request.user.is_staff:
+            pkg = self.packages_manager.get_packages(pkgs=[kwargs['slug']]).get()
+            if not pkg.created_by == request.user.email and \
+                    not request.user.is_superuser:
+                raise PermissionDenied
+        return super(AddPackageCIPipeline, self).get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context_data = super(AddPackageCIPipeline, self).get_context_data(**kwargs)
+        if self.kwargs.get("slug"):
+            context_data["package_name"] = self.kwargs.get("slug")
+        return context_data
+
+    def get_form(self, form_class=None, data=None):
+        kwargs = {}
+        ci_platforms = self.inventory_manager.get_translation_platforms(ci=True)
+        ci_platform_choices = tuple([(platform.platform_id, platform.__str__)
+                                     for platform in ci_platforms])
+        kwargs.update(dict(ci_platform_choices=ci_platform_choices))
+        pkg_releases = self.packages_manager.get_package_releases(
+            package_name=self.kwargs['slug']
+        )
+        pkg_release_choices = tuple([(release.release_id, release.__str__)
+                                     for release in pkg_releases])
+        kwargs.update(dict(pkg_release_choices=pkg_release_choices))
+        if data:
+            kwargs.update({'data': data})
+        return NewCIPipelineForm(**kwargs)
+
+    def get_success_url(self):
+        return reverse('package-add-ci-pipeline', args=[self.kwargs.get('slug')])
+
+    def post(self, request, *args, **kwargs):
+        post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_data)
+
+        context_data = dict()
+        context_data['form'] = form
+        package_name = self.kwargs.get('slug')
+        context_data.update(dict(package_name=package_name))
+
+        if form.is_valid():
+            post_params = form.cleaned_data
+            # Assumption: Project URL starts with Platform API URL (which is saved in db)
+            if post_params['ci_platform'].api_url not in post_params['ci_project_web_url']:
+                errors = form._errors.setdefault('ci_project_web_url', ErrorList())
+                errors.append("Project URL does NOT belong to the selected platform.")
+                return render(request, self.template_name, context=context_data)
+            post_params['ci_package'] = self.packages_manager.get_packages(
+                pkgs=[package_name]).get()
+            p_uuid, p_details = self.ci_pipeline_manager.ci_platform_project_details(
+                post_params['ci_platform'], post_params['ci_project_web_url']
+            )
+            if not p_details:
+                errors = form._errors.setdefault('ci_project_web_url', ErrorList())
+                errors.append("Project details could not be fetched for the given URL.")
+                return render(request, self.template_name, context=context_data)
+            post_params['ci_project_details_json_str'] = json.dumps(p_details)
+            if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
+                messages.add_message(request, messages.ERROR, (
+                    'Alas! Something unexpected happened. Please try adding pipeline again!'
+                ))
+            else:
+                messages.add_message(request, messages.SUCCESS, (
+                    'Great! CI Pipeline added successfully.'
+                ))
+            return HttpResponseRedirect(self.get_success_url())
+        return render(request, self.template_name, context=context_data)
+
+
 class TerritoryView(ManagersMixin, TemplateView):
     """
     Territory View
@@ -930,7 +1044,7 @@ def schedule_job(request):
         job_type = request.POST.dict().get('job')
         active_user = getattr(request, 'user', None)
         active_user_email = active_user.email \
-            if active_user and not active_user.is_anonymous else 'anonymous'
+            if active_user and not active_user.is_anonymous else 'anonymous@transtats.org'
         if job_type == TS_JOB_TYPES[0]:
             transplatform_sync_manager = TransplatformSyncManager(**{'active_user_email': active_user_email})
             job_uuid = transplatform_sync_manager.syncstats_initiate_job()
@@ -949,7 +1063,12 @@ def schedule_job(request):
                 relschedule_sync_manager.sync_release_schedule()
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
-        elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5], TS_JOB_TYPES[6], 'YMLbasedJob'):
+        elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5], TS_JOB_TYPES[6], TS_JOB_TYPES[7],
+                          TS_JOB_TYPES[8], TS_JOB_TYPES[9], 'YMLbasedJob'):
+
+            if job_type in TS_CI_JOBS and 'anonymous' in active_user_email:
+                message = "&nbsp;&nbsp;<span class='text-warning'>Please login to continue.</span>"
+                return HttpResponse(message, status=403)
             job_params = request.POST.dict().get('params')
             if not job_params:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Job params missing.</span>"
@@ -1004,7 +1123,7 @@ def read_file_logs(request):
             **{'params': job_params, 'type': post_params.get('job', 'YMLbasedJob')}
         )
         suffix = job_manager.job_suffix(
-            [post_params.get(param, '') for param in job_params]
+            [post_params.get(param, '') for param in job_params][:3]
         )
         log_file_path = job_manager.job_log_file + ".%s.%s" % (suffix, job_manager.type)
         log_file = Path(log_file_path)
@@ -1369,3 +1488,66 @@ def change_lang_status(request):
             return HttpResponse("Parameters missing", status=422)
     else:
         return HttpResponse("Not an ajax call", status=400)
+
+
+def hide_ci_pipeline(request):
+    """
+    Hide CI Pipeline
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+    post_params = request.POST.dict()
+    package_owner = post_params.get('user', '')
+    ci_pipeline_id = post_params.get('pipeline_id', '')
+    if not package_owner and not ci_pipeline_id:
+        return HttpResponse("Invalid Parameters", status=422)
+    if not request.user.email == package_owner and not request.user.is_staff:
+        return HttpResponse("Access Denied", status=403)
+    ci_pipeline_manager = CIPipelineManager()
+    # delete all associated jobs
+    Job.objects.filter(ci_pipeline_id=ci_pipeline_id).delete()
+    if ci_pipeline_manager.toggle_visibility(ci_pipeline_id):
+        return HttpResponse("Pipeline successfully removed.", status=202)
+    return HttpResponse(status=500)
+
+
+def refresh_ci_pipeline(request):
+    """
+    Refresh CI Pipeline
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+    post_params = request.POST.dict()
+    package_owner = post_params.get('user', '')
+    ci_pipeline_id = post_params.get('pipeline_id', '')
+    if not package_owner and not ci_pipeline_id:
+        return HttpResponse("Invalid Parameters", status=422)
+    ci_pipeline_manager = CIPipelineManager()
+    if ci_pipeline_manager.refresh_ci_pipeline(ci_pipeline_id):
+        return HttpResponse("Pipeline successfully refreshed.", status=202)
+    return HttpResponse(status=500)
+
+
+def get_target_langs(request):
+    """
+    Get Target Languages for a CI Pipeline
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        ci_pipeline = post_params.get('ci_pipeline', '')
+        context = Context(
+            {'META': request.META,
+             'ci_pipeline': ci_pipeline}
+        )
+        template_string = """
+                            {% load tag_target_langs from custom_tags %}
+                            {% tag_target_langs ci_pipeline %}
+                        """
+        return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)

@@ -21,13 +21,14 @@ from datetime import datetime
 from collections import OrderedDict
 from django import template
 
-from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
+from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
 )
 from dashboard.managers.jobs import JobTemplateManager, JobsLogManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
+from dashboard.managers.pipelines import CIPipelineManager
 
 
 register = template.Library()
@@ -103,6 +104,28 @@ def percent(value):
         return int((value[1] * 100) / value[2])
     except Exception:
         return 0
+
+
+@register.filter
+def parse_memsource_time(date_time):
+    if not isinstance(date_time, str):
+        return date_time
+    return str(datetime.strptime(
+        date_time, '%Y-%m-%dT%H:%M:%S+0000'
+    ))
+
+
+@register.filter
+def is_pkg_exist(pkg_name):
+    package_manager = PackagesManager()
+    return package_manager.is_package_exist(pkg_name)
+
+
+@register.filter
+def locale_to_languages(locales):
+    package_manager = PackagesManager()
+    locale_lang = package_manager.get_locale_lang_tuple(locales)
+    return [item[1] for item in locale_lang]
 
 
 @register.inclusion_tag(
@@ -358,6 +381,11 @@ def tag_job_form(template_type):
     release_branches = relbranch_manager.get_relbranch_name_slug_tuple()
     if release_branches:
         return_value['releases'] = release_branches
+    ci_pipeline_manager = CIPipelineManager()
+    ci_pipelines = ci_pipeline_manager.get_ci_pipelines()
+    if ci_pipelines:
+        return_value['ci_pipelines'] = ci_pipelines.all()
+    return_value['git_repo_types'] = GIT_REPO_TYPE
     return return_value
 
 
@@ -525,4 +553,36 @@ def tag_location_summary(country_code):
     if last_updated:
         return_value["last_updated"] = last_updated
     return_value["country_code"] = country_code
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("ci", "_ci_pipeline.html")
+)
+def tag_ci_pipelines(request, package_name):
+    return_value = OrderedDict()
+    package_manager = PackagesManager()
+    ci_pipeline_manager = CIPipelineManager()
+    pipelines = ci_pipeline_manager.get_ci_pipelines(
+        packages=package_manager.get_packages(pkgs=[package_name])
+    )
+    return_value['request'] = request
+    return_value['pipelines'] = pipelines
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("jobs", "_target_langs.html")
+)
+def tag_target_langs(ci_pipeline):
+    return_value = OrderedDict()
+    if not ci_pipeline:
+        return return_value
+    ci_pipeline_manager = CIPipelineManager()
+    pipelines = ci_pipeline_manager.get_ci_pipelines(
+        uuids=[ci_pipeline])
+    pipeline = pipelines.first()
+    if pipeline:
+        return_value['target_langs'] = \
+            pipeline.ci_project_details_json.get('targetLangs') or []
     return return_value

@@ -111,18 +111,31 @@ class Platform(ModelMixin, models.Model):
         max_length=400, unique=True, verbose_name="Platform SLUG"
     )
     server_status = models.BooleanField(verbose_name="Enable/Disable")
+    ci_status = models.BooleanField(verbose_name="CI Enable/Disable", default=False)
     projects_json_str = models.TextField(null=True, blank=True)
     projects_last_updated = models.DateTimeField(null=True)
     auth_login_id = models.CharField(
         max_length=200, null=True, blank=True, verbose_name="Auth User"
     )
     auth_token_key = models.CharField(
-        max_length=200, null=True, blank=True, verbose_name="Auth Token"
+        max_length=200, null=True, blank=True, verbose_name="Auth Password/Token"
     )
+    token_api_json_str = models.TextField(null=True, blank=True, verbose_name="Auth Token JSON")
+    token_expiry = models.DateTimeField(null=True, blank=True, verbose_name="Auth Token Expiry")
 
     @property
     def projects_json(self):
         return self.str2json(self.projects_json_str)
+
+    @property
+    def token_api_json(self):
+        return self.str2json(self.token_api_json_str)
+
+    @property
+    def token_status(self):
+        if not self.token_expiry:
+            return
+        return self.token_expiry > timezone.now()
 
     def __str__(self):
         return "{0} {1}".format(self.engine_name, self.subject)
@@ -240,7 +253,7 @@ class Package(ModelMixin, models.Model):
                                      verbose_name="Upstream Name")
     component = models.CharField(max_length=200, null=True, blank=True, verbose_name="Component")
     upstream_url = models.URLField(max_length=2000, unique=True, verbose_name="Upstream URL")
-    upstream_l10n_url = models.URLField(max_length=2000, unique=True, null=True, blank=True,
+    upstream_l10n_url = models.URLField(max_length=2000, null=True, blank=True,
                                         verbose_name="Upstream Localization URL")
     platform_slug = models.ForeignKey(
         Platform, on_delete=models.PROTECT,
@@ -367,6 +380,7 @@ class JobTemplate(ModelMixin, models.Model):
     )
     job_template_json_str = models.TextField(null=True, blank=True)
     job_template_last_accessed = models.DateTimeField(null=True)
+    job_template_derived = models.BooleanField(default=False)
 
     @property
     def job_template_json(self):
@@ -378,6 +392,140 @@ class JobTemplate(ModelMixin, models.Model):
     class Meta:
         db_table = TABLE_PREFIX + 'jobtemplates'
         verbose_name = "Job Template"
+
+
+class CIPipeline(ModelMixin, models.Model):
+    """
+    Continuous Integration Pipeline Model
+    """
+    ci_pipeline_id = models.AutoField(primary_key=True)
+    ci_pipeline_uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
+    ci_package = models.ForeignKey(
+        Package, on_delete=models.PROTECT, verbose_name="Package"
+    )
+    ci_platform = models.ForeignKey(
+        Platform, on_delete=models.PROTECT, verbose_name="Platform"
+    )
+    ci_release = models.ForeignKey(
+        Release, on_delete=models.PROTECT, verbose_name="Release", null=True
+    )
+    ci_push_job_template = models.ForeignKey(
+        JobTemplate, on_delete=models.PROTECT, verbose_name="Push Job Template",
+        related_name="push_template", null=True
+    )
+    ci_pull_job_template = models.ForeignKey(
+        JobTemplate, on_delete=models.PROTECT, verbose_name="Pull Job Template",
+        related_name="pull_template", null=True
+    )
+    ci_project_web_url = models.URLField(max_length=500, null=True, blank=True,
+                                         verbose_name="Platform Project URL")
+    ci_project_details_json_str = models.TextField(null=True, blank=True)
+    ci_platform_jobs_json_str = models.TextField(null=True, blank=True)
+    ci_project_analyses_json_str = models.TextField(null=True, blank=True)
+    ci_project_import_settings_json_str = models.TextField(null=True, blank=True)
+    ci_project_assign_templates_json_str = models.TextField(null=True, blank=True)
+    ci_project_workflow_steps_json_str = models.TextField(null=True, blank=True)
+    ci_project_providers_json_str = models.TextField(null=True, blank=True)
+    ci_project_term_bases_json_str = models.TextField(null=True, blank=True)
+    ci_project_qa_checks_json_str = models.TextField(null=True, blank=True)
+    ci_project_trans_memory_json_str = models.TextField(null=True, blank=True)
+    ci_pipeline_last_updated = models.DateTimeField(null=True, blank=True)
+    ci_pipeline_visibility = models.BooleanField(
+        default=True, verbose_name='CI Pipeline Visibility'
+    )
+
+    @property
+    def ci_project_details_json(self):
+        return self.str2json(self.ci_project_details_json_str)
+
+    @property
+    def ci_platform_jobs_json(self):
+        return self.str2json(self.ci_platform_jobs_json_str)
+
+    @property
+    def ci_project_analyses_json(self):
+        return self.str2json(self.ci_project_analyses_json_str)
+
+    @property
+    def ci_project_import_settings_json(self):
+        return self.str2json(self.ci_project_import_settings_json_str)
+
+    @property
+    def ci_project_assign_templates_json(self):
+        return self.str2json(self.ci_project_assign_templates_json_str)
+
+    @property
+    def ci_project_workflow_steps_json(self):
+        return self.str2json(self.ci_project_workflow_steps_json_str)
+
+    @property
+    def ci_project_providers_json(self):
+        return self.str2json(self.ci_project_providers_json_str)
+
+    @property
+    def ci_project_term_bases_json(self):
+        return self.str2json(self.ci_project_term_bases_json_str)
+
+    @property
+    def ci_project_qa_checks_json(self):
+        return self.str2json(self.ci_project_qa_checks_json_str)
+
+    @property
+    def ci_project_trans_memory_json(self):
+        return self.str2json(self.ci_project_trans_memory_json_str)
+
+    def __str__(self):
+        return str(self.ci_pipeline_uuid)
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'cipipeline'
+        verbose_name = "CI Pipeline"
+
+
+class CIPlatformJob(ModelMixin, models.Model):
+    """
+    CI Pipeline Platform Job Model
+    """
+    ci_platform_job_id = models.AutoField(primary_key=True)
+    ci_pipeline = models.ForeignKey(
+        CIPipeline, on_delete=models.PROTECT,
+        to_field="ci_pipeline_uuid", verbose_name="CI Pipeline"
+    )
+    ci_platform_job_json_str = models.TextField(null=True, blank=True)
+    ci_platform_job_analyses_json_str = models.TextField(null=True, blank=True)
+    ci_platform_job_segments_json_str = models.TextField(null=True, blank=True)
+    ci_platform_job_status_changes_json_str = models.TextField(null=True, blank=True)
+    ci_platform_job_trans_resources_json_str = models.TextField(null=True, blank=True)
+    ci_platform_job_workflow_step_json_str = models.TextField(null=True, blank=True)
+    ci_platform_job_visibility = models.BooleanField(default=True)
+
+    @property
+    def ci_platform_job_json(self):
+        return self.str2json(self.ci_platform_job_json_str)
+
+    @property
+    def ci_platform_job_analyses_json(self):
+        return self.str2json(self.ci_platform_job_analyses_json_str)
+
+    @property
+    def ci_platform_job_segments_json(self):
+        return self.str2json(self.ci_platform_job_segments_json_str)
+
+    @property
+    def ci_platform_job_status_changes_json(self):
+        return self.str2json(self.ci_platform_job_status_changes_json_str)
+
+    @property
+    def ci_platform_job_trans_resources_json(self):
+        return self.str2json(self.ci_platform_job_trans_resources_json_str)
+
+    @property
+    def ci_platform_job_workflow_step_json(self):
+        return self.str2json(self.ci_platform_job_workflow_step_json_str)
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'ciplatformjob'
+        verbose_name = "CI Platform Job"
 
 
 class Job(ModelMixin, models.Model):
@@ -395,6 +543,8 @@ class Job(ModelMixin, models.Model):
     job_remarks = models.CharField(max_length=200, null=True)
     job_template = models.ForeignKey(JobTemplate, on_delete=models.PROTECT,
                                      verbose_name="Job Template", null=True)
+    ci_pipeline = models.ForeignKey(CIPipeline, on_delete=models.PROTECT,
+                                    verbose_name="CI Pipeline", null=True)
     job_params_json_str = models.TextField(null=True, blank=True)
     job_output_json_str = models.TextField(null=True, blank=True)
     triggered_by = models.EmailField(null=True)

@@ -1,0 +1,18 @@
+job:
+  ci_pipeline: %PIPELINE_UUID%
+  exception: raise
+  execution: sequential
+  name: pull translations
+  package: %PACKAGE_NAME%
+  return_type: json
+  tasks:
+  - download:
+    - name: Pull translations
+    - target_langs: %TARGET_LANGS%
+  - upload:
+      - name: Submit translations
+      - type: %REPO_TYPE%
+      - branch: %REPO_BRANCH%
+      - conflicts: replace-translated
+      - method: translate
+  type: pulltrans

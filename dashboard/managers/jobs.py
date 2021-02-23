@@ -24,6 +24,7 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 from uuid import uuid4
+from urllib.parse import urlparse
 from yaml import load, FullLoader
 
 # django
@@ -34,12 +35,13 @@ from django.utils import timezone
 from dashboard.constants import (
     TS_JOB_TYPES, JOB_EXEC_TYPES, GIT_REPO_TYPE
 )
-from dashboard.engine.action_mapper import ActionMapper
-from dashboard.engine.ds import TaskList
-from dashboard.engine.parser import YMLPreProcessor, YMLJobParser
+from dashboard.jobs_framework.action_mapper import ActionMapper
+from dashboard.jobs_framework.ds import TaskList
+from dashboard.jobs_framework.parser import YMLPreProcessor, YMLJobParser
 from dashboard.managers import BaseManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
+from dashboard.managers.pipelines import CIPipelineManager
 from dashboard.models import (
     Platform, Package, Product, Release, JobTemplate, Job,
     CacheBuildDetails
@@ -101,6 +103,7 @@ class JobManager(object):
         self.job_yml = None
         self.job_template = None
         self.visible_on_url = False
+        self.ci_pipeline = None
 
     def create_job(self, user_email=None):
         match_params = {}
@@ -138,7 +141,8 @@ class JobManager(object):
                     job_template=self.job_template,
                     job_yml_text=self.job_yml,
                     job_params_json_str=json.dumps(self.job_params),
-                    job_visible_on_url=self.visible_on_url
+                    job_visible_on_url=self.visible_on_url,
+                    ci_pipeline=self.ci_pipeline
                 )
         except:
             return False
@@ -153,7 +157,7 @@ class JobsLogManager(BaseManager):
 
     package_manager = PackagesManager()
 
-    def get_job_logs(self, remarks=None, result=None):
+    def get_job_logs(self, remarks=None, result=None, no_pipeline=True):
         """
         Fetch all job logs from the db
         """
@@ -163,6 +167,10 @@ class JobsLogManager(BaseManager):
             filters.update(dict(job_remarks=remarks))
         if result:
             filters.update(dict(job_result=True))
+        if no_pipeline:
+            filters.update(dict(ci_pipeline__isnull=True))
+        else:
+            filters.update(dict(ci_pipeline__isnull=False))
         try:
             job_logs = Job.objects.filter(**filters).order_by('-job_start_time')
         except:
@@ -585,15 +593,22 @@ class BuildTagsSyncManager(BaseManager):
 
 class YMLBasedJobManager(BaseManager):
     """
+    Base class to handle YAML Jobs
+
     Single Entry Point for
-        - all YML based Jobs: syncupstream, syncdownstream, stringchange
-        - this should be the base class to handle YML Jobs
+        - YAML based Jobs
+            - syncupstream
+            - syncdownstream
+            - stringchange
+            - pushtrans
+            - pulltrans
     """
 
     sandbox_path = 'dashboard/sandbox/'
     job_log_file = sandbox_path + '.log'
 
     package_manager = PackagesManager()
+    ci_pipeline_manager = CIPipelineManager()
 
     @staticmethod
     def job_suffix(args):
@@ -605,7 +620,7 @@ class YMLBasedJobManager(BaseManager):
         """
         super(YMLBasedJobManager, self).__init__(**kwargs)
         self.suffix = self.job_suffix(
-            [getattr(self, param, '') for param in self.params]
+            [getattr(self, param, '') for param in self.params][:3]
         )
         self.job_log_file = self.sandbox_path + '.log'
 
@@ -614,12 +629,26 @@ class YMLBasedJobManager(BaseManager):
             self.package_manager.get_packages([self.package])
         return package_details.get()
 
+    def _get_ci_pipeline(self):
+        ci_pipeline_details = \
+            self.ci_pipeline_manager.get_ci_pipelines(
+                uuids=[self.ci_pipeline_uuid])
+        return ci_pipeline_details.get()
+
     @staticmethod
     def _check_git_ext(upstream_url):
         # required for cloning
         return upstream_url if upstream_url.endswith('.git') else upstream_url + ".git"
 
-    def _bootstrap(self, package=None, build_system=None):
+    def _weblate_git_url(self, package):
+        platform_url = package.platform_slug.api_url
+        parsed_url = urlparse(platform_url)
+        return "{}://{}/git/{}/{}/".format(
+            parsed_url.scheme, parsed_url.netloc,
+            package.package_name, self.REPO_BRANCH
+        )
+
+    def __bootstrap(self, package=None, build_system=None, ci_pipeline=None):
         if build_system:
             try:
                 release_streams = \
@@ -647,7 +676,12 @@ class YMLBasedJobManager(BaseManager):
                         raise Exception('Localization repo URL not found.')
                     else:
                         upstream_repo_url = package_detail.upstream_l10n_url
-                self.upstream_repo_url = self._check_git_ext(upstream_repo_url)
+                if getattr(self, 'REPO_TYPE', '') and self.REPO_TYPE == GIT_REPO_TYPE[2]:
+                    if not self.REPO_TYPE == package_detail.platform_slug.engine_name:
+                        raise Exception('Package Platform is NOT Weblate.')
+                    self.upstream_repo_url = self._weblate_git_url(package_detail)
+                else:
+                    self.upstream_repo_url = self._check_git_ext(upstream_repo_url)
                 t_ext = package_detail.translation_file_ext
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
@@ -657,8 +691,30 @@ class YMLBasedJobManager(BaseManager):
                 self.pkg_tp_auth_usr = package_detail.platform_slug.auth_login_id
                 self.pkg_tp_auth_token = package_detail.platform_slug.auth_token_key
                 self.pkg_branch_map = package_detail.release_branch_mapping_json
+        if ci_pipeline:
+            try:
+                ci_pipeline_detail = self._get_ci_pipeline()
+            except Exception as e:
+                self.app_logger(
+                    'ERROR', "CI Pipeline could not be found, details: " + str(e)
+                )
+                raise Exception('CI pipeline could NOT be located for UUID %s.' % ci_pipeline)
+            else:
+                if self.package != ci_pipeline_detail.ci_package.package_name:
+                    raise Exception('CI Pipeline does NOT belong to the package.')
+                self.pkg_ci_engine = ci_pipeline_detail.ci_platform.engine_name
+                self.pkg_ci_url = ci_pipeline_detail.ci_platform.api_url
+                self.pkg_ci_auth_usr = ci_pipeline_detail.ci_platform.auth_login_id
+                self.pkg_ci_auth_token = ci_pipeline_detail.ci_platform.auth_token_key
+                self.ci_release = ci_pipeline_detail.ci_release.release_slug
+                self.ci_target_langs = ci_pipeline_detail.ci_project_details_json.get('targetLangs', [])
+                self.ci_project_uid = ci_pipeline_detail.ci_project_details_json.get('uid', '')
+                self.ci_pipeline_id = ci_pipeline_detail.ci_pipeline_id
+                ci_lang_job_map = self.ci_pipeline_manager.ci_lang_job_map(pipelines=[ci_pipeline_detail])
+                if ci_lang_job_map.get(ci_pipeline_detail.ci_pipeline_uuid):
+                    self.ci_lang_job_map = ci_lang_job_map[ci_pipeline_detail.ci_pipeline_uuid]
 
-    def _save_result_in_db(self, stats_dict, build_details):
+    def _save_stats_in_db(self, stats_dict, build_details):
         """
         Save derived stats in db from YML Job
         :param stats_dict: translation stats calculated
@@ -713,6 +769,29 @@ class YMLBasedJobManager(BaseManager):
             )
             raise Exception('Stats could NOT be saved in db.')
 
+    def _save_push_results_in_db(self, job_details):
+        """
+        Save jobs which are created/updated in CI Platform for a project
+        """
+        try:
+            for platform_project, jobs in job_details.items():
+                if platform_project != self.ci_project_uid:
+                    raise Exception('Save: CI Pipeline UID did NOT match.')
+                # disable storing push_resp_data in CIPlatformJob, temporarily
+                # and just refreshing the pipeline_details
+
+                # for lang, job_details in jobs.items():
+                #     platform_job = dict()
+                #     platform_job['ci_pipeline'] = self._get_ci_pipeline()
+                #     platform_job['ci_platform_job_json_str'] = json.dumps(job_details)
+                #     self.ci_pipeline_manager.save_ci_platform_job(platform_job)
+                self.ci_pipeline_manager.refresh_ci_pipeline(self.ci_pipeline_id)
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Platform job could not be updated, details: " + str(e)
+            )
+            raise Exception('Details could NOT be saved in db.')
+
     def _wipe_workspace(self):
         """
         This makes sandbox clean for a new job to run
@@ -756,7 +835,9 @@ class YMLBasedJobManager(BaseManager):
             raise Exception('Input YML could not be parsed.')
 
         self.package = yml_job.package
+        self.release = yml_job.release
         self.buildsys = yml_job.buildsys
+        self.ci_pipeline_uuid = yml_job.ci_pipeline
         if isinstance(yml_job.tags, list) and len(yml_job.tags) > 0:
             self.tag = yml_job.tags[0]
         elif isinstance(yml_job.tags, str):
@@ -765,13 +846,13 @@ class YMLBasedJobManager(BaseManager):
         if self.type != yml_job.job_type:
             raise Exception('Selected job type differs to that of YML.')
 
-        if (self.type == TS_JOB_TYPES[2] or self.type == TS_JOB_TYPES[5]) and self.package:
-            self._bootstrap(package=self.package)
-            self.release = yml_job.release
-        elif self.type == TS_JOB_TYPES[3] and self.buildsys:
-            self._bootstrap(build_system=self.buildsys)
+        # bootstrap the job
+        self.__bootstrap(package=self.package,
+                         build_system=self.buildsys,
+                         ci_pipeline=self.ci_pipeline_uuid)
+
         # for sequential jobs, tasks should be pushed to linked list
-        # and output of previous task should be input for next task
+        # and output of previous task will be input for next task
         if JOB_EXEC_TYPES[0] in yml_job.execution:
             self.tasks_ds = TaskList()
         else:
@@ -797,6 +878,7 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'hub_url', ''),
             getattr(self, 'buildsys', ''),
             getattr(self, 'release', ''),
+            getattr(self, 'ci_pipeline_uuid', ''),
             getattr(self, 'upstream_repo_url', ''),
             getattr(self, 'trans_file_ext', ''),
             getattr(self, 'pkg_upstream_name', ''),
@@ -805,6 +887,14 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'pkg_tp_auth_usr', ''),
             getattr(self, 'pkg_tp_auth_token', ''),
             getattr(self, 'pkg_tp_url', ''),
+            getattr(self, 'pkg_ci_engine', ''),
+            getattr(self, 'pkg_ci_url', ''),
+            getattr(self, 'pkg_ci_auth_usr', ''),
+            getattr(self, 'pkg_ci_auth_token', ''),
+            getattr(self, 'ci_release', ''),
+            getattr(self, 'ci_target_langs', []),
+            getattr(self, 'ci_project_uid', ''),
+            getattr(self, 'ci_lang_job_map', {}),
             log_file
         )
         action_mapper.set_actions()
@@ -813,6 +903,7 @@ class YMLBasedJobManager(BaseManager):
             action_mapper.execute_tasks()
         except Exception as e:
             job_manager.job_result = False
+            setattr(self, 'exception', e)
             raise Exception(e)
         else:
             job_manager.output_json = action_mapper.result
@@ -830,7 +921,12 @@ class YMLBasedJobManager(BaseManager):
             job_manager.job_result = True
         finally:
             job_manager.job_yml = yml_preprocessed
+            if getattr(self, 'exception', ''):
+                action_mapper.log.update(dict(
+                    Exception={str(datetime.now()): '%s' % getattr(self, 'exception', '')}))
             job_manager.log_json = action_mapper.log
+            if getattr(self, 'ci_pipeline_uuid', ''):
+                job_manager.ci_pipeline = self._get_ci_pipeline()
             action_mapper.clean_workspace()
             if not getattr(self, 'SCRATCH', None):
                 job_manager.mark_job_finish()
@@ -839,7 +935,10 @@ class YMLBasedJobManager(BaseManager):
             time.sleep(4)
         # if not a dry run, save results is db
         if action_mapper.result and not getattr(self, 'DRY_RUN', None):
-            self._save_result_in_db(action_mapper.result, action_mapper.build)
+            if self.type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3]):
+                self._save_stats_in_db(action_mapper.result, action_mapper.build)
+            if self.type in ([TS_JOB_TYPES[7], TS_JOB_TYPES[9]]):
+                self._save_push_results_in_db(action_mapper.result.get('push_files_resp', {}))
         if os.path.exists(log_file):
             os.unlink(log_file)
         return self.job_id

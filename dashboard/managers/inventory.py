@@ -31,6 +31,7 @@ from slugify import slugify
 
 # django
 from django.conf import settings
+from django.db.models import Case, Value, When
 from django.utils import timezone
 
 # dashboard
@@ -40,7 +41,8 @@ from dashboard.models import (
 )
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, ZANATA_SLUGS, DAMNEDLIES_SLUGS,
-    TRANSIFEX_SLUGS, RELSTREAM_SLUGS, WEBLATE_SLUGS, BUILD_SYSTEMS
+    TRANSIFEX_SLUGS, RELSTREAM_SLUGS, WEBLATE_SLUGS,
+    BUILD_SYSTEMS, MEMSOURCE_SLUGS
 )
 from dashboard.managers.utilities import parse_ical_file
 
@@ -198,7 +200,7 @@ class InventoryManager(BaseManager):
             )
         return required_locales
 
-    def get_translation_platforms(self, engine=None, only_active=None):
+    def get_translation_platforms(self, engine=None, only_active=None, ci=None):
         """
         fetch all translation platforms from db
         """
@@ -207,6 +209,8 @@ class InventoryManager(BaseManager):
             filter_kwargs.update(dict(engine_name=engine))
         if only_active:
             filter_kwargs.update(dict(server_status=True))
+        if ci:
+            filter_kwargs.update(dict(ci_status=True))
 
         platforms = None
         try:
@@ -238,7 +242,8 @@ class InventoryManager(BaseManager):
         """
         count = 0
         platform_relation = {}
-        platform_slugs = [DAMNEDLIES_SLUGS, TRANSIFEX_SLUGS, ZANATA_SLUGS, WEBLATE_SLUGS]
+        platform_slugs = [DAMNEDLIES_SLUGS, TRANSIFEX_SLUGS,
+                          ZANATA_SLUGS, WEBLATE_SLUGS, MEMSOURCE_SLUGS]
 
         for engine in TRANSPLATFORM_ENGINES:
             platform_relation.update({engine: platform_slugs[count]})
@@ -517,11 +522,10 @@ class SyncStatsManager(BaseManager):
             return True
         return False
 
-    def toggle_visibility(self, package=None, visibility=False, stats_source=None, project_version=None):
+    def toggle_visibility(self, package=None, stats_source=None, project_version=None):
         """
         Toggle visibility of statistics to false or true
         :param package: Package Name: str
-        :param visibility: boolean
         :param stats_source: str
         :param project_version: str
         :return: boolean
@@ -534,7 +538,13 @@ class SyncStatsManager(BaseManager):
         if project_version:
             filter_kwargs.update(dict(project_version=project_version))
         try:
-            SyncStats.objects.filter(**filter_kwargs).update(sync_visibility=visibility)
+            SyncStats.objects.filter(**filter_kwargs).update(
+                sync_visibility=Case(
+                    When(sync_visibility=True, then=Value(False)),
+                    When(sync_visibility=False, then=Value(True)),
+                    default=Value(True)
+                )
+            )
         except Exception as e:
             self.app_logger(
                 'ERROR', "version stats could not be saved, details: " + str(e))
@@ -674,7 +684,7 @@ class ReleaseBranchManager(InventoryManager):
         DELIMITER = ":"
         branch_schedule_dict = OrderedDict()
 
-        if product_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2]):
+        if product_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2], RELSTREAM_SLUGS[3]):
             try:
                 for event in required_events:
                     for event_dict in ical_events:
@@ -757,6 +767,7 @@ class ReleaseBranchManager(InventoryManager):
             - releases for which translation tracking is ON
         :return: query obj
         """
+        # needs adjustment for other products
         product_slug = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0]
         releases = self.get_release_branches(relstream=product_slug)
         if releases and len(releases) > 0:

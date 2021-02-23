@@ -20,11 +20,12 @@ from django.contrib import admin
 # dashboard
 from dashboard.forms import TextArrayField
 from dashboard.constants import (
-    TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
-    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS, WEBLATE_SLUGS
+    TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, TRANSIFEX_SLUGS, ZANATA_SLUGS,
+    DAMNEDLIES_SLUGS, WEBLATE_SLUGS, MEMSOURCE_SLUGS
 )
 from dashboard.models import (
-    Language, LanguageSet, Platform, Product, Release, Package, GraphRule, Visitor
+    Language, LanguageSet, Platform, Product, Release,
+    Package, GraphRule, Visitor, CIPipeline
 )
 from dashboard.managers.inventory import InventoryManager
 
@@ -39,6 +40,7 @@ all_platform_slugs.extend(TRANSIFEX_SLUGS)
 all_platform_slugs.extend(ZANATA_SLUGS)
 all_platform_slugs.extend(DAMNEDLIES_SLUGS)
 all_platform_slugs.extend(WEBLATE_SLUGS)
+all_platform_slugs.extend(MEMSOURCE_SLUGS)
 SLUG_CHOICES = tuple([(slug, slug) for slug in all_platform_slugs])
 
 
@@ -51,6 +53,10 @@ class PlatformAdminForm(forms.ModelForm):
     platform_slug = forms.ChoiceField(
         choices=SLUG_CHOICES, label="Platform SLUG",
         help_text="Please identify SLUG carefully. Example: ZNTAPUB should be for zanata public instance.",
+    )
+
+    auth_login_id = forms.TimeField(
+        label="API Auth Username", help_text="Change may trigger request for a new token."
     )
 
 
@@ -86,19 +92,23 @@ class LanguagesAdmin(admin.ModelAdmin):
 @admin.register(LanguageSet)
 class LanguageSetAdmin(admin.ModelAdmin):
     form = LanguageSetAdminForm
+    readonly_fields = ('lang_set_color',)
     search_fields = ('lang_set_name', )
 
 
 @admin.register(Platform)
 class PlatformAdmin(admin.ModelAdmin):
     form = PlatformAdminForm
-    exclude = ('projects_json_str', 'projects_last_updated')
+    exclude = ('auth_token_key', 'projects_json_str', 'projects_last_updated')
+    readonly_fields = ('token_api_json_str', 'token_expiry')
     search_fields = ('subject', )
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
+    readonly_fields = ('product_build_tags_last_updated',)
+    exclude = ('product_build_tags',)
     search_fields = ('product_name', )
 
 
@@ -117,19 +127,26 @@ class PackageAdmin(admin.ModelAdmin):
         return False
 
     search_fields = ('package_name', )
+    readonly_fields = ('package_name_mapping_json_str', 'release_branch_mapping')
     exclude = ('package_details_json_str', 'details_json_last_updated',
                'name_map_last_updated', 'release_branch_map_last_updated',
                'platform_last_updated', 'upstream_last_updated',
-               'downstream_last_updated')
+               'downstream_last_updated', 'package_latest_builds',
+               'package_latest_builds_last_updated', 'stats_diff',
+               'stats_diff_last_updated', 'component')
 
 
-@admin.register(GraphRule)
-class GraphRuleAdmin(admin.ModelAdmin):
+@admin.register(CIPipeline)
+class CIPipelineAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         return False
 
-    search_fields = ('rule_name', )
-    exclude = ('created_on', )
+    search_fields = ('ci_project_web_url', )
+    exclude = ('ci_project_details_json_str', 'ci_platform_jobs_json_str', 'ci_project_analyses_json_str',
+               'ci_project_import_settings_json_str', 'ci_project_assign_templates_json_str',
+               'ci_project_workflow_steps_json_str', 'ci_project_providers_json_str',
+               'ci_project_term_bases_json_str', 'ci_project_qa_checks_json_str', 'ci_project_trans_memory_json_str',
+               'ci_pipeline_last_updated')
 
 
 @admin.register(Visitor)

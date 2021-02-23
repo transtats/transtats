@@ -58,15 +58,15 @@
       <span class="btn-group" role="group" aria-label="...">
         <button type="button" id="button-combined" class="btn btn-default">Combined</button>
         <button type="button" id="button-detailed" class="btn btn-default">Detailed</button>
-        <!--<button type="button" id="button-threshold" class="btn btn-default">Threshold Based</button>-->
+        <button type="button" id="button-threshold" class="btn btn-default">Threshold</button>
         <!--<button type="button" id="button-lang-wise" class="btn btn-default">Language Wise</button>-->
       </span>
       <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default btn-small">Go Back</a>
     </span>
   </div>
-  <div class="panel-body">
-    <div><h2>{{ release_branch }}</h2></div>
-    <div id="releasegraph" class="panel panel-default table-responsive panel-border-ts"></div>
+  <div class="panel-body content-area">
+    <h2>{{ release_branch }}</h2><br/>
+    <div id="releasegraph" class="panel panel-default table-responsive"></div>
     <center>
       <div id="localegraph" class="panel panel-default panel-border-ts"></div>
       <div id="grapharea" class="panel panel-default graph-area panel-border-ts">
