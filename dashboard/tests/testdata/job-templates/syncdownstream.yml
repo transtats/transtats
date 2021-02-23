@@ -17,5 +17,7 @@ job:
     - apply: patch
     - filter:
       - name: files
+      - domain: %PACKAGE_NAME%
       - ext: PO
+      - dir: ''
     - calculate: Stats

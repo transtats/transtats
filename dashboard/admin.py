@@ -55,6 +55,10 @@ class PlatformAdminForm(forms.ModelForm):
         help_text="Please identify SLUG carefully. Example: ZNTAPUB should be for zanata public instance.",
     )
 
+    auth_login_id = forms.TimeField(
+        label="API Auth Username", help_text="Change may trigger request for a new token."
+    )
+
 
 class ProductAdminForm(forms.ModelForm):
     product_slug = forms.ChoiceField(
@@ -88,6 +92,7 @@ class LanguagesAdmin(admin.ModelAdmin):
 @admin.register(LanguageSet)
 class LanguageSetAdmin(admin.ModelAdmin):
     form = LanguageSetAdminForm
+    readonly_fields = ('lang_set_color',)
     search_fields = ('lang_set_name', )
 
 
@@ -95,12 +100,15 @@ class LanguageSetAdmin(admin.ModelAdmin):
 class PlatformAdmin(admin.ModelAdmin):
     form = PlatformAdminForm
     exclude = ('auth_token_key', 'projects_json_str', 'projects_last_updated')
+    readonly_fields = ('token_api_json_str', 'token_expiry')
     search_fields = ('subject', )
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
+    readonly_fields = ('product_build_tags_last_updated',)
+    exclude = ('product_build_tags',)
     search_fields = ('product_name', )
 
 
@@ -119,10 +127,13 @@ class PackageAdmin(admin.ModelAdmin):
         return False
 
     search_fields = ('package_name', )
+    readonly_fields = ('package_name_mapping_json_str', 'release_branch_mapping')
     exclude = ('package_details_json_str', 'details_json_last_updated',
                'name_map_last_updated', 'release_branch_map_last_updated',
                'platform_last_updated', 'upstream_last_updated',
-               'downstream_last_updated')
+               'downstream_last_updated', 'package_latest_builds',
+               'package_latest_builds_last_updated', 'stats_diff',
+               'stats_diff_last_updated', 'component')
 
 
 @admin.register(GraphRule)

@@ -1,5 +1,10 @@
 
-##### Mon Feb 01 2020 Sundeep Anand <suanand@redhat.com>
+##### Sat Feb 20 2021 Sundeep Anand <suanand@redhat.com>
+* handle trailing slash in platform url and ui changes
+* warning for translations found in multiple dirs
+* Make push/pull jobs explicit to show exceptions
+* Add and implement `dpushtrans` job template
+* Add support for foreman product and `podir` projects
 * An option for `importSetting` in pushtrans job template
 * Include memsource jobs in the pipeline refresh
 * CI Pipeline details and history (_sync logs_) pages

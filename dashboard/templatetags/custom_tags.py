@@ -21,7 +21,7 @@ from datetime import datetime
 from collections import OrderedDict
 from django import template
 
-from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES
+from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
 )
@@ -113,6 +113,12 @@ def parse_memsource_time(date_time):
     return str(datetime.strptime(
         date_time, '%Y-%m-%dT%H:%M:%S+0000'
     ))
+
+
+@register.filter
+def is_pkg_exist(pkg_name):
+    package_manager = PackagesManager()
+    return package_manager.is_package_exist(pkg_name)
 
 
 @register.inclusion_tag(
@@ -372,6 +378,7 @@ def tag_job_form(template_type):
     ci_pipelines = ci_pipeline_manager.get_ci_pipelines()
     if ci_pipelines:
         return_value['ci_pipelines'] = ci_pipelines.all()
+    return_value['git_repo_types'] = GIT_REPO_TYPE
     return return_value
 
 

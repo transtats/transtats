@@ -82,9 +82,9 @@ function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}var poll_t
             <label class="control-label">Repository</label>
             <div style="padding-bottom:10px">
                 <select id="repoType" class="selectpicker">
-                    <option selected value="default">default</option>
-                    <option value="l10n">localization</option>
-                    <option value="weblate">weblate</option>
+                    {% for git_repo_type in git_repo_types %}
+                        <option value="{{ git_repo_type }}">{{ git_repo_type }}</option>
+                    {% endfor %}
                 </select>
             </div>
           </div>
@@ -162,9 +162,9 @@ function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}var poll_t
           <button class="btn btn-default prevBtn pull-left" type="button">Previous</button>
           <span style="padding-left:10px">
             <label class="checkbox-inline"><input id="chkDryRun" type="checkbox" value="NoSave" checked> Dry Run
-                <small>(<i>Derived details will not be saved.</i>)</small></label>
+                <small>(<i class="text-info"> derived details will NOT be saved </i>)</small></label>
             <label class="checkbox-inline"><input id="chkScratch" type="checkbox" value="ScratchRun">Scratch
-                <small>(<i>Job will not be logged.</i>)</small></label>
+                <small>(<i class="text-info"> job will NOT be logged </i>)</small></label>
           </span>
           <button id="fireJobLink" class="btn btn-default pull-right">
             <input type="hidden" value="{% if job_template %}{{ job_template.job_template_type }}{% else %}YMLbasedJob{% endif %}" id="ymlBasedJobIdentifier"/>

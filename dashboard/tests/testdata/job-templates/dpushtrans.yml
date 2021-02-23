@@ -2,20 +2,15 @@ job:
   ci_pipeline: %PIPELINE_UUID%
   exception: raise
   execution: sequential
-  name: push translations
+  name: pull translations
   package: %PACKAGE_NAME%
   return_type: json
   tasks:
-  - clone:
-    - name: git repo
+  - download:
+    - name: Translation files
+    - target_langs: %TARGET_LANGS%
     - type: %REPO_TYPE%
     - branch: %REPO_BRANCH%
-    - recursive: false
-  - filter:
-    - name: files
-    - domain: %PACKAGE_NAME%
-    - ext: PO
-    - dir: ''
   - upload:
     - name: Push files
     - target_langs: %TARGET_LANGS%
@@ -23,4 +18,4 @@ job:
     - posthook: skip
     - import_settings: project
     - update: false
-  type: pushtrans
+  type: dpushtrans

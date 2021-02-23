@@ -227,17 +227,25 @@ class RestHandle(object):
 
         response = self._call_request(self._get_url(), self.method, **args_dict)
         response_dict = {}
-        if response and response.ok:
+        if not response:
+            return response_dict
+        if response.ok:
             try:
                 response_dict.update(dict(json_content=response.json()))
             except ValueError:
                 response_dict.update(dict(json_content={}))
-            response_dict.update(dict(status_code=response.status_code))
-            response_dict.update(dict(headers=response.headers))
-            response_dict.update(dict(time_delta=response.elapsed))
-            response_dict.update(dict(content=response.text))
-            response_dict.update(dict(url=response.url))
-            response_dict.update(dict(raw=response))
+        else:
+            try:
+                response_dict.update(dict(err_content=response.json()))
+            except ValueError:
+                response_dict.update(dict(err_content={}))
+        response_dict.update(dict(status_code=response.status_code))
+        response_dict.update(dict(headers=response.headers))
+        response_dict.update(dict(time_delta=response.elapsed))
+        response_dict.update(dict(content=response.content))
+        response_dict.update(dict(text=response.text))
+        response_dict.update(dict(url=response.url))
+        response_dict.update(dict(raw=response))
         return response_dict
 
 
@@ -306,7 +314,7 @@ class RestClient(object):
             disable_ssl_certificate_validation=self.disable_ssl_certificate_validation
         )
         api_response_dict = rest_handle.get_response_dict()
-        if self.SAVE_RESPONSE:
+        if api_response_dict.get('json_content') and self.SAVE_RESPONSE:
             self.cache_manager.save_api_response(
                 base_url, resource, api_response_dict['content'],
                 api_response_dict['json_content'], *args, **kwargs

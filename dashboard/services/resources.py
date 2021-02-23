@@ -332,12 +332,12 @@ class TransplatformResources(ResourcesBase):
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
     def _fetch_damnedlies_locale_release_stats(base_url, resource, *url_params, **kwargs):
-        locale_stat_dict = {}
+        locale_stat_dict = dict()
         locale_stat_dict["unit"] = "MESSAGE"
         locale_stat_dict["locale"] = url_params[0]
         response = kwargs.get('rest_response', {})
-        if response.get('content'):
-            json_content = parse(response['content'])
+        if response.get('text'):
+            json_content = parse(response['text'])
             gnome_module_categories = json_content['stats']['category'] or []
             for category in gnome_module_categories:
                 stats_tuple = ()
@@ -386,28 +386,61 @@ class TransplatformResources(ResourcesBase):
         return dict(id=url_params[1], stats=kwargs['combine_results'])
 
     @staticmethod
-    @call_service(TRANSPLATFORM_ENGINES[4])
-    def _update_memsource_source(base_url, resource, *url_params, **kwargs):
+    def __push_response(service_resp):
+        if service_resp.get('json_content'):
+            return True, service_resp['json_content']
+        elif service_resp.get('err_content') or service_resp.get('text'):
+            return False, service_resp.get('err_content') or \
+                {service_resp.get('status_code', 'Error'): service_resp.get('text')}
+        return False, dict()
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[1])
+    def _push_transifex_translations(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        return response.get('json_content')
+        return TransplatformResources.__push_response(response)
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[3])
     def _push_weblate_translations(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        return response.get('json_content')
+        return TransplatformResources.__push_response(response)
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _push_memsource_translations(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        return response.get('json_content')
+        return TransplatformResources.__push_response(response)
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[4])
+    def _update_memsource_source(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return TransplatformResources.__push_response(response)
+
+    @staticmethod
+    def __pull_response(service_resp):
+        if service_resp.get('raw').ok:
+            return True, service_resp.get('content')
+        return False, {service_resp.get('status_code', 'Error'): service_resp.get('text')}
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _pull_memsource_translations(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        return response.get('content')
+        return TransplatformResources.__pull_response(response)
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[1])
+    def _pull_transifex_translations(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return TransplatformResources.__pull_response(response)
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[3])
+    def _pull_weblate_translations(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return TransplatformResources.__pull_response(response)
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[4])
@@ -524,7 +557,7 @@ class TransplatformResources(ResourcesBase):
             TRANSPLATFORM_ENGINES[1]: {
                 'method': self._fetch_transifex_proj_tran_stats,
                 'base_url': instance_url,
-                'resources': ['proj_trans_stats'],
+                'resources': ['project_trans_stats'],
                 'project': args[0],
                 'version': args[1],
 
@@ -578,6 +611,11 @@ class TransplatformResources(ResourcesBase):
         :return: dict
         """
         method_mapper = {
+            TRANSPLATFORM_ENGINES[1]: {
+                'method': self._push_transifex_translations,
+                'base_url': instance_url,
+                'resources': ['upload_trans_file'],
+            },
             TRANSPLATFORM_ENGINES[3]: {
                 'method': self._push_weblate_translations,
                 'base_url': instance_url,
@@ -602,6 +640,16 @@ class TransplatformResources(ResourcesBase):
         :return: dict
         """
         method_mapper = {
+            TRANSPLATFORM_ENGINES[1]: {
+                'method': self._pull_transifex_translations,
+                'base_url': instance_url,
+                'resources': ['project_trans_file'],
+            },
+            TRANSPLATFORM_ENGINES[3]: {
+                'method': self._pull_weblate_translations,
+                'base_url': instance_url,
+                'resources': ['translated_doc'],
+            },
             TRANSPLATFORM_ENGINES[4]: {
                 'method': self._pull_memsource_translations,
                 'base_url': instance_url,
@@ -675,6 +723,8 @@ class KojiResources(object):
                 tag_starts_with = 'rhel'
             elif product.product_slug == RELSTREAM_SLUGS[2]:
                 tag_starts_with = 'rhevm'
+            elif product.product_slug == RELSTREAM_SLUGS[3]:
+                tag_starts_with = 'satellite'
         elif product.product_slug == RELSTREAM_SLUGS[1]:
             tag_starts_with = 'f'
 

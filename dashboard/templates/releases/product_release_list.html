@@ -6,15 +6,16 @@
 {% block pagecontent %}
 <div class="panel panel-default" id="panel-product-releases">
   <div class="panel-heading">
-    <h3 class="panel-title">
+    <div class="panel-title">
       {{ relstream.product_slug }} releases
       {% if user.is_staff %}
       <a class="btn btn-default btn-xs" id="button-add-release" type="button" href="{% url 'settings-stream-branches-new' relstream.product_slug %}">
         <span class="pficon pficon-add-circle-o"></span> Add Release
       </a>
       {% endif %}
-      <a href="{{request.META.HTTP_REFERER}}" class="pull-right btn btn-default btn-xs">Go Back</a>
-    </h3>
+      <a href="{{request.META.HTTP_REFERER}}" class="pull-right btn btn-default btn-xs">
+        <span class="fa fa-chevron-left"></span> Go Back</a>
+    </div>
   </div>
   <div class="panel-body">
     <div class="row row-cards-pf">
