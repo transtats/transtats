@@ -20,10 +20,10 @@ Upcoming Releases
 | And releases are scheduled every quarter end.
 
 
-Transtats 0.8.1
+Transtats 0.8.2
 ---------------
 
-| Target delivery: 18th Dec 2020
+| Target delivery: End of March 2021
 
 
 ToDo List
