@@ -10,7 +10,7 @@ from .celery import app as celery_app
 
 __appname__ = "Transtats"
 __version__ = '0.8.2'
-__description__ = "Track Translation Completeness"
+__description__ = "Overview and trends for language translations across releases."
 
 
 __all__ = ['__appname__', '__version__', '__description__', 'celery_app']

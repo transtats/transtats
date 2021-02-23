@@ -121,6 +121,13 @@ def is_pkg_exist(pkg_name):
     return package_manager.is_package_exist(pkg_name)
 
 
+@register.filter
+def locale_to_languages(locales):
+    package_manager = PackagesManager()
+    locale_lang = package_manager.get_locale_lang_tuple(locales)
+    return [item[1] for item in locale_lang]
+
+
 @register.inclusion_tag(
     os.path.join("packages", "_package_details.html")
 )

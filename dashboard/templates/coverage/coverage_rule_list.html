@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load custom_tags %}
+
 {% block pre-pf-script %}
 <script src="/static/datatables.net/js/jquery.dataTables.js"></script>
 {% endblock %}
@@ -9,10 +11,7 @@
 <script src="/static/patternfly/dist/js/patternfly.dataTables.pfEmpty.js"></script>
 {% endblock %}
 {% block pagecontent %}
-<!-- Graph rules table -->
-<div class="row">
-  <div class="col-lg-1"></div>
-  <div class="col-lg-10">
+<!-- Coverage rules table -->
     <div class="row toolbar-pf table-view-pf-toolbar" id="toolbar-graph-rules-table">
       <div class="col-sm-12">
         <form class="toolbar-pf-actions">
@@ -106,7 +105,7 @@
         <tr>
           <th>Coverage Rule</th>
           <th>Packages</th>
-          <th>Locales</th>
+          <th>Languages</th>
           <th>Build Tags</th>
           <th>Release</th>
           <th>Created On</th>
@@ -132,12 +131,10 @@
           </td>
           <td>
             {% for package in rule.rule_packages %}
-            <a href="{% url 'package-view' package %}">{{ package }}</a>
-            {% if not forloop.last %}, {% endif %}
-            {% endfor %}
+            <a href="{% url 'package-view' package %}">{{ package }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
           </td>
           <td>
-            {{ rule.rule_languages|join:", " }}
+            {{ rule.rule_languages|locale_to_languages|join:", " }}
           </td>
           <td>
             {{ rule.rule_build_tags|join:", " }}
@@ -226,8 +223,6 @@
         </ul>
       </div>
     </form>
-  </div>
-</div>
 
 <!-- Graph rules blank state -->
 <div class="row hidden" id="empty-state-graph-rules-table">

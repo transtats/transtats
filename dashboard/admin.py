@@ -136,15 +136,6 @@ class PackageAdmin(admin.ModelAdmin):
                'stats_diff_last_updated', 'component')
 
 
-@admin.register(GraphRule)
-class GraphRuleAdmin(admin.ModelAdmin):
-    def has_add_permission(self, request, obj=None):
-        return False
-
-    search_fields = ('rule_name', )
-    exclude = ('created_on', )
-
-
 @admin.register(CIPipeline)
 class CIPipelineAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):

@@ -1,5 +1,6 @@
 
-##### Sat Feb 20 2021 Sundeep Anand <suanand@redhat.com>
+##### Wed Feb 24 2021 Sundeep Anand <suanand@redhat.com>
+* delete associated jobs while removing pipeline
 * handle trailing slash in platform url and ui changes
 * warning for translations found in multiple dirs
 * Make push/pull jobs explicit to show exceptions
