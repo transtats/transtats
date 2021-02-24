@@ -25,7 +25,7 @@ from dashboard.constants import (
 )
 from dashboard.models import (
     Language, LanguageSet, Platform, Product, Release,
-    Package, GraphRule, Visitor, CIPipeline
+    Package, Visitor, CIPipeline
 )
 from dashboard.managers.inventory import InventoryManager
 
@@ -84,6 +84,19 @@ class LanguageSetAdminForm(forms.ModelForm):
     )
 
 
+class CIPipelineAdminForm(forms.ModelForm):
+
+    ci_platform_choices = ()
+
+    def __init__(self, *args, **kwargs):
+        inventory_manager = InventoryManager()
+        ci_platforms = inventory_manager.get_translation_platforms(ci=True)
+        self.ci_platform_choices = tuple([(platform.platform_id, platform.__str__)
+                                          for platform in ci_platforms])
+        super(CIPipelineAdminForm, self).__init__(*args, **kwargs)
+        self.fields['ci_platform'].choices = self.ci_platform_choices
+
+
 @admin.register(Language)
 class LanguagesAdmin(admin.ModelAdmin):
     search_fields = ('lang_name', )
@@ -138,6 +151,8 @@ class PackageAdmin(admin.ModelAdmin):
 
 @admin.register(CIPipeline)
 class CIPipelineAdmin(admin.ModelAdmin):
+    form = CIPipelineAdminForm
+
     def has_add_permission(self, request, obj=None):
         return False
 

@@ -668,7 +668,9 @@ class YMLBasedJobManager(BaseManager):
                 self.app_logger(
                     'ERROR', "Package could not be found, details: " + str(e)
                 )
-                raise Exception('Upstream URL could NOT be located for %s package.' % package)
+                # downstreamsync can be run for a package not in Transtats.
+                if self.type != TS_JOB_TYPES[3]:
+                    raise Exception('Upstream URL could NOT be located for %s package.' % package)
             else:
                 upstream_repo_url = package_detail.upstream_url
                 if getattr(self, 'REPO_TYPE', '') and self.REPO_TYPE == GIT_REPO_TYPE[1]:

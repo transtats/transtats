@@ -14,7 +14,7 @@
                 <h4 class="panel-title">
                     {{ log.job_start_time|date }}&nbsp;&nbsp;&nbsp;
                     <a data-toggle="collapse" data-parent="#accordion" href="#{{ log.job_uuid }}">
-                        <span style="color:grey">Job#</span> {{ log.job_uuid }}
+                        <span style="color:grey">Job#</span> <span class="text-info">{{ log.job_uuid }}</span>
                     </a>&nbsp;&nbsp;&nbsp;
                     <span style="color:grey">Type#</span> {{ log.job_type|title }}
                     {% if log.job_remarks %}

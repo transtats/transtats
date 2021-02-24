@@ -25,7 +25,8 @@
                     <li><a id="idRefreshPipeline"
                            onClick='javascript:refreshPipeline({{ pipeline.ci_pipeline_id }})'>
                       <span class="fa fa-refresh" aria-hidden="true"></span> Refresh</a></li>
-                    <li class="disabled"><a href="#"><span class="pficon pficon-edit" aria-hidden="true"></span> Edit</a></li>
+                    <li><a href="{% url 'admin:dashboard_cipipeline_change' pipeline.ci_pipeline_id %}">
+                        <span class="pficon pficon-edit" aria-hidden="true"></span> Edit</a></li>
                     <li role="separator" class="divider"></li>
                     <li><a id="idRemovePipeline"
                            onClick='javascript:removePipeline({{ pipeline.ci_pipeline_id }})'>

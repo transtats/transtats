@@ -689,7 +689,8 @@ class NewCIPipelineForm(forms.ModelForm):
             Field('ci_project_web_url', css_class='form-control'),
             FormActions(
                 Submit('addCIPipeline', 'Add CI Pipeline'),
-                Reset('reset', 'Reset', css_class='btn-danger')
+                Reset('reset', 'Reset', css_class='btn-danger'),
+                HTML('<a class="pull-right btn btn-info" href="{% url "package-view" package_name %}">Return</a>')
             )
         )
     )

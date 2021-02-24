@@ -161,9 +161,9 @@ function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}var poll_t
         <div class="col-md-12">
           <button class="btn btn-default prevBtn pull-left" type="button">Previous</button>
           <span style="padding-left:10px">
-            <label class="checkbox-inline"><input id="chkDryRun" type="checkbox" value="NoSave" checked> Dry Run
-                <small>(<i class="text-info"> derived details will NOT be saved </i>)</small></label>
-            <label class="checkbox-inline"><input id="chkScratch" type="checkbox" value="ScratchRun">Scratch
+            <label><input id="chkDryRun" type="checkbox" value="NoSave"> Dry Run
+                <small>(<i class="text-info"> derived details will NOT be saved </i>)</small></label>&nbsp;&nbsp;
+            <label><input id="chkScratch" type="checkbox" value="ScratchRun"> Scratch
                 <small>(<i class="text-info"> job will NOT be logged </i>)</small></label>
           </span>
           <button id="fireJobLink" class="btn btn-default pull-right">
