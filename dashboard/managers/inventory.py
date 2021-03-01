@@ -418,9 +418,11 @@ class SyncStatsManager(BaseManager):
             for stats_param in stats_json['stats']:
                 stats_param_locale = stats_param.get(locale_key, '')
                 for locale_tuple in locales:
-                    if stats_param_locale and (stats_param_locale in locale_tuple) or \
-                            (stats_param_locale.replace('-', '_') in locale_tuple) or \
-                            (stats_param_locale.replace('_', '-') in locale_tuple):
+                    if stats_param_locale and (
+                            (stats_param_locale in locale_tuple) or
+                            (stats_param_locale.replace('-', '_') in locale_tuple) or
+                            (stats_param_locale.replace('_', '-') in locale_tuple)
+                    ):
                         stats_param['source'] = source
                         trans_stats.append(stats_param)
                     else:
