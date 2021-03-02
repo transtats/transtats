@@ -880,7 +880,7 @@ class Filter(JobCommandBase):
                 trans_dirs = [trans_dir.replace(search_dir, "") if trans_dir.replace(search_dir, "") else trans_dir
                               for trans_dir in trans_dirs]
                 task_log.update(self._log_task(
-                    input['log_f'], task_subject, trans_dirs,
+                    input['log_f'], task_subject, [t_dir.lstrip(os.sep) for t_dir in trans_dirs],
                     text_prefix="[WARN] Translations are found in {} directories. "
                                 "Setting 'dir' may help.".format(len(trans_dirs))
                 ))
@@ -984,7 +984,7 @@ class Upload(JobCommandBase):
                         if isinstance(kwargs.get('import_settings'), str):
                             if kwargs.get('import_settings', '') == 'project':
                                 task_log.update(self._log_task(
-                                    input['log_f'], task_subject, 'Using Project Import Settings.'
+                                    input['log_f'], task_subject, '[INFO] Using Project Import Settings.'
                                 ))
                                 memsource_kwargs.update(dict(useProjectFileImportSettings="true"))
                             elif re.match(r"^[a-zA-Z0-9]{22}$", kwargs.get('import_settings', '')):
@@ -997,7 +997,7 @@ class Upload(JobCommandBase):
 
                                 if import_setting_resp.get('uid') == import_setting_uid:
                                     task_log.update(self._log_task(
-                                        input['log_f'], task_subject, 'Using Import Settings: {} - {}'.format(
+                                        input['log_f'], task_subject, '[INFO] Using Import Settings: {} - {}'.format(
                                             import_setting_resp.get('name', ''), import_setting_resp.get('uid', '')
                                         )
                                     ))
