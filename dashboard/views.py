@@ -985,6 +985,8 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
                 errors.append("Project details could not be fetched for the given URL.")
                 return render(request, self.template_name, context=context_data)
             post_params['ci_project_details_json_str'] = json.dumps(p_details)
+            if p_details.get('project_jobs'):
+                post_params['ci_platform_jobs_json_str'] = json.dumps(p_details['project_jobs'])
             if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
                 messages.add_message(request, messages.ERROR, (
                     'Alas! Something unexpected happened. Please try adding pipeline again!'

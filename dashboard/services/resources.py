@@ -288,6 +288,8 @@ class TransplatformResources(ResourcesBase):
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _fetch_memsource_project_details(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
+        if response.get('err_content') and not response.get('json_content'):
+            return response.get('err_content')
         resp_json_content = response.get('json_content')
         if kwargs.get('more_resources'):
             for next_resource in kwargs['more_resources']:
