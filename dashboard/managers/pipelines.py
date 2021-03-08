@@ -98,19 +98,26 @@ class CIPipelineManager(BaseManager):
         ci_pipeline = self.get_ci_pipelines(pipeline_ids=[pipeline_id])
         if ci_pipeline:
             ci_pipeline = ci_pipeline.get()
-        _, resp_dict = self.ci_platform_project_details(
-            ci_pipeline.ci_platform, ci_pipeline.ci_project_web_url,
-        )
-        pipeline_params = dict()
-        pipeline_params['ci_project_web_url'] = ci_pipeline.ci_project_web_url
-        pipeline_params['ci_project_details_json_str'] = json.dumps(resp_dict)
-        pipeline_params['ci_platform_jobs_json_str'] = json.dumps(
-            resp_dict.get('project_jobs', {})
-        )
-        pipeline_params['ci_pipeline_last_updated'] = timezone.now()
-        if self.save_ci_pipeline(pipeline_params) \
-                if resp_dict else self.toggle_visibility(pipeline_id):
-            return True
+            _, resp_dict = self.ci_platform_project_details(
+                ci_pipeline.ci_platform, ci_pipeline.ci_project_web_url
+            )
+            if resp_dict:
+                if 'errorCode' in resp_dict and 'errorDescription' in resp_dict:
+                    project_uid = ci_pipeline.ci_project_web_url.split("/")[-1:][0]
+                    if project_uid in resp_dict.get('errorDescription') and \
+                            'not found' in resp_dict.get('errorDescription'):
+                        if self.toggle_visibility(pipeline_id):
+                            return True
+                else:
+                    pipeline_params = dict()
+                    pipeline_params['ci_project_web_url'] = ci_pipeline.ci_project_web_url
+                    pipeline_params['ci_project_details_json_str'] = json.dumps(resp_dict)
+                    pipeline_params['ci_platform_jobs_json_str'] = json.dumps(
+                        resp_dict.get('project_jobs', {})
+                    )
+                    pipeline_params['ci_pipeline_last_updated'] = timezone.now()
+                    if self.save_ci_pipeline(pipeline_params):
+                        return True
         return False
 
     def refresh_pkg_pipelines(self, package_name):
