@@ -1,0 +1,15 @@
+{% extends "form_base.html" %}
+{% block extrascript %}
+<script src="/static/bootstrap-select/js/bootstrap-select.js"></script>
+{% endblock %}
+{% block formtitle %}
+Add a new {{ package_name|title }} CI Pipeline
+{% endblock %}
+{% block formreturnurl %}
+{% url 'package-view' package_name %}
+{% endblock %}
+{% block formscript %}
+<script>
+  $(function(){$(".selectpicker").selectpicker({dropupAuto:!1,liveSearch:!0})});
+</script>
+{% endblock %}

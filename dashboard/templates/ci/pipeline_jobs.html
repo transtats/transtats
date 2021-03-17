@@ -1,0 +1,47 @@
+{% extends "ci/pipeline_details_base.html" %}
+{% load custom_tags %}
+
+{% block extrascript %}
+  <script>
+    $(document).ready(function(){$("#li-platform-jobs").addClass('active')});
+  </script>
+{% endblock %}
+
+{% block pipeline-content %}
+  <div class="container-fluid container-cards-pf">
+    <div class="row row-cards-pf">
+      {% for p_job in ci_pipeline.ci_platform_jobs_json %}
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+                <h3>{{ p_job|pop_item:"uid" }}</h3>
+              </div>
+              <div class="card-pf-body">
+              {% for k, v in p_job.items %}
+                <div><span>{{ k|title }}</span>:
+                  <span class="text-info" style="font-size:small; margin-left:2%">
+                    {% if not v %}
+                      <span class="text-muted">..</span>
+                    {% elif 'date' in k %}
+                      {{ v|parse_memsource_time }}
+                    {% elif k == 'providers' %}
+                      {% if v.0|get_item:'firstName' and v.0|get_item:'lastName' %}
+                        {{ v.0|get_item:'firstName' }} {{ v.0|get_item:'lastName' }}
+                      {% else %}
+                        <span class="text-muted">..</span>
+                      {% endif %}
+                    {% elif k == 'status' and v == 'COMPLETED' %}
+                      <span class="text-success">{{ v }}</span>
+                    {% else %}{{ v }}{% endif %}
+                  </span>
+                </div>
+              {% endfor %}
+              </div>
+            </div>
+        </div>
+      {% empty %}
+        <h3>No details found.</h3>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

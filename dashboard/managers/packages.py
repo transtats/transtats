@@ -90,6 +90,22 @@ class PackagesManager(InventoryManager):
                 'ERROR', "Package could not be updated, details: " + str(e)
             )
 
+    def get_package_releases(self, package_name):
+        """
+        Get releases (whose translation are being tracked) of a package
+        :param package_name: str
+        :return: [releases]
+        """
+        releases = []
+        package = self.get_packages(pkgs=[package_name])
+        if package:
+            package = package.get()
+            for product in package.products:
+                releases.extend(
+                    self.release_manager.get_release_branches(relstream=product)
+                )
+        return releases
+
     def get_relbranch_specific_pkgs(self, release_branch, fields=None):
         """
         fetch release branch specific packages from db
@@ -900,6 +916,14 @@ class PackagesManager(InventoryManager):
         upstream_url = package.upstream_url
         if package.upstream_l10n_url and repo_type == GIT_REPO_TYPE[1]:
             upstream_url = package.upstream_l10n_url
+        if repo_type == GIT_REPO_TYPE[2]:
+            return [item['slug'] for item in package.package_details_json['components'] if item.get('slug')] \
+                if package.package_details_json and package.package_details_json.get('components') \
+                else default_branch
+        if repo_type == GIT_REPO_TYPE[3]:
+            return [item['slug'] for item in package.package_details_json['resources'] if item.get('slug')] \
+                if package.package_details_json and package.package_details_json.get('resources') \
+                else default_branch
         instance_url, git_owner_repo = self._parse_git_url(upstream_url)
         branches = self.api_resources.fetch_repo_branches(
             self._determine_git_platform(instance_url), instance_url, *git_owner_repo

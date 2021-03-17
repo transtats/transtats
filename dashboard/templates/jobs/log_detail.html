@@ -19,7 +19,21 @@
   <div class="col-xs-12">
     <div class="card-pf card-pf-utilization" id="card-packages-summary">
       <div class="card-pf-heading">
-        <h1 class="card-pf-title">Job ID: {{ log.job_uuid }}</h1>
+        <h1 class="card-pf-title">Job ID: {{ log.job_uuid }}
+            {% if log.job_visible_on_url %}
+                <span class="pull-right">
+                    <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
+                            data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
+                            title="Copy URL"><span class="fa fa-clipboard"></span> Copy URL</button>
+                    <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-default" data-toggle="tooltip"
+                       data-placement="bottom" title="Go Back"><span class="fa fa-chevron-left"></span> Go Back</a>
+                    {% if log.job_remarks|is_pkg_exist %}
+                     |<a href="{% url 'package-view' log.job_remarks %}" class="btn btn-default" style="margin-left: 5px;">
+                        Go to {{ log.job_remarks|title }} </a>
+                    {% endif %}
+                </span>
+            {% endif %}
+        </h1>
       </div>
       <div class="card-pf-body">
 
@@ -29,6 +43,7 @@
             {% if log.job_params_json %}<br/><span class="text-info">Params#</span>
                 {% for param, value in log.job_params_json.items %}
                     <span class="text-muted">{{ param|title }}: </span>{{ value }}&nbsp;&nbsp;
+                    {% if log.job_params_json|length > 3 and forloop.counter == 3 %}<br/>{% endif %}
                 {% endfor %}
             {% endif %}
             <span class="pull-right">
@@ -39,26 +54,16 @@
                 {% endif %}
             </span>
         </p>
+          <h4><span class="fa fa-clock-o" aria-hidden="true"></span>
+            <span>
+            {% if log.job_start_time %}<span class="text-info">{{ log.job_start_time|date }}</span> - started at
+                <span class="text-info">{{ log.job_start_time|time:"H:i:s" }}</span>{% endif %}
+            {% if log.job_end_time %} and completed at <span class="text-info">{{ log.job_end_time|time:"H:i:s" }}</span>
+                &nbsp;&nbsp;<em>( <span class="text-info">{{ log.duration|floatformat:"0" }}</span> seconds )</em>{% endif %}</span>
+          </h4>
         <hr/>
         <div class="panel-body">
-            <h4><span class="fa fa-clock-o" aria-hidden="true"></span>
-                <span>
-                {% if log.job_start_time %}<span class="text-info">{{ log.job_start_time|date }}</span> - started at
-                    <span class="text-info">{{ log.job_start_time|time:"H:i:s" }}</span>{% endif %}
-                {% if log.job_end_time %} and completed at <span class="text-info">{{ log.job_end_time|time:"H:i:s" }}</span>
-                    &nbsp;&nbsp;<em>( <span class="text-info">{{ log.duration|floatformat:"0" }}</span> seconds )</em>{% endif %}</span>
-                {% if log.job_visible_on_url %}
-                    <span class="pull-right">
-                        <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
-                                data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
-                                title="Copy to clipboard">Copy URL <span class="fa fa-clipboard"></span></button>
-                        <!--<a href="mailto:recipient@transtats.org?subject={{ log.job_type }}{% if log.job_remarks %}: {{ log.job_remarks }}{% endif %}-->
-                        <!--&body={{ request.build_absolute_uri }}{{ object.get_absolute_url }}"-->
-                           <!--class="btn btn-default btn-copy js-tooltip" type="button" data-toggle="tooltip"-->
-                                <!--data-placement="bottom" title="Share">Compose <span class="fa fa-envelope"></span></a>-->
-                    </span>
-                {% endif %}
-            </h4><hr/>{% tag_job_analysis log.job_log_json %}
+            {% tag_job_analysis log.job_log_json %}
             <div class="container">
                 <div class="row">
                     <div class="col-sm-6 col-md-3">
@@ -68,22 +73,20 @@
                         {% endif %}
                     </div>
                     <div class="col-sm-6 col-md-8">
-                        <div class="list-group">
-                            <h2>Job Log <small>(output)</small></h2>
-                            {% for task, details in log.job_log_json.items %}
-                            <div class="list-group-item">
-                              <h3 class="list-group-item-heading">{{ task }}</h3>
-                                {% for datetime, event in details.items|dictsortreversed:0 %}
-                                    <p class="list-group-item-text">
-                                        <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
-                                        <span class="text-muted">
-                                            <pre class="ts-pre" style="max-height:400px;overflow-y:scroll !important;">{{ event.strip|pprint }}</pre>
-                                        </span>
-                                    </p>
-                                {% endfor %}
-                            </div>
+                        <h2>Job Log <small>(output)</small></h2>
+                        {% for task, details in log.job_log_json.items %}
+                        <div class="list-group-item">
+                          <h3 class="list-group-item-heading">{{ task }}</h3>
+                            {% for datetime, event in details.items|dictsortreversed:0 %}
+                                <p class="list-group-item-text">
+                                    <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
+                                    <span class="text-muted">
+                                        <pre class="ts-pre" style="max-height:400px;overflow-y:scroll !important;">{{ event.strip|pprint }}</pre>
+                                    </span>
+                                </p>
                             {% endfor %}
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -107,6 +110,21 @@
                 </div>
             {% endif %}
         </div>
+      </div>
+      <div class="card-pf-footer">
+        {% if log.job_visible_on_url %}
+            <span class="pull-right">
+                <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
+                        data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
+                        title="Copy URL"><span class="fa fa-clipboard"></span> Copy URL</button>
+                <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-default" data-toggle="tooltip"
+                   data-placement="bottom" title="Go Back"><span class="fa fa-chevron-left"></span>Go Back</a>
+                {% if log.job_remarks|is_pkg_exist %}
+                 |<a href="{% url 'package-view' log.job_remarks %}" class="btn btn-default" style="margin-left: 5px;">
+                    Go to {{ log.job_remarks|title }} </a>
+                {% endif %}
+            </span>
+        {% endif %}
       </div>
     </div>
   </div>

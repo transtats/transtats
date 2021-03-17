@@ -89,25 +89,23 @@
               <input type="hidden" value="statsDiff" id="stats-diff-identifier" />Statistics Diff</a>
           </li>
         </ul>
-      </span>
+      </span>&nbsp;&nbsp;
       <span>
-          {% if user.is_staff %}
-            <a href="{% url 'package-update' package_name %}" class="btn btn-default btn-small">Edit</a>
-          {% endif %}
-          <a type="button" class="btn btn-default" href="{% url 'jobs-logs-package' package_name %}"data-toggle="tooltip" title="Job logs of {{ package_name }}">
-          <span class="fa fa-bolt" aria-hidden="true"></span> Related Jobs</a>
-          <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default btn-small">Go Back</a>
+          <a type="button" class="btn btn-default" href="{% url 'jobs-logs-package' package_name %}"
+             data-toggle="tooltip" title="{{ package_name }} logs">
+          <span class="fa fa-bolt" aria-hidden="true"></span> Related Jobs</a>&nbsp;&nbsp;
+          <a href="{{request.META.HTTP_REFERER}}" class="btn btn-default btn-small">
+            <span class="fa fa-chevron-left"></span> Go Back</a>
       </span>
-      <br/>
-      <br/>
+      <br/><br/>
       <span id="span-alerts" class="text-warning pull-right"></span>
     </span>
   </div>
   <div class="panel-body">
     <div id="div-package-details">
       {% tag_package_details package_name user %}
-      <hr/>
     </div>
+    <hr/>
     <div id="div-stats-diff">
       {% tag_stats_diff package_name %}
     </div>
@@ -123,14 +121,19 @@
       <div id="div-graph-area" class="graph-area-ts graph-area"></div>
       <div id="div-graph-disclaimer" class="panel-footer"></div>
     </div>
-    <div class="row">
-      <div id="div-branch-mapping" class="col-sm-6">
-        {% tag_branch_mapping package_name %}
-      </div>
-      <div id="div-latest-builds" class="col-sm-6">
-        {% tag_latest_builds package_name %}
-      </div>
-    </div>
+  </div>
+</div>
+
+<div id="div-ci-pipelines">
+  {% tag_ci_pipelines request package_name %}
+</div>
+
+<div class="row">
+  <div id="div-branch-mapping" class="col-sm-6">
+    {% tag_branch_mapping package_name %}
+  </div>
+  <div id="div-latest-builds" class="col-sm-6">
+    {% tag_latest_builds package_name %}
   </div>
 </div>
 

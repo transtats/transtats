@@ -1,0 +1,38 @@
+{% extends "jobs/jobs_base.html" %}
+{% load custom_tags %}
+
+{% block extrascript %}
+{% endblock %}
+
+{% block pagecontent %}
+<div class="row row-cards-pf">
+  <div class="col-xs-12">
+    <div class="card-pf card-pf-utilization content-area">
+      <div class="card-pf-heading">
+        <h1>Pipeline Details
+          {% if ci_pipeline.ci_project_details_json|get_item:"name" %}
+            <small class="pull-right">
+             <a href="{{ ci_pipeline.ci_project_web_url }}" target="_blank">
+               {{ ci_pipeline.ci_project_details_json|get_item:"name" }}</a>&nbsp;&nbsp;
+             <a class="btn btn-default" href="{% url 'package-view' ci_pipeline.ci_package.package_name %}">
+               Back to {{ ci_pipeline.ci_package.package_name|title }}</a>
+            </small>
+          {% endif %}
+        </h1>
+      </div>
+
+      <ul class="nav nav-tabs nav-tabs-pf">
+        <li id="li-platform-jobs"><a href="{% url 'pipeline-details' ci_pipeline.ci_pipeline_uuid %}">
+          {{ ci_pipeline.ci_platform.engine_name|title }} Jobs</a></li>
+        <li id="li-sync-logs"><a href="{% url 'pipeline-history' ci_pipeline %}">History</a></li>
+        <!--<li id="li-configurations"><a href="{% url 'pipeline-configuration' ci_pipeline.ci_pipeline_uuid %}">-->
+          <!--Configuration</a></li>-->
+      </ul>
+
+      <div class="card-pf-body">
+        {% block pipeline-content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

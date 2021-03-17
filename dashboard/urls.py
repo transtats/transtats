@@ -26,20 +26,21 @@ from rest_framework.documentation import include_docs_urls
 # dashboard
 from dashboard.services.urls import api_urls
 from dashboard.views import (
-    TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView,
-    TransPlatformSettingsView, LanguagesSettingsView, PackageSettingsView, DeletePackageView,
+    TranStatusPackageView, TranStatusReleasesView, TranStatusReleaseView, DeletePackageView, DeleteGraphRuleView,
+    TransPlatformSettingsView, LanguagesSettingsView, PackageSettingsView, AddPackageCIPipeline, hide_ci_pipeline,
     JobsView, JobsLogsView, JobsArchiveView, JobsLogsPackageView, NewPackageView, UpdatePackageView, TransCoverageView,
     StreamBranchesSettingsView, NewReleaseBranchView, GraphRulesSettingsView, NewGraphRuleView, YMLBasedJobs,
-    NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView, graph_data,
+    NewLanguageView, UpdateLanguageView, NewLanguageSetView, UpdateLanguageSetView, NewTransPlatformView,
     UpdateTransPlatformView, UpdateGraphRuleView, JobDetailView, refresh_package, release_graph, schedule_job,
-    tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status, job_template,
-    DeleteGraphRuleView, LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs, get_repo_branches
+    tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status,
+    LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs, get_repo_branches, get_target_langs,
+    refresh_ci_pipeline, graph_data, job_template, PipelineDetailView, PipelineHistoryView, PipelineConfigurationView
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
 
 
-app_jobs_urls = [
+app_job_urls = [
     url(r'^$', login_required(JobsView.as_view(), login_url=LOGIN_URL), name="jobs"),
     url(r'^cleanup$', login_required(CleanUpJobs.as_view(), login_url=LOGIN_URL), name="jobs-cleanup"),
     url(r'^logs$', JobsLogsView.as_view(), name="jobs-logs"),
@@ -48,6 +49,13 @@ app_jobs_urls = [
     url(r'^log/(?P<job_id>[0-9a-f-]+)/detail$', JobDetailView.as_view(), name="log-detail"),
     url(r'^logs/package/(?P<package_name>[\w\-\+]+)$', JobsLogsPackageView.as_view(),
         name="jobs-logs-package")
+]
+
+app_pipeline_urls = [
+    url(r'^(?P<pipeline_id>[0-9a-f-]+)/details$', PipelineDetailView.as_view(), name="pipeline-details"),
+    url(r'^(?P<pipeline_id>[0-9a-f-]+)/history$', PipelineHistoryView.as_view(), name="pipeline-history"),
+    url(r'^(?P<pipeline_id>[0-9a-f-]+)/configuration$', PipelineConfigurationView.as_view(),
+        name="pipeline-configuration"),
 ]
 
 app_setting_urls = [
@@ -74,6 +82,11 @@ ajax_urls = [
     url(r'^job-template$', job_template, name="ajax-job-template"),
     url(r'^change-lang-status$', staff_member_required(change_lang_status),
         name="ajax-change-lang-status"),
+    url(r'^remove-pipeline$', login_required(hide_ci_pipeline),
+        name="ajax-remove-pipeline"),
+    url(r'^refresh-pipeline$', refresh_ci_pipeline,
+        name="ajax-refresh-pipeline"),
+    url(r'^target-langs$', get_target_langs, name="ajax-target-langs"),
 ]
 
 coverage_urls = [
@@ -114,6 +127,8 @@ packages_urls = [
         name="package-update"),
     url(r'^remove/(?P<slug>[\w-]+)$', staff_member_required(DeletePackageView.as_view(), login_url=LOGIN_URL),
         name="package-delete"),
+    url(r'^add/(?P<slug>[\w-]+)/ci-pipeline$', login_required(AddPackageCIPipeline.as_view(), login_url=LOGIN_URL),
+        name="package-add-ci-pipeline"),
     url(r'^export/(?P<format>[\w+]+)$', export_packages, name="packages-export"),
 ]
 
@@ -150,7 +165,8 @@ urlpatterns = [
     url(r'^api-docs/', include_docs_urls(title='Transtats APIs')),
     url(r'^ajax/', include(ajax_urls)),
     url(r'^settings/', include(app_setting_urls)),
-    url(r'^jobs/', include(app_jobs_urls)),
+    url(r'^jobs/', include(app_job_urls)),
+    url(r'^pipelines/', include(app_pipeline_urls)),
     # landing URLs
     url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/'), name="home"),
     url(r'^translation-status/', include(trans_status_urls)),

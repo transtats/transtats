@@ -1,0 +1,21 @@
+job:
+  ci_pipeline: %PIPELINE_UUID%
+  exception: raise
+  execution: sequential
+  name: pull translations
+  package: %PACKAGE_NAME%
+  return_type: json
+  tasks:
+  - download:
+    - name: Translation files
+    - target_langs: %TARGET_LANGS%
+    - type: %REPO_TYPE%
+    - branch: %REPO_BRANCH%
+  - upload:
+    - name: Push files
+    - target_langs: %TARGET_LANGS%
+    - prehook: skip
+    - posthook: skip
+    - import_settings: project
+    - update: false
+  type: dpushtrans

@@ -1,6 +1,7 @@
 {% extends "form_base.html" %}
 {% block extrascript %}
 <script src="/static/bootstrap-switch/dist/js/bootstrap-switch.js"></script>
+<script src="/static/bootstrap-select/js/bootstrap-select.js"></script>
 {% endblock %}
 {% block formtitle %}
 Add a new translation platform
@@ -14,5 +15,6 @@ Add a new translation platform
     $(".bootstrap-switch").bootstrapSwitch();
     $(".bootstrap-switch").parent().css("padding-left", "0px");
   });
+  $(function(){$(".selectpicker").selectpicker({dropupAuto:!1,liveSearch:!0})});
 </script>
 {% endblock %}

@@ -22,19 +22,20 @@ from crispy_forms.bootstrap import (
     FormActions, InlineRadios, Div, InlineCheckboxes
 )
 from slugify import slugify
+from urllib.parse import urlparse
 
 # django
 from django import forms
 
 # dashboard
 from dashboard.models import (
-    Language, LanguageSet, Platform, Package, GraphRule
+    Language, LanguageSet, Platform, Package, GraphRule, CIPipeline
 )
 from dashboard.managers.inventory import InventoryManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES,
-    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS, WEBLATE_SLUGS
+    TRANSIFEX_SLUGS, ZANATA_SLUGS, DAMNEDLIES_SLUGS, WEBLATE_SLUGS, MEMSOURCE_SLUGS
 )
 
 __all__ = ['NewPackageForm', 'UpdatePackageForm', 'NewReleaseBranchForm',
@@ -50,6 +51,7 @@ all_platform_slugs.extend(TRANSIFEX_SLUGS)
 all_platform_slugs.extend(ZANATA_SLUGS)
 all_platform_slugs.extend(DAMNEDLIES_SLUGS)
 all_platform_slugs.extend(WEBLATE_SLUGS)
+all_platform_slugs.extend(MEMSOURCE_SLUGS)
 SLUG_CHOICES = tuple([(slug, slug) for slug in all_platform_slugs])
 
 
@@ -153,7 +155,7 @@ class UpdatePackageForm(forms.ModelForm):
             Field('upstream_url', css_class='form-control'),
             Field('upstream_l10n_url', css_class='form-control'),
             Field('platform_slug', css_class='selectpicker'),
-            Field('platform_url', css_class='form-control'),
+            Field('platform_url', css_class='form-control', readonly=True),
             InlineCheckboxes('products'),
             Field('release_branch_mapping', css_class='form-control', rows=4, readonly=True),
             FormActions(
@@ -200,7 +202,7 @@ class UpdatePackageForm(forms.ModelForm):
             new_platform_engine = packages_manager.get_engine_from_slug(platform_slug)
             if new_platform_engine:
                 packages_manager.syncstats_manager.toggle_visibility(
-                    package=package_name, visibility=True, stats_source=new_platform_engine
+                    package=package_name, stats_source=new_platform_engine
                 )
 
 
@@ -541,8 +543,8 @@ class NewTransPlatformForm(forms.ModelForm):
 
     class Meta:
         model = Platform
-        fields = ['engine_name', 'subject', 'api_url', 'platform_slug', 'server_status', 'server_status',
-                  'auth_login_id', 'auth_token_key']
+        fields = ['engine_name', 'subject', 'api_url', 'platform_slug',
+                  'server_status', 'ci_status', 'auth_login_id', 'auth_token_key']
 
     engine_name = forms.ChoiceField(
         choices=ENGINE_CHOICES, label="Platform Engine",
@@ -557,18 +559,29 @@ class NewTransPlatformForm(forms.ModelForm):
     helper.form_class = 'dynamic-form'
     helper.layout = Layout(
         Div(
-            Field('engine_name', css_class='form-control'),
+            Field('engine_name', css_class='selectpicker'),
             Field('subject', css_class='form-control'),
             Field('api_url', css_class='form-control'),
-            Field('platform_slug', css_class='form-control'),
+            Field('platform_slug', css_class='selectpicker'),
             Field('server_status', css_class='bootstrap-switch'),
             Field('auth_login_id', css_class='form-control'),
             Field('auth_token_key', css_class='form-control'),
+            Field('ci_status', css_class='bootstrap-switch'),
             FormActions(
                 Submit('addTransPlatform', 'Add Translation Platform'), Reset('reset', 'Reset', css_class='btn-danger')
             )
         )
     )
+
+    def clean_api_url(self):
+        """
+        Remove trailing slash if any
+        """
+        api_url = self.cleaned_data.get('api_url')
+        if api_url:
+            return api_url if not api_url.endswith('/') else api_url.rstrip('/')
+        else:
+            return self.cleaned_data.get('api_url')
 
 
 class UpdateTransPlatformForm(forms.ModelForm):
@@ -581,7 +594,11 @@ class UpdateTransPlatformForm(forms.ModelForm):
     class Meta:
         model = Platform
         fields = ['engine_name', 'subject', 'api_url', 'platform_slug', 'server_status',
-                  'auth_login_id', 'auth_token_key']
+                  'auth_login_id', 'auth_token_key', 'token_expiry', 'ci_status']
+
+    auth_token_key = forms.CharField(label="Auth Password/Token",
+                                     widget=forms.PasswordInput(render_value=True),
+                                     required=False)
 
     helper = FormHelper()
     helper.form_method = 'POST'
@@ -595,9 +612,11 @@ class UpdateTransPlatformForm(forms.ModelForm):
             Field('server_status', css_class='bootstrap-switch'),
             Field('auth_login_id', css_class='form-control'),
             Field('auth_token_key', css_class='form-control'),
+            Field('token_expiry', css_class='form-control', readonly=True),
+            Field('ci_status', css_class='bootstrap-switch'),
             HTML("<hr/>"),
-            HTML("<h5>After update, please run <span class='text-info'>Sync Translation Platforms</span>"
-                 " in <span class='text-info'>Predefined Jobs</span>.</h5>"),
+            HTML("<h5 class='pull-right'>Run <span class='text-info'>Sync Translation Platforms</span>"
+                 " in <span class='text-info'>Predefined Jobs</span> to update projects.</h5>"),
             FormActions(
                 Submit('updateTransPlatform', 'Update Translation Platform'),
                 Reset('reset', 'Reset', css_class='btn-danger')
@@ -613,7 +632,7 @@ class UpdateTransPlatformForm(forms.ModelForm):
         if engine_name:
             return engine_name
         else:
-            return self.cleaned_data.get('engine_name', None)
+            return self.cleaned_data.get('engine_name')
 
     def clean_platform_slug(self):
         """
@@ -623,4 +642,64 @@ class UpdateTransPlatformForm(forms.ModelForm):
         if platform_slug:
             return platform_slug
         else:
-            return self.cleaned_data.get('platform_slug', None)
+            return self.cleaned_data.get('platform_slug')
+
+    def clean_api_url(self):
+        """
+        Remove trailing slash if any
+        """
+        api_url = getattr(self.instance, 'api_url', None)
+        if api_url:
+            return api_url if not api_url.endswith('/') else api_url.rstrip('/')
+        else:
+            return self.cleaned_data.get('api_url')
+
+
+class NewCIPipelineForm(forms.ModelForm):
+    """
+    Add new CI Pipeline form
+    """
+
+    ci_project_web_url = forms.URLField(
+        label='CI Platform Project URL', required=True,
+        help_text='CI Pipeline will be associated with this project.'
+    )
+
+    def __init__(self, *args, **kwargs):
+        ci_platform_choices = kwargs.pop('ci_platform_choices')
+        pkg_release_choices = kwargs.pop('pkg_release_choices')
+        super(NewCIPipelineForm, self).__init__(*args, **kwargs)
+        self.fields['ci_platform'].choices = ci_platform_choices
+        self.fields['ci_release'].choices = pkg_release_choices
+
+    class Meta:
+        model = CIPipeline
+        fields = ['ci_platform', 'ci_release', 'ci_push_job_template',
+                  'ci_pull_job_template', 'ci_project_web_url']
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('ci_platform', css_class='selectpicker'),
+            Field('ci_release', css_class='selectpicker'),
+            Field('ci_push_job_template', css_class='selectpicker'),
+            Field('ci_pull_job_template', css_class='selectpicker'),
+            Field('ci_project_web_url', css_class='form-control'),
+            FormActions(
+                Submit('addCIPipeline', 'Add CI Pipeline'),
+                Reset('reset', 'Reset', css_class='btn-danger'),
+                HTML('<a class="pull-right btn btn-info" href="{% url "package-view" package_name %}">Return</a>')
+            )
+        )
+    )
+
+    def clean_ci_project_web_url(self):
+        """
+        Remove CI Project Web URL
+        """
+        if self.cleaned_data.get('ci_project_web_url'):
+            parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])
+            return "{}://{}{}".format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
+        return ""

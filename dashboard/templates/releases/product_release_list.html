@@ -6,15 +6,16 @@
 {% block pagecontent %}
 <div class="panel panel-default" id="panel-product-releases">
   <div class="panel-heading">
-    <h3 class="panel-title">
+    <div class="panel-title">
       {{ relstream.product_slug }} releases
       {% if user.is_staff %}
       <a class="btn btn-default btn-xs" id="button-add-release" type="button" href="{% url 'settings-stream-branches-new' relstream.product_slug %}">
         <span class="pficon pficon-add-circle-o"></span> Add Release
       </a>
       {% endif %}
-      <a href="{{request.META.HTTP_REFERER}}" class="pull-right btn btn-default btn-xs">Go Back</a>
-    </h3>
+      <a href="{{request.META.HTTP_REFERER}}" class="pull-right btn btn-default btn-xs">
+        <span class="fa fa-chevron-left"></span> Go Back</a>
+    </div>
   </div>
   <div class="panel-body">
     <div class="row row-cards-pf">
@@ -22,9 +23,10 @@
       <div class="col-xs-12 col-sm-6 col-md-4">
         <div class="card-pf card-pf-utilization card-pf-accented card-releases-ts">
           <h2 class="card-pf-title">
-            <a href="{% url 'trans-status-release' relbranch.release_slug %}" data-toggle="tooltip" title="Stats of {{ relbranch.release_name }}">
-              {{ relbranch.release_name }}
-            </a>
+            {{ relbranch.release_name }}
+            <span class="pull-right">
+              <a href="{% url 'trans-status-release' relbranch.release_slug %}" class="btn btn-default">Stats</a>
+            </span>
           </h2>
           <div class="card-pf-body">
             <div class="card-pf-utilization-details">

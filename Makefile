@@ -46,6 +46,10 @@ migrate:
 run:
 	python3 manage.py runserver 0:8014
 
+.PHONY: shell
+shell:
+	python3 manage.py shell
+
 .PHONY: static
 static: ui-deps 
 	python3 manage.py collectstatic --noinput

@@ -87,6 +87,14 @@ class PlatformData(DataSet):
         platform_slug = 'ZNTAFED'
         server_status = True
 
+    class platform_memsource_cloud:
+        engine_name = 'memsource'
+        subject = 'cloud'
+        api_url = 'https://cloud.memsource.com/web'
+        platform_slug = 'MSRCPUB'
+        server_status = True
+        ci_status = True
+
 
 class ProductData(DataSet):
     class Meta:
@@ -148,6 +156,7 @@ class PackageData(DataSet):
         package_name = 'anaconda'
         upstream_name = 'anaconda'
         upstream_url = 'https://github.com/rhinstaller/anaconda'
+        upstream_l10n_url = 'https://github.com/rhinstaller/anaconda-l10n'
         platform_slug = PlatformData.platform_zanata_fedora
         platform_name = 'anaconda'
         platform_url = 'https://fedora.zanata.org/project/view/anaconda'
@@ -184,3 +193,16 @@ class JobTemplateData(DataSet):
                                 '"buildsys": "%BUILD_SYSTEM%", "exception": "raise", "execution": "sequential", ' \
                                 '"package": "%PACKAGE_NAME%", "return_type": "json", "tags": ["%BUILD_TAG%"], ' \
                                 '"tasks": [{"get": "latest build info"}]}}'
+
+
+class CIPipelineData(DataSet):
+    class Meta:
+        django_model = 'dashboard.CIPipeline'
+
+    class ci_pipeline_anaconda:
+        ci_package = PackageData.package_anaconda
+        ci_platform = PlatformData.platform_memsource_cloud
+        ci_release = ReleaseData.release_f27
+        ci_push_job_template = JobTemplateData.template_syncdownstream
+        ci_pull_job_template = JobTemplateData.template_syncupstream
+        ci_project_web_url = 'https://cloud.memsource.com/web/project2/show/sP8zO4qM8IifbAm4aydH1w'
