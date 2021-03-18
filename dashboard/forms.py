@@ -616,7 +616,7 @@ class UpdateTransPlatformForm(forms.ModelForm):
             Field('ci_status', css_class='bootstrap-switch'),
             HTML("<hr/>"),
             HTML("<h5 class='pull-right'>Run <span class='text-info'>Sync Translation Platforms</span>"
-                 " in <span class='text-info'>Predefined Jobs</span> to update projects.</h5>"),
+                 " in <span class='text-info'>Tasks</span> to update projects.</h5>"),
             FormActions(
                 Submit('updateTransPlatform', 'Update Translation Platform'),
                 Reset('reset', 'Reset', css_class='btn-danger')
