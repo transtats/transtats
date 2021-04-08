@@ -775,12 +775,22 @@ class KojiResources(object):
         build_tags = self._session(hub_url).listTags(build=build_id)
         return [tag['name'] for tag in build_tags if tag.get('name')]
 
-    def get_path_info(self, build=None, srpm=None):
-        if build and not srpm:
+    def task_info(self, hub_url, task_id):
+        task_info = self._session(hub_url).getTaskInfo(task_id=task_id)
+        return task_info
+
+    def task_result(self, hub_url, task_id):
+        task_result = self._session(hub_url).getTaskResult(taskId=task_id)
+        return task_result
+
+    def get_path_info(self, build=None, srpm=None, task=None):
+        if build and not srpm and not task:
             path = koji.pathinfo.build(build)
             return path[0] if isinstance(path, list) and len(path) > 0 else path
-        elif srpm and not build:
+        elif srpm and not build and not task:
             return koji.pathinfo.rpm(srpm)
+        elif task and not build and not srpm:
+            return koji.pathinfo.task(task)
 
 
 class APIResources(GitPlatformResources,
