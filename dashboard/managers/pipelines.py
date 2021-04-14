@@ -89,10 +89,11 @@ class CIPipelineManager(BaseManager):
         ) or response_dict
         return project_uuid, response_dict
 
-    def refresh_ci_pipeline(self, pipeline_id):
+    def refresh_ci_pipeline(self, pipeline_id, toggle_visibility=True):
         """
         Refresh a CI Pipeline
         :param pipeline_id: int
+        :param toggle_visibility: boolean
         :return: boolean
         """
         ci_pipeline = self.get_ci_pipelines(pipeline_ids=[pipeline_id])
@@ -106,7 +107,7 @@ class CIPipelineManager(BaseManager):
                     project_uid = ci_pipeline.ci_project_web_url.split("/")[-1:][0]
                     if project_uid in resp_dict.get('errorDescription') and \
                             'not found' in resp_dict.get('errorDescription'):
-                        if self.toggle_visibility(pipeline_id):
+                        if toggle_visibility and self.toggle_visibility(pipeline_id):
                             return True
                 else:
                     pipeline_params = dict()
@@ -129,7 +130,8 @@ class CIPipelineManager(BaseManager):
             packages=self.package_manager.get_packages(pkgs=[package_name])
         )
         for pipeline in pipelines or []:
-            self.refresh_ci_pipeline(pipeline_id=pipeline.ci_pipeline_id)
+            self.refresh_ci_pipeline(pipeline_id=pipeline.ci_pipeline_id,
+                                     toggle_visibility=False)
 
     def save_ci_pipeline(self, ci_pipeline):
         """

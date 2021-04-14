@@ -138,10 +138,10 @@
               </div>
               <div class="col-md-5">
                 <dt>Push Job Template</dt>
-                <dd><a href="{% url 'jobs-yml-based' %}?template={{ pipeline.ci_push_job_template.job_template_type }}">
+                <dd><a href="{% url 'jobs-yml-based' %}?template={{ pipeline.ci_push_job_template.job_template_type }}&package={{ pipeline.ci_package.package_name }}">
                   {{ pipeline.ci_push_job_template.job_template_name }}</a></dd>
                 <dt>Pull Job Template</dt>
-                <dd><a href="{% url 'jobs-yml-based' %}?template={{ pipeline.ci_pull_job_template.job_template_type }}">
+                <dd><a href="{% url 'jobs-yml-based' %}?template={{ pipeline.ci_pull_job_template.job_template_type }}&package={{ pipeline.ci_package.package_name }}">
                   {{ pipeline.ci_pull_job_template.job_template_name }}</a></dd>
               </div>
             </div>
