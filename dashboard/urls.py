@@ -34,7 +34,8 @@ from dashboard.views import (
     UpdateTransPlatformView, UpdateGraphRuleView, JobDetailView, refresh_package, release_graph, schedule_job,
     tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status,
     LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs, get_repo_branches, get_target_langs,
-    refresh_ci_pipeline, graph_data, job_template, PipelineDetailView, PipelineHistoryView, PipelineConfigurationView
+    refresh_ci_pipeline, graph_data, job_template, PipelineDetailView, PipelineHistoryView, PipelineConfigurationView,
+    PipelinesView
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -52,10 +53,13 @@ app_job_urls = [
 ]
 
 app_pipeline_urls = [
+    url(r'^$', PipelinesView.as_view(), name="pipelines"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/details$', PipelineDetailView.as_view(), name="pipeline-details"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/history$', PipelineHistoryView.as_view(), name="pipeline-history"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/configuration$', PipelineConfigurationView.as_view(),
         name="pipeline-configuration"),
+    url(r'^new$', login_required(AddPackageCIPipeline.as_view(), login_url=LOGIN_URL),
+        name="add-ci-pipeline"),
 ]
 
 app_setting_urls = [
@@ -168,7 +172,8 @@ urlpatterns = [
     url(r'^jobs/', include(app_job_urls)),
     url(r'^pipelines/', include(app_pipeline_urls)),
     # landing URLs
-    url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/'), name="home"),
+    # url(r'^$', RedirectView.as_view(permanent=False, url='/translation-status/'), name="home"),
+    url(r'^$', TranStatusReleasesView.as_view(), name="home"),
     url(r'^translation-status/', include(trans_status_urls)),
     url(r'^translation-coverage/$', RedirectView.as_view(query_string=True,
         permanent=True, url='/coverage/view/')),

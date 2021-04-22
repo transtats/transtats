@@ -15,7 +15,7 @@
 
 from django.conf import settings
 
-from transtats import __appname__, __version__, __description__
+from transtats import __appname__, __version__, __description__, __title__
 
 
 def app_info(request):
@@ -26,6 +26,7 @@ def app_info(request):
         "app_name": __appname__,
         "app_version": __version__,
         "app_desc": __description__,
+        "app_title": __title__,
         "auth": "fas" if settings.FAS_AUTH else "default",
         "client_config_file": "transtats.conf"
     }

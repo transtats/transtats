@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+
+{% block extrascript %}
+<script src="/static/js/csrf.js"></script>
+<script>
+  function csrfSafeMethod(t){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(t)}
+</script>
+{% endblock %}
+
+{% block pagecontent %}
+    <div class="panel panel-default content-area-2">
+        <div class="panel-heading lead">
+            Pipelines
+            {% if request.user.is_staff %}
+              | <a class="btn btn-default" href="{% url 'package-new' %}">
+                <i class="pficon pficon-add-circle-o"></i> Add Pipeline </a>
+            {% endif %}
+            {% if pipelines %}
+              <span class="pull-right badge">{{ pipelines|length }}</span>
+            {% endif %}
+        </div>
+        <div class="panel-body">
+          <div id="pf-list-simple-expansion" class="list-group list-view-pf list-view-pf-view">
+
+            {% for pipeline in pipelines %}
+              <div class="list-group-item">
+                <div class="list-group-item-header">
+                  <div class="list-view-pf-expand">
+                    <span class="fa fa-angle-right"></span>
+                  </div>
+                  <!--<div class="list-view-pf-checkbox">-->
+                    <!--<input type="checkbox">-->
+                  <!--</div>-->
+                  <div class="list-view-pf-actions">
+                    <a href="{% url 'pipeline-details' pipeline.ci_pipeline_uuid %}" class="btn btn-default">Details</a>
+                    {% if request.user.is_staff or pipeline.ci_package.created_by == request.user.email %}
+                      <script>
+                        function removePipeline(e){waitSpinner.show(),$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-remove-pipeline' %}",data:{pipeline_id:e,user:"{{ pipeline.ci_package.created_by }}"},success:function(e){waitSpinner.hide(),location.reload(),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-success alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-ok"></span><strong>CI Pipeline</strong> removed successfully!</div>')},error:function(e){waitSpinner.hide(),console.error(e.status,e.responseText),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>CI Pipeline</strong> could not be removed!</div>')}})}function refreshPipeline(e){waitSpinner.show(),$.ajax({beforeSend:function(e,s){csrfSafeMethod(s.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-refresh-pipeline' %}",data:{pipeline_id:e,user:"{{ pipeline.ci_package.created_by }}"},success:function(e){waitSpinner.hide(),location.reload()},error:function(e){waitSpinner.hide(),console.error(e.status,e.responseText),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span><strong>CI Pipeline</strong> could not be refreshed!</div>')}})}
+                      </script>
+                      <div class="dropdown pull-right dropdown-kebab-pf">
+                        <button class="btn btn-link dropdown-toggle" type="button" id="dropdownKebabRight9" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                          <span class="fa fa-ellipsis-v"></span>
+                        </button>
+                          <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight9">
+                            <li><a id="idRefreshPipeline"
+                                   onClick='javascript:refreshPipeline({{ pipeline.ci_pipeline_id }})'>
+                              <span class="fa fa-refresh" aria-hidden="true"></span> Refresh</a></li>
+                            <li><a href="{% url 'admin:dashboard_cipipeline_change' pipeline.ci_pipeline_id %}">
+                                <span class="pficon pficon-edit" aria-hidden="true"></span> Edit</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a id="idRemovePipeline"
+                                   onClick='javascript:removePipeline({{ pipeline.ci_pipeline_id }})'>
+                              <span class="pficon pficon-error-circle-o" aria-hidden="true"></span>
+                              <span class="text-danger">Remove</span></a></li>
+                          </ul>
+                      </div>
+                    {% endif %}
+                </div>
+
+                  <div class="list-view-pf-main-info">
+                    <div class="list-view-pf-left">
+                      <span class="pficon pficon-automation list-view-pf-icon-sm"></span>
+                    </div>
+                    <div class="list-view-pf-body">
+                      <div class="list-view-pf-description">
+                        <div class="list-group-item-heading">
+                          {{ pipeline.ci_package.package_name }}
+                        </div>
+                        <div class="list-group-item-text">
+                          <span class="fa fa-link"></span><span class="text-info" style="font-size: large;">
+                          {{ pipeline.ci_project_details_json|get_item:"name" }}</span>
+                        </div>
+                      </div>
+                      <div class="list-view-pf-additional-info">
+                        <div class="list-view-pf-additional-info-item">
+                          <span class="pficon pficon-server"></span>
+                          {{ pipeline.ci_platform.engine_name|title }}
+                        </div>
+                        <div class="list-view-pf-additional-info-item">
+                          <span class="fa fa-bolt"></span>
+                          <strong>{{ pipeline.ci_project_details_json|get_item:"progress"|get_item:"totalCount" }}</strong> Jobs
+                        </div>
+                        <div class="list-view-pf-additional-info-item">
+                          <span class="pficon pficon-image"></span>
+                          {{ pipeline.ci_release.release_name }}
+                        </div>
+                        <div class="list-view-pf-additional-info-item">
+                          <span class="fa fa-refresh"></span>
+                          Sync Status&nbsp;<span class="pficon pficon-off"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="list-group-item-container container-fluid hidden">
+                  <div class="close">
+                    <span class="pficon pficon-close"></span>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-3">
+                      <div id="utilizationDonutChart11" class="example-donut-chart-utilization" style="margin-bottom: 5%">
+                        UUID <span class="h3 text-info">{{ pipeline.ci_pipeline_uuid }}</span>
+                      </div>
+
+                      <div class="pct-donut-chart-pf example-donut-chart-utilization">
+                        <div class="pct-donut-chart-pf-chart">
+                          <div id="utilizationDonutChart12"></div>
+                        </div>
+                        <span class="pct-donut-chart-pf-label">
+                          Last Sync: <code>N/A</code>
+                        </span>
+                      </div>
+
+                      <div class="example-donut-chart-utilization">
+                        <span class="pct-donut-chart-pf pct-donut-chart-pf-left">
+                          <div class="pct-donut-chart-pf-chart">
+                            <div id="utilizationDonutChart13"></div>
+                          </div>
+                          <span class="pct-donut-chart-pf-label text-right">
+                            Next Sync: <code>N/A</code>
+                          </span>
+                        </span>
+                      </div>
+
+                      <div class="example-donut-chart-utilization">
+                        <span class="pct-donut-chart-pf pct-donut-chart-pf-right">
+                          <div class="pct-donut-chart-pf-chart">
+                            <div id="utilizationDonutChart14"></div>
+                          </div>
+                          <span class="pct-donut-chart-pf-label text-left">
+                            Polling Frequency: <code>N/A</code>
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-9">
+                      <dl class="dl-horizontal">
+                        <div class="row">
+                          <div class="col-md-6">
+                            <dt>Package</dt>
+                            <dd>{{ pipeline.ci_package.package_name|title }}</dd>
+                            <dt>{{ pipeline.ci_platform.engine_name|title }} Project</dt>
+                            <dd>{{ pipeline.ci_project_details_json|get_item:"name" }}<br/>
+                                <a href="{{ pipeline.ci_project_web_url }}" target="_blank">
+                                  {{ pipeline.ci_project_details_json|get_item:"uid" }}</a>
+                                  <span class="fa fa-external-link" aria-hidden="true"></span>
+                            </dd>
+                            <dt>Target Languages</dt>
+                            <dd>
+                              <div>
+                                {% for lang in pipeline.ci_project_details_json|get_item:"targetLangs" %}
+                                  <code>{{ lang }}</code>&nbsp;
+                                {% endfor %}
+                              </div>
+                            </dd>
+                            <dt>Created On</dt>
+                            <dd><span class="text-info">
+                              {{ pipeline.ci_project_details_json|get_item:"dateCreated"|parse_memsource_time }}</span></dd>
+                            <dt>Status</dt>
+                            <dd>{{ pipeline.ci_project_details_json|get_item:"status" }}</dd>
+                          </div>
+                          <div class="col-md-5">
+                            <dt>Push Job Template</dt>
+                            <dd><a href="{% url 'jobs-yml-based' %}?template={{ pipeline.ci_push_job_template.job_template_type }}&package={{ pipeline.ci_package.package_name }}">
+                              {{ pipeline.ci_push_job_template.job_template_name }}</a></dd>
+                            <dt>Pull Job Template</dt>
+                            <dd><a href="{% url 'jobs-yml-based' %}?template={{ pipeline.ci_pull_job_template.job_template_type }}&package={{ pipeline.ci_package.package_name }}">
+                              {{ pipeline.ci_pull_job_template.job_template_name }}</a></dd>
+                          </div>
+                        </div>
+                      </dl>
+                      {% if pipeline.ci_platform_jobs_json %}
+                        <hr/><h3>CI Platform Jobs</h3>
+                        <div class="row">
+                          <ol>
+                          {% for platform_job in pipeline.ci_platform_jobs_json %}
+                          <li class="col-md-3">
+                              <h5>Created On: <code>{{ platform_job|get_item:"dateCreated"|parse_memsource_time }}</code></h5>
+                              <h5>Job UID: <code>{{ platform_job|get_item:"uid" }}</code></h5>
+                              <h5>Target Language: <code>{{ platform_job|get_item:"targetLang" }}</code></h5>
+                              <h5>Status: <code>{{ platform_job|get_item:"status" }}</code></h5>
+                          </li>
+                          {% endfor %}
+                          </ol>
+                        </div>
+                      {% endif %}
+                      <!--<pre>{{ pipeline.ci_project_details_json }}</pre>-->
+                      <div class="pull-right" style="margin-top: 1%">
+                        {% if pipeline.ci_pipeline_last_updated %}
+                          <i class="text-muted">Last refresh <span class="text-info">
+                            {{ pipeline.ci_pipeline_last_updated|timesince }}</span> ago.</i>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% empty %}
+              <!-- Pipelines blank state -->
+              <div class="blank-slate-pf table-view-pf-empty">
+                <div class="blank-slate-pf-icon">
+                  <span class="pficon pficon pficon-add-circle-o"></span>
+                </div>
+                <h1>
+                  No pipelines available!
+                </h1>
+                <p>
+                  Seems like no pipelines, would like to create one?
+                </p>
+                <p>
+                  Learn more about this
+                  <a href="#">on the documentation</a>.
+                </p>
+                {% if request.user.is_staff %}
+                  <div class="blank-slate-pf-main-action">
+                    <a class="btn btn-primary btn-lg" href="{% url 'settings-graph-rules-new' %}">
+                      <i class="pficon pficon-add-circle-o"></i> Create Pipeline </a>
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+            </div>
+
+              <script>
+                $(document).ready(function () {
+                  // Row Checkbox Selection
+                  $("#pf-list-simple-expansion input[type='checkbox']").change(function (e) {
+                    if ($(this).is(":checked")) {
+                      $(this).closest('.list-group-item').addClass("active");
+                    } else {
+                      $(this).closest('.list-group-item').removeClass("active");
+                    }
+                  });
+                  // toggle dropdown menu
+                  $("#pf-list-simple-expansion .list-view-pf-actions").on('show.bs.dropdown', function () {
+                    var $this = $(this);
+                    var $dropdown = $this.find('.dropdown');
+                    var space = $(window).height() - $dropdown[0].getBoundingClientRect().top - $this.find('.dropdown-menu').outerHeight(true);
+                    $dropdown.toggleClass('dropup', space < 10);
+                  });
+
+                  // click the list-view heading then expand a row
+                  $("#pf-list-simple-expansion .list-group-item-header").click(function(event){
+                    if(!$(event.target).is("button, a, input, .fa-ellipsis-v")){
+                      $(this).find(".fa-angle-right").toggleClass("fa-angle-down")
+                        .end().parent().toggleClass("list-view-pf-expand-active")
+                          .find(".list-group-item-container").toggleClass("hidden");
+                    } else {
+                    }
+                  })
+
+                  // click the close button, hide the expand row and remove the active status
+                  $("#pf-list-simple-expansion .list-group-item-container .close").on("click", function (){
+                    $(this).parent().addClass("hidden")
+                      .parent().removeClass("list-view-pf-expand-active")
+                        .find(".fa-angle-right").removeClass("fa-angle-down");
+                  })
+
+                });
+              </script>
+        </div>
+    </div>
+{% endblock %}

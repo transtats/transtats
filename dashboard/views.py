@@ -1037,6 +1037,17 @@ class TerritoryView(ManagersMixin, TemplateView):
         return context
 
 
+class PipelinesView(ManagersMixin, ListView):
+    """
+    Pipelines View
+    """
+    template_name = "ci/list_pipelines.html"
+    context_object_name = 'pipelines'
+
+    def get_queryset(self):
+        return self.ci_pipeline_manager.get_ci_pipelines().order_by('ci_package_id')
+
+
 def schedule_job(request):
     """
     Handles job schedule AJAX POST request
