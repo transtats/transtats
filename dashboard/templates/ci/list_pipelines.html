@@ -24,6 +24,10 @@
           <div id="pf-list-simple-expansion" class="list-group list-view-pf list-view-pf-view">
 
             {% for pipeline in pipelines %}
+
+              {% ifchanged %}<div style="background-color: white; font-size: large;" class="text-info">
+                {{ pipeline.ci_release.release_name }}</div>{% endifchanged %}
+
               <div class="list-group-item">
                 <div class="list-group-item-header">
                   <div class="list-view-pf-expand">

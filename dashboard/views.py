@@ -958,8 +958,7 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
         return NewCIPipelineForm(**kwargs)
 
     def get_success_url(self):
-        # return reverse('package-add-ci-pipeline', args=[self.kwargs.get('slug')])
-        return reverse('pipelines')
+        return reverse('package-add-ci-pipeline', args=[self.kwargs.get('slug')])
 
     def post(self, request, *args, **kwargs):
         post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
@@ -1048,7 +1047,7 @@ class PipelinesView(ManagersMixin, ListView):
 
     def get_queryset(self):
         active_pipelines = self.ci_pipeline_manager.get_ci_pipelines()
-        return active_pipelines.order_by('ci_package_id')
+        return active_pipelines.order_by('ci_package_id').order_by('ci_release_id')
 
 
 class AddCIPipeline(ManagersMixin, FormView):
@@ -1080,7 +1079,7 @@ class AddCIPipeline(ManagersMixin, FormView):
         return CreateCIPipelineForm(**kwargs)
 
     def get_success_url(self):
-        return reverse('pipelines')
+        return reverse('add-ci-pipeline')
 
     def post(self, request, *args, **kwargs):
         post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
