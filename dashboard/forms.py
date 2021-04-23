@@ -703,3 +703,56 @@ class NewCIPipelineForm(forms.ModelForm):
             parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])
             return "{}://{}{}".format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
         return ""
+
+
+class CreateCIPipelineForm(forms.ModelForm):
+    """
+    Add new CI Pipeline form
+    """
+
+    ci_project_web_url = forms.URLField(
+        label='CI Platform Project URL', required=True,
+        help_text='CI Pipeline will be associated with this project.'
+    )
+
+    def __init__(self, *args, **kwargs):
+        ci_platform_choices = kwargs.pop('ci_platform_choices')
+        package_choices = kwargs.pop('package_choices')
+        release_choices = kwargs.pop('release_choices')
+        super(CreateCIPipelineForm, self).__init__(*args, **kwargs)
+        self.fields['ci_platform'].choices = ci_platform_choices
+        self.fields['ci_release'].choices = release_choices
+        self.fields['ci_package'].choices = package_choices
+
+    class Meta:
+        model = CIPipeline
+        fields = ['ci_package', 'ci_platform', 'ci_release', 'ci_push_job_template',
+                  'ci_pull_job_template', 'ci_project_web_url']
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.layout = Layout(
+        Div(
+            Field('ci_package', css_class='selectpicker'),
+            Field('ci_platform', css_class='selectpicker'),
+            Field('ci_release', css_class='selectpicker'),
+            Field('ci_push_job_template', css_class='selectpicker'),
+            Field('ci_pull_job_template', css_class='selectpicker'),
+            Field('ci_project_web_url', css_class='form-control'),
+            FormActions(
+                Submit('addCIPipeline', 'Add CI Pipeline'),
+                Reset('reset', 'Reset', css_class='btn-danger'),
+                HTML('<a class="pull-right btn btn-info" href="{% url "pipelines" %}">Return</a>')
+            )
+        )
+    )
+
+    def clean_ci_project_web_url(self):
+        """
+        Remove CI Project Web URL
+        """
+        if self.cleaned_data.get('ci_project_web_url'):
+            parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])
+            return "{}://{}{}".format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
+        return ""

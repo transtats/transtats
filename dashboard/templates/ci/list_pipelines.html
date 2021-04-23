@@ -13,7 +13,7 @@
         <div class="panel-heading lead">
             Pipelines
             {% if request.user.is_staff %}
-              | <a class="btn btn-default" href="{% url 'package-new' %}">
+              | <a class="btn btn-default" href="{% url 'add-ci-pipeline' %}">
                 <i class="pficon pficon-add-circle-o"></i> Add Pipeline </a>
             {% endif %}
             {% if pipelines %}
