@@ -9,12 +9,13 @@ from .celery import app as celery_app
 
 
 __appname__ = "Transtats"
-__version__ = '0.8.3'
+__version__ = '0.8'
+__release__ = '0.8.3'
 __description__ = "Help track language translations across releases and automate process workflows."
 __title__ = "Track Translation & Automate Workflows"
 
 
-__all__ = ['__appname__', '__version__', '__description__', '__title__', 'celery_app']
+__all__ = ['__appname__', '__version__', '__release__', '__description__', '__title__', 'celery_app']
 
 MODE = os.getenv('TS_APP_MODE', 'dev')
 
