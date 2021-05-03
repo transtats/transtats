@@ -57,14 +57,6 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'standard',
         },
-        'db': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/db.log'),
-            'maxBytes': 1024 * 1024 * 5,
-            'backupCount': 5,
-            'formatter': 'standard',
-        },
         'django': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
@@ -77,11 +69,6 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['django'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        'django.db': {
-            'handlers': ['db'],
             'level': 'ERROR',
             'propagate': False,
         },

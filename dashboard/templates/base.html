@@ -9,7 +9,7 @@
   <meta name="author" content="suanand@redhat.com">
   <link rel="icon" href="/static/img/favicon.ico">
 
-  <title>{{ app_name }}</title>
+  <title>{{ app_title }}</title>
   <!-- PatternFly CSS -->
   <link rel="stylesheet" type="text/css" href="/static/patternfly/dist/css/patternfly.css">
   <link rel="stylesheet" type="text/css" href="/static/patternfly/dist/css/patternfly-additions.css">
@@ -34,11 +34,10 @@
         </div>
         <div class="modal-body">
           <h1>{{ app_name }}</h1>
-          <p>{{ app_desc }}</p>
+          <p style="width: 300px">{{ app_desc }}</p>
           <div class="product-versions-pf">
             <ul class="list-unstyled">
-              <li>
-                <strong>Version</strong> {{ app_version }}</li>
+              <li><strong>Version</strong><span class="h3">{{ app_version }}</span></li>
             </ul>
           </div>
           <div class="trademark-pf">
@@ -155,7 +154,12 @@
         <a href="{% url 'settings-packages' %}">
           <span class="pficon pficon-bundle" data-toggle="tooltip" title="Packages"></span>
           <span class="list-group-item-value">Packages</span>
-
+        </a>
+      </li>
+      <li class="list-group-item" id="li-translation-platforms">
+        <a href="{% url 'settings-trans-platforms' %}">
+          <span class="fa fa-server" data-toggle="tooltip" title="Translation Platforms"></span>
+          <span class="list-group-item-value">Platforms</span>
         </a>
       </li>
       <li class="list-group-item secondary-nav-item-pf" id="li-jobs" data-target="div-jobs-secondary-nav">
@@ -201,16 +205,16 @@
           {% endif %}
         </div>
       </li>
+      <li class="list-group-item" id="li-pipelines">
+        <a href="{% url 'pipelines' %}">
+          <span class="pficon pficon-automation" data-toggle="tooltip" title="Pipelines"></span>
+          <span class="list-group-item-value">Pipelines</span>
+        </a>
+      </li>
       <li class="list-group-item" id="li-coverage">
         <a href="{% url 'settings-graph-rules' %}">
           <span class="fa fa-area-chart" data-toggle="tooltip" title="Translation Coverage"></span>
           <span class="list-group-item-value">Coverage</span>
-        </a>
-      </li>
-      <li class="list-group-item" id="li-translation-platforms">
-        <a href="{% url 'settings-trans-platforms' %}">
-          <span class="fa fa-server" data-toggle="tooltip" title="Translation Platforms"></span>
-          <span class="list-group-item-value">Platforms</span>
         </a>
       </li>
 
@@ -304,7 +308,7 @@
   </div>
 
   <script>
-    var waitSpinner=null;function activateSection(){var a=window.location.pathname,t=a.substring(1,a.indexOf("/",1));"releases"===t||"products"===t?$("#li-dashboard").addClass("active"):"packages"===t?$("#li-packages").addClass("active"):"jobs"===t?$("#li-jobs").addClass("active"):"languages"===t?$("#li-languages").addClass("active"):"translation-platforms"===t?$("#li-translation-platforms").addClass("active"):"coverage"===t&&$("#li-coverage").addClass("active")}function getWaitSpinner(){null===waitSpinner&&(waitSpinner=$(".spinner-wait-ts"))}function jsIdSafe(a){return a.replace("@","-at-")}$(document).ready(function(){$().setupVerticalNavigation(!0),$("#button-about-secondary").on("click",function(a){a.preventDefault(),$("#about-modal").modal("show")}),$("#button-auth-token-secondary").on("click",function(a){a.preventDefault(),$("#modal-auth-token").modal("show")}),waitSpinner=$(".spinner-wait-ts"),activateSection()});
+    var waitSpinner=null;function activateSection(){var a=window.location.pathname,t=a.substring(1,a.indexOf("/",1));"releases"===t||"products"===t?$("#li-dashboard").addClass("active"):"packages"===t?$("#li-packages").addClass("active"):"pipelines"===t?$("#li-pipelines").addClass("active"):"jobs"===t?$("#li-jobs").addClass("active"):"languages"===t?$("#li-languages").addClass("active"):"translation-platforms"===t?$("#li-translation-platforms").addClass("active"):"coverage"===t&&$("#li-coverage").addClass("active")}function getWaitSpinner(){null===waitSpinner&&(waitSpinner=$(".spinner-wait-ts"))}function jsIdSafe(a){return a.replace("@","-at-")}$(document).ready(function(){$().setupVerticalNavigation(!0),$("#button-about-secondary").on("click",function(a){a.preventDefault(),$("#about-modal").modal("show")}),$("#button-auth-token-secondary").on("click",function(a){a.preventDefault(),$("#modal-auth-token").modal("show")}),waitSpinner=$(".spinner-wait-ts"),activateSection()});
   </script>
   </body>
 </html>

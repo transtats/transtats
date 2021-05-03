@@ -1,4 +1,7 @@
 
+##### Fri Apr 23 2021 Sundeep Anand <suanand@redhat.com>
+* extract pipelines to a distinct list view
+
 ##### Wed Feb 24 2021 Sundeep Anand <suanand@redhat.com> - release_0.8.2
 * delete associated jobs while removing pipeline
 * handle trailing slash in platform url and ui changes

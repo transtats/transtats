@@ -29,7 +29,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 # application
-from transtats import __version__
+from transtats import __release__
 from dashboard.managers.inventory import ReleaseBranchManager
 from dashboard.managers.graphs import GraphManager
 from dashboard.managers.jobs import (
@@ -68,7 +68,7 @@ class PingServer(APIView):
         """
         Ping Transtats Server.
         """
-        response_text = {"server": "Transtats " + __version__}
+        response_text = {"server": "Transtats " + __release__}
         if 'callback' in request.query_params and request.query_params.get('callback'):
             response_text = '%s(%s);' % (request.query_params['callback'], response_text)
             return HttpResponse(response_text, 'application/javascript')
