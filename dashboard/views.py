@@ -44,7 +44,8 @@ from dashboard.constants import (
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
     NewLanguageForm, UpdateLanguageForm, LanguageSetForm, NewCIPipelineForm,
-    NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm
+    NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm,
+    CreateCIPipelineForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager, SyncStatsManager
@@ -1035,6 +1036,90 @@ class TerritoryView(ManagersMixin, TemplateView):
         if input_methods:
             context['territory_input_methods'] = input_methods
         return context
+
+
+class PipelinesView(ManagersMixin, ListView):
+    """
+    Pipelines View
+    """
+    template_name = "ci/list_pipelines.html"
+    context_object_name = 'pipelines'
+
+    def get_queryset(self):
+        active_pipelines = self.ci_pipeline_manager.get_ci_pipelines()
+        return active_pipelines.order_by('ci_package_id').order_by('ci_release_id')
+
+
+class AddCIPipeline(ManagersMixin, FormView):
+    """
+    Add CI Pipeline View
+    """
+    template_name = 'ci/add_pipeline.html'
+    success_message = '%(ci_pipeline_uuid)s was added successfully!'
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            raise PermissionDenied
+        return super(AddCIPipeline, self).get(request, *args, **kwargs)
+
+    def get_form(self, form_class=None, data=None):
+        kwargs = {}
+        ci_platforms = self.inventory_manager.get_translation_platforms(ci=True)
+        ci_platform_choices = tuple([(platform.platform_id, platform.__str__)
+                                     for platform in ci_platforms])
+        kwargs.update(dict(ci_platform_choices=ci_platform_choices))
+        packages = self.packages_manager.get_packages()
+        releases = self.release_branch_manager.get_release_branches()
+        package_choices = tuple([(package.package_id, package.package_name) for package in packages])
+        release_choices = tuple([(release.release_id, release.__str__) for release in releases])
+        kwargs.update(dict(package_choices=package_choices))
+        kwargs.update(dict(release_choices=release_choices))
+        if data:
+            kwargs.update({'data': data})
+        return CreateCIPipelineForm(**kwargs)
+
+    def get_success_url(self):
+        return reverse('add-ci-pipeline')
+
+    def post(self, request, *args, **kwargs):
+        post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_data)
+
+        context_data = dict()
+        context_data['form'] = form
+
+        if form.is_valid():
+            post_params = form.cleaned_data
+            # Assumption: Project URL starts with Platform API URL (which is saved in db)
+            if post_params['ci_platform'].api_url not in post_params['ci_project_web_url']:
+                errors = form._errors.setdefault('ci_project_web_url', ErrorList())
+                errors.append("Project URL does NOT belong to the selected platform.")
+                return render(request, self.template_name, context=context_data)
+            if post_params['ci_release'] not in self.packages_manager.get_package_releases(
+                    package_name=post_params['ci_package'].package_name):
+                errors = form._errors.setdefault('ci_release', ErrorList())
+                errors.append("Release does NOT belong to the selected package.")
+                return render(request, self.template_name, context=context_data)
+            p_uuid, p_details = self.ci_pipeline_manager.ci_platform_project_details(
+                post_params['ci_platform'], post_params['ci_project_web_url']
+            )
+            if not p_details:
+                errors = form._errors.setdefault('ci_project_web_url', ErrorList())
+                errors.append("Project details could not be fetched for the given URL.")
+                return render(request, self.template_name, context=context_data)
+            post_params['ci_project_details_json_str'] = json.dumps(p_details)
+            if p_details.get('project_jobs'):
+                post_params['ci_platform_jobs_json_str'] = json.dumps(p_details['project_jobs'])
+            if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
+                messages.add_message(request, messages.ERROR, (
+                    'Alas! Something unexpected happened. Please try adding pipeline again!'
+                ))
+            else:
+                messages.add_message(request, messages.SUCCESS, (
+                    'Great! CI Pipeline added successfully.'
+                ))
+            return HttpResponseRedirect(self.get_success_url())
+        return render(request, self.template_name, context=context_data)
 
 
 def schedule_job(request):

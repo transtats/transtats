@@ -475,7 +475,10 @@ class CIPipeline(ModelMixin, models.Model):
         return self.str2json(self.ci_project_trans_memory_json_str)
 
     def __str__(self):
-        return str(self.ci_pipeline_uuid)
+        return "{} | {}".format(
+            str(self.ci_pipeline_uuid)[:8],
+            self.ci_package.package_name
+        )
 
     class Meta:
         db_table = TABLE_PREFIX + 'cipipeline'

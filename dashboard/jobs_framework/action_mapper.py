@@ -142,6 +142,34 @@ class Get(JobCommandBase):
 
         return {'builds': builds}, {task_subject: task_log}
 
+    def task_info(self, input, kwargs):
+        """
+        Fetch task info and results
+        """
+        task_subject = "Task Details"
+        task_log = OrderedDict()
+
+        task_info = self.api_resources.task_info(
+            hub_url=input.get('hub_url'), task_id=kwargs.get('task_id')
+        )
+        task_result = self.api_resources.task_result(
+            hub_url=input.get('hub_url'), task_id=kwargs.get('task_id')
+        )
+
+        if kwargs.get('task_id') != task_info.get('id'):
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'No task info found for id %s.' % kwargs.get('task_id')
+            ))
+        else:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, str({**task_info, **task_result})
+            ))
+        if task_info.get('id'):
+            task_result.update(dict(task_id=task_info['id']))
+
+        return {'task': task_result}, {task_subject: task_log}
+
 
 class Download(JobCommandBase):
     """
@@ -167,8 +195,10 @@ class Download(JobCommandBase):
         task_log = OrderedDict()
 
         builds = input.get('builds')
+        task = input.get('task')
 
         pkgs_download_server_url = ''
+        srpm_downloaded_path, srpm_download_url = '', ''
         if input.get('build_system', '') == BUILD_SYSTEMS[0]:
             pkgs_download_server_url = 'http://download.eng.bos.redhat.com/brewroot'
         elif input.get('build_system', '') == BUILD_SYSTEMS[1]:
@@ -184,20 +214,31 @@ class Download(JobCommandBase):
                 self.api_resources.get_path_info(build=build_info),
                 self.api_resources.get_path_info(srpm=src_rpm)
             ).replace('/mnt/koji', pkgs_download_server_url)
-            srpm_downloaded_path = self._download_file(srpm_download_url)
-            if srpm_downloaded_path == '404':
-                raise Exception('SRPM download failed. URL returns 404.')
-            if srpm_downloaded_path:
-                task_log.update(self._log_task(
-                    input['log_f'], task_subject,
-                    'Successfully downloaded from %s' % srpm_download_url
-                ))
-            else:
-                task_log.update(self._log_task(
-                    input['log_f'], task_subject,
-                    'SRPM could not be downloaded from %s' % srpm_download_url
-                ))
-            return {'srpm_path': srpm_downloaded_path}, {task_subject: task_log}
+
+        if task and 'hub_url' in input and task.get('task_id'):
+            srpm = ''
+            if task.get('srpms'):
+                srpm = task.get('srpms', [])[0].split(os.sep)[-1]
+            if task.get('srpm'):
+                srpm = task.get('srpm', '').split(os.sep)[-1]
+            srpm_download_url = os.path.join(
+                self.api_resources.get_path_info(task=task['task_id']), srpm
+            ).replace('/mnt/koji', pkgs_download_server_url)
+
+        srpm_downloaded_path = self._download_file(srpm_download_url)
+        if srpm_downloaded_path == '404':
+            raise Exception('SRPM download failed. URL returns 404.')
+        if srpm_downloaded_path:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Successfully downloaded from %s' % srpm_download_url
+            ))
+        else:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'SRPM could not be downloaded from %s' % srpm_download_url
+            ))
+        return {'srpm_path': srpm_downloaded_path}, {task_subject: task_log}
 
     def platform_pot_file(self, input, kwargs):
 

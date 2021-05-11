@@ -35,3 +35,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     )
 }
+
+if FAS_AUTH:
+    CORS_ORIGIN_ALLOW_ALL = True

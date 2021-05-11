@@ -137,10 +137,16 @@ body {
     padding: 20px;
     min-height: 750px
 }
+
+.content-area-2 {
+    min-height: 750px
+}
+
 .sub-content-area {
     padding-left: 1%;
     padding-right: 1%;
 }
+
 .ribbon {
     position: absolute;
     top: 0;
@@ -148,12 +154,14 @@ body {
     border: 0;
     z-index: 9999
 }
+
 .modal-open {
     position: fixed;
     overflow: scroll;
     width: 100%;
     padding-right: 0!important
 }
+
 .btn-logout {
     width: 100%;
     text-align: left!important;
@@ -165,6 +173,7 @@ body {
     overflow: hidden;
     outline:none
 }
+
 .nounderline {
     text-decoration: none
 }
@@ -179,16 +188,20 @@ body {
     min-height: 250px;
     overflow-x: auto;
 }
+
 .text-faq-ans {
     font-size:13px;
 }
+
 .territory-cards-body {
     height: 200px;
 }
+
 .territory-cards {
     max-height: 180px;
     overflow-y: scroll;
 }
+
 .territory-cards-keyboard {
     max-height: 150px;
     overflow-y: scroll;

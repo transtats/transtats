@@ -1,6 +1,6 @@
 import os
 from setuptools import find_packages, setup
-from transtats import __appname__, __version__, __description__
+from transtats import __appname__, __release__, __description__
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
@@ -13,7 +13,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name=__appname__,
-    version=__version__,
+    version=__release__,
     packages=find_packages(),
     include_package_data=True,
     install_requires=REQUIRE,
