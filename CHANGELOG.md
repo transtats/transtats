@@ -2,6 +2,7 @@
 ##### Tue May 11 2021 Sundeep Anand <suanand@redhat.com>
 * add django-cors-headers for crossorigin
 * extract pipelines to a distinct list view
+* sync koji tasks for translation stats
 
 ##### Wed Feb 24 2021 Sundeep Anand <suanand@redhat.com> - release_0.8.2
 * delete associated jobs while removing pipeline
