@@ -9,6 +9,7 @@ job:
   - download:
     - name: Pull translations
     - target_langs: %TARGET_LANGS%
+    - workflow_step: %WORKFLOW_STEP%
   - upload:
       - name: Submit translations
       - type: %REPO_TYPE%

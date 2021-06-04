@@ -1638,3 +1638,24 @@ def get_target_langs(request):
                         """
         return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)
+
+
+def get_workflow_steps(request):
+    """
+    Get Workflow Steps for a CI Pipeline
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        ci_pipeline = post_params.get('ci_pipeline', '')
+        context = Context(
+            {'META': request.META,
+             'ci_pipeline': ci_pipeline}
+        )
+        template_string = """
+                            {% load tag_workflow_steps_dropdown from custom_tags %}
+                            {% tag_workflow_steps_dropdown ci_pipeline %}
+                        """
+        return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)

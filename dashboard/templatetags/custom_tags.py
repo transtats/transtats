@@ -607,3 +607,18 @@ def tag_pipeline_workflow_steps(pipeline_jobs):
         p_jobs_group[workflow_name].append(pipeline_job)
     return_value['platform_job_groups'] = p_jobs_group
     return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("jobs", "_workflow_steps.html")
+)
+def tag_workflow_steps_dropdown(ci_pipeline):
+    return_value = OrderedDict()
+    if not ci_pipeline:
+        return return_value
+    ci_pipeline_manager = CIPipelineManager()
+    workflow_steps = ci_pipeline_manager.get_ci_platform_workflow_steps(
+        pipeline_uuid=ci_pipeline
+    )
+    return_value['workflow_steps'] = workflow_steps
+    return return_value

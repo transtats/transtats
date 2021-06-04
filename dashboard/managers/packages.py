@@ -850,7 +850,8 @@ class PackagesManager(InventoryManager):
                 product = product.get()
                 product_build_system_hub_url = product.product_server
                 build_sys_pkg_id = self.api_resources.package_id(
-                    product_build_system_hub_url, package.package_name
+                    product_build_system_hub_url,
+                    package.downstream_name or package.package_name
                 )
                 pkg_builds = self.api_resources.list_builds(
                     product_build_system_hub_url, build_sys_pkg_id

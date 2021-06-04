@@ -128,9 +128,9 @@ class Get(JobCommandBase):
         task_subject = "Latest Build Details"
         task_log = OrderedDict()
 
+        package = input.get('pkg_downstream_name') or input.get('package')
         builds = self.api_resources.build_info(
-            hub_url=input.get('hub_url'), tag=input.get('build_tag'),
-            pkg=input.get('package')
+            hub_url=input.get('hub_url'), tag=input.get('build_tag'), pkg=package
         )
         if len(builds) > 0:
             task_log.update(self._log_task(input['log_f'], task_subject, str(builds[0])))
@@ -1294,6 +1294,7 @@ class ActionMapper(BaseManager):
                  upstream_url,
                  trans_file_ext,
                  pkg_upstream_name,
+                 pkg_downstream_name,
                  pkg_branch_map,
                  pkg_tp_engine,
                  pkg_tp_auth_usr,
@@ -1320,6 +1321,7 @@ class ActionMapper(BaseManager):
         self.upstream_url = upstream_url
         self.trans_file_ext = trans_file_ext
         self.pkg_upstream_name = pkg_upstream_name
+        self.pkg_downstream_name = pkg_downstream_name
         self.pkg_branch_map = pkg_branch_map
         self.pkg_tp_engine = pkg_tp_engine
         self.pkg_tp_auth_usr = pkg_tp_auth_usr
@@ -1388,7 +1390,8 @@ class ActionMapper(BaseManager):
             'pkg_ci_engine': self.pkg_ci_engine, 'pkg_ci_url': self.pkg_ci_url,
             'pkg_ci_auth_usr': self.pkg_ci_auth_usr, 'pkg_ci_auth_token': self.pkg_ci_auth_token,
             'ci_release': self.ci_release, 'ci_target_langs': self.ci_target_langs,
-            'ci_project_uid': self.ci_project_uid, 'ci_lang_job_map': self.ci_lang_job_map
+            'ci_project_uid': self.ci_project_uid, 'ci_lang_job_map': self.ci_lang_job_map,
+            'pkg_downstream_name': self.pkg_downstream_name
         }
 
         while current_node is not None:

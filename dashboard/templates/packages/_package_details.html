@@ -32,6 +32,10 @@
       &emsp;<a href="{% url 'settings-stream-branches' product %}">{{ product }}</a>
   {% endfor %}
   </span>
+  {% if package.downstream_name %} &emsp;
+  <span class="text-muted">Downstream Name:</span>
+  {{ package.downstream_name }}
+  {% endif %}
   {% if package.downstream_last_updated %} &emsp;
   <span class="text-muted">Last Sync with Build System:</span>
   {{ package.downstream_last_updated|timesince }}
