@@ -1,5 +1,5 @@
 
-##### Fri Jun 04 2021 Sundeep Anand <suanand@redhat.com>
+##### Tue Jun 08 2021 Sundeep Anand <suanand@redhat.com> - release_0.8.4
 * add downstream package name for syncing builds
 * implement Memsource workflowStep for CI Pipeline
 * add django-cors-headers for crossorigin

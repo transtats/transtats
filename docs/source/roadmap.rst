@@ -20,7 +20,7 @@ Upcoming Releases
 | And releases are scheduled every quarter end.
 
 
-Transtats 0.8.3
+Transtats 0.8.4
 ---------------
 
 | Target delivery: End of June 2021
