@@ -251,6 +251,8 @@ class Package(ModelMixin, models.Model):
     package_name = models.CharField(max_length=1000, unique=True, verbose_name="Package Name")
     upstream_name = models.CharField(max_length=1000, null=True, blank=True,
                                      verbose_name="Upstream Name")
+    downstream_name = models.CharField(max_length=1000, null=True, blank=True,
+                                       verbose_name="Downstream Name")
     component = models.CharField(max_length=200, null=True, blank=True, verbose_name="Component")
     upstream_url = models.URLField(max_length=2000, unique=True, verbose_name="Upstream URL")
     upstream_l10n_url = models.URLField(max_length=2000, null=True, blank=True,

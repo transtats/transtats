@@ -222,10 +222,11 @@ class CIPipelineManager(BaseManager):
             return True
         return False
 
-    def ci_lang_job_map(self, pipelines):
+    def ci_lang_job_map(self, pipelines, workflow_step='default'):
         """
         Get CI Platform Target Language: Job UID map
         :param pipelines: Query Objects
+        :param workflow_step: Str
         :return: dict
         """
         ci_lang_job_map = dict()
@@ -235,8 +236,41 @@ class CIPipelineManager(BaseManager):
             if pipeline.ci_platform_jobs_json:
                 ci_lang_job_map[pipeline.ci_pipeline_uuid] = dict()
                 for job_detail in pipeline.ci_platform_jobs_json:
-                    if job_detail.get('targetLang') and job_detail.get('uid'):
+                    if not job_detail.get('workflowStep') and \
+                            job_detail.get('targetLang') and job_detail.get('uid'):
+                        ci_lang_job_map[pipeline.ci_pipeline_uuid].update(
+                            {job_detail['targetLang']: job_detail['uid']}
+                        )
+                    elif workflow_step == 'default' and job_detail.get('workflowLevel') == 1 and \
+                            job_detail.get('targetLang') and job_detail.get('uid'):
+                        ci_lang_job_map[pipeline.ci_pipeline_uuid].update(
+                            {job_detail['targetLang']: job_detail['uid']}
+                        )
+                    elif job_detail.get('workflowStep') and \
+                            job_detail.get('workflowStep').get('name') == workflow_step and \
+                            job_detail.get('targetLang') and job_detail.get('uid'):
                         ci_lang_job_map[pipeline.ci_pipeline_uuid].update(
                             {job_detail['targetLang']: job_detail['uid']}
                         )
         return ci_lang_job_map
+
+    def get_ci_platform_workflow_steps(self, pipeline_uuid):
+        """
+        Get CI Platform Workflow Step
+        :param pipeline_uuid: str
+        :return: list
+        """
+
+        def unique(sequence):
+            seen = set()
+            return [x for x in sequence if not (x in seen or seen.add(x))]
+
+        workflow_steps = []
+        if not pipeline_uuid:
+            return workflow_steps
+        ci_pipeline = self.get_ci_pipelines(uuids=[pipeline_uuid])
+        if not ci_pipeline:
+            return workflow_steps
+        ci_pipeline = ci_pipeline.get()
+        return unique([p_job['workflowStep'].get('name', 'default') if p_job.get('workflowStep')
+                       else 'default' for p_job in ci_pipeline.ci_platform_jobs_json])

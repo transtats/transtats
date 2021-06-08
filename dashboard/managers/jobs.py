@@ -688,6 +688,7 @@ class YMLBasedJobManager(BaseManager):
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
                 self.pkg_upstream_name = package_detail.upstream_name
+                self.pkg_downstream_name = package_detail.downstream_name
                 self.pkg_tp_engine = package_detail.platform_slug.engine_name
                 self.pkg_tp_url = package_detail.platform_slug.api_url
                 self.pkg_tp_auth_usr = package_detail.platform_slug.auth_login_id
@@ -712,7 +713,9 @@ class YMLBasedJobManager(BaseManager):
                 self.ci_target_langs = ci_pipeline_detail.ci_project_details_json.get('targetLangs', [])
                 self.ci_project_uid = ci_pipeline_detail.ci_project_details_json.get('uid', '')
                 self.ci_pipeline_id = ci_pipeline_detail.ci_pipeline_id
-                ci_lang_job_map = self.ci_pipeline_manager.ci_lang_job_map(pipelines=[ci_pipeline_detail])
+                pipeline_workflow_step = getattr(self, 'WORKFLOW_STEP', 'default')
+                ci_lang_job_map = self.ci_pipeline_manager.ci_lang_job_map(
+                    pipelines=[ci_pipeline_detail], workflow_step=pipeline_workflow_step)
                 if ci_lang_job_map.get(ci_pipeline_detail.ci_pipeline_uuid):
                     self.ci_lang_job_map = ci_lang_job_map[ci_pipeline_detail.ci_pipeline_uuid]
 
@@ -884,6 +887,7 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'upstream_repo_url', ''),
             getattr(self, 'trans_file_ext', ''),
             getattr(self, 'pkg_upstream_name', ''),
+            getattr(self, 'pkg_downstream_name', ''),
             getattr(self, 'pkg_branch_map', {}),
             getattr(self, 'pkg_tp_engine', ''),
             getattr(self, 'pkg_tp_auth_usr', ''),
