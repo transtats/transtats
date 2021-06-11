@@ -12,7 +12,7 @@
         <h1>Pipeline Details
           {% if ci_pipeline.ci_project_details_json|get_item:"name" %}
             <small class="pull-right">
-             <a href="{{ ci_pipeline.ci_project_web_url }}" target="_blank">
+             <a href="{{ ci_pipeline.ci_project_web_url }}" target="_blank" rel="noreferrer">
                {{ ci_pipeline.ci_project_details_json|get_item:"name" }}</a>&nbsp;&nbsp;
              <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-default" data-toggle="tooltip"
                        data-placement="bottom" title="Go Back"><span class="fa fa-chevron-left"></span> Go Back</a>

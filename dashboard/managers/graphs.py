@@ -18,7 +18,7 @@
 # python
 import json
 import functools
-from operator import add, itemgetter
+from operator import itemgetter
 from collections import Counter, OrderedDict
 
 # third-party
@@ -64,16 +64,19 @@ class GraphManager(BaseManager):
         rules = None
         try:
             rules = GraphRule.objects.filter(**filter_kwargs).order_by('rule_name')
-        except:
-            # log event, passing for now
-            pass
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Coverage rules could not be fetched, details: " + str(e)
+            )
         return rules
 
     def slugify_graph_rule_name(self, suggested_name):
         try:
             return slugify(suggested_name)
-        except:
-            # log even, passing for now
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Slugify coverage rule failed, details: " + str(e)
+            )
             return False
 
     def validate_package_branch_participation(self, relbranch, packages):
@@ -163,9 +166,10 @@ class GraphManager(BaseManager):
             kwargs['rule_status'] = True
             new_rule = GraphRule(**kwargs)
             new_rule.save()
-        except:
-            # log event, pass for now
-            # todo implement error msg handling
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Coverage rule could not be saved, details: " + str(e)
+            )
             return False
         else:
             return True
@@ -592,7 +596,6 @@ class ReportsManager(GraphManager):
         pkg_improper_branch_mapping = 0
         pkg_with_stats_diff = []
         if relbranches and len(relbranches) > 0:
-            relbranch_slugs = sorted([slug for slug, name in relbranches], reverse=True)
             pkgs_improper_branch_mapping = [i.package_name for i in all_packages
                                             if not i.release_branch_mapping_health]
             pkg_improper_branch_mapping = len(pkgs_improper_branch_mapping)

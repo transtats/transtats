@@ -118,7 +118,7 @@ class JobManager(object):
             Job.objects.update_or_create(
                 **match_params, defaults=kwargs
             )
-        except:
+        except Exception:
             # log event, pass for now
             return False
         else:
@@ -144,7 +144,7 @@ class JobManager(object):
                     job_visible_on_url=self.visible_on_url,
                     ci_pipeline=self.ci_pipeline
                 )
-        except:
+        except Exception:
             return False
         else:
             return True
@@ -173,7 +173,7 @@ class JobsLogManager(BaseManager):
             filters.update(dict(ci_pipeline__isnull=False))
         try:
             job_logs = Job.objects.filter(**filters).order_by('-job_start_time')
-        except:
+        except Exception:
             # log event, passing for now
             pass
         return job_logs
@@ -189,7 +189,7 @@ class JobsLogManager(BaseManager):
             return job_log
         try:
             job_log = Job.objects.filter(job_uuid=job_id).first()
-        except:
+        except Exception:
             # log event, passing for now
             pass
         return job_log

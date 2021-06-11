@@ -145,7 +145,6 @@ class InventoryManager(BaseManager):
                 'ERROR', "language set could not be fetched for " +
                          langset_slug + ", details: " + str(e)
             )
-            pass
         return langset
 
     def get_langsets(self, fields=None):
@@ -439,13 +438,13 @@ class SyncStatsManager(BaseManager):
                 elif stats_json.get('stats'):
                     for stats_param in stats_json['stats']:
                         stats_param_locale = stats_param.get(locale_key, '')
-                        for locale_tuple in locales:
-                            if (stats_param_locale in locale_tuple) or \
-                                    (stats_param_locale.replace('-', '_') in locale_tuple):
+                        for locale_tuple_1 in locales:
+                            if (stats_param_locale in locale_tuple_1) or \
+                                    (stats_param_locale.replace('-', '_') in locale_tuple_1):
                                 stats_param['source'] = source
                                 trans_stats.append(stats_param)
                             else:
-                                missing_locales.append(locale_tuple)
+                                missing_locales.append(locale_tuple_1)
 
         return trans_stats, tuple(set(locales) - set(missing_locales))
 

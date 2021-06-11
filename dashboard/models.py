@@ -38,7 +38,7 @@ class ModelMixin(object):
     def str2json(text_value):
         try:
             return json.loads(text_value)
-        except:
+        except Exception:
             return {}
 
 
