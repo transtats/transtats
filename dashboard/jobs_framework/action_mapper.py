@@ -186,7 +186,9 @@ class Download(JobCommandBase):
             with open(file_path, 'wb') as f:
                 f.write(req.content)
                 return file_path
-        except:
+        except FileNotFoundError:
+            return ''
+        except Exception:
             return ''
 
     def srpm(self, input, kwargs):
@@ -912,7 +914,7 @@ class Filter(JobCommandBase):
         except Exception as e:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
-                'Something went wrong in filtering %s files: %s' % file_ext, str(e)
+                'Something went wrong in filtering {} files: {}'.format(file_ext, str(e))
             ))
         else:
             is_podir = self._determine_podir(trans_files, kwargs.get('domain'))

@@ -328,9 +328,11 @@ class PackagesManager(InventoryManager):
             # save in db
             new_package = Package(**kwargs)
             new_package.save()
-        except:
+        except Exception as e:
             # log event, pass for now
-            # todo - implement error msg handling
+            self.app_logger(
+                "Error", "Failed to add a new package. Details: {}".format(str(e))
+            )
             return False
         else:
             return True

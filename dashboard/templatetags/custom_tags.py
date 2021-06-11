@@ -85,7 +85,7 @@ def tz_date(timezone):
     try:
         tz_datetime = \
             datetime.now(pytz.timezone(timezone)).time()
-    except:
+    except Exception:
         # pass for now
         return ":"
     return "{}:{}:{}".format(tz_datetime.hour,
@@ -141,7 +141,7 @@ def tag_package_details(package_name, user):
             return_value.update(
                 {'package_desc': pkg_details['description']}
             )
-    except:
+    except Exception:
         # log event, passing for now
         pass
     else:
@@ -161,7 +161,7 @@ def tag_branch_mapping(package):
     return_value = OrderedDict()
     try:
         package_details = package_manager.get_packages([package]).get()
-    except:
+    except Exception:
         # log event, passing for now
         pass
     else:
@@ -190,7 +190,7 @@ def tag_latest_builds(package):
     return_value = OrderedDict()
     try:
         package_details = package_manager.get_packages([package]).get()
-    except:
+    except Exception:
         # log event, passing for now
         pass
     else:
@@ -212,7 +212,7 @@ def tag_stats_diff(package):
     return_value = OrderedDict()
     try:
         package_details = package_manager.get_packages([package]).get()
-    except:
+    except Exception:
         # log event, passing for now
         pass
     else:

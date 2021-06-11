@@ -28,7 +28,7 @@ from django.forms.utils import ErrorList
 from django.http import (
     HttpResponse, HttpResponseRedirect, JsonResponse, Http404
 )
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from django.template import Context, Template
 from django.views.generic import (
     TemplateView, ListView, FormView, DetailView
@@ -144,7 +144,7 @@ class TranStatusPackageView(ManagersMixin, TemplateView):
         """
         Build the Context Data
         """
-        context = super(TemplateView, self).get_context_data(**kwargs)
+        context = super(TranStatusPackageView, self).get_context_data(**kwargs)
         packages = self.packages_manager.get_package_name_tuple()
         langs = self.inventory_manager.get_locale_lang_tuple()
         if packages:
@@ -170,7 +170,7 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         """
         Build the Context Data
         """
-        context = super(TemplateView, self).get_context_data(**kwargs)
+        context = super(TranStatusReleasesView, self).get_context_data(**kwargs)
         relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
         context['releases'] = relbranches
         products = self.inventory_manager.get_release_streams()
@@ -232,7 +232,7 @@ class TransCoverageView(ManagersMixin, TemplateView):
         """
         Build the Context Data
         """
-        context = super(TemplateView, self).get_context_data(**kwargs)
+        context = super(TransCoverageView, self).get_context_data(**kwargs)
         graph_rules = self.graph_manager.get_graph_rules(only_active=True)
         if graph_rules:
             context['rules'] = graph_rules
@@ -707,7 +707,7 @@ class JobsView(ManagersMixin, TemplateView):
     template_name = "jobs/jobs_home.html"
 
     def get_context_data(self, **kwargs):
-        context = super(TemplateView, self).get_context_data(**kwargs)
+        context = super(JobsView, self).get_context_data(**kwargs)
         jobs_count, last_ran_on, last_ran_type = \
             self.jobs_log_manager.get_joblog_stats()
         context['jobs_count'] = jobs_count
@@ -740,7 +740,7 @@ class CleanUpJobs(ManagersMixin, TemplateView):
         return render(request, self.template_name, self.get_context_data(**kwargs))
 
     def get_context_data(self, **kwargs):
-        context = super(TemplateView, self).get_context_data(**kwargs)
+        context = super(CleanUpJobs, self).get_context_data(**kwargs)
         sync_stats_manager = SyncStatsManager()
         sync_stats = sync_stats_manager.get_sync_stats()
         if sync_stats:
@@ -1568,7 +1568,7 @@ def change_lang_status(request):
                 language_object.lang_status = True if new_lang_status == 'enable' else False
                 language_object.save()
             except Exception as status_change_error:
-                return HttpResponse(str(status_change_error), status=500)
+                return HttpResponse("Something went wrong.", status=500)
             else:
                 return HttpResponse("language {0}d successfully!".format(new_lang_status), status=202)
         else:

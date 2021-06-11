@@ -387,9 +387,9 @@ def _emit(key, value, content_handler,
                 ik = _process_namespace(ik, namespaces, namespace_separator,
                                         attr_prefix)
                 if ik == '@xmlns' and isinstance(iv, dict):
-                    for k, v in iv.items():
-                        attr = 'xmlns{0}'.format(':{0}'.format(k) if k else '')
-                        attrs[attr] = _unicode(v)
+                    for x, y in iv.items():
+                        attr = 'xmlns{0}'.format(':{0}'.format(x) if x else '')
+                        attrs[attr] = _unicode(y)
                     continue
                 if not isinstance(iv, _unicode):
                     iv = _unicode(iv)
