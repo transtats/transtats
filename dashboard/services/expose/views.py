@@ -348,11 +348,11 @@ class RunJob(JobManagerMixin, APIView):
                         response_text.update(dict(job_id=str(job_uuid)))
                 else:
                     response_text, response_code = {
-                        "job_params": "Required params: %s not found" % ", ".join(unavailable_params)
+                        "job_params": "Required params: %s not found." % ", ".join(unavailable_params)
                     }, 412
             else:
                 response_text, response_code = {
-                    "job_type": "Job template for %s not found" % input_job_type
+                    "job_type": "Job template not found."
                 }, 412
         else:
             response_text, response_code = {"job_type": "Empty job type"}, 412

@@ -773,7 +773,8 @@ class GeoLocationManager(ReportsManager):
         :param territory_id: three characters country code
         :return: related stats: dict
         """
-        related_locales, _, _ = self.get_locales_from_territory_id(territory_id)
+        related_locales, related_langs, country_code = \
+            self.get_locales_from_territory_id(territory_id)
         location_summary = self.get_reports(report_subject='location')
 
         if not related_locales or not location_summary:
