@@ -463,7 +463,7 @@ def tag_sync_from_coverage(stats, package, release, tag):
     release_manager = ReleaseBranchManager()
     try:
         package_details = package_manager.get_packages([package]).get()
-    except:
+    except Exception:
         # log event, passing for now
         pass
     else:
