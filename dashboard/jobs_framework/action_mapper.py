@@ -317,7 +317,7 @@ class Download(JobCommandBase):
                         self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot',
                         headers=headers
                     )
-                probable_versions = ('master', 'default', input['package'])
+                probable_versions = ('main', 'master', 'default', input['package'])
                 while_loop_counter = 0
                 while platform_pot_path == '404' and while_loop_counter < len(probable_versions):
                     url_kwargs['version'] = probable_versions[while_loop_counter]
@@ -510,7 +510,7 @@ class Clone(JobCommandBase):
             task_log.update(self._log_task(
                 input['log_f'], task_subject, 'Cloning failed. Details: %s' % trace_back
             ))
-            raise Exception("Cloning '%s' branch failed." % kwargs.get('branch', 'master'))
+            raise Exception("Cloning '%s' branch failed." % kwargs.get('branch', 'main'))
         else:
             if vars(clone_result).get('git_dir'):
                 task_log.update(self._log_task(
