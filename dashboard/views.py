@@ -580,7 +580,7 @@ class NewGraphRuleView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
-        initials.update(dict(rule_relbranch='master'))
+        initials.update(dict(rule_relbranch='main'))
         return initials
 
     def get_form(self, form_class=None, data=None):
@@ -1176,10 +1176,8 @@ def schedule_job(request):
                 )
                 try:
                     job_uuid = job_manager.execute_job()
-                except Exception as e:
-                    error_msg = str(e) if len(str(e)) < 50 else str(e)[:50] + '...'
-                    message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.<br/>" \
-                              "&nbsp;&nbsp;<small class='text-danger'>" + error_msg + " </small></span>"
+                except Exception:
+                    message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
                     return HttpResponse(message, status=500)
                 else:
                     if not request.POST.dict().get('SCRATCH', '') == 'ScratchRun':

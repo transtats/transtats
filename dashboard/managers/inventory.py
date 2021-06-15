@@ -617,7 +617,7 @@ class ReleaseBranchManager(InventoryManager):
     def get_relbranch_name_slug_tuple(self):
         """
         Get release branch slug and name tuple
-        :return: (('master', 'master'), )
+        :return: (('main', 'main'), )
         """
         release_branches = self.get_release_branches(
             fields=('release_slug', 'release_name', 'track_trans_flag')
