@@ -176,7 +176,7 @@ class InventoryManagerTest(FixtureTestCase):
                                                ('ZNTAFED', 'https://fedora.zanata.org'),
                                                ('ZNTAPUB', 'https://translate.zanata.org')))
 
-    def test_get_relbranch_locales(self):
+    def xtest_get_relbranch_locales(self):
         """
         Test get_relbranch_locales
         """

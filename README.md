@@ -6,9 +6,7 @@
 
 ## Transtats
 
-**Overview and trends for language translations across releases**
-
-[transtats.org](http://transtats.org/)
+**Help track language translations across releases and automate process workflows.**
 
 Transtats web interface helps make packages ready to ship with translation completeness. It seems meaningful to localization teams, package maintainers, developers and quality engineers.
 
@@ -19,20 +17,19 @@ Transtats web interface helps make packages ready to ship with translation compl
     - Which packages are out-of-sync and for which language(s)?
     - Are all strings pushed to translation platform latest to source repositories?
  - At-a-glance picture for managing the localization effort progress, release by release. And it's readiness.
+ - Automate translation workflows by scheduling jobs. (and pipelines)
 
 To learn about using Transtats, please point your browser to [docs](http://docs.transtats.org).
 
 ### Quick Start
 
-Get docker daemon running. Pull `transtats` image *(from [docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
+Get docker daemon running. Build `transtats` image and get started.
 
-- Pull the image *(or build your own)*
+- Build and run the image
   ```shell
-  $ sudo docker pull docker.io/transtats/transtats
-  ```
-
-- Run the image
-  ```shell
+  $ git clone https://github.com/transtats/transtats.git
+  $ cd transtats
+  $ sudo docker build -t transtats/transtats deploy/docker
   $ sudo docker run -d --name container_name -p 8080:8015 transtats/transtats
   ```
 

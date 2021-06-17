@@ -12,15 +12,16 @@ spec:
       USER root
       RUN useradd -ms /bin/bash tsuser
       RUN dnf -y update && \
-          dnf -y install git make cpio koji file patch intltool libtool gtk3-devel npm supervisor redis libxcrypt-compat && \
+          dnf -y install git make cpio koji file patch intltool libtool gtk3-devel npm supervisor redis libxcrypt-compat python3-pip && \
           dnf clean all
       RUN mkdir /workspace
       ENV PYTHONUNBUFFERED 1
       WORKDIR /workspace
-      RUN git clone -b master https://github.com/transtats/transtats.git .
+      RUN git clone -b main https://github.com/transtats/transtats.git .
       RUN pip3 install -r /workspace/requirements/base.txt
       RUN cp deploy/docker-compose/transtats/launch.sh /usr/bin/transtats.sh
       RUN cp deploy/docker-compose/transtats/wait-for-it.sh /usr/bin/wait-for-it.sh
+      RUN cp deploy/docker/conf/supervisord.conf /etc/supervisord.conf
       RUN cp deploy/docker/conf/redis.ini /etc/supervisord.d/
       RUN cp deploy/docker/conf/transtats_celery.ini /etc/supervisord.d/
       RUN cp deploy/docker/conf/transtats_celerybeat.ini /etc/supervisord.d/
