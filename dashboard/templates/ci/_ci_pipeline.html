@@ -147,19 +147,7 @@
             </div>
           </dl>
           {% if pipeline.ci_platform_jobs_json %}
-            <hr/><h3>CI Platform Jobs</h3>
-            <div class="row">
-              <ol>
-              {% for platform_job in pipeline.ci_platform_jobs_json %}
-              <li class="col-md-3">
-                  <h5>Created On: <code>{{ platform_job|get_item:"dateCreated"|parse_memsource_time }}</code></h5>
-                  <h5>Job UID: <code>{{ platform_job|get_item:"uid" }}</code></h5>
-                  <h5>Target Language: <code>{{ platform_job|get_item:"targetLang" }}</code></h5>
-                  <h5>Status: <code>{{ platform_job|get_item:"status" }}</code></h5>
-              </li>
-              {% endfor %}
-              </ol>
-            </div>
+            {% tag_pipeline_workflow_steps pipeline.ci_platform_jobs_json %}
           {% endif %}
           <!--<pre>{{ pipeline.ci_project_details_json }}</pre>-->
           <div class="pull-right" style="margin-top: 1%">

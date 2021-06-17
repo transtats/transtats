@@ -291,12 +291,24 @@ class TransplatformResources(ResourcesBase):
         if response.get('err_content') and not response.get('json_content'):
             return response.get('err_content')
         resp_json_content = response.get('json_content')
+        workflow_steps = resp_json_content.get('workflowSteps', [])
+
         if kwargs.get('more_resources'):
             for next_resource in kwargs['more_resources']:
                 if next_resource == 'project_jobs':
-                    resp_json_content['project_jobs'] = \
-                        TransplatformResources._fetch_memsource_project_jobs(
-                            base_url, next_resource, *url_params, **kwargs)
+                    if not workflow_steps:
+                        resp_json_content['project_jobs'] = \
+                            TransplatformResources._fetch_memsource_project_jobs(
+                                base_url, next_resource, *url_params, **kwargs)
+                    else:
+                        resp_json_content['project_jobs'] = []
+                        for workflow_step in workflow_steps:
+                            workflow_level = workflow_step.get('workflowLevel')
+                            if workflow_level:
+                                kwargs['ext'] = "{}={}".format("workflowLevel", workflow_level)
+                                resp_json_content['project_jobs'] = \
+                                    TransplatformResources._fetch_memsource_project_jobs(
+                                        base_url, next_resource, *url_params, **kwargs)
         return resp_json_content
 
     @staticmethod

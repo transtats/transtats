@@ -85,7 +85,7 @@ def tz_date(timezone):
     try:
         tz_datetime = \
             datetime.now(pytz.timezone(timezone)).time()
-    except:
+    except Exception:
         # pass for now
         return ":"
     return "{}:{}:{}".format(tz_datetime.hour,
@@ -141,7 +141,7 @@ def tag_package_details(package_name, user):
             return_value.update(
                 {'package_desc': pkg_details['description']}
             )
-    except:
+    except Exception:
         # log event, passing for now
         pass
     else:
@@ -161,7 +161,7 @@ def tag_branch_mapping(package):
     return_value = OrderedDict()
     try:
         package_details = package_manager.get_packages([package]).get()
-    except:
+    except Exception:
         # log event, passing for now
         pass
     else:
@@ -190,7 +190,7 @@ def tag_latest_builds(package):
     return_value = OrderedDict()
     try:
         package_details = package_manager.get_packages([package]).get()
-    except:
+    except Exception:
         # log event, passing for now
         pass
     else:
@@ -212,7 +212,7 @@ def tag_stats_diff(package):
     return_value = OrderedDict()
     try:
         package_details = package_manager.get_packages([package]).get()
-    except:
+    except Exception:
         # log event, passing for now
         pass
     else:
@@ -463,7 +463,7 @@ def tag_sync_from_coverage(stats, package, release, tag):
     release_manager = ReleaseBranchManager()
     try:
         package_details = package_manager.get_packages([package]).get()
-    except:
+    except Exception:
         # log event, passing for now
         pass
     else:
@@ -585,4 +585,40 @@ def tag_target_langs(ci_pipeline):
     if pipeline:
         return_value['target_langs'] = \
             pipeline.ci_project_details_json.get('targetLangs') or []
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("ci", "_pipeline_workflow_steps.html")
+)
+def tag_pipeline_workflow_steps(pipeline_jobs):
+    return_value = OrderedDict()
+    p_jobs_group = dict()
+    for pipeline_job in pipeline_jobs:
+        workflow_step = pipeline_job.get('workflowStep')
+        if not workflow_step:
+            # As workflowStep is a project level settings
+            # it is safe to determine just by first (one) job
+            return_value['platform_jobs'] = pipeline_jobs
+            return return_value
+        workflow_name = pipeline_job.get('workflowStep', {}).get('name')
+        if workflow_name not in p_jobs_group:
+            p_jobs_group[workflow_name] = []
+        p_jobs_group[workflow_name].append(pipeline_job)
+    return_value['platform_job_groups'] = p_jobs_group
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("jobs", "_workflow_steps.html")
+)
+def tag_workflow_steps_dropdown(ci_pipeline):
+    return_value = OrderedDict()
+    if not ci_pipeline:
+        return return_value
+    ci_pipeline_manager = CIPipelineManager()
+    workflow_steps = ci_pipeline_manager.get_ci_platform_workflow_steps(
+        pipeline_uuid=ci_pipeline
+    )
+    return_value['workflow_steps'] = workflow_steps
     return return_value

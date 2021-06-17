@@ -19,6 +19,39 @@ from celery.schedules import crontab
 # Core Django imports
 from django.core.exceptions import ImproperlyConfigured
 
+__all__ = [
+    'BASE_DIR',
+    'SECRET_KEY',
+    'INSTALLED_APPS',
+    'MIDDLEWARE',
+    'ROOT_URLCONF',
+    'TEMPLATES',
+    'AUTHENTICATION_BACKENDS',
+    'SESSION_ENGINE',
+    'SESSION_COOKIE_SECURE',
+    'WSGI_APPLICATION',
+    'LOGIN_REDIRECT_URL',
+    'CELERY_BROKER_URL',
+    'CELERY_TASK_SERIALIZER',
+    'CELERY_RESULT_SERIALIZER',
+    'CELERY_ACCEPT_CONTENT',
+    'CELERY_ENABLE_UTC',
+    'CELERY_BEAT_SCHEDULE',
+    'DATABASES',
+    'MIGRATE_INITIAL_DATA',
+    'AUTH_PASSWORD_VALIDATORS',
+    'LANGUAGE_CODE',
+    'TIME_ZONE',
+    'USE_I18N',
+    'USE_L10N',
+    'USE_TZ',
+    'STATICFILES_DIRS',
+    'STATIC_URL',
+    'STATIC_ROOT',
+    'CRISPY_TEMPLATE_PACK',
+    'CACHES'
+]
+
 # Imports from your apps
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)

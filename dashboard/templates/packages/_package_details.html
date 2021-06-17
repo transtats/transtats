@@ -1,7 +1,7 @@
 <h1>{{ package.package_name }}{% if package_desc %}<small>&nbsp;&nbsp;&nbsp;{{ package_desc }}</small>{% endif %}</h1>
 <h5>
   <strong>Upstream Repository URL: </strong>
-  <a href="{{ package.upstream_url }}" target="_blank">{{ package.upstream_url }}</a>
+  <a href="{{ package.upstream_url }}" target="_blank" rel="noreferrer">{{ package.upstream_url }}</a>
   <span class="fa fa-external-link" aria-hidden="true"></span>
   {% if package.upstream_last_updated %} &emsp;
   <span class="text-muted">Last Sync:</span> {{ package.upstream_last_updated|timesince }}
@@ -11,13 +11,13 @@
 {% if package.upstream_l10n_url %}
 <h5>
   <strong>Upstream Localization Repository URL: </strong>
-  <a href="{{ package.upstream_l10n_url }}" target="_blank">{{ package.upstream_l10n_url }}</a>
+  <a href="{{ package.upstream_l10n_url }}" target="_blank" rel="noreferrer">{{ package.upstream_l10n_url }}</a>
   <span class="fa fa-external-link" aria-hidden="true"></span>
 </h5>
 {% endif %}
 <h5>
   <strong>Translation Platform Project URL: </strong>
-  <a href="{{ package.platform_url }}" target="_blank">{{ package.platform_url }}</a>
+  <a href="{{ package.platform_url }}" target="_blank" rel="noreferrer">{{ package.platform_url }}</a>
   <span class="fa fa-external-link" aria-hidden="true"></span>
   {% if package.platform_last_updated %} &emsp;
   <span class="text-muted">Last Sync:</span>
@@ -32,6 +32,10 @@
       &emsp;<a href="{% url 'settings-stream-branches' product %}">{{ product }}</a>
   {% endfor %}
   </span>
+  {% if package.downstream_name %} &emsp;
+  <span class="text-muted">Downstream Name:</span>
+  {{ package.downstream_name }}
+  {% endif %}
   {% if package.downstream_last_updated %} &emsp;
   <span class="text-muted">Last Sync with Build System:</span>
   {{ package.downstream_last_updated|timesince }}

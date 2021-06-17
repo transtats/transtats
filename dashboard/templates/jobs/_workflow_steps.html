@@ -1,0 +1,15 @@
+
+<script>$(".selectpicker").selectpicker();</script>
+
+{% if workflow_steps %}
+<div class="form-group">
+    <label class="control-label">Workflow Step</label>
+    <div style="padding-bottom:10px">
+        <select id="workflowStep" class="selectpicker">
+            {% for workflow_step in workflow_steps %}
+                <option value="{{ workflow_step }}">{{ workflow_step }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+{% endif %}

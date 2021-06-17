@@ -136,4 +136,4 @@ class PackagesManagerTest(FixtureTestCase):
             repo_type='l10n'
         )
         self.assertEqual(len(scm_branch), 2)
-        self.assertListEqual(scm_branch, ['autoupdate-potfiles', 'master'])
+        self.assertListEqual(scm_branch, ['autoupdate-potfiles', 'main'])

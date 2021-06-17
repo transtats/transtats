@@ -328,9 +328,11 @@ class PackagesManager(InventoryManager):
             # save in db
             new_package = Package(**kwargs)
             new_package.save()
-        except:
+        except Exception as e:
             # log event, pass for now
-            # todo - implement error msg handling
+            self.app_logger(
+                "Error", "Failed to add a new package. Details: {}".format(str(e))
+            )
             return False
         else:
             return True
@@ -850,7 +852,8 @@ class PackagesManager(InventoryManager):
                 product = product.get()
                 product_build_system_hub_url = product.product_server
                 build_sys_pkg_id = self.api_resources.package_id(
-                    product_build_system_hub_url, package.package_name
+                    product_build_system_hub_url,
+                    package.downstream_name or package.package_name
                 )
                 pkg_builds = self.api_resources.list_builds(
                     product_build_system_hub_url, build_sys_pkg_id
@@ -908,7 +911,7 @@ class PackagesManager(InventoryManager):
         :param release: Release Slug
         :return: git branch(es)
         """
-        default_branch = ['master']
+        default_branch = ['main']
         package = self.get_packages([package_name])
         if not package:
             return default_branch
@@ -1041,7 +1044,7 @@ class PackageBranchMapping(object):
         2. sort versions matching stream and then try to match version number
         3. try short forms combined with version number
         4. todo: fetch release dates and try matching with that
-        5. try finding default version: 'master' may be
+        5. try finding default version: 'main' may be
         6. if nothing works, return blank
         """
         match1 = difflib.get_close_matches(branch, from_branches)
@@ -1058,8 +1061,9 @@ class PackageBranchMapping(object):
         if status2:
             return self._return_original_version(match3)
 
-        probable_branches = ['default', 'master', 'head', 'rawhide', 'devel', 'app',
-                             'core', 'translations', 'programs', self.package_name]
+        probable_branches = ['default', 'main', 'master', 'head',
+                             'rawhide', 'devel', 'app', 'core',
+                             'translations', 'programs', self.package_name]
 
         for version in probable_branches:
             if version in from_branches:

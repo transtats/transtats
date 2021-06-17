@@ -21,7 +21,7 @@ import yaml
 
 from datetime import timedelta
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from dashboard.constants import TS_JOB_TYPES, BRANCH_MAPPING_KEYS

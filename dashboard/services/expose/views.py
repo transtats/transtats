@@ -308,8 +308,9 @@ class RunJob(JobManagerMixin, APIView):
             data_received = self.request.POST.copy()
         query_params = self.request.query_params.copy()
         if data_received and data_received.get('job_type'):
+            input_job_type = data_received['job_type']
             job_templates = self.job_template_manager.get_job_templates(
-                job_template_type=data_received['job_type']
+                job_template_type=input_job_type
             )
             job_template = job_templates.first() \
                 if job_templates and len(job_templates) > 0 else {}
@@ -329,14 +330,14 @@ class RunJob(JobManagerMixin, APIView):
                     job_params = [param.upper() for param in job_params]
                     job_manager = YMLBasedJobManager(
                         **{field: job_data.get(field) for field in fields},
-                        **{'params': job_params, 'type': data_received['job_type']},
+                        **{'params': job_params, 'type': input_job_type},
                         **{'active_user_email': active_user_email}
                     )
                     try:
                         job_uuid = job_manager.execute_job()
                     except Exception as e:
                         return Response({
-                            "Exception": "Something went wrong. Details: %s" % str(e)
+                            "Exception": "Something went wrong while job execution."
                         }, status=500)
                     else:
                         response_text, response_code = {
@@ -347,11 +348,11 @@ class RunJob(JobManagerMixin, APIView):
                         response_text.update(dict(job_id=str(job_uuid)))
                 else:
                     response_text, response_code = {
-                        "job_params": "Required params: %s not found" % ", ".join(unavailable_params)
+                        "job_params": "Required params: %s not found." % ", ".join(unavailable_params)
                     }, 412
             else:
                 response_text, response_code = {
-                    "job_type": "Job template for %s not found" % data_received['job_type']
+                    "job_type": "Job template not found."
                 }, 412
         else:
             response_text, response_code = {"job_type": "Empty job type"}, 412

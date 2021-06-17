@@ -1,0 +1,33 @@
+{% load custom_tags %}
+
+<hr/><h2>CI Platform Jobs</h2>
+<div class="container">
+{% if platform_job_groups %}
+    {% for workflow_name, workflow_data in platform_job_groups.items %}
+        <div class="h3">{{ workflow_name }}</div><hr/>
+        <div class="container">
+          <ol>{% for platform_job in workflow_data %}
+              <li class="col-md-3">
+                  <h5>Created On: <code>{{ platform_job|get_item:"dateCreated"|parse_memsource_time }}</code></h5>
+                  <h5>Job UID: <code>{{ platform_job|get_item:"uid" }}</code></h5>
+                  <h5>Target Language: <code>{{ platform_job|get_item:"targetLang" }}</code></h5>
+                  <h5>Status: <code>{{ platform_job|get_item:"status" }}</code></h5>
+              </li>{% endfor %}
+          </ol>
+        </div>
+    {% endfor %}
+{% elif platform_jobs %}
+    <div class="row">
+      <ol>
+        {% for platform_job in platform_jobs %}
+          <li class="col-md-3">
+              <h5>Created On: <code>{{ platform_job|get_item:"dateCreated"|parse_memsource_time }}</code></h5>
+              <h5>Job UID: <code>{{ platform_job|get_item:"uid" }}</code></h5>
+              <h5>Target Language: <code>{{ platform_job|get_item:"targetLang" }}</code></h5>
+              <h5>Status: <code>{{ platform_job|get_item:"status" }}</code></h5>
+          </li>
+        {% endfor %}
+      </ol>
+    </div>
+{% endif %}
+</div>
