@@ -23,15 +23,13 @@ To learn about using Transtats, please point your browser to [docs](http://docs.
 
 ### Quick Start
 
-Get docker daemon running. Pull `transtats` image *(from [docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
+Get docker daemon running. Build `transtats` image and get started.
 
-- Pull the image *(or build your own)*
+- Build and run the image
   ```shell
-  $ sudo docker pull docker.io/transtats/transtats
-  ```
-
-- Run the image
-  ```shell
+  $ git clone https://github.com/transtats/transtats.git
+  $ cd transtats
+  $ sudo docker build -t transtats/transtats deploy/docker
   $ sudo docker run -d --name container_name -p 8080:8015 transtats/transtats
   ```
 

@@ -38,15 +38,15 @@ Transtats server is a simple django application. If you have any questions on th
 
 ## Setting up environment
 
-To try Transtats just pull docker image and spin container or, follow docker-compose path. These environments are based on `test settings` and should contain demo data. Development environments can be created using vagrant or virtualenv.
+To try Transtats just build a docker image and spin container or, follow docker-compose path. These environments are based on `test settings` and should contain demo data. Development environments can be created using vagrant or virtualenv.
 
 ### Try and Test
 
 #### Docker
 
-Get docker daemon running. Build or pull `transtats` image *([docker.io](https://hub.docker.com/r/transtats/transtats/))* and get started.
+Get docker daemon running. Build `transtats` image and get started.
 
-- Build the image *(optional)*
+- Build the image
 
   - Clone the repo and build the image 
     ```shell
@@ -54,11 +54,6 @@ Get docker daemon running. Build or pull `transtats` image *([docker.io](https:/
     $ cd transtats
     $ sudo docker build -t transtats/transtats deploy/docker
     ```
-
-- Pull the image *(No need to pull, if you have built the image)*
-  ```shell
-  $ sudo docker pull docker.io/transtats/transtats
-  ``` 
 
 - Run the image
   ```shell
