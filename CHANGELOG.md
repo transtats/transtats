@@ -1,5 +1,6 @@
 
-##### Tue Jun 08 2021 Sundeep Anand <suanand@redhat.com> - release_0.8.4
+##### Fri Jun 18 2021 Sundeep Anand <suanand@redhat.com> - release_0.8.4
+* rename release branch from `master` to `main`
 * add downstream package name for syncing builds
 * implement Memsource workflowStep for CI Pipeline
 * add django-cors-headers for crossorigin

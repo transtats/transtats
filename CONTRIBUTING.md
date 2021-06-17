@@ -31,7 +31,7 @@ Transtats server is a simple django application. If you have any questions on th
 - Fork [transtats repo](https://github.com/transtats/transtats) to your username and clone repository locally.
 - Setup development environment as described.
 - The *devel* branch is the release actively under development.
-- The *master* branch corresponds to the latest stable release.
+- The *main* branch corresponds to the latest stable release.
 - If you have an idea to discuss, please open a [GitHub Issue](https://github.com/transtats/transtats/issues/new).
 - Feel free to submit feature requests and/or bug fixes on *devel* branch.
 - Transtats server uses [Circle CI](https://circleci.com/gh/transtats/transtats) for running tests.

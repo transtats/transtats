@@ -6,9 +6,7 @@
 
 ## Transtats
 
-**Overview and trends for language translations across releases**
-
-[transtats.org](http://transtats.org/)
+**Help track language translations across releases and automate process workflows.**
 
 Transtats web interface helps make packages ready to ship with translation completeness. It seems meaningful to localization teams, package maintainers, developers and quality engineers.
 
@@ -19,6 +17,7 @@ Transtats web interface helps make packages ready to ship with translation compl
     - Which packages are out-of-sync and for which language(s)?
     - Are all strings pushed to translation platform latest to source repositories?
  - At-a-glance picture for managing the localization effort progress, release by release. And it's readiness.
+ - Automate translation workflows by scheduling jobs. (and pipelines)
 
 To learn about using Transtats, please point your browser to [docs](http://docs.transtats.org).
 
