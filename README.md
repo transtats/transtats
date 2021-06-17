@@ -38,7 +38,7 @@ Get docker daemon running. Build `transtats` image and get started.
 ### Get Involved
 
 - Follow [contributing guide](./CONTRIBUTING.md) to make changes in Transtats.
-- Join the `#transtats` channel on chat.freenode.net
+- Join the `#transtats` channel on Libera.Chat
 - See [roadmap](http://docs.transtats.org/en/latest/roadmap.html). And open an [issue](https://github.com/transtats/transtats/issues/new) to discuss new feature.
 - Browse [issues](https://github.com/transtats/transtats/issues) and submit your `PR` for the bug fix!
 - Read [Changelog](https://github.com/transtats/transtats/blob/master/CHANGELOG.md) and [Terms of Use](http://transtats.org/terms.html)

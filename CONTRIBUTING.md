@@ -2,7 +2,7 @@
 
 Hi, we are really excited to see you getting started!
 
-Transtats server is a simple django application. If you have any questions on this or on what may not be covered here, feel free to discuss at `#transtats` channel on `chat.freenode.net`.
+Transtats server is a simple django application. If you have any questions on this or on what may not be covered here, feel free to discuss at `#transtats` channel on `Libera.Chat`.
 
 ## Table of contents
 

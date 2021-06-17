@@ -21,7 +21,7 @@ The ``Jobs framework`` is a centralized processor through which we can solve mul
 Help
 ----
 
-Join **#transtats** channel at freenode, write to transtats@redhat.com
+Join **#transtats** channel at Libera.Chat, write to transtats@redhat.com
 
 
 .. toctree::
