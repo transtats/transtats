@@ -14,7 +14,7 @@ iso8601
 langtable
 mozilla-django-oidc
 polib
-psycopg2-binary
+psycopg2-binary==2.8.6
 python-rpm-spec
 python-slugify
 pytz
