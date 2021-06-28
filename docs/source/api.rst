@@ -18,7 +18,30 @@ Transtats APIs
 
         GET /api/package/abrt HTTP/1.1
 
-3. **Graph Rule Coverage** : :code:`<transtats_server>/api/coverage/<graph_rule_name>`
+3. **Package Health** : :code:`<transtats_server>/api/package/<package_name>/health`
+
+    Returns health of package w.r.t out-of-sync, for example :code:`abrt`.
+
+    .. code-block:: http
+
+        GET /api/package/abrt/health HTTP/1.1
+
+4. **Add Package** : :code:`<transtats_server>/api/package/create`
+
+    Registers a new package with Transtats, for example :code:`dnf`.
+
+    .. code-block:: http
+
+        POST /api/package/create HTTP/1.1
+
+        example:
+        $ curl -d '{"package_name": "dnf", "upstream_url": "https://github.com/rpm-software-management/dnf", "transplatform_slug": "WLTEFED", "release_streams": "fedora,RHEL"}' -H "Authorization: Token <your-transtats-api-token>" -H "Content-Type: application/json" -X POST http://localhost:8080/api/package/create
+
+        output:
+        {"dnf":"Package added Successfully."}
+
+
+5. **Graph Rule Coverage** : :code:`<transtats_server>/api/coverage/<graph_rule_name>`
 
     Returns translation coverage according to graph rule, for example :code:`rhinstaller`.
 
@@ -26,7 +49,7 @@ Transtats APIs
 
         GET /api/coverage/rhinstaller HTTP/1.1
 
-4. **Release Status** : :code:`<transtats_server>/api/release/<release_branch_name>`
+6. **Release Status** : :code:`<transtats_server>/api/release/<release_branch_name>`
 
     Returns translation stats of packages which are being tracked for a given release, for example :code:`fedora-29`.
 
@@ -50,7 +73,7 @@ Transtats APIs
 
             GET /api/release/fedora-29/locale/ja_JP HTTP/1.1
 
-5. **Job Details** : :code:`<transtats_server>/api/job/<job-id>/log`
+7. **Job Details** : :code:`<transtats_server>/api/job/<job-id>/log`
 
     Returns job log against given job id, for example :code:`2a6d4b23-6a6b-4d0e-b617-a0ece01d790f`.
 
@@ -58,7 +81,7 @@ Transtats APIs
 
         GET /api/job/2a6d4b23-6a6b-4d0e-b617-a0ece01d790f/log  HTTP/1.1
 
-6. **Run a Job** : :code:`<transtats_server>/api/job/run`
+8. **Run a Job** : :code:`<transtats_server>/api/job/run`
 
     Returns the job_id against given job_type: `syncupstream` or `syncdownstream` or `stringchange`
 

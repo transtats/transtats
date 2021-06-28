@@ -164,6 +164,51 @@ class PackageStatus(GraphManagerMixin, APIView):
         return Response(response_text)
 
 
+class AddPackage(GraphManagerMixin, APIView):
+    """
+    Add New Package API
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, **kwargs):
+        """
+        API to add new package. Requires authentication token.
+        Params:
+            package_name: Package Name as it is in Translation Platform
+            upstream_url: Upstream Source Repository URL
+            upstream_l10n_url: Upstream Localization URL
+            transplatform_slug: translation platform SLUG
+            release_streams: comma separated values
+        """
+
+        data_received = self.request.data.copy()
+        if 'multipart/form-data' in self.request.headers.get('Content-Type'):
+            data_received = self.request.data.dict().copy()
+        active_user = getattr(request, 'user', None)
+        active_user_email = active_user.email \
+            if active_user and not active_user.is_anonymous else 'anonymous'
+        if not data_received and self.request.POST:
+            data_received = self.request.POST.copy()
+
+        required_params = ('package_name', 'upstream_url', 'transplatform_slug', 'release_streams')
+        if not set(required_params) <= set(data_received):
+            return Response({"error": "Insufficient params provided."}, status=400)
+
+        data_received['release_streams'] = \
+            list(map(str.strip, data_received['release_streams'].split(',')))
+
+        if self.graph_manager.package_manager.validate_package(**data_received):
+            data_received['created_by'] = active_user_email
+            if self.graph_manager.package_manager.add_package(**data_received):
+                response_text = {data_received['package_name']: "Package added Successfully."}
+            else:
+                response_text = {data_received['package_name']: "Some error occurred while adding the package."}
+        else:
+            response_text = {data_received['package_name']: "Package validation failed."}
+        return Response(response_text)
+
+
 class GraphRuleCoverage(GraphManagerMixin, APIView):
     """
     Graph Rule Coverage API

@@ -10,7 +10,7 @@ from .celery import app as celery_app
 
 __appname__ = "Transtats"
 __version__ = '0.8'
-__release__ = '0.8.4'
+__release__ = '0.8.5'
 __description__ = "Help track language translations across releases and automate process workflows."
 __title__ = "Automate Translation Workflows"
 
