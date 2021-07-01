@@ -1,4 +1,7 @@
 
+##### Mon Jun 28 2021 Sundeep Anand <suanand@redhat.com>
+* Add create package API endpoint `POST /api/package/create HTTP/1.1`
+
 ##### Fri Jun 18 2021 Sundeep Anand <suanand@redhat.com> - release_0.8.4
 * rename release branch from `master` to `main`
 * add downstream package name for syncing builds

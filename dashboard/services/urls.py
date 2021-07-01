@@ -18,7 +18,7 @@
 from django.conf.urls import url
 from dashboard.services.expose.views import (
     PingServer, PackageStatus, GraphRuleCoverage, ReleaseStatus, ReleaseStatusDetail,
-    PackageExist, ReleaseStatusLocale, RunJob, JobLog, PackageHealth
+    PackageExist, ReleaseStatusLocale, RunJob, JobLog, PackageHealth, AddPackage
 )
 
 
@@ -26,6 +26,7 @@ api_urls = [
     url(r'^ping$', PingServer.as_view(), name='api_ping_server'),
     url(r'^package/(?P<package_name>[\w-]+)/exist$', PackageExist.as_view(), name='api_package_exist'),
     url(r'^package/(?P<package_name>[\w-]+)/health', PackageHealth.as_view(), name='api_package_health'),
+    url(r'^package/create$', AddPackage.as_view(), name='api_package_new'),
     url(r'^package/(?P<package_name>[\w-]+)$', PackageStatus.as_view(), name='api_package_status'),
     url(r'^coverage/(?P<coverage_rule>[\w-]+)$', GraphRuleCoverage.as_view(), name='api_custom_graph'),
     url(r'^release/(?P<release_stream>[\w-]+)$', ReleaseStatus.as_view(),
