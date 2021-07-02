@@ -762,14 +762,15 @@ class ReleaseBranchManager(InventoryManager):
         else:
             return True
 
-    def get_latest_release(self):
+    def get_latest_release(self, tenant):
         """
         Returns latest release query object
             - releases for which translation tracking is ON
         :return: query obj
         """
-        # needs adjustment for other products
-        product_slug = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0]
+        product_slug = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0] \
+            if tenant == "default" else tenant
+
         releases = self.get_release_branches(relstream=product_slug)
         if releases and len(releases) > 0:
             latest_release_slug = sorted(
