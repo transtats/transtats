@@ -13,6 +13,7 @@ gunicorn
 iso8601
 langtable
 mozilla-django-oidc
+natsort
 polib
 psycopg2-binary==2.8.6
 python-rpm-spec

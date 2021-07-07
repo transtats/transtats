@@ -1,5 +1,7 @@
 
-##### Mon Jun 28 2021 Sundeep Anand <suanand@redhat.com>
+##### Mon Jun 7 2021 Sundeep Anand <suanand@redhat.com>
+* Option to push/pull multiple memsource jobs for a lang
+* Tenant aware Transtats bootstrapping
 * Add create package API endpoint `POST /api/package/create HTTP/1.1`
 
 ##### Fri Jun 18 2021 Sundeep Anand <suanand@redhat.com> - release_0.8.4
