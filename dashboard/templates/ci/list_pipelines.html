@@ -176,10 +176,14 @@
                           </div>
                         </div>
                       </dl>
+                    </div>
+                    <div class="col-md-3">
+                      {% tag_pipeline_branches pipeline.ci_package.package_name pipeline.ci_package.platform_slug %}
+                    </div>
+                    <div class="col-md-9">
                       {% if pipeline.ci_platform_jobs_json %}
                         {% tag_pipeline_workflow_steps pipeline.ci_platform_jobs_json %}
                       {% endif %}
-                      <!--<pre>{{ pipeline.ci_project_details_json }}</pre>-->
                       <div class="pull-right" style="margin-top: 1%">
                         {% if pipeline.ci_pipeline_last_updated %}
                           <i class="text-muted">Last refresh <span class="text-info">

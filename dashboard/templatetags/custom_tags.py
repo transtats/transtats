@@ -21,7 +21,9 @@ from datetime import datetime
 from collections import OrderedDict
 from django import template
 
-from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE
+from dashboard.constants import (
+    BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE, TP_BRANCH_CALLING_NAME
+)
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
 )
@@ -413,6 +415,21 @@ def tag_repo_branches(package_name, repo_type):
     branches = package_manager.git_branches(
         package_name, repo_type
     )
+    return_value.update(dict(branches=branches))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("ci", "_pipeline_branches.html")
+)
+def tag_pipeline_branches(package_name, t_platform):
+    return_value = OrderedDict()
+    package_manager = PackagesManager()
+    branches = package_manager.git_branches(
+        package_name, t_platform.engine_name
+    )
+    return_value.update(dict(title=dict(
+        TP_BRANCH_CALLING_NAME).get(t_platform.engine_name)))
     return_value.update(dict(branches=branches))
     return return_value
 

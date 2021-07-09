@@ -18,6 +18,13 @@
 
 # Supported translation platforms
 TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata', 'weblate', 'memsource')
+TP_BRANCH_CALLING_NAME = (
+    (TRANSPLATFORM_ENGINES[0], 'Branches'),
+    (TRANSPLATFORM_ENGINES[1], 'Resources'),
+    (TRANSPLATFORM_ENGINES[2], 'Versions'),
+    (TRANSPLATFORM_ENGINES[3], 'Components'),
+    (TRANSPLATFORM_ENGINES[4], 'Jobs'),
+)
 
 API_TOKEN_PREFIX = {
     TRANSPLATFORM_ENGINES[1]: "api",
