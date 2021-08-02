@@ -26,6 +26,7 @@ from langtable import langtable
 from slugify import slugify
 
 # django
+from django.conf import settings
 from django.utils import timezone
 
 # dashboard
@@ -790,7 +791,11 @@ class GeoLocationManager(ReportsManager):
         Save Territory's Build System Stats in Percentage
         """
 
-        latest_release = self.branch_manager.get_latest_release()
+        tenant = settings.TS_AUTH_SYSTEM \
+            if settings.TS_AUTH_SYSTEM in RELSTREAM_SLUGS \
+            else "default"
+
+        latest_release = self.branch_manager.get_latest_release(tenant)
         countries = list(COUNTRY_CODE_3to2_LETTERS.keys())
         territory_stats = []
 

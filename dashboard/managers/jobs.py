@@ -842,6 +842,7 @@ class YMLBasedJobManager(BaseManager):
         self.package = yml_job.package
         self.release = yml_job.release
         self.buildsys = yml_job.buildsys
+        self.repo_branch = self.REPO_BRANCH
         self.ci_pipeline_uuid = yml_job.ci_pipeline
         if isinstance(yml_job.tags, list) and len(yml_job.tags) > 0:
             self.tag = yml_job.tags[0]
@@ -883,6 +884,7 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'hub_url', ''),
             getattr(self, 'buildsys', ''),
             getattr(self, 'release', ''),
+            getattr(self, 'repo_branch', ''),
             getattr(self, 'ci_pipeline_uuid', ''),
             getattr(self, 'upstream_repo_url', ''),
             getattr(self, 'trans_file_ext', ''),

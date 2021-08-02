@@ -4,8 +4,8 @@ django-celery-beat==2.1.0
 django-cors-headers
 django-crispy-forms
 django-debug-toolbar
-Django==2.2.13
-djangorestframework==3.9.4
+Django==2.2.24
+djangorestframework==3.11.2
 future
 gitdb2
 GitPython
@@ -13,6 +13,7 @@ gunicorn
 iso8601
 langtable
 mozilla-django-oidc
+natsort
 polib
 psycopg2-binary==2.8.6
 python-rpm-spec

@@ -21,7 +21,9 @@ from datetime import datetime
 from collections import OrderedDict
 from django import template
 
-from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE
+from dashboard.constants import (
+    BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE, TP_BRANCH_CALLING_NAME
+)
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
 )
@@ -418,6 +420,21 @@ def tag_repo_branches(package_name, repo_type):
 
 
 @register.inclusion_tag(
+    os.path.join("ci", "_pipeline_branches.html")
+)
+def tag_pipeline_branches(package_name, t_platform):
+    return_value = OrderedDict()
+    package_manager = PackagesManager()
+    branches = package_manager.git_branches(
+        package_name, t_platform.engine_name
+    )
+    return_value.update(dict(title=dict(
+        TP_BRANCH_CALLING_NAME).get(t_platform.engine_name)))
+    return_value.update(dict(branches=branches))
+    return return_value
+
+
+@register.inclusion_tag(
     os.path.join("jobs", "_job_analysis.html")
 )
 def tag_job_analysis(job_details):
@@ -485,10 +502,10 @@ def tag_sync_from_coverage(stats, package, release, tag):
 @register.inclusion_tag(
     os.path.join("releases", "_release_map_view.html")
 )
-def tag_release_map_view():
+def tag_release_map_view(request):
     return_value = OrderedDict()
     release_manager = ReleaseBranchManager()
-    latest_release = release_manager.get_latest_release()
+    latest_release = release_manager.get_latest_release(request.tenant)
     geo_location_manager = GeoLocationManager()
     territory_stats = \
         geo_location_manager.get_territory_build_system_stats()
@@ -502,12 +519,12 @@ def tag_release_map_view():
 @register.inclusion_tag(
     os.path.join("releases", "_trending_languages.html")
 )
-def tag_trending_languages():
+def tag_trending_languages(request):
     return_value = OrderedDict()
     reports_manager = ReportsManager()
     releases_summary = reports_manager.get_reports('releases')
     release_manager = ReleaseBranchManager()
-    latest_release = release_manager.get_latest_release()
+    latest_release = release_manager.get_latest_release(request.tenant)
     pkg_manager = PackagesManager()
     lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
 

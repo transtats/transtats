@@ -236,22 +236,22 @@ class CIPipelineManager(BaseManager):
             if pipeline.ci_platform_jobs_json:
                 ci_lang_job_map[pipeline.ci_pipeline_uuid] = dict()
                 for job_detail in pipeline.ci_platform_jobs_json:
-                    if not job_detail.get('workflowStep') and \
-                            job_detail.get('targetLang') and job_detail.get('uid'):
-                        ci_lang_job_map[pipeline.ci_pipeline_uuid].update(
-                            {job_detail['targetLang']: job_detail['uid']}
-                        )
-                    elif workflow_step == 'default' and job_detail.get('workflowLevel') == 1 and \
-                            job_detail.get('targetLang') and job_detail.get('uid'):
-                        ci_lang_job_map[pipeline.ci_pipeline_uuid].update(
-                            {job_detail['targetLang']: job_detail['uid']}
-                        )
-                    elif job_detail.get('workflowStep') and \
-                            job_detail.get('workflowStep').get('name') == workflow_step and \
-                            job_detail.get('targetLang') and job_detail.get('uid'):
-                        ci_lang_job_map[pipeline.ci_pipeline_uuid].update(
-                            {job_detail['targetLang']: job_detail['uid']}
-                        )
+                    if job_detail.get('targetLang') and job_detail.get('uid') and job_detail.get('filename'):
+
+                        if not job_detail.get('workflowStep'):
+                            ci_lang_job_map[pipeline.ci_pipeline_uuid].update(
+                                {job_detail['uid']: (job_detail['targetLang'], job_detail['filename'])}
+                            )
+                        elif workflow_step == 'default' and job_detail.get('workflowLevel') == 1:
+                            ci_lang_job_map[pipeline.ci_pipeline_uuid].update(
+                                {job_detail['uid']: (job_detail['targetLang'], job_detail['filename'])}
+                            )
+                        elif job_detail.get('workflowStep') and \
+                                job_detail.get('workflowStep').get('name') == workflow_step:
+                            ci_lang_job_map[pipeline.ci_pipeline_uuid].update(
+                                {job_detail['uid']: (job_detail['targetLang'], job_detail['filename'])}
+                            )
+
         return ci_lang_job_map
 
     def get_ci_platform_workflow_steps(self, pipeline_uuid):
