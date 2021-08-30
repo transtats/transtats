@@ -533,6 +533,32 @@ class CIPlatformJob(ModelMixin, models.Model):
         verbose_name = "CI Platform Job"
 
 
+class PipelineConfig(ModelMixin, models.Model):
+    """
+    Pipeline Configurations Model
+    """
+    pipeline_config_id = models.AutoField(primary_key=True)
+    ci_pipeline = models.ForeignKey(
+        CIPipeline, on_delete=models.PROTECT,
+        to_field="ci_pipeline_uuid", verbose_name="CI Pipeline"
+    )
+    pipeline_config_event = models.CharField(max_length=1000)
+    pipeline_config_active = models.BooleanField(default=False)
+    pipeline_config_json_str = models.TextField(null=True, blank=True)
+    pipeline_config_created_on = models.DateTimeField(null=True)
+    pipeline_config_updated_on = models.DateTimeField(null=True)
+    pipeline_config_last_accessed = models.DateTimeField(null=True)
+    pipeline_config_created_by = models.EmailField(null=True)
+
+    @property
+    def pipeline_config_json(self):
+        return self.str2json(self.pipeline_config_json_str)
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'cipipelineconfig'
+        verbose_name = "Pipeline Config"
+
+
 class Job(ModelMixin, models.Model):
     """
     Jobs Model

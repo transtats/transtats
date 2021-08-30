@@ -23,10 +23,10 @@ from django.utils import timezone
 from dashboard.constants import TRANSPLATFORM_ENGINES
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers import BaseManager
-from dashboard.models import CIPipeline, CIPlatformJob
+from dashboard.models import CIPipeline, CIPlatformJob, PipelineConfig
 
 
-__all__ = ['CIPipelineManager']
+__all__ = ['CIPipelineManager', 'PipelineConfigManager']
 
 
 class CIPipelineManager(BaseManager):
@@ -274,3 +274,34 @@ class CIPipelineManager(BaseManager):
         ci_pipeline = ci_pipeline.get()
         return unique([p_job['workflowStep'].get('name', 'default') if p_job.get('workflowStep')
                        else 'default' for p_job in ci_pipeline.ci_platform_jobs_json])
+
+
+class PipelineConfigManager(BaseManager):
+    """
+    Pipeline Configurations Manager
+    """
+
+    package_manager = PackagesManager()
+
+    def get_pipeline_configs(self, fields=None, pipeline_uuid=None):
+        """
+        fetch ci pipeline(s) from db
+        :return: queryset
+        """
+        pipeline_configs = None
+        required_params = fields if fields and isinstance(fields, (list, tuple)) \
+            else ('pipeline_config_id', 'ci_pipeline', 'pipeline_config_event', 'pipeline_config_active',
+                  'pipeline_config_json', 'pipeline_config_created_on', 'pipeline_config_updated_on',
+                  'pipeline_config_last_accessed', 'pipeline_config_created_by')
+        kwargs = {}
+        kwargs.update(dict(ci_pipeline_visibility=True))
+        if pipeline_uuid:
+            kwargs.update(dict(ci_pipeline__in=pipeline_uuid))
+
+        try:
+            pipeline_configs = PipelineConfig.objects.only(*required_params).filter(**kwargs).all()
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Pipeline Configs could not be fetched, details: " + str(e)
+            )
+        return pipeline_configs
