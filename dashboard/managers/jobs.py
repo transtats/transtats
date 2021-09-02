@@ -602,6 +602,7 @@ class YMLBasedJobManager(BaseManager):
             - stringchange
             - pushtrans
             - pulltrans
+            - dpushtrans
     """
 
     sandbox_path = 'dashboard/sandbox/'

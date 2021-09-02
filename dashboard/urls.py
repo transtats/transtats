@@ -46,7 +46,7 @@ app_job_urls = [
     url(r'^cleanup$', login_required(CleanUpJobs.as_view(), login_url=LOGIN_URL), name="jobs-cleanup"),
     url(r'^logs$', JobsLogsView.as_view(), name="jobs-logs"),
     url(r'^archive$', JobsArchiveView.as_view(), name="jobs-archive"),
-    url(r'^yml-based$', YMLBasedJobs.as_view(), name="jobs-yml-based"),
+    url(r'^templates$', YMLBasedJobs.as_view(), name="jobs-yml-based"),
     url(r'^log/(?P<job_id>[0-9a-f-]+)/detail$', JobDetailView.as_view(), name="log-detail"),
     url(r'^logs/package/(?P<package_name>[\w\-\+]+)$', JobsLogsPackageView.as_view(),
         name="jobs-logs-package")
