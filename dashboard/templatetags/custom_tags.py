@@ -386,7 +386,7 @@ def tag_job_form(template_type):
     ci_pipeline_manager = CIPipelineManager()
     ci_pipelines = ci_pipeline_manager.get_ci_pipelines()
     if ci_pipelines:
-        return_value['ci_pipelines'] = ci_pipelines.all()
+        return_value['ci_pipelines'] = ci_pipelines.order_by('-ci_release').all()
     return_value['git_repo_types'] = GIT_REPO_TYPE
     return return_value
 
