@@ -66,7 +66,7 @@ class JobTemplateManager(BaseManager):
         """
         job_templates = []
         try:
-            job_templates = JobTemplate.objects.only(*fields).filter(**filters)
+            job_templates = JobTemplate.objects.only(*fields).filter(**filters).order_by('job_template_id')
         except Exception as e:
             self.app_logger(
                 'ERROR', "Job templates could not be fetched for " +
@@ -842,7 +842,7 @@ class YMLBasedJobManager(BaseManager):
         self.package = yml_job.package
         self.release = yml_job.release
         self.buildsys = yml_job.buildsys
-        self.repo_branch = self.REPO_BRANCH
+        self.repo_branch = getattr(self, 'REPO_BRANCH', '')
         self.ci_pipeline_uuid = yml_job.ci_pipeline
         if isinstance(yml_job.tags, list) and len(yml_job.tags) > 0:
             self.tag = yml_job.tags[0]
