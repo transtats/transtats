@@ -50,7 +50,8 @@ __all__ = [
     'STATIC_URL',
     'STATIC_ROOT',
     'CRISPY_TEMPLATE_PACK',
-    'CACHES'
+    'CACHES',
+    'REST_FRAMEWORK'
 ]
 
 # Imports from your apps
@@ -273,3 +274,5 @@ CACHES = {
         'LOCATION': os.path.join(os.path.dirname(BASE_DIR), 'false', 'ts-cache'),
     }
 }
+
+REST_FRAMEWORK = {'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'}

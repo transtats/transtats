@@ -22,7 +22,8 @@ from collections import OrderedDict
 from django import template
 
 from dashboard.constants import (
-    BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE, TP_BRANCH_CALLING_NAME
+    BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE,
+    TP_BRANCH_CALLING_NAME, PIPELINE_CONFIG_EVENTS
 )
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
@@ -30,7 +31,7 @@ from dashboard.managers.graphs import (
 from dashboard.managers.jobs import JobTemplateManager, JobsLogManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
-from dashboard.managers.pipelines import CIPipelineManager
+from dashboard.managers.pipelines import CIPipelineManager, PipelineConfigManager
 
 
 register = template.Library()
@@ -638,4 +639,27 @@ def tag_workflow_steps_dropdown(ci_pipeline):
         pipeline_uuid=ci_pipeline
     )
     return_value['workflow_steps'] = workflow_steps
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("ci", "_job_params.html")
+)
+def tag_pipeline_job_params(tenant, pipeline_uuid, action):
+    return_value = OrderedDict()
+    if not pipeline_uuid and not action:
+        return return_value
+    pipeline_config_manager = PipelineConfigManager()
+    ci_pipeline = pipeline_config_manager.get_ci_pipelines(uuids=[pipeline_uuid]).get()
+    job_action_map = {
+        PIPELINE_CONFIG_EVENTS[0]: ci_pipeline.ci_push_job_template.job_template_json,
+        PIPELINE_CONFIG_EVENTS[1]: ci_pipeline.ci_pull_job_template.job_template_json,
+        PIPELINE_CONFIG_EVENTS[2]: ci_pipeline.ci_push_job_template.job_template_json
+    }
+    template_json = pipeline_config_manager.format_pipeline_config(
+        job_action_map.get(action, dict()), ci_pipeline, action, tenant
+    )
+    template_yaml = yaml.dump(
+        template_json, default_flow_style=False).replace("\'", "")
+    return_value['job_template'] = template_yaml
     return return_value

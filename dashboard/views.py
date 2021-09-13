@@ -18,6 +18,7 @@ import csv
 import json
 from datetime import datetime
 from pathlib import Path
+import threading
 
 # django
 from django.contrib import messages
@@ -39,7 +40,7 @@ from django.urls import reverse, reverse_lazy
 
 from dashboard.constants import (
     TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
-    WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS
+    WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
@@ -51,7 +52,9 @@ from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager, SyncStatsManager
 )
 from dashboard.managers.packages import PackagesManager
-from dashboard.managers.pipelines import CIPipelineManager
+from dashboard.managers.pipelines import (
+    CIPipelineManager, PipelineConfigManager
+)
 from dashboard.managers.jobs import (
     YMLBasedJobManager, JobsLogManager, TransplatformSyncManager,
     ReleaseScheduleSyncManager, BuildTagsSyncManager, JobTemplateManager
@@ -78,6 +81,7 @@ class ManagersMixin(object):
     reports_manager = ReportsManager()
     geo_location_manager = GeoLocationManager()
     ci_pipeline_manager = CIPipelineManager()
+    pipeline_config_manager = PipelineConfigManager()
 
     def get_summary(self):
         """
@@ -503,6 +507,12 @@ class NewPackageView(ManagersMixin, FormView):
                 messages.add_message(request, messages.SUCCESS, (
                     'Great! Package added successfully.'
                 ))
+                t = threading.Thread(
+                    target=self.packages_manager.refresh_package,
+                    args=[post_params['package_name']]
+                )
+                t.setDaemon(True)
+                t.start()
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
@@ -839,11 +849,21 @@ class PipelineHistoryView(ManagersMixin, PipelineDetailView):
         return context_data
 
 
-class PipelineConfigurationView(PipelineDetailView):
+class PipelineConfigurationView(ManagersMixin, PipelineDetailView):
     """
     Pipeline Configurations View
     """
     template_name = "ci/pipeline_configuration.html"
+
+    def get_context_data(self, **kwargs):
+        context_data = super(PipelineConfigurationView, self).get_context_data(**kwargs)
+        context_data['pipeline_config_events'] = PIPELINE_CONFIG_EVENTS
+        pipeline_configs = self.pipeline_config_manager.get_pipeline_configs(
+            ci_pipeline=self.object
+        )
+        if pipeline_configs:
+            context_data['pipeline_configs'] = pipeline_configs
+        return context_data
 
 
 class NewLanguageView(SuccessMessageMixin, CreateView):
@@ -1675,5 +1695,29 @@ def get_workflow_steps(request):
                             {% load tag_workflow_steps_dropdown from custom_tags %}
                             {% tag_workflow_steps_dropdown ci_pipeline %}
                         """
+        return HttpResponse(Template(template_string).render(context))
+    return HttpResponse(status=500)
+
+
+def get_pipeline_job_template(request):
+    """
+    Get Job Template for a CI Pipeline Event
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if request.is_ajax():
+        post_params = request.POST.dict()
+        pipeline_event = post_params.get('pipelineEvent', '')
+        pipeline_uuid = post_params.get('pipelineUUID', '')
+        context = Context(
+            {'META': request.META,
+             'tenant': request.tenant,
+             'pipeline_event': pipeline_event,
+             'pipeline_uuid': pipeline_uuid}
+        )
+        template_string = """
+                                {% load tag_pipeline_job_params from custom_tags %}
+                                {% tag_pipeline_job_params tenant pipeline_uuid pipeline_event %}
+                            """
         return HttpResponse(Template(template_string).render(context))
     return HttpResponse(status=500)

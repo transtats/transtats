@@ -20,7 +20,9 @@ from django.db.models import Case, Value, When
 from django.utils import timezone
 
 # dadhboard
-from dashboard.constants import TRANSPLATFORM_ENGINES
+from dashboard.constants import (
+    TRANSPLATFORM_ENGINES, PIPELINE_CONFIG_EVENTS, RELSTREAM_SLUGS
+)
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers import BaseManager
 from dashboard.models import CIPipeline, CIPlatformJob, PipelineConfig
@@ -276,14 +278,12 @@ class CIPipelineManager(BaseManager):
                        else 'default' for p_job in ci_pipeline.ci_platform_jobs_json])
 
 
-class PipelineConfigManager(BaseManager):
+class PipelineConfigManager(CIPipelineManager):
     """
     Pipeline Configurations Manager
     """
 
-    package_manager = PackagesManager()
-
-    def get_pipeline_configs(self, fields=None, pipeline_uuid=None):
+    def get_pipeline_configs(self, fields=None, ci_pipeline=None):
         """
         fetch ci pipeline(s) from db
         :return: queryset
@@ -294,9 +294,8 @@ class PipelineConfigManager(BaseManager):
                   'pipeline_config_json', 'pipeline_config_created_on', 'pipeline_config_updated_on',
                   'pipeline_config_last_accessed', 'pipeline_config_created_by')
         kwargs = {}
-        kwargs.update(dict(ci_pipeline_visibility=True))
-        if pipeline_uuid:
-            kwargs.update(dict(ci_pipeline__in=pipeline_uuid))
+        if ci_pipeline:
+            kwargs.update(dict(ci_pipeline__in=ci_pipeline))
 
         try:
             pipeline_configs = PipelineConfig.objects.only(*required_params).filter(**kwargs).all()
@@ -305,3 +304,90 @@ class PipelineConfigManager(BaseManager):
                 'ERROR', "Pipeline Configs could not be fetched, details: " + str(e)
             )
         return pipeline_configs
+
+    def format_pipeline_config(self, job_template, pipeline, action, tenant):
+        """
+        Formats Job Template for the Pipeline Configurations
+        :param job_template: dict
+        :param pipeline: Pipeline Object
+        :param action: str
+        :return: dict
+        """
+        formatted_pipeline_config = job_template.copy()
+        if not job_template and not pipeline and not action:
+            return job_template
+
+        def _format_val(value_str):
+            return "<strong>{}</strong>".format(str(value_str))
+
+        def _format_choices(field_id, values):
+            html_select = ""
+            html_select += "<select name='{}' id='{}'>".format(field_id, field_id)
+            for value in values:
+                html_select += "<option value='{}'>{}</option>".format(value, value)
+            html_select += "</select>"
+            return html_select
+
+        def _format_checkboxes(values):
+            html_select = ""
+            for value in values:
+                html_select += "<label class='checkbox-inline'>" \
+                               "<input type='checkbox' value='{}' {}>" \
+                               "{}</label>".format(value, "checked", value)
+            return html_select
+
+        repo_branches = self.package_manager.git_branches(
+            package_name=pipeline.ci_package.package_name,
+            repo_type=pipeline.ci_package.platform_slug.engine_name
+        ) if not tenant == RELSTREAM_SLUGS[3] else ["%RESPECTIVE%"]
+
+        prepend_branch_field = "<input id='prependBranch' name='prependBranch' type='checkbox'>"
+        if tenant == RELSTREAM_SLUGS[3]:
+            prepend_branch_field = "<input id='prependBranch' name='prependBranch' type='checkbox' checked>"
+
+        key_val_map = {
+            "ci_pipeline": _format_val(pipeline.ci_pipeline_uuid),
+            "package": _format_val(pipeline.ci_package.package_name),
+            "clone.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
+            "clone.branch": _format_choices("repoBranch", repo_branches),
+            "clone.recursive": "<input type='checkbox' id='cloneRecursive' name='cloneRecursive'>",
+            "filter.domain": "<input type='text' value='{}'>".format(pipeline.ci_package.package_name),
+            "download.target_langs": _format_checkboxes(pipeline.ci_project_details_json.get("targetLangs", [])),
+            "download.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
+            "download.branch": _format_choices("repoBranch", repo_branches),
+            "download.workflow_step": _format_choices(
+                "workflowStep", self.get_ci_platform_workflow_steps(pipeline.ci_pipeline_uuid)
+            ),
+            "download.prepend_branch": prepend_branch_field,
+            "upload.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
+            "upload.branch": _format_choices("repoBranch", repo_branches),
+            "upload.target_langs": _format_checkboxes(pipeline.ci_project_details_json.get("targetLangs", [])),
+            "upload.import_settings": "<input type='text' value='project'>",
+            "upload.update": _format_val("true" if action == PIPELINE_CONFIG_EVENTS[2] else "false"),
+            "upload.prepend_branch": prepend_branch_field,
+        }
+
+        def _traverse_steps(task_steps):
+            counter = 0
+            for t_step in task_steps:
+                for step_cmd, step_params in t_step.items():
+                    inner_counter = 0
+                    for step_param in step_params:
+                        for param, value in step_param.items():
+                            niddle = "{}.{}".format(step_cmd, param)
+                            if niddle in key_val_map:
+                                task_steps[counter][step_cmd][inner_counter][param] = \
+                                    key_val_map[niddle]
+                        inner_counter = inner_counter + 1
+                counter = counter + 1
+            return task_steps
+
+        # lets parse job_template and fill values
+        for k, v in formatted_pipeline_config.items():
+            if isinstance(v, dict):
+                for p, q in v.items():
+                    if p in key_val_map:
+                        formatted_pipeline_config[k][p] = key_val_map[p]
+                    if p == "tasks":
+                        formatted_pipeline_config[k][p] = _traverse_steps(q)
+        return formatted_pipeline_config

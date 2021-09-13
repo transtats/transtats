@@ -2,7 +2,29 @@
 {% load custom_tags %}
 
 {% block extrascript %}
+<script src="/static/js/csrf.js"></script>
 <script>
+  function csrfSafeMethod(e) {
+      return /^(GET|HEAD|OPTIONS|TRACE)$/.test(e)
+  }
+
+  function ajax_job_template() {
+      $.ajax({
+          beforeSend: function(e, t) {
+              csrfSafeMethod(t.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), $("#pipelineJobTemplate").html("<span class='spinner spinner-sm spinner-inline'></span>")
+          },
+          type: "POST",
+          url: "{% url 'ajax-pipeline-job-template' %}",
+          data: {
+              pipelineEvent: $("#pipelineEvent").val(),
+              pipelineUUID: "{{ ci_pipeline.ci_pipeline_uuid }}",
+          },
+          success: function(e) {
+              e && $("#pipelineJobTemplate").html(e)
+          }
+      })
+  }
+
   $(document).ready(function(){
 
     $("#li-configurations").addClass('active') && $("#li-push").addClass('active');
@@ -14,18 +36,34 @@
         $(this).addClass('active');
     });
 
+    $("#pipelineEvent").change(function(e) {
+        return e.preventDefault(), ajax_job_template(), !1
+    });
+
   });
 </script>
 {% endblock %}
 
 {% block pipeline-content %}
-  <div class="sub-content-area">
+  <div class="content-area-2 sub-content-area">
     <div class="row">
-      <div class="col-md-6" style="border: 1px">
-        <h3>Job and it's parameters!</h3>
+      <div class="col-md-5 form-group">
+        <h4>Action</h4>
+        <div style="padding-bottom: 10px">
+          <select id="pipelineEvent" class="form-control" style="width: 250px">
+            {% for action in pipeline_config_events %}
+            <option value="{{ action }}">{{ action }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <h4>Template</h4>
+        <div id="pipelineJobTemplate">
+          {% tag_pipeline_job_params request.tenant ci_pipeline.ci_pipeline_uuid pipeline_config_events.0 %}
+        </div>
+        <!--<h4>Schedule</h4>-->
       </div>
-      <div class="col-md-6">
-        <h3>Sync Schedule</h3>
+      <div class="col-md-7">
+        <h3>Saved Configurations</h3>
       </div>
     </div>
   </div>
