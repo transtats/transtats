@@ -16,13 +16,71 @@
           type: "POST",
           url: "{% url 'ajax-pipeline-job-template' %}",
           data: {
-              pipelineEvent: $("#pipelineEvent").val(),
+              pipelineAction: $("#pipelineAction").val(),
               pipelineUUID: "{{ ci_pipeline.ci_pipeline_uuid }}",
           },
           success: function(e) {
-              e && $("#pipelineJobTemplate").html(e)
+              e && $("#pipelineJobTemplate").html(e) && $("#saveOutcome").html("") && $("#divCopyConfig").html("")
           }
       })
+  }
+
+  function ajax_save_pipeline_config() {
+
+      var dTargetLangs = new Array;
+      var uTargetLangs = new Array;
+
+      $(".checkbox-inline").each(function() {
+
+          var elemID = $(this).attr("id");
+
+          if (elemID && elemID.includes("downloadTargetLang")) {
+              $(this).is(":checked") && dTargetLangs.push($(this).val());
+          }
+
+          if (elemID && elemID.includes("uploadTargetLang")) {
+              $(this).is(":checked") && uTargetLangs.push($(this).val());
+          }
+      }),
+
+      $.ajax({
+            beforeSend: function(e, t) {
+                csrfSafeMethod(t.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), $("#saveOutcome").html("<span class='spinner spinner-sm spinner-inline'></span>"), $("#saveConfiguration").prop('disabled', true)
+            },
+            type: "POST",
+            url: "{% url 'ajax-save-pipeline-config' %}",
+            data: {
+                chkCopyConfig: $("#checkCopyConfig").is(":checked"),
+                pipelineAction: $("#pipelineAction").val(),
+                ciPipeline: "{{ ci_pipeline.ci_pipeline_uuid }}",
+                package: "{{ ci_pipeline.ci_package.package_name }}",
+                cloneType: "{{ ci_pipeline.ci_package.platform_slug.engine_name }}",
+                cloneBranch: $("#repoCloneBranch").val(),
+                cloneRecursive: $("#cloneRecursive").is(":checked"),
+                filterDomain: $("#filterDomain").val(),
+                filterDir: $("#filterDir").val(),
+                downloadTargetLangs: dTargetLangs.toString(),
+                downloadType: "{{ ci_pipeline.ci_package.platform_slug.engine_name }}",
+                downloadBranch: $("#downloadRepoBranch").val(),
+                downloadWorkflowStep: $("#workflowStep").val(),
+                downloadPrependBranch: $("#prependBranch").is(":checked"),
+                uploadType: "{{ ci_pipeline.ci_package.platform_slug.engine_name }}",
+                uploadBranch: $("#uploadRepoBranch").val(),
+                uploadTargetLangs: uTargetLangs.toString(),
+                uploadImportSettings: $("#importSettings").val(),
+                uploadUpdate: $("#uploadUpdate").is(":checked"),
+                uploadPrependBranch: $("#prependBranch").is(":checked"),
+            },
+            success: function(e) {
+                e && $("#saveOutcome").html(e).addClass('h4 text-success');
+                $("#listPipelineConfigs").load(location.href + " #listPipelineConfigs");
+                $("#saveConfiguration").prop('disabled', false);
+            },
+            error: function(e, t, a) {
+                e && $("#saveOutcome").html(e.responseText).addClass('h4 text-danger');
+                $("#saveConfiguration").prop('disabled', false);
+            }
+        })
   }
 
   $(document).ready(function(){
@@ -36,8 +94,12 @@
         $(this).addClass('active');
     });
 
-    $("#pipelineEvent").change(function(e) {
+    $("#pipelineAction").change(function(e) {
         return e.preventDefault(), ajax_job_template(), !1
+    });
+
+    $("#saveConfiguration").click(function(e) {
+        return e.preventDefault(), ajax_save_pipeline_config(), !1
     });
 
   });
@@ -47,10 +109,11 @@
 {% block pipeline-content %}
   <div class="content-area-2 sub-content-area">
     <div class="row">
-      <div class="col-md-5 form-group">
+      <form role="form" action="" method="post">
+      <div class="col-md-4 form-group">
         <h4>Action</h4>
         <div style="padding-bottom: 10px">
-          <select id="pipelineEvent" class="form-control" style="width: 250px">
+          <select id="pipelineAction" class="form-control" style="width: 250px" autocomplete="off">
             {% for action in pipeline_config_events %}
             <option value="{{ action }}">{{ action }}</option>
             {% endfor %}
@@ -60,11 +123,26 @@
         <div id="pipelineJobTemplate">
           {% tag_pipeline_job_params request.tenant ci_pipeline.ci_pipeline_uuid pipeline_config_events.0 %}
         </div>
-        <!--<h4>Schedule</h4>-->
+        <!--<div id="divCopyConfig">-->
+          <!--<label class='checkbox-inline h4'>-->
+            <!--<input id="checkCopyConfig" class='checkbox' type='checkbox' value='copy-config'>-->
+            <!--Copy the configuration for other actions too.-->
+          <!--</label>-->
+        <!--</div>-->
+        {% if user.is_authenticated %}
+        <div id="spanSaveConfiguration" style="margin-top: 5%;">
+          <span id="saveOutcome" class="pull-right"></span>
+          <button id="saveConfiguration" class="btn btn-primary">Save Configuration</button>
+        </div>
+        {% endif %}
       </div>
-      <div class="col-md-7">
-        <h3>Saved Configurations</h3>
+      <div class="col-md-8">
+        <h3>Saved Configurations</h3><hr/>
+        <div id="listPipelineConfigs">
+          {% tag_list_pipeline_configs ci_pipeline request %}
+        </div>
       </div>
+      </form>
     </div>
   </div>
 {% endblock %}

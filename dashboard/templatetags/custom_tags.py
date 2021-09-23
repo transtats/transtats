@@ -651,15 +651,24 @@ def tag_pipeline_job_params(tenant, pipeline_uuid, action):
         return return_value
     pipeline_config_manager = PipelineConfigManager()
     ci_pipeline = pipeline_config_manager.get_ci_pipelines(uuids=[pipeline_uuid]).get()
-    job_action_map = {
-        PIPELINE_CONFIG_EVENTS[0]: ci_pipeline.ci_push_job_template.job_template_json,
-        PIPELINE_CONFIG_EVENTS[1]: ci_pipeline.ci_pull_job_template.job_template_json,
-        PIPELINE_CONFIG_EVENTS[2]: ci_pipeline.ci_push_job_template.job_template_json
-    }
     template_json = pipeline_config_manager.format_pipeline_config(
-        job_action_map.get(action, dict()), ci_pipeline, action, tenant
+        pipeline=ci_pipeline, action=action, output_format='html_form', tenant=tenant
     )
     template_yaml = yaml.dump(
         template_json, default_flow_style=False).replace("\'", "")
     return_value['job_template'] = template_yaml
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("ci", "_pipeline_configs.html")
+)
+def tag_list_pipeline_configs(pipeline, request):
+    return_value = OrderedDict()
+    if not pipeline:
+        return return_value
+    pipeline_config_manager = PipelineConfigManager()
+    pipeline_configs = pipeline_config_manager.get_pipeline_configs(ci_pipelines=[pipeline])
+    return_value['pipeline_configs'] = pipeline_configs.order_by('pipeline_config_event')
+    return_value['user'] = request.user
     return return_value

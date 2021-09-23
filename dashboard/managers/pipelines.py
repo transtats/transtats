@@ -283,19 +283,19 @@ class PipelineConfigManager(CIPipelineManager):
     Pipeline Configurations Manager
     """
 
-    def get_pipeline_configs(self, fields=None, ci_pipeline=None):
+    def get_pipeline_configs(self, fields=None, ci_pipelines=None):
         """
         fetch ci pipeline(s) from db
         :return: queryset
         """
         pipeline_configs = None
         required_params = fields if fields and isinstance(fields, (list, tuple)) \
-            else ('pipeline_config_id', 'ci_pipeline', 'pipeline_config_event', 'pipeline_config_active',
-                  'pipeline_config_json', 'pipeline_config_created_on', 'pipeline_config_updated_on',
+            else ('pipeline_config_id', 'ci_pipeline', 'pipeline_config_event',
+                  'pipeline_config_active', 'pipeline_config_created_on', 'pipeline_config_updated_on',
                   'pipeline_config_last_accessed', 'pipeline_config_created_by')
         kwargs = {}
-        if ci_pipeline:
-            kwargs.update(dict(ci_pipeline__in=ci_pipeline))
+        if ci_pipelines:
+            kwargs.update(dict(ci_pipeline__in=ci_pipelines))
 
         try:
             pipeline_configs = PipelineConfig.objects.only(*required_params).filter(**kwargs).all()
@@ -305,17 +305,38 @@ class PipelineConfigManager(CIPipelineManager):
             )
         return pipeline_configs
 
-    def format_pipeline_config(self, job_template, pipeline, action, tenant):
+    def save_pipeline_config(self, config_params):
         """
-        Formats Job Template for the Pipeline Configurations
-        :param job_template: dict
+        Save Pipeline Config in db
+        :param config_params: dict
+        :return: boolean
+        """
+        if not config_params:
+            return
+        try:
+            pipeline_config = PipelineConfig(**config_params)
+            pipeline_config.save()
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Pipeline Config could not be saved, details: " + str(e)
+            )
+        else:
+            return True
+        return False
+
+    def _pipeline_config_html_form(self, pipeline, action, tenant):
+        """
+        Pipeline Configuration HTML form fields
         :param pipeline: Pipeline Object
         :param action: str
+        :param tenant: str or None
         :return: dict
         """
-        formatted_pipeline_config = job_template.copy()
-        if not job_template and not pipeline and not action:
-            return job_template
+
+        repo_branches = self.package_manager.git_branches(
+            package_name=pipeline.ci_package.package_name,
+            repo_type=pipeline.ci_package.platform_slug.engine_name
+        ) if not tenant == RELSTREAM_SLUGS[3] else ["%RESPECTIVE%"]
 
         def _format_val(value_str):
             return "<strong>{}</strong>".format(str(value_str))
@@ -328,44 +349,113 @@ class PipelineConfigManager(CIPipelineManager):
             html_select += "</select>"
             return html_select
 
-        def _format_checkboxes(values):
+        def _format_checkboxes(field_id, values):
             html_select = ""
+            counter = 0
             for value in values:
+                counter += 1
                 html_select += "<label class='checkbox-inline'>" \
-                               "<input type='checkbox' value='{}' {}>" \
-                               "{}</label>".format(value, "checked", value)
+                               "<input id='{}' class='checkbox-inline' type='checkbox' value='{}' {}>" \
+                               "{}</label>".format(field_id + str(counter), value, "checked", value)
             return html_select
-
-        repo_branches = self.package_manager.git_branches(
-            package_name=pipeline.ci_package.package_name,
-            repo_type=pipeline.ci_package.platform_slug.engine_name
-        ) if not tenant == RELSTREAM_SLUGS[3] else ["%RESPECTIVE%"]
 
         prepend_branch_field = "<input id='prependBranch' name='prependBranch' type='checkbox'>"
         if tenant == RELSTREAM_SLUGS[3]:
             prepend_branch_field = "<input id='prependBranch' name='prependBranch' type='checkbox' checked>"
 
+        upload_update_field = "<input id='uploadUpdate' name='uploadUpdate' type='checkbox'>"
+        if action == PIPELINE_CONFIG_EVENTS[2]:
+            upload_update_field = "<input id='uploadUpdate' name='uploadUpdate' type='checkbox' checked>"
+
         key_val_map = {
             "ci_pipeline": _format_val(pipeline.ci_pipeline_uuid),
             "package": _format_val(pipeline.ci_package.package_name),
             "clone.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
-            "clone.branch": _format_choices("repoBranch", repo_branches),
+            "clone.branch": _format_choices("repoCloneBranch", repo_branches),
             "clone.recursive": "<input type='checkbox' id='cloneRecursive' name='cloneRecursive'>",
-            "filter.domain": "<input type='text' value='{}'>".format(pipeline.ci_package.package_name),
-            "download.target_langs": _format_checkboxes(pipeline.ci_project_details_json.get("targetLangs", [])),
+            "filter.domain": "<input id='filterDomain' type='text' value='{}'>".format(
+                pipeline.ci_package.package_name),
+            "filter.dir": "<input id='filterDir' type='text' value=''>",
+            "download.target_langs": _format_checkboxes(
+                'downloadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
             "download.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
-            "download.branch": _format_choices("repoBranch", repo_branches),
+            "download.branch": _format_choices("downloadRepoBranch", repo_branches),
             "download.workflow_step": _format_choices(
                 "workflowStep", self.get_ci_platform_workflow_steps(pipeline.ci_pipeline_uuid)
             ),
             "download.prepend_branch": prepend_branch_field,
             "upload.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
-            "upload.branch": _format_choices("repoBranch", repo_branches),
-            "upload.target_langs": _format_checkboxes(pipeline.ci_project_details_json.get("targetLangs", [])),
-            "upload.import_settings": "<input type='text' value='project'>",
-            "upload.update": _format_val("true" if action == PIPELINE_CONFIG_EVENTS[2] else "false"),
+            "upload.branch": _format_choices("uploadRepoBranch", repo_branches),
+            "upload.target_langs": _format_checkboxes(
+                'uploadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
+            "upload.import_settings": "<input id='importSettings' type='text' value='project'>",
+            "upload.update": upload_update_field,
             "upload.prepend_branch": prepend_branch_field,
         }
+        return key_val_map
+
+    def _pipeline_config_values(self, config_values):
+        """
+        Pipeline Configuration YAML values
+        :param config_values: dict
+        :return: dict
+        """
+
+        def _true_false_type(str_val):
+            if str_val == "true":
+                return True
+            if str_val == "false":
+                return False
+            return None
+
+        key_val_map = {
+            "ci_pipeline": config_values.get('ciPipeline', ''),
+            "package": config_values.get('package', ''),
+            "clone.type": config_values.get('cloneType', ''),
+            "clone.branch": config_values.get('cloneBranch', ''),
+            "clone.recursive": _true_false_type(config_values.get('cloneRecursive', '')),
+            "filter.domain": config_values.get('filterDomain', ''),
+            "filter.dir": config_values.get('filterDir', ''),
+            "download.target_langs": config_values.get('downloadTargetLangs', '').split(','),
+            "download.type": config_values.get('downloadType', ''),
+            "download.branch": config_values.get('downloadBranch', ''),
+            "download.workflow_step": config_values.get('downloadWorkflowStep', ''),
+            "download.prepend_branch": _true_false_type(config_values.get('downloadPrependBranch', '')),
+            "upload.type": config_values.get('uploadType', ''),
+            "upload.branch": config_values.get('uploadBranch', ''),
+            "upload.target_langs": config_values.get('uploadTargetLangs', '').split(','),
+            "upload.import_settings": config_values.get('uploadImportSettings', ''),
+            "upload.update": _true_false_type(config_values.get('uploadUpdate', '')),
+            "upload.prepend_branch": _true_false_type(config_values.get('uploadPrependBranch', '')),
+        }
+        return key_val_map
+
+    def format_pipeline_config(self, pipeline, action, output_format=None, tenant=None, **kwargs):
+        """
+        Formats Job Template for the Pipeline Configurations
+        :param pipeline: Pipeline Object
+        :param action: str
+        :param output_format: str
+        :param tenant: str or None
+        :return: dict
+        """
+        key_val_map = dict()
+        if not pipeline and not action:
+            return key_val_map
+
+        job_action_map = {
+            PIPELINE_CONFIG_EVENTS[0]: pipeline.ci_push_job_template.job_template_json,
+            PIPELINE_CONFIG_EVENTS[1]: pipeline.ci_pull_job_template.job_template_json,
+            PIPELINE_CONFIG_EVENTS[2]: pipeline.ci_push_job_template.job_template_json
+        }
+        pipeline_config = job_action_map.get(action, dict()).copy()
+
+        if output_format and output_format == 'html_form':
+            key_val_map = self._pipeline_config_html_form(
+                pipeline=pipeline, action=action, tenant=tenant
+            )
+        if output_format and output_format == 'values':
+            key_val_map = self._pipeline_config_values(config_values=kwargs)
 
         def _traverse_steps(task_steps):
             counter = 0
@@ -383,11 +473,11 @@ class PipelineConfigManager(CIPipelineManager):
             return task_steps
 
         # lets parse job_template and fill values
-        for k, v in formatted_pipeline_config.items():
+        for k, v in pipeline_config.items():
             if isinstance(v, dict):
                 for p, q in v.items():
                     if p in key_val_map:
-                        formatted_pipeline_config[k][p] = key_val_map[p]
+                        pipeline_config[k][p] = key_val_map[p]
                     if p == "tasks":
-                        formatted_pipeline_config[k][p] = _traverse_steps(q)
-        return formatted_pipeline_config
+                        pipeline_config[k][p] = _traverse_steps(q)
+        return pipeline_config

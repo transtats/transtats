@@ -1,0 +1,79 @@
+
+{% for pipeline_config in pipeline_configs %}
+    {% ifchanged %}<div class="h4"><b>{{ pipeline_config.pipeline_config_event }}</b></div>{% endifchanged %}
+    <div class="card-pf card-pf-view card-pf-view-xs {% if pipeline_config.pipeline_config_active %}left-border-green{% endif %}" style="margin-left: 2%;">
+      <div class="card-pf-body">
+        <div class="card-pf-heading-kebab">
+            <div class="dropdown pull-right dropdown-kebab-pf">
+              <a href="#" data-toggle="modal" data-target="#modal-show-YAML{{ forloop.counter }}" class="btn btn-sx">Show YAML</a>
+              {% if user.is_authenticated %}&nbsp;
+              <button class="btn btn-link dropdown-toggle" type="button" id="dropupKebabRight3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                <span class="fa fa-ellipsis-v"></span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropupKebabRight3">
+                <li><a href="#">Run</a></li>
+                <li class="disabled"><a href="#">Schedule</a></li>
+                <li role="separator" class="divider"></li>
+                {% if pipeline_config.pipeline_config_active %}
+                  <li><a href="#">Deactivate</a></li>
+                {% else %}
+                  <li><a href="#">Activate</a></li>
+                {% endif %}
+                <li role="separator" class="divider"></li>
+                <li><a href="#"><span class="text-danger">Delete</span></a></li>
+              </ul>
+              {% endif %}
+            </div>
+
+            <h2 class="card-pf-title">
+                <span class="pficon pficon-blueprint"></span>
+                {% if pipeline_config.pipeline_config_repo_branches.length > 1 %}
+                    {{ pipeline_config.pipeline_config_repo_branches|join:", "|slice:":60" }} ..
+                    <span class="text-info">{{ pipeline_config.pipeline_config_repo_branches|length }}</span>
+                    <i class="text-muted">branches</i>
+                {% else %}
+                    {{ pipeline_config.pipeline_config_repo_branches|join:"" }} <i class="text-muted">branch</i>.
+                {% endif %}
+            </h2>
+        </div>
+        <h5><span class="text-muted">Created on</span> {{ pipeline_config.pipeline_config_created_on }}
+            <span class="text-muted">by</span> {{ pipeline_config.pipeline_config_created_by }}</h5>
+
+      </div>
+    </div>
+
+    <div id="modal-show-YAML{{ forloop.counter }}" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" aria-label="Close">
+              <span class="pficon pficon-close"></span>
+            </button>
+            <h4 class="modal-title">Job YAML</h4>
+          </div>
+          <div class="modal-body">
+              <pre>{{ pipeline_config.pipeline_config_yaml }}</pre>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% empty %}
+    <div class="blank-slate-pf" id="pipeline-config-blank-state">
+      <div class="blank-slate-pf-icon">
+        <span class="pficon pficon pficon-add-circle-o"></span>
+      </div>
+      <h1>
+        No pipeline configurations found.
+      </h1>
+      <p>
+        Pipeline configurations help us save multiple adaptations of job templates and reuse them.
+      </p>
+      <p>
+        Learn more about this <a href="#">in the documentation</a>.
+      </p>
+    </div>
+{% endfor %}

@@ -35,6 +35,7 @@ from django.views.generic import (
 )
 from django.views.generic.edit import (CreateView, UpdateView, DeleteView)
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 
 # dashboard
 
@@ -858,11 +859,6 @@ class PipelineConfigurationView(ManagersMixin, PipelineDetailView):
     def get_context_data(self, **kwargs):
         context_data = super(PipelineConfigurationView, self).get_context_data(**kwargs)
         context_data['pipeline_config_events'] = PIPELINE_CONFIG_EVENTS
-        pipeline_configs = self.pipeline_config_manager.get_pipeline_configs(
-            ci_pipeline=self.object
-        )
-        if pipeline_configs:
-            context_data['pipeline_configs'] = pipeline_configs
         return context_data
 
 
@@ -1663,19 +1659,20 @@ def get_target_langs(request):
     :param request: Request object
     :return: HttpResponse object
     """
-    if request.is_ajax():
-        post_params = request.POST.dict()
-        ci_pipeline = post_params.get('ci_pipeline', '')
-        context = Context(
-            {'META': request.META,
-             'ci_pipeline': ci_pipeline}
-        )
-        template_string = """
-                            {% load tag_target_langs from custom_tags %}
-                            {% tag_target_langs ci_pipeline %}
-                        """
-        return HttpResponse(Template(template_string).render(context))
-    return HttpResponse(status=500)
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict()
+    ci_pipeline = post_params.get('ci_pipeline', '')
+    context = Context(
+        {'META': request.META,
+         'ci_pipeline': ci_pipeline}
+    )
+    template_string = """
+                        {% load tag_target_langs from custom_tags %}
+                        {% tag_target_langs ci_pipeline %}
+                    """
+    return HttpResponse(Template(template_string).render(context))
 
 
 def get_workflow_steps(request):
@@ -1684,19 +1681,20 @@ def get_workflow_steps(request):
     :param request: Request object
     :return: HttpResponse object
     """
-    if request.is_ajax():
-        post_params = request.POST.dict()
-        ci_pipeline = post_params.get('ci_pipeline', '')
-        context = Context(
-            {'META': request.META,
-             'ci_pipeline': ci_pipeline}
-        )
-        template_string = """
-                            {% load tag_workflow_steps_dropdown from custom_tags %}
-                            {% tag_workflow_steps_dropdown ci_pipeline %}
-                        """
-        return HttpResponse(Template(template_string).render(context))
-    return HttpResponse(status=500)
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict()
+    ci_pipeline = post_params.get('ci_pipeline', '')
+    context = Context(
+        {'META': request.META,
+         'ci_pipeline': ci_pipeline}
+    )
+    template_string = """
+                        {% load tag_workflow_steps_dropdown from custom_tags %}
+                        {% tag_workflow_steps_dropdown ci_pipeline %}
+                    """
+    return HttpResponse(Template(template_string).render(context))
 
 
 def get_pipeline_job_template(request):
@@ -1705,19 +1703,61 @@ def get_pipeline_job_template(request):
     :param request: Request object
     :return: HttpResponse object
     """
-    if request.is_ajax():
-        post_params = request.POST.dict()
-        pipeline_event = post_params.get('pipelineEvent', '')
-        pipeline_uuid = post_params.get('pipelineUUID', '')
-        context = Context(
-            {'META': request.META,
-             'tenant': request.tenant,
-             'pipeline_event': pipeline_event,
-             'pipeline_uuid': pipeline_uuid}
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict()
+    pipeline_action = post_params.get('pipelineAction', '')
+    pipeline_uuid = post_params.get('pipelineUUID', '')
+    context = Context(
+        {'META': request.META,
+         'tenant': request.tenant,
+         'pipeline_action': pipeline_action,
+         'pipeline_uuid': pipeline_uuid}
+    )
+    template_string = """
+                            {% load tag_pipeline_job_params from custom_tags %}
+                            {% tag_pipeline_job_params tenant pipeline_uuid pipeline_action %}
+                        """
+    return HttpResponse(Template(template_string).render(context))
+
+
+def ajax_save_pipeline_config(request):
+    """
+    Save Pipeline Configuration
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict().copy()
+    check_copy_config = post_params.get('chkCopyConfig')
+    pipeline_action = post_params.get('pipelineAction', '')
+    pipeline_uuid = post_params.get('ciPipeline', '')
+    pipeline_package = post_params.get('package')
+    pipeline_repo_type = \
+        post_params.get('cloneType') or post_params.get('downloadType') or post_params.get('uploadType')
+    pipeline_repo_branch = \
+        post_params.get('cloneBranch') or post_params.get('downloadBranch') or post_params.get('uploadBranch')
+    pipeline_config_manager = PipelineConfigManager()
+    pipeline_branches = [pipeline_repo_branch]
+    if pipeline_repo_branch == "%RESPECTIVE%":
+        pipeline_branches = pipeline_config_manager.package_manager.git_branches(
+            package_name=pipeline_package, repo_type=pipeline_repo_type
         )
-        template_string = """
-                                {% load tag_pipeline_job_params from custom_tags %}
-                                {% tag_pipeline_job_params tenant pipeline_uuid pipeline_event %}
-                            """
-        return HttpResponse(Template(template_string).render(context))
-    return HttpResponse(status=500)
+    ci_pipeline = pipeline_config_manager.get_ci_pipelines(uuids=[pipeline_uuid]).get()
+    pipeline_config = pipeline_config_manager.format_pipeline_config(
+        pipeline=ci_pipeline, action=pipeline_action, output_format='values', **post_params
+    )
+    config_kwargs = dict()
+    config_kwargs.update(dict(ci_pipeline=ci_pipeline))
+    config_kwargs.update(dict(pipeline_config_event=pipeline_action))
+    config_kwargs.update(dict(pipeline_config_active=True))
+    config_kwargs.update(dict(pipeline_config_json_str=json.dumps(pipeline_config)))
+    config_kwargs.update(dict(pipeline_config_repo_branches=pipeline_branches))
+    config_kwargs.update(dict(pipeline_config_created_on=timezone.now()))
+    config_kwargs.update(dict(pipeline_config_created_by=request.user.email))
+    if pipeline_config_manager.save_pipeline_config(config_kwargs):
+        return HttpResponse("Pipeline configuration saved.", status=201)
+    return HttpResponse("Saving pipeline configuration failed.", status=500)

@@ -35,7 +35,8 @@ from dashboard.views import (
     tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status,
     LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs, get_repo_branches, get_target_langs,
     refresh_ci_pipeline, graph_data, job_template, PipelineDetailView, PipelineHistoryView, PipelineConfigurationView,
-    PipelinesView, AddCIPipeline, ReleasePipelinesView, get_workflow_steps, get_pipeline_job_template
+    ReleasePipelinesView, PipelinesView, AddCIPipeline, get_workflow_steps, get_pipeline_job_template,
+    ajax_save_pipeline_config
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -58,7 +59,7 @@ app_pipeline_urls = [
     url(r'^(?P<release_slug>[\w\-\+]+)$', ReleasePipelinesView.as_view(), name="release-pipelines"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/details$', PipelineDetailView.as_view(), name="pipeline-details"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/history$', PipelineHistoryView.as_view(), name="pipeline-history"),
-    url(r'^(?P<pipeline_id>[0-9a-f-]+)/configuration$', PipelineConfigurationView.as_view(),
+    url(r'^(?P<pipeline_id>[0-9a-f-]+)/configurations$', PipelineConfigurationView.as_view(),
         name="pipeline-configuration"),
 ]
 
@@ -93,6 +94,8 @@ ajax_urls = [
     url(r'^target-langs$', get_target_langs, name="ajax-target-langs"),
     url(r'^workflow-steps$', get_workflow_steps, name="ajax-workflow-steps"),
     url(r'^ajax-pipeline-job-template$', get_pipeline_job_template, name="ajax-pipeline-job-template"),
+    url(r'^ajax-save-pipeline-config$', login_required(ajax_save_pipeline_config),
+        name='ajax-save-pipeline-config')
 ]
 
 coverage_urls = [
