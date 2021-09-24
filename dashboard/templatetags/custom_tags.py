@@ -22,8 +22,7 @@ from collections import OrderedDict
 from django import template
 
 from dashboard.constants import (
-    BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE,
-    TP_BRANCH_CALLING_NAME, PIPELINE_CONFIG_EVENTS
+    BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE, TP_BRANCH_CALLING_NAME
 )
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager

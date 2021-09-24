@@ -123,13 +123,13 @@
         <div id="pipelineJobTemplate">
           {% tag_pipeline_job_params request.tenant ci_pipeline.ci_pipeline_uuid pipeline_config_events.0 %}
         </div>
-        <!--<div id="divCopyConfig">-->
-          <!--<label class='checkbox-inline h4'>-->
-            <!--<input id="checkCopyConfig" class='checkbox' type='checkbox' value='copy-config'>-->
-            <!--Copy the configuration for other actions too.-->
-          <!--</label>-->
-        <!--</div>-->
         {% if user.is_authenticated %}
+        <div id="divCopyConfig">
+          <label class='checkbox-inline h4'>
+            <input id="checkCopyConfig" class='checkbox' type='checkbox' value='copy-config'>
+            Copy this configuration for other actions too.
+          </label>
+        </div>
         <div id="spanSaveConfiguration" style="margin-top: 5%;">
           <span id="saveOutcome" class="pull-right"></span>
           <button id="saveConfiguration" class="btn btn-primary">Save Configuration</button>

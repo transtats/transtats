@@ -14,6 +14,7 @@
 # under the License.
 
 import json
+import functools
 
 # django
 from django.db.models import Case, Value, When
@@ -21,7 +22,7 @@ from django.utils import timezone
 
 # dadhboard
 from dashboard.constants import (
-    TRANSPLATFORM_ENGINES, PIPELINE_CONFIG_EVENTS, RELSTREAM_SLUGS
+    TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, PIPELINE_CONFIG_EVENTS
 )
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers import BaseManager
@@ -394,6 +395,16 @@ class PipelineConfigManager(CIPipelineManager):
         }
         return key_val_map
 
+    @staticmethod
+    def __true_false_type(str_val):
+        type_conv_map = {
+            "true": True,
+            "True": True,
+            "false": False,
+            "False": False
+        }
+        return type_conv_map.get(str_val)
+
     def _pipeline_config_values(self, config_values):
         """
         Pipeline Configuration YAML values
@@ -401,32 +412,25 @@ class PipelineConfigManager(CIPipelineManager):
         :return: dict
         """
 
-        def _true_false_type(str_val):
-            if str_val == "true":
-                return True
-            if str_val == "false":
-                return False
-            return None
-
         key_val_map = {
             "ci_pipeline": config_values.get('ciPipeline', ''),
             "package": config_values.get('package', ''),
             "clone.type": config_values.get('cloneType', ''),
             "clone.branch": config_values.get('cloneBranch', ''),
-            "clone.recursive": _true_false_type(config_values.get('cloneRecursive', '')),
+            "clone.recursive": self.__true_false_type(config_values.get('cloneRecursive', '')),
             "filter.domain": config_values.get('filterDomain', ''),
             "filter.dir": config_values.get('filterDir', ''),
             "download.target_langs": config_values.get('downloadTargetLangs', '').split(','),
             "download.type": config_values.get('downloadType', ''),
             "download.branch": config_values.get('downloadBranch', ''),
             "download.workflow_step": config_values.get('downloadWorkflowStep', ''),
-            "download.prepend_branch": _true_false_type(config_values.get('downloadPrependBranch', '')),
+            "download.prepend_branch": self.__true_false_type(config_values.get('downloadPrependBranch', '')),
             "upload.type": config_values.get('uploadType', ''),
             "upload.branch": config_values.get('uploadBranch', ''),
             "upload.target_langs": config_values.get('uploadTargetLangs', '').split(','),
             "upload.import_settings": config_values.get('uploadImportSettings', ''),
-            "upload.update": _true_false_type(config_values.get('uploadUpdate', '')),
-            "upload.prepend_branch": _true_false_type(config_values.get('uploadPrependBranch', '')),
+            "upload.update": self.__true_false_type(config_values.get('uploadUpdate', '')),
+            "upload.prepend_branch": self.__true_false_type(config_values.get('uploadPrependBranch', '')),
         }
         return key_val_map
 
@@ -481,3 +485,60 @@ class PipelineConfigManager(CIPipelineManager):
                     if p == "tasks":
                         pipeline_config[k][p] = _traverse_steps(q)
         return pipeline_config
+
+    def process_save_pipeline_config(self, *args, **kwargs):
+        """
+        Process data and save pipeline configuration
+        :param args: list
+        :param args: dict
+        :return: boolean
+        """
+        repo_type, repo_branch, pipeline_branches, target_langs, u_email = args
+
+        copy_config = kwargs.get('chkCopyConfig')
+        pipeline_uuid = kwargs.get('ciPipeline', '')
+        pipeline_action = kwargs.get('pipelineAction', '')
+        ci_pipeline = self.get_ci_pipelines(uuids=[pipeline_uuid]).get()
+
+        def _save_pipeline_config(*params):
+            pc_kwargs = dict()
+            pc_kwargs.update(dict(ci_pipeline=params[0]))
+            pc_kwargs.update(dict(pipeline_config_event=params[1]))
+            pc_kwargs.update(dict(pipeline_config_active=True))
+            pc_kwargs.update(dict(pipeline_config_json_str=params[2]))
+            pc_kwargs.update(dict(pipeline_config_repo_branches=params[3]))
+            pc_kwargs.update(dict(pipeline_config_created_on=timezone.now()))
+            pc_kwargs.update(dict(pipeline_config_created_by=params[4]))
+            return self.save_pipeline_config(pc_kwargs)
+
+        if not self.__true_false_type(copy_config):
+            pipeline_config = self.format_pipeline_config(pipeline=ci_pipeline, action=pipeline_action,
+                                                          output_format='values', **kwargs)
+            return _save_pipeline_config(
+                ci_pipeline, pipeline_action, json.dumps(pipeline_config), pipeline_branches, u_email
+            )
+        else:
+            save_results = []
+            for action in PIPELINE_CONFIG_EVENTS:
+                kwargs['downloadType'] = repo_type
+                kwargs['downloadBranch'] = repo_branch
+                kwargs['downloadTargetLangs'] = target_langs
+                kwargs['uploadType'] = repo_type
+                kwargs['uploadBranch'] = repo_branch
+                kwargs['uploadTargetLangs'] = target_langs
+
+                if action == PIPELINE_CONFIG_EVENTS[1]:
+                    workflow_steps = self.get_ci_platform_workflow_steps(
+                        pipeline_uuid=ci_pipeline.ci_pipeline_uuid
+                    )
+                    kwargs['downloadWorkflowStep'] = workflow_steps[0] \
+                        if isinstance(workflow_steps, list) and len(workflow_steps) >= 1 else 'Translation'
+                if action == PIPELINE_CONFIG_EVENTS[2]:
+                    kwargs['uploadUpdate'] = 'true'
+
+                pipeline_config = self.format_pipeline_config(pipeline=ci_pipeline, action=action,
+                                                              output_format='values', **kwargs)
+                save_results.append(_save_pipeline_config(
+                    ci_pipeline, action, json.dumps(pipeline_config), pipeline_branches, u_email
+                ))
+            return functools.reduce(lambda a, b: a and b, save_results) if save_results else False

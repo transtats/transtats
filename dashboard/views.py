@@ -35,7 +35,6 @@ from django.views.generic import (
 )
 from django.views.generic.edit import (CreateView, UpdateView, DeleteView)
 from django.urls import reverse, reverse_lazy
-from django.utils import timezone
 
 # dashboard
 
@@ -1732,32 +1731,25 @@ def ajax_save_pipeline_config(request):
         return HttpResponse("Not an Ajax Call", status=400)
 
     post_params = request.POST.dict().copy()
-    check_copy_config = post_params.get('chkCopyConfig')
-    pipeline_action = post_params.get('pipelineAction', '')
-    pipeline_uuid = post_params.get('ciPipeline', '')
     pipeline_package = post_params.get('package')
-    pipeline_repo_type = \
-        post_params.get('cloneType') or post_params.get('downloadType') or post_params.get('uploadType')
-    pipeline_repo_branch = \
-        post_params.get('cloneBranch') or post_params.get('downloadBranch') or post_params.get('uploadBranch')
+    pipeline_repo_type = post_params.get('cloneType') or \
+        post_params.get('downloadType') or \
+        post_params.get('uploadType')
+    pipeline_repo_branch = post_params.get('cloneBranch') or \
+        post_params.get('downloadBranch') or \
+        post_params.get('uploadBranch')
+    pipeline_target_langs = post_params.get('downloadTargetLangs') or \
+        post_params.get('uploadTargetLangs')
     pipeline_config_manager = PipelineConfigManager()
     pipeline_branches = [pipeline_repo_branch]
     if pipeline_repo_branch == "%RESPECTIVE%":
         pipeline_branches = pipeline_config_manager.package_manager.git_branches(
             package_name=pipeline_package, repo_type=pipeline_repo_type
         )
-    ci_pipeline = pipeline_config_manager.get_ci_pipelines(uuids=[pipeline_uuid]).get()
-    pipeline_config = pipeline_config_manager.format_pipeline_config(
-        pipeline=ci_pipeline, action=pipeline_action, output_format='values', **post_params
-    )
-    config_kwargs = dict()
-    config_kwargs.update(dict(ci_pipeline=ci_pipeline))
-    config_kwargs.update(dict(pipeline_config_event=pipeline_action))
-    config_kwargs.update(dict(pipeline_config_active=True))
-    config_kwargs.update(dict(pipeline_config_json_str=json.dumps(pipeline_config)))
-    config_kwargs.update(dict(pipeline_config_repo_branches=pipeline_branches))
-    config_kwargs.update(dict(pipeline_config_created_on=timezone.now()))
-    config_kwargs.update(dict(pipeline_config_created_by=request.user.email))
-    if pipeline_config_manager.save_pipeline_config(config_kwargs):
+    u_email = request.user.email
+    if pipeline_config_manager.process_save_pipeline_config(
+            pipeline_repo_type, pipeline_repo_branch, pipeline_branches,
+            pipeline_target_langs, u_email, **post_params
+    ):
         return HttpResponse("Pipeline configuration saved.", status=201)
     return HttpResponse("Saving pipeline configuration failed.", status=500)
