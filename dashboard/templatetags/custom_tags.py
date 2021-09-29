@@ -22,7 +22,8 @@ from collections import OrderedDict
 from django import template
 
 from dashboard.constants import (
-    BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE, TP_BRANCH_CALLING_NAME
+    BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE,
+    TP_BRANCH_CALLING_NAME, RELSTREAM_SLUGS
 )
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
@@ -310,13 +311,16 @@ def tag_threshold_based(relbranch, threshold):
 @register.inclusion_tag(
     os.path.join("releases", "_releases_summary.html")
 )
-def tag_releases_summary():
+def tag_releases_summary(tenant):
     return_value = OrderedDict()
     reports_manager = ReportsManager()
     releases_summary = reports_manager.get_reports('releases')
     if releases_summary:
         report = releases_summary.get().report_json_str
         release_report_json = json.loads(report) if isinstance(report, str) else {}
+        if tenant in RELSTREAM_SLUGS:
+            release_report_json = {k: v for k, v in release_report_json.items()
+                                   if tenant.lower() in v.get('slug').lower()}
         pkg_manager = PackagesManager()
         lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
         for release, summary in release_report_json.items():

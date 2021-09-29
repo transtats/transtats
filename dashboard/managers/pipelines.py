@@ -284,20 +284,21 @@ class PipelineConfigManager(CIPipelineManager):
     Pipeline Configurations Manager
     """
 
-    def get_pipeline_configs(self, fields=None, ci_pipelines=None):
+    def get_pipeline_configs(self, fields=None, ci_pipelines=None, pipeline_config_ids=None):
         """
         fetch ci pipeline(s) from db
         :return: queryset
         """
         pipeline_configs = None
         required_params = fields if fields and isinstance(fields, (list, tuple)) \
-            else ('pipeline_config_id', 'ci_pipeline', 'pipeline_config_event',
+            else ('pipeline_config_id', 'ci_pipeline', 'pipeline_config_event', 'pipeline_config_repo_branches',
                   'pipeline_config_active', 'pipeline_config_created_on', 'pipeline_config_updated_on',
                   'pipeline_config_last_accessed', 'pipeline_config_created_by')
         kwargs = {}
         if ci_pipelines:
             kwargs.update(dict(ci_pipeline__in=ci_pipelines))
-
+        if pipeline_config_ids:
+            kwargs.update(dict(pipeline_config_id__in=pipeline_config_ids))
         try:
             pipeline_configs = PipelineConfig.objects.only(*required_params).filter(**kwargs).all()
         except Exception as e:
@@ -434,6 +435,15 @@ class PipelineConfigManager(CIPipelineManager):
         }
         return key_val_map
 
+    @staticmethod
+    def get_job_action_template(pipeline, action):
+        job_action_map = {
+            PIPELINE_CONFIG_EVENTS[0]: pipeline.ci_push_job_template,
+            PIPELINE_CONFIG_EVENTS[1]: pipeline.ci_pull_job_template,
+            PIPELINE_CONFIG_EVENTS[2]: pipeline.ci_push_job_template
+        }
+        return job_action_map.get(action)
+
     def format_pipeline_config(self, pipeline, action, output_format=None, tenant=None, **kwargs):
         """
         Formats Job Template for the Pipeline Configurations
@@ -447,12 +457,8 @@ class PipelineConfigManager(CIPipelineManager):
         if not pipeline and not action:
             return key_val_map
 
-        job_action_map = {
-            PIPELINE_CONFIG_EVENTS[0]: pipeline.ci_push_job_template.job_template_json,
-            PIPELINE_CONFIG_EVENTS[1]: pipeline.ci_pull_job_template.job_template_json,
-            PIPELINE_CONFIG_EVENTS[2]: pipeline.ci_push_job_template.job_template_json
-        }
-        pipeline_config = job_action_map.get(action, dict()).copy()
+        respective_job_template_json = self.get_job_action_template(pipeline, action).job_template_json or dict()
+        pipeline_config = respective_job_template_json.copy()
 
         if output_format and output_format == 'html_form':
             key_val_map = self._pipeline_config_html_form(

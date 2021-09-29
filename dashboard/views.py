@@ -13,9 +13,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import os
 import ast
 import csv
 import json
+import shutil
 from datetime import datetime
 from pathlib import Path
 import threading
@@ -64,7 +66,7 @@ from dashboard.managers.graphs import (
 )
 from dashboard.models import (
     Job, Language, LanguageSet, Platform, Visitor, Package,
-    GraphRule, SyncStats, CacheBuildDetails, CIPipeline
+    GraphRule, SyncStats, CacheBuildDetails, CIPipeline, PipelineConfig
 )
 
 
@@ -178,6 +180,8 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
         context['releases'] = relbranches
         products = self.inventory_manager.get_release_streams()
+        if self.request.tenant in RELSTREAM_SLUGS:
+            products = products.filter(**{'product_slug': self.request.tenant})
         context['relstreams'] = products
         product_releases = self.release_branch_manager.get_branches_of_relstreams(products)
         p_releases_dict = {}
@@ -296,7 +300,11 @@ class LanguageDetailView(ManagersMixin, DetailView):
             context["language_teams"] = language_teams
         context["locale_lang"] = locale_lang_tuple
         if release_summary:
-            context["release_summary"] = release_summary.report_json
+            release_report_json = release_summary.report_json
+            if self.request.tenant in RELSTREAM_SLUGS:
+                release_report_json = {k: v for k, v in release_summary.report_json.items()
+                                       if self.request.tenant.lower() in v.get('slug').lower()}
+            context["release_summary"] = release_report_json
             context["last_updated"] = release_summary.report_updated
         return context
 
@@ -1628,6 +1636,8 @@ def hide_ci_pipeline(request):
     ci_pipeline_manager = CIPipelineManager()
     # delete all associated jobs
     Job.objects.filter(ci_pipeline_id=ci_pipeline_id).delete()
+    # delete all associated pipeline configs
+    PipelineConfig.objects.filter(ci_pipeline_id=ci_pipeline_id).delete()
     if ci_pipeline_manager.toggle_visibility(ci_pipeline_id):
         return HttpResponse("Pipeline successfully removed.", status=202)
     return HttpResponse(status=500)
@@ -1753,3 +1763,61 @@ def ajax_save_pipeline_config(request):
     ):
         return HttpResponse("Pipeline configuration saved.", status=201)
     return HttpResponse("Saving pipeline configuration failed.", status=500)
+
+
+def ajax_run_pipeline_config(request):
+    """
+    Save Pipeline Configuration
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict().copy()
+    pipeline_config_manager = PipelineConfigManager()
+    pipeline_config = pipeline_config_manager.get_pipeline_configs(
+        pipeline_config_ids=[post_params.get('pipeline_config_id')]).first()
+
+    job_log_id, message = "", "Ok"
+    for branch in pipeline_config.pipeline_config_repo_branches:
+        respective_job_template = pipeline_config_manager.get_job_action_template(
+            pipeline_config.ci_pipeline, pipeline_config.pipeline_config_event)
+
+        t_params = respective_job_template.job_template_params
+        job_data = {param.upper(): '' for param in t_params}
+        if '%RESPECTIVE%' in pipeline_config.pipeline_config_yaml:
+            pipeline_config.pipeline_config_yaml.replace('%RESPECTIVE%', branch)
+        job_data.update(dict(YML_FILE=pipeline_config.pipeline_config_yaml))
+
+        job_type = pipeline_config.pipeline_config_json.get('job', {}).get('type')
+        job_pkg = pipeline_config.pipeline_config_json.get('job', {}).get('package')
+        temp_path = 'false/{0}/'.format("-".join([job_pkg, job_type, branch]))
+
+        if 'PACKAGE_NAME' in job_data:
+            job_data['PACKAGE_NAME'] = job_pkg
+        if 'REPO_BRANCH' in job_data:
+            job_data['REPO_BRANCH'] = branch
+
+        job_manager = YMLBasedJobManager(
+            **job_data, **{'params': [p.upper() for p in t_params],
+                           'type': job_type},
+            **{'active_user_email': request.user.email},
+            **{'sandbox_path': temp_path},
+            **{'job_log_file': temp_path + '.log'}
+        )
+
+        try:
+            if os.path.isdir(temp_path):
+                shutil.rmtree(temp_path)
+            os.mkdir(temp_path)
+            job_log_id = job_manager.execute_job()
+            message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
+                      "&nbsp;<span class='text-success'>Success</span>. " + \
+                      "See <a href='/jobs/log/{}/detail'>Log</a> and the History.".format(
+                          str(job_log_id))
+        except Exception as e:
+            return HttpResponse("Something went wrong. See History.", status=500)
+        finally:
+            shutil.rmtree(temp_path)
+    return HttpResponse(message, status=201)

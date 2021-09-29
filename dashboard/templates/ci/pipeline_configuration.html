@@ -83,6 +83,27 @@
         })
   }
 
+  function runJobYAML(loopCounter, pipelineID){
+
+      var spanID = "#executeYAML" + loopCounter;
+      $.ajax({
+            beforeSend: function(e, t) {
+                csrfSafeMethod(t.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}")), $(spanID).html("<span class='spinner spinner-sm spinner-inline'></span> <span class='h4'>Please wait..</span>")
+            },
+            type: "POST",
+            url: "{% url 'ajax-run-pipeline-config' %}",
+            data: {
+                pipeline_config_id: pipelineID
+            },
+            success: function(e) {
+                e && $(spanID).html(e).addClass('h4')
+            },
+            error: function(e, t, a) {
+                e && $(spanID).html(e.responseText).addClass('h4 text-danger')
+            }
+        })
+  }
+
   $(document).ready(function(){
 
     $("#li-configurations").addClass('active') && $("#li-push").addClass('active');

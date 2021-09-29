@@ -539,10 +539,8 @@ class PipelineConfig(ModelMixin, models.Model):
     Pipeline Configurations Model
     """
     pipeline_config_id = models.AutoField(primary_key=True)
-    ci_pipeline = models.ForeignKey(
-        CIPipeline, on_delete=models.PROTECT,
-        to_field="ci_pipeline_uuid", verbose_name="CI Pipeline"
-    )
+    ci_pipeline = models.ForeignKey(CIPipeline, on_delete=models.PROTECT,
+                                    verbose_name="CI Pipeline", null=True)
     pipeline_config_event = models.CharField(max_length=1000)
     pipeline_config_active = models.BooleanField(default=False)
     pipeline_config_json_str = models.TextField(unique=True)
