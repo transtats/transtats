@@ -338,7 +338,10 @@ class PipelineConfigManager(CIPipelineManager):
         repo_branches = self.package_manager.git_branches(
             package_name=pipeline.ci_package.package_name,
             repo_type=pipeline.ci_package.platform_slug.engine_name
-        ) if not tenant == RELSTREAM_SLUGS[3] else ["%RESPECTIVE%"]
+        )
+
+        if tenant == RELSTREAM_SLUGS[3]:
+            repo_branches.insert(0, "%RESPECTIVE%")
 
         def _format_val(value_str):
             return "<strong>{}</strong>".format(str(value_str))
