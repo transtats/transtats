@@ -99,9 +99,55 @@
                 e && $(spanID).html(e).addClass('h4')
             },
             error: function(e, t, a) {
-                e && $(spanID).html(e.responseText).addClass('h4 text-danger')
+                e && $(spanID).html(e.responseText).addClass('h4 text-warning')
             }
         })
+  }
+
+  function togglePipelineConfig(config_id){
+      waitSpinner.show(), $.ajax({
+        beforeSend: function(e, s) {
+            csrfSafeMethod(s.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}"))
+        },
+        type: "POST",
+        url: "{% url 'ajax-toggle-pipeline-config' %}",
+        data: {
+            p_config_id: config_id
+        },
+        success: function(e) {
+            waitSpinner.hide(), $("#listPipelineConfigs").load(location.href + " #listPipelineConfigs")
+        },
+        error: function(e) {
+            waitSpinner.hide(), $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span>Something unexpected happened!</div>')
+        }
+    })
+  }
+
+  function deletePipelineConfig(config_id){
+      waitSpinner.show(), $.ajax({
+        beforeSend: function(e, s) {
+            csrfSafeMethod(s.type) || this.crossDomain || (csrftoken ? e.setRequestHeader("X-CSRFToken", csrftoken) : e.setRequestHeader("X-CSRFToken", "{{ csrf_token }}"))
+        },
+        type: "POST",
+        url: "{% url 'ajax-delete-pipeline-config' %}",
+        data: {
+            p_config_id: config_id
+        },
+        success: function(e) {
+            waitSpinner.hide(), $("#listPipelineConfigs").load(location.href + " #listPipelineConfigs")
+        },
+        error: function(e) {
+            waitSpinner.hide(), $("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span>Something unexpected happened!</div>')
+        }
+    })
+  }
+
+  function deactivatePipelineConfig(pipeline_config_id){
+      togglePipelineConfig(pipeline_config_id);
+  }
+
+  function activatePipelineConfig(pipeline_config_id){
+      togglePipelineConfig(pipeline_config_id);
   }
 
   $(document).ready(function(){

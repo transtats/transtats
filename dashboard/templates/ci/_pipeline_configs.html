@@ -12,11 +12,17 @@
               </button>
               <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropupKebabRight3">
                 {% if pipeline_config.pipeline_config_active %}
-                  <li><a href="#">Deactivate</a></li>
+                  <li><a id="idDeactivatePipelineConfig"
+                         onClick='javascript:deactivatePipelineConfig({{ pipeline_config.pipeline_config_id }})'>
+                      Deactivate</a></li>
                 {% else %}
-                  <li><a href="#">Activate</a></li>
+                  <li><a id="idActivatePipelineConfig"
+                         onClick='javascript:activatePipelineConfig({{ pipeline_config.pipeline_config_id }})'>
+                      Activate</a></li>
                 {% endif %}
-                <li><a href="#"><span class="text-danger">Delete</span></a></li>
+                <li><a id="idDeletePipelineConfig"
+                         onClick='javascript:deletePipelineConfig({{ pipeline_config.pipeline_config_id }})'>
+                      <span class="text-danger">Delete</span></a></li>
               </ul>
               {% endif %}
             </div>

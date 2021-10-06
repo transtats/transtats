@@ -36,7 +36,7 @@ from dashboard.views import (
     LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs, get_repo_branches, get_target_langs,
     refresh_ci_pipeline, graph_data, job_template, PipelineDetailView, PipelineHistoryView, PipelineConfigurationView,
     ReleasePipelinesView, PipelinesView, AddCIPipeline, get_workflow_steps, get_pipeline_job_template,
-    ajax_save_pipeline_config, ajax_run_pipeline_config
+    ajax_save_pipeline_config, ajax_run_pipeline_config, ajax_toggle_pipeline_config, ajax_delete_pipeline_config
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -97,7 +97,11 @@ ajax_urls = [
     url(r'^ajax-save-pipeline-config$', login_required(ajax_save_pipeline_config),
         name='ajax-save-pipeline-config'),
     url(r'^ajax-run-pipeline-config$', login_required(ajax_run_pipeline_config),
-        name='ajax-run-pipeline-config')
+        name='ajax-run-pipeline-config'),
+    url(r'^ajax-toggle-pipeline-config$', login_required(ajax_toggle_pipeline_config),
+        name='ajax-toggle-pipeline-config'),
+    url(r'^ajax-delete-pipeline-config$', login_required(ajax_delete_pipeline_config),
+        name='ajax-delete-pipeline-config')
 ]
 
 coverage_urls = [

@@ -1780,6 +1780,10 @@ def ajax_run_pipeline_config(request):
         pipeline_config_ids=[post_params.get('pipeline_config_id')]).first()
 
     job_log_id, message = "", "Ok"
+
+    if len(pipeline_config.pipeline_config_repo_branches) > 5:
+        return HttpResponse("Please consider scheduling longer jobs.", status=412)
+
     for branch in pipeline_config.pipeline_config_repo_branches:
         respective_job_template = pipeline_config_manager.get_job_action_template(
             pipeline_config.ci_pipeline, pipeline_config.pipeline_config_event)
@@ -1821,3 +1825,37 @@ def ajax_run_pipeline_config(request):
         finally:
             shutil.rmtree(temp_path)
     return HttpResponse(message, status=201)
+
+
+def ajax_toggle_pipeline_config(request):
+    """
+    Toggle Pipeline Configuration
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict().copy()
+    pipeline_config_manager = PipelineConfigManager()
+    if pipeline_config_manager.toggle_pipeline_configuration(
+            pipeline_config_id=post_params.get('p_config_id')):
+        return HttpResponse("Ok", status=204)
+    return HttpResponse("Something went wrong.", status=500)
+
+
+def ajax_delete_pipeline_config(request):
+    """
+    Delete Pipeline Configuration
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict().copy()
+    pipeline_config_manager = PipelineConfigManager()
+    if pipeline_config_manager.delete_pipeline_configuration(
+            pipeline_config_id=post_params.get('p_config_id')):
+        return HttpResponse("Ok", status=204)
+    return HttpResponse("Something went wrong.", status=500)

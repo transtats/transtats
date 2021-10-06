@@ -551,3 +551,49 @@ class PipelineConfigManager(CIPipelineManager):
                     ci_pipeline, action, json.dumps(pipeline_config), pipeline_branches, u_email
                 ))
             return functools.reduce(lambda a, b: a and b, save_results) if save_results else False
+
+    def toggle_pipeline_configuration(self, pipeline_config_id):
+        """
+        Deactivate or Activate Pipeline Configuration
+        :param pipeline_config_id: number
+        :return: boolean
+        """
+        if not pipeline_config_id:
+            return False
+        filter_kwargs = {}
+        filter_kwargs.update(dict(pipeline_config_id=pipeline_config_id))
+        try:
+            PipelineConfig.objects.filter(**filter_kwargs).update(
+                pipeline_config_active=Case(
+                    When(pipeline_config_active=True, then=Value(False)),
+                    When(pipeline_config_active=False, then=Value(True)),
+                    default=Value(False)
+                )
+            )
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Pipeline Configuration could not be toggled, details: " + str(e)
+            )
+        else:
+            return True
+        return False
+
+    def delete_pipeline_configuration(self, pipeline_config_id):
+        """
+        Delete Pipeline Configuration
+        :param pipeline_config_id: number
+        :return: boolean
+        """
+        if not pipeline_config_id:
+            return False
+        filter_kwargs = {}
+        filter_kwargs.update(dict(pipeline_config_id=pipeline_config_id))
+        try:
+            PipelineConfig.objects.filter(**filter_kwargs).delete()
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Pipeline Configuration could not be deleted, details: " + str(e)
+            )
+        else:
+            return True
+        return False
