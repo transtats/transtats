@@ -35,7 +35,7 @@ from dashboard.views import (
     tabular_data, export_packages, generate_reports, read_file_logs, get_build_tags, change_lang_status,
     LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs, get_repo_branches, get_target_langs,
     refresh_ci_pipeline, graph_data, job_template, PipelineDetailView, PipelineHistoryView, PipelineConfigurationView,
-    PipelinesView, AddCIPipeline, get_workflow_steps
+    PipelinesView, AddCIPipeline, get_workflow_steps, ReleasePipelinesView
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -54,6 +54,7 @@ app_job_urls = [
 
 app_pipeline_urls = [
     url(r'^$', PipelinesView.as_view(), name="pipelines"),
+    url(r'^(?P<release_slug>[\w\-\+]+)$', ReleasePipelinesView.as_view(), name="release-pipelines"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/details$', PipelineDetailView.as_view(), name="pipeline-details"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/history$', PipelineHistoryView.as_view(), name="pipeline-history"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/configuration$', PipelineConfigurationView.as_view(),

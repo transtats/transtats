@@ -1055,6 +1055,21 @@ class PipelinesView(ManagersMixin, ListView):
         return active_pipelines.order_by('ci_package_id').order_by('ci_release_id')
 
 
+class ReleasePipelinesView(ManagersMixin, ListView):
+    """
+    Release Pipelines View
+    """
+    template_name = "ci/list_pipelines.html"
+    context_object_name = 'pipelines'
+
+    def get_queryset(self):
+        tenant_releases = \
+            self.release_branch_manager.get_release_branches(relstream=self.request.tenant)
+        active_pipelines = self.ci_pipeline_manager.get_ci_pipelines(releases=tenant_releases)
+        return active_pipelines.filter(
+            ci_release__release_slug=self.kwargs['release_slug']).order_by('ci_package_id')
+
+
 class AddCIPipeline(ManagersMixin, FormView):
     """
     Add CI Pipeline View
