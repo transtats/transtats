@@ -1781,8 +1781,8 @@ def ajax_run_pipeline_config(request):
 
     job_log_id, message = "", "Ok"
 
-    if len(pipeline_config.pipeline_config_repo_branches) > 5:
-        return HttpResponse("Please consider scheduling longer jobs.", status=412)
+    # if len(pipeline_config.pipeline_config_repo_branches) > 5:
+    #     return HttpResponse("Please consider scheduling longer jobs.", status=412)
 
     for branch in pipeline_config.pipeline_config_repo_branches:
         respective_job_template = pipeline_config_manager.get_job_action_template(
