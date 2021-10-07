@@ -6,18 +6,9 @@
 
 ## Transtats
 
-**Help track language translations across releases and automate process workflows.**
+**Track translations and automate workflow.**
 
 Transtats web interface helps make packages ready to ship with translation completeness. It seems meaningful to localization teams, package maintainers, developers and quality engineers.
-
-##### Use Cases
- - Tracking translation progress across packages for product releases with respect to their current development.
- - Finding translation gaps by syncing with source repositories, translation platforms and build systems. To find out:
-    - Is everything translated, packaged and built?
-    - Which packages are out-of-sync and for which language(s)?
-    - Are all strings pushed to translation platform latest to source repositories?
- - At-a-glance picture for managing the localization effort progress, release by release. And it's readiness.
- - Automate translation workflows by scheduling jobs. (and pipelines)
 
 To learn about using Transtats, please point your browser to [docs](http://docs.transtats.org).
 

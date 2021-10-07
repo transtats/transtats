@@ -20,26 +20,24 @@ Upcoming Releases
 | And releases are scheduled every quarter end.
 
 
-Transtats 0.8.4
+Transtats 0.8.5
 ---------------
 
-| Target delivery: End of June 2021
+| Target delivery: End of Dec 2021
 
 
 ToDo List
 =========
 
 - New Feature, Bug fix, Enhancement
-    - Package name mapping.
     - Provision for package sets.
     - Search a job log.
     - Translation snapshots.
-    - translate.f.o specific changes.
+    - Tenants specific changes.
     - Translation files in multiple tarballs.
 
 - Technical Tasks
     - Error handling, test cases.
-    - Bootstrap Transtats for different tenants.
     - Simultaneous jobs run (and multi-threading).
     - Prepare deployment for OpenShift 4.
         - Move from docker to buildah, single container to a pod.
@@ -53,7 +51,9 @@ ToDo List
         - ``verifytrans``
 
 - Automation
-    - Scheduling jobs based on release dates
+    - Pipeline configurations and scheduling.
+    - Batch processing of pipeline actions.
+    - Scheduling jobs based on release dates.
 
 - User Personalization
     - Multiple Authentication: FAS, SAML, Social.
