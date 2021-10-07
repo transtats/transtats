@@ -16,10 +16,10 @@
                {{ ci_pipeline.ci_project_details_json|get_item:"name" }}</a>&nbsp;&nbsp;
              <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-default" data-toggle="tooltip"
                        data-placement="bottom" title="Go Back"><span class="fa fa-chevron-left"></span> Go Back</a>
+             <a class="btn btn-default" href="{% url 'release-pipelines' ci_pipeline.ci_release.release_slug %}">
+               Pipelines</a> |
              <a class="btn btn-default" href="{% url 'package-view' ci_pipeline.ci_package.package_name %}">
                {{ ci_pipeline.ci_package.package_name|title }}</a>
-             <a class="btn btn-default" href="{% url 'pipelines' %}">
-               Pipelines</a>
             </small>
           {% endif %}
         </h1>
