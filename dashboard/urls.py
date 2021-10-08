@@ -54,12 +54,12 @@ app_job_urls = [
 
 app_pipeline_urls = [
     url(r'^$', PipelinesView.as_view(), name="pipelines"),
+    url(r'^new$', staff_member_required(AddCIPipeline.as_view(), login_url=LOGIN_URL), name="add-ci-pipeline"),
     url(r'^(?P<release_slug>[\w\-\+]+)$', ReleasePipelinesView.as_view(), name="release-pipelines"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/details$', PipelineDetailView.as_view(), name="pipeline-details"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/history$', PipelineHistoryView.as_view(), name="pipeline-history"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/configuration$', PipelineConfigurationView.as_view(),
         name="pipeline-configuration"),
-    url(r'^new$', staff_member_required(AddCIPipeline.as_view(), login_url=LOGIN_URL), name="add-ci-pipeline"),
 ]
 
 app_setting_urls = [
