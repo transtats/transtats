@@ -66,13 +66,17 @@
           <div class="modal-footer">
             {% if user.is_authenticated and pipeline_config.pipeline_config_active %}
             <span id="executeYAML{{ forloop.counter }}" class="pull-left">
-                <button type="button"
+                <button id="runYAML{{ forloop.counter }}"
+                        type="button"
                         onclick="runJobYAML({{ forloop.counter }}, {{ pipeline_config.pipeline_config_id }})"
                         class="btn btn-primary">Run</button>
-                <button type="button" class="btn btn-default" disabled>Schedule</button>
+                <!--<button type="button" class="btn btn-default" disabled>Schedule</button>-->
+                &nbsp;&nbsp;&nbsp;&nbsp;<span id="infoExecuteYAML{{ forloop.counter }}"></span>
             </span>
             {% endif %}
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-default"
+                    onclick="closeJobYAML({{ forloop.counter }})"
+                    data-dismiss="modal">Close</button>
           </div>
         </div>
       </div>

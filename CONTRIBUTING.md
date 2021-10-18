@@ -127,7 +127,7 @@ Get docker daemon running. Build `transtats` image and get started.
   $ make run
   ```
 
-- Application should be accessible at `localhost:8014`. [For fedora local login to work we need port 8080. One can change it in `Makefile`]
+- Application should be accessible at `localhost:8014`. [_Change port to 8080 in the Makefile for fedora login_]
   
 ### Post Setup Tasks
 
