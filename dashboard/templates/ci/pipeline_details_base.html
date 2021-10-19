@@ -28,9 +28,9 @@
       <ul class="nav nav-tabs nav-tabs-pf">
         <li id="li-platform-jobs"><a href="{% url 'pipeline-details' ci_pipeline.ci_pipeline_uuid %}">
           {{ ci_pipeline.ci_platform.engine_name|title }} Jobs</a></li>
+        <li id="li-configurations"><a href="{% url 'pipeline-configuration' ci_pipeline.ci_pipeline_uuid %}">
+          Configurations</a></li>
         <li id="li-sync-logs"><a href="{% url 'pipeline-history' ci_pipeline.ci_pipeline_uuid %}">History</a></li>
-        <!--<li id="li-configurations"><a href="{% url 'pipeline-configuration' ci_pipeline.ci_pipeline_uuid %}">-->
-          <!--Configuration</a></li>-->
       </ul>
 
       <div class="card-pf-body">

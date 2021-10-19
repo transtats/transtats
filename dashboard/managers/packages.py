@@ -356,6 +356,15 @@ class PackagesManager(InventoryManager):
                 names.append(project.get('name'))
         return ids, names
 
+    def _is_package_exist(self, package_name, platform_engine, projects_json):
+        ids, names = self._get_project_ids_names(platform_engine, projects_json)
+        if package_name in ids:
+            return package_name
+        elif package_name in names:
+            return ids[names.index(package_name)]
+        else:
+            return False
+
     def validate_package(self, **kwargs):
         """
         Validates existence of a package at a transplatform
@@ -371,8 +380,9 @@ class PackagesManager(InventoryManager):
         platform = Platform.objects.only(*transplatform_fields) \
             .filter(platform_slug=kwargs['transplatform_slug']).get()
         projects_json = platform.projects_json
-        # if not found in db, fetch transplatform projects from API
-        if not projects_json:
+        # if not found in db, fetch translation platform projects from API
+        if not projects_json or not \
+                self._is_package_exist(package_name, platform.engine_name, projects_json):
             response_dict = None
             auth_dict = dict(
                 auth_user=platform.auth_login_id, auth_token=platform.auth_token_key
@@ -395,13 +405,7 @@ class PackagesManager(InventoryManager):
                 )
             if response_dict:
                 projects_json = response_dict
-        ids, names = self._get_project_ids_names(platform.engine_name, projects_json)
-        if package_name in ids:
-            return package_name
-        elif package_name in names:
-            return ids[names.index(package_name)]
-        else:
-            return False
+        return self._is_package_exist(package_name, platform.engine_name, projects_json)
 
     def get_lang_id_name_dict(self, release_branch=None):
         """

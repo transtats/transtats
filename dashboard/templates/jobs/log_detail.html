@@ -42,8 +42,8 @@
             {% if log.job_remarks %}&nbsp;&nbsp;<span class="text-info">Remarks#</span> {{ log.job_remarks }}{% endif %}
             {% if log.job_params_json %}<br/><span class="text-info">Params#</span>
                 {% for param, value in log.job_params_json.items %}
-                    <span class="text-muted">{{ param|title }}: </span>{{ value }}&nbsp;&nbsp;
-                    {% if log.job_params_json|length > 3 and forloop.counter == 3 %}<br/>{% endif %}
+                    {% if value %}<span class="text-muted">{{ param|title }}: </span>{{ value }}&nbsp;&nbsp;
+                    {% if log.job_params_json|length > 3 and forloop.counter == 3 %}<br/>{% endif %}{% endif %}
                 {% endfor %}
             {% endif %}
             <span class="pull-right">

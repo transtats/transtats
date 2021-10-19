@@ -22,7 +22,8 @@ from collections import OrderedDict
 from django import template
 
 from dashboard.constants import (
-    BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE, TP_BRANCH_CALLING_NAME
+    BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE,
+    TP_BRANCH_CALLING_NAME, RELSTREAM_SLUGS
 )
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
@@ -30,7 +31,7 @@ from dashboard.managers.graphs import (
 from dashboard.managers.jobs import JobTemplateManager, JobsLogManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
-from dashboard.managers.pipelines import CIPipelineManager
+from dashboard.managers.pipelines import CIPipelineManager, PipelineConfigManager
 
 
 register = template.Library()
@@ -310,13 +311,16 @@ def tag_threshold_based(relbranch, threshold):
 @register.inclusion_tag(
     os.path.join("releases", "_releases_summary.html")
 )
-def tag_releases_summary():
+def tag_releases_summary(tenant):
     return_value = OrderedDict()
     reports_manager = ReportsManager()
     releases_summary = reports_manager.get_reports('releases')
     if releases_summary:
         report = releases_summary.get().report_json_str
         release_report_json = json.loads(report) if isinstance(report, str) else {}
+        if tenant in RELSTREAM_SLUGS:
+            release_report_json = {k: v for k, v in release_report_json.items()
+                                   if tenant.lower() in v.get('slug').lower()}
         pkg_manager = PackagesManager()
         lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
         for release, summary in release_report_json.items():
@@ -638,4 +642,36 @@ def tag_workflow_steps_dropdown(ci_pipeline):
         pipeline_uuid=ci_pipeline
     )
     return_value['workflow_steps'] = workflow_steps
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("ci", "_job_params.html")
+)
+def tag_pipeline_job_params(tenant, pipeline_uuid, action):
+    return_value = OrderedDict()
+    if not pipeline_uuid and not action:
+        return return_value
+    pipeline_config_manager = PipelineConfigManager()
+    ci_pipeline = pipeline_config_manager.get_ci_pipelines(uuids=[pipeline_uuid]).get()
+    template_json = pipeline_config_manager.format_pipeline_config(
+        pipeline=ci_pipeline, action=action, output_format='html_form', tenant=tenant
+    )
+    template_yaml = yaml.dump(
+        template_json, default_flow_style=False).replace("\'", "")
+    return_value['job_template'] = template_yaml
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("ci", "_pipeline_configs.html")
+)
+def tag_list_pipeline_configs(pipeline, request):
+    return_value = OrderedDict()
+    if not pipeline:
+        return return_value
+    pipeline_config_manager = PipelineConfigManager()
+    pipeline_configs = pipeline_config_manager.get_pipeline_configs(ci_pipelines=[pipeline])
+    return_value['pipeline_configs'] = pipeline_configs.order_by('pipeline_config_event')
+    return_value['user'] = request.user
     return return_value

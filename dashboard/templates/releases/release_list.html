@@ -194,7 +194,7 @@
     </h3>
   </div>
   {% if releases %}
-  <div id="div-releases-summary">{% tag_releases_summary %}</div>
+  <div id="div-releases-summary">{% tag_releases_summary request.tenant %}</div>
   {% else %}
   <div class="panel-body">
     <div class="blank-slate-pf blank-state-ts" id="empty-state-product-releases">

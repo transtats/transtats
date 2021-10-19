@@ -206,3 +206,7 @@ body {
     max-height: 150px;
     overflow-y: scroll;
 }
+
+.left-border-green {
+    border-left: 4px solid #28a745;
+}

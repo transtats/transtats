@@ -1,5 +1,7 @@
 
-##### Mon Jun 7 2021 Sundeep Anand <suanand@redhat.com>
+##### Mon Oct 18 2021 Sundeep Anand <suanand@redhat.com>
+* Update CONTRIBUTING.md ([krisnababu](https://github.com/krisnababu))
+* Create, and operate pipeline configurations
 * Option to push/pull multiple memsource jobs for a lang
 * Tenant aware Transtats bootstrapping
 * Add create package API endpoint `POST /api/package/create HTTP/1.1`

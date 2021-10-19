@@ -16,7 +16,9 @@
 # This file contains fixture data used for tests
 
 from fixture import DataSet
-from dashboard.constants import RELSTREAM_SLUGS, TS_JOB_TYPES
+from dashboard.constants import (
+    RELSTREAM_SLUGS, TS_JOB_TYPES, PIPELINE_CONFIG_EVENTS
+)
 
 
 class LanguageData(DataSet):
@@ -206,3 +208,24 @@ class CIPipelineData(DataSet):
         ci_push_job_template = JobTemplateData.template_syncdownstream
         ci_pull_job_template = JobTemplateData.template_syncupstream
         ci_project_web_url = 'https://cloud.memsource.com/web/project2/show/sP8zO4qM8IifbAm4aydH1w'
+
+
+class PipelineConfigData(DataSet):
+    class Meta:
+        django_model = 'dashboard.PipelineConfig'
+
+    class pipeline_config_anaconda:
+        ci_pipeline = CIPipelineData.ci_pipeline_anaconda
+        pipeline_config_event = PIPELINE_CONFIG_EVENTS[0]
+        pipeline_config_active = True
+        pipeline_config_json_str = '{"job": {"ci_pipeline": "586cd68c-8338-4855-a632-4474c8affaa8", ' \
+                                   '"exception": "raise", "execution": "sequential", "name": "download and push ' \
+                                   'translations", "package": "anaconda", "return_type": "json", ' \
+                                   '"tasks": [{"download": [{"name": "Translation files"}, ' \
+                                   '{"target_langs": ["ja", "zh_cn"]}, {"type": "weblate"}, ' \
+                                   '{"branch": "rhel8"}]}, {"upload": [{"name": "Push files"}, ' \
+                                   '{"target_langs": ["ja", "zh_cn"]}, {"prehook": "skip"}, {"posthook": "skip"}, ' \
+                                   '{"import_settings": "project"}, {"update": false}, {"prepend_branch": false}]}], ' \
+                                   '"type": "dpushtrans"}}'
+        pipeline_config_repo_branches = ["rhel8"]
+        pipeline_config_created_by = 'testuser@transtats.org'
