@@ -21,6 +21,15 @@
             {% endif %}
         </div>
         <div class="panel-body">
+          <a href="{% url 'pipelines' %}">
+            <span class="btn btn-outline">All</span></a>
+          {% for pipeline in pipelines %}
+          {% ifchanged %}
+             &nbsp;<a href="{% url 'release-pipelines' pipeline.ci_release.release_slug %}">
+              <span class="btn btn-outline">{{ pipeline.ci_release.release_name }}</span></a>
+          {% endifchanged %}
+          {% endfor %}
+
           <div id="pf-list-simple-expansion" class="list-group list-view-pf list-view-pf-view">
 
             {% for pipeline in pipelines %}

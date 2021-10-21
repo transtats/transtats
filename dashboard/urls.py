@@ -55,8 +55,8 @@ app_job_urls = [
 
 app_pipeline_urls = [
     url(r'^$', PipelinesView.as_view(), name="pipelines"),
+    url(r'^release/(?P<release_slug>[\w\-\+]+)$', ReleasePipelinesView.as_view(), name="release-pipelines"),
     url(r'^new$', staff_member_required(AddCIPipeline.as_view(), login_url=LOGIN_URL), name="add-ci-pipeline"),
-    url(r'^(?P<release_slug>[\w\-\+]+)$', ReleasePipelinesView.as_view(), name="release-pipelines"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/details$', PipelineDetailView.as_view(), name="pipeline-details"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/history$', PipelineHistoryView.as_view(), name="pipeline-history"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/configurations$', PipelineConfigurationView.as_view(),
