@@ -1238,9 +1238,11 @@ class Calculate(JobCommandBase):
                         else po_file.split(os.sep)[-1].split('.')[0]
                     temp_trans_stats['translated'] = len(po.translated_entries())
                     temp_trans_stats['untranslated'] = len(po.untranslated_entries())
-                    temp_trans_stats['fuzzy'] = len(po.fuzzy_entries())
-                    temp_trans_stats['total'] = len(po.translated_entries()) + \
-                        len(po.untranslated_entries()) + len(po.fuzzy_entries())
+                    temp_trans_stats['fuzzy'] = len(
+                        [f_entry for f_entry in po.fuzzy_entries() if not f_entry.obsolete]
+                    )
+                    temp_trans_stats['total'] = temp_trans_stats['translated'] + \
+                        temp_trans_stats['untranslated'] + temp_trans_stats['fuzzy']
                     trans_stats['stats'].append(temp_trans_stats.copy())
         except Exception as e:
             task_log.update(self._log_task(
