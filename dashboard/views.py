@@ -1090,7 +1090,8 @@ class ReleasePipelinesView(ManagersMixin, ListView):
             self.release_branch_manager.get_release_branches(relstream=self.request.tenant)
         active_pipelines = self.ci_pipeline_manager.get_ci_pipelines(releases=tenant_releases)
         return active_pipelines.filter(
-            ci_release__release_slug=self.kwargs['release_slug']).order_by('ci_package_id')
+            ci_release__release_slug=self.kwargs['release_slug']
+        ).order_by('ci_package__package_name')
 
 
 class AddCIPipeline(ManagersMixin, FormView):
