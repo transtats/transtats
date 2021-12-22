@@ -22,7 +22,7 @@
                     <td style="width: 20%;">{{ build|get_item:"nvr" }}</td>
                     <td style="width: 65%;">
                         {% for tag in build|get_item:"build_tags" %}
-                            <a href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package_name }}&buildsys={{ product }}&&tag={{ tag }}" 
+                            <a href="{% url 'jobs-yml-based' %}?template=syncdownstream&package={{ package_name }}&buildsys={{ product }}&tag={{ tag }}"
                             data-toggle="tooltip" title="Sync for {{ tag }} stats">{{ tag }}</a>
                             {% if not forloop.last %}&nbsp;|&nbsp;{% endif %}
                         {% endfor %}

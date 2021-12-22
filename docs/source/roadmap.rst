@@ -20,10 +20,10 @@ Upcoming Releases
 | And releases are scheduled every quarter end.
 
 
-Transtats 0.8.5
+Transtats 0.8.6
 ---------------
 
-| Target delivery: End of Dec 2021
+| Target delivery: End of Mar 2022
 
 
 ToDo List
@@ -52,6 +52,7 @@ ToDo List
 
 - Automation
     - Pipeline configurations and scheduling.
+    - Automate Pipeline Creation.
     - Batch processing of pipeline actions.
     - Scheduling jobs based on release dates.
 

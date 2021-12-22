@@ -1,5 +1,6 @@
 
-##### Mon Oct 18 2021 Sundeep Anand <suanand@redhat.com>
+##### Tue Dec 21 2021 Sundeep Anand <suanand@redhat.com>
+* Fix picking up obsolete fuzzy messages ([rhbz#1962078](https://bugzilla.redhat.com/show_bug.cgi?id=1962078#c27))
 * Update CONTRIBUTING.md ([krisnababu](https://github.com/krisnababu))
 * Create, and operate pipeline configurations
 * Option to push/pull multiple memsource jobs for a lang

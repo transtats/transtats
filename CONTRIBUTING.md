@@ -75,7 +75,7 @@ Get docker daemon running. Build `transtats` image and get started.
   ```shell
   $ git clone https://github.com/transtats/transtats.git
   $ cd transtats/deploy/docker-compose
-  $ sudo docker-compose up 
+  $ sudo docker-compose up
   ```
 
 - Application should be accessible at `localhost:8080`.
