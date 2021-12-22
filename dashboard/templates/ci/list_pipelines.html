@@ -21,12 +21,25 @@
             {% endif %}
         </div>
         <div class="panel-body">
+          <a href="{% url 'pipelines' %}">
+            <span class="btn btn-outline">All</span></a>
+          {% for pipeline in pipelines %}
+          {% ifchanged %}
+             &nbsp;<a href="{% url 'release-pipelines' pipeline.ci_release.release_slug %}">
+              <span class="btn btn-outline">{{ pipeline.ci_release.release_name }}</span></a>
+          {% endifchanged %}
+          {% endfor %}
+
           <div id="pf-list-simple-expansion" class="list-group list-view-pf list-view-pf-view">
 
             {% for pipeline in pipelines %}
 
-              {% ifchanged %}<div style="background-color: white; font-size: large;" class="text-info">
-                {{ pipeline.ci_release.release_name }}</div>{% endifchanged %}
+              {% ifchanged %}
+                <div style="background-color: white; font-size: large;" class="text-info">
+                  <a href="{% url 'release-pipelines' pipeline.ci_release.release_slug %}">
+                  {{ pipeline.ci_release.release_name }}</a>
+                </div>
+              {% endifchanged %}
 
               <div class="list-group-item">
                 <div class="list-group-item-header">
@@ -167,6 +180,8 @@
                             <dd>{{ pipeline.ci_project_details_json|get_item:"status" }}</dd>
                           </div>
                           <div class="col-md-5">
+                            <span class="h5">Manage <a href="{% url 'pipeline-configuration' pipeline.ci_pipeline_uuid %}">configurations</a> to reuse and automate.</span>
+                            <hr/><div class="h5">Run the jobs manually with more control.</div>
                             <dt>Push Job Template</dt>
                             <dd><a href="{% url 'jobs-yml-based' %}?template={{ pipeline.ci_push_job_template.job_template_type }}&package={{ pipeline.ci_package.package_name }}">
                               {{ pipeline.ci_push_job_template.job_template_name }}</a></dd>
@@ -176,10 +191,14 @@
                           </div>
                         </div>
                       </dl>
+                    </div>
+                    <div class="col-md-3">
+                      {% tag_pipeline_branches pipeline.ci_package.package_name pipeline.ci_package.platform_slug %}
+                    </div>
+                    <div class="col-md-9">
                       {% if pipeline.ci_platform_jobs_json %}
                         {% tag_pipeline_workflow_steps pipeline.ci_platform_jobs_json %}
                       {% endif %}
-                      <!--<pre>{{ pipeline.ci_project_details_json }}</pre>-->
                       <div class="pull-right" style="margin-top: 1%">
                         {% if pipeline.ci_pipeline_last_updated %}
                           <i class="text-muted">Last refresh <span class="text-info">

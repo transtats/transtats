@@ -15,6 +15,7 @@
 
 # python
 import json
+import yaml
 from uuid import uuid4
 
 # django
@@ -531,6 +532,41 @@ class CIPlatformJob(ModelMixin, models.Model):
     class Meta:
         db_table = TABLE_PREFIX + 'ciplatformjob'
         verbose_name = "CI Platform Job"
+
+
+class PipelineConfig(ModelMixin, models.Model):
+    """
+    Pipeline Configurations Model
+    """
+    pipeline_config_id = models.AutoField(primary_key=True)
+    ci_pipeline = models.ForeignKey(CIPipeline, on_delete=models.PROTECT,
+                                    verbose_name="CI Pipeline", null=True)
+    pipeline_config_event = models.CharField(max_length=1000)
+    pipeline_config_active = models.BooleanField(default=False)
+    pipeline_config_json_str = models.TextField(unique=True)
+    pipeline_config_repo_branches = ArrayField(
+        models.CharField(max_length=1000, blank=True), default=list,
+        verbose_name="Repo Branches"
+    )
+    pipeline_config_created_on = models.DateTimeField(null=True)
+    pipeline_config_updated_on = models.DateTimeField(null=True)
+    pipeline_config_last_accessed = models.DateTimeField(null=True)
+    pipeline_config_created_by = models.EmailField(null=True)
+
+    @property
+    def pipeline_config_json(self):
+        return self.str2json(self.pipeline_config_json_str)
+
+    @property
+    def pipeline_config_yaml(self):
+        return yaml.dump(
+            self.str2json(self.pipeline_config_json_str),
+            default_flow_style=False
+        ).replace("\'", "")
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'cipipelineconfig'
+        verbose_name = "Pipeline Config"
 
 
 class Job(ModelMixin, models.Model):

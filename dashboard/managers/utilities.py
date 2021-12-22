@@ -16,6 +16,7 @@
 # Common functions/utilities
 
 # python
+import time
 from collections import OrderedDict
 
 # dashboard
@@ -177,3 +178,18 @@ def parse_ical_file(ical_content, relstream_slug):
         if elem == EVENT_BEGIN_SYMBOL:
             append_flag = True
     return ical_calendar
+
+
+def time_it(func):
+    """
+    decorator to measure time taken by a method
+    :param func: the method
+    :return: func return value
+    """
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        print(func.__name__ + " took " + str((end - start) * 1000) + " mil sec to execute.")
+        return result
+    return wrapper

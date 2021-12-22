@@ -1,0 +1,38 @@
+{% load custom_tags %}
+
+<style>
+#div-branches ol
+{
+    margin:0 0 1.5em;
+    padding:0;
+    counter-reset:item
+}
+
+#div-branches ol>li
+{
+    margin: 1%;
+    padding:0 0 0 2em;
+    text-indent:-2em;
+    list-style-type:none;
+    counter-increment:item
+}
+
+#div-branches ol>li:before
+{
+    display:inline-block;
+    width:1.5em;
+    padding-right:.5em;
+    font-weight:700;
+    text-align:right;
+    content:counter(item) "."
+}
+</style>
+
+<hr/><h2>{{ title|title }}</h2>
+<div id="div-branches" class="container branches" style="border-left: 1px dotted">
+    <ol>
+    {% for branch in branches %}
+        <li class="h4">{{ branch }}</li>
+    {% endfor %}
+    </ol>
+</div>

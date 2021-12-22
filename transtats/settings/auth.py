@@ -4,7 +4,7 @@ Authentication settings for transtats project.
     - they should be a part of dev, test only.
 """
 from .base import (
-    app_config_vars, INSTALLED_APPS, AUTHENTICATION_BACKENDS
+    app_config_vars, INSTALLED_APPS, AUTHENTICATION_BACKENDS, REST_FRAMEWORK
 )
 
 __all__ = [
@@ -22,7 +22,6 @@ __all__ = [
     'OIDC_OP_JWKS_ENDPOINT',
     'OIDC_RP_SIGN_ALGO',
     'LOGOUT_REDIRECT_URL',
-    'REST_FRAMEWORK',
     'CORS_ORIGIN_ALLOW_ALL'
 ]
 
@@ -49,10 +48,10 @@ OIDC_OP_JWKS_ENDPOINT = 'https://{0}/openidc/Jwks'.format(app_config_vars('OIDC_
 OIDC_RP_SIGN_ALGO = 'RS256'
 LOGOUT_REDIRECT_URL = '/'
 
-REST_FRAMEWORK = {
+REST_FRAMEWORK.update({
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     )
-}
+})
 
 CORS_ORIGIN_ALLOW_ALL = True if FAS_AUTH else False

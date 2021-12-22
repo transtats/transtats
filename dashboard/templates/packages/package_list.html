@@ -134,7 +134,8 @@
     <tr>
       <td>
         <a href="{% url 'package-view' package.package_name %}" style="text-decoration:none">
-          <span class="{% if not package.stats_diff_health %}text-danger{% endif %}">{{ package.package_name }}</span>
+          <div class="{% if not package.stats_diff_health %}text-danger{% endif %}" style="height:100%;width:100%">
+            {{ package.package_name }}</div>
         </a>
       </td>
       <td>

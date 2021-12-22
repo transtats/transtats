@@ -28,6 +28,7 @@ from collections import OrderedDict
 # third party
 import requests
 from slugify import slugify
+from natsort import natsorted
 
 # django
 from django.conf import settings
@@ -586,7 +587,7 @@ class ReleaseBranchManager(InventoryManager):
 
         relbranches = None
         try:
-            relbranches = Release.objects.only(*required_fields).filter(**filter_kwargs)
+            relbranches = Release.objects.only(*required_fields).filter(**filter_kwargs).order_by('-release_slug')
         except Exception as e:
             self.app_logger(
                 'ERROR', "Release branches could not be fetched, details: " + str(e))
@@ -762,17 +763,18 @@ class ReleaseBranchManager(InventoryManager):
         else:
             return True
 
-    def get_latest_release(self):
+    def get_latest_release(self, tenant):
         """
         Returns latest release query object
             - releases for which translation tracking is ON
         :return: query obj
         """
-        # needs adjustment for other products
-        product_slug = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0]
+        product_slug = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0] \
+            if tenant == "default" else tenant
+
         releases = self.get_release_branches(relstream=product_slug)
         if releases and len(releases) > 0:
-            latest_release_slug = sorted(
+            latest_release_slug = natsorted(
                 [r.release_slug for r in releases if r.track_trans_flag], reverse=True
             )[0]
             latest_release = self.get_release_branches(relbranch=latest_release_slug).get()

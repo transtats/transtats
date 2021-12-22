@@ -48,7 +48,8 @@ __all__ = ['ActionMapper']
 
 class JobCommandBase(BaseManager):
 
-    comma_delimiter = ','
+    comma_delimiter = ","
+    double_underscore_delimiter = "__"
 
     def __init__(self):
 
@@ -356,6 +357,7 @@ class Download(JobCommandBase):
 
         target_langs = []
         translated_files = []
+        ci_lang_job_map = input.get('ci_lang_job_map', {})
 
         file_ext = 'po'
         if kwargs.get('ext'):
@@ -370,7 +372,7 @@ class Download(JobCommandBase):
             target_langs = self.format_target_langs(langs=kwargs['target_langs'])
 
         if input.get('ci_project_uid') and \
-                not set(target_langs).issubset(set(input.get('ci_lang_job_map').keys() or [])):
+                not set(target_langs).issubset(set([i[0] for i in ci_lang_job_map.values()])):
             raise Exception('Job UID could NOT be found for target langs.')
 
         if not target_langs and kwargs.get('target_langs'):
@@ -387,8 +389,17 @@ class Download(JobCommandBase):
             service_kwargs['auth_user'] = platform_auth_user
             service_kwargs['auth_token'] = platform_auth_token
 
-            project_version = input.get('ci_lang_job_map', {}).get(t_lang) or \
+            if kwargs.get('prepend_branch') and input.get('repo_branch'):
+                ci_lang_job_map = {k: v for k, v in ci_lang_job_map.items() for x in v if input['repo_branch'] in x}
+            elif not kwargs.get('prepend_branch'):
+                ci_lang_job_map = {k: v for k, v in ci_lang_job_map.items()
+                                   if self.double_underscore_delimiter not in v[1]}
+
+            project_version = list({k for k, v in ci_lang_job_map.items() for x in v if t_lang in x}) or \
                 input.get('pkg_branch_map', {}).get(input.get('ci_release'), {}).get('platform_version')
+
+            if isinstance(project_version, list) and len(project_version) > 0:
+                project_version = project_version[0]
 
             if not input.get('ci_project_uid') and kwargs.get('branch'):
                 project_version = kwargs.get('branch')
@@ -974,6 +985,7 @@ class Upload(JobCommandBase):
         file_ext = 'po'
         if kwargs.get('ext'):
             file_ext = kwargs['ext'].lower()
+        ci_lang_job_map = input.get('ci_lang_job_map', {})
 
         target_langs = []
         if kwargs.get('target_langs'):
@@ -1010,7 +1022,7 @@ class Upload(JobCommandBase):
                 platform_auth_token = input.get('pkg_ci_auth_token') or input.get('pkg_tp_auth_token')
 
                 if kwargs.get('update') and input.get('ci_lang_job_map') \
-                        and lang not in input.get('ci_lang_job_map'):
+                        and lang not in set([i[0] for i in ci_lang_job_map.values()]):
                     raise Exception("Job ID NOT found for lang: {}.".format(lang))
 
                 api_kwargs['headers'] = dict()
@@ -1020,7 +1032,21 @@ class Upload(JobCommandBase):
                 if platform_engine == TRANSPLATFORM_ENGINES[4]:
                     memsource_kwargs = dict()
                     if kwargs.get('update'):
-                        memsource_kwargs.update(dict(jobs=[{"uid": input.get('ci_lang_job_map', {}).get(lang)}]))
+                        # narrow down ci_lang_job_map by filter
+                        if kwargs.get('prepend_branch') and input.get('repo_branch'):
+                            ci_lang_job_map = {k: v for k, v in ci_lang_job_map.items() for x in v if
+                                               input['repo_branch'] in x}
+                        elif not kwargs.get('prepend_branch'):
+                            ci_lang_job_map = {k: v for k, v in ci_lang_job_map.items()
+                                               if self.double_underscore_delimiter not in v[1]}
+                        # lang related jobs
+                        job_uid = [k for k, v in ci_lang_job_map.items() for x in v if lang in x]
+                        if isinstance(job_uid, list) and len(job_uid) > 0:
+                            job_uid = job_uid[0]
+
+                        if not job_uid:
+                            raise Exception("Job ID NOT found. Please refresh the pipeline.")
+                        memsource_kwargs.update(dict(jobs=[{"uid": job_uid}]))
                         memsource_kwargs.update(dict(preTranslate="false"))
                     else:
                         memsource_kwargs.update(dict(targetLangs=[lang]))
@@ -1045,6 +1071,14 @@ class Upload(JobCommandBase):
                                         )
                                     ))
                                     memsource_kwargs.update(dict(importSettings=dict(uid=import_setting_uid)))
+
+                    if input.get('repo_branch') and kwargs.get('prepend_branch'):
+                        new_filename = "{}{}{}".format(input.get('repo_branch'),
+                                                       self.double_underscore_delimiter,
+                                                       file_name)
+                        os.rename(os.path.join(input['base_dir'], input['download_dir'], file_name),
+                                  os.path.join(input['base_dir'], input['download_dir'], new_filename))
+                        file_name = new_filename
 
                     api_kwargs['headers']["Memsource"] = str(memsource_kwargs)
                     api_kwargs['headers']["Content-Disposition"] = 'attachment; filename="{}"'.format(file_name)
@@ -1204,9 +1238,11 @@ class Calculate(JobCommandBase):
                         else po_file.split(os.sep)[-1].split('.')[0]
                     temp_trans_stats['translated'] = len(po.translated_entries())
                     temp_trans_stats['untranslated'] = len(po.untranslated_entries())
-                    temp_trans_stats['fuzzy'] = len(po.fuzzy_entries())
-                    temp_trans_stats['total'] = len(po.translated_entries()) + \
-                        len(po.untranslated_entries()) + len(po.fuzzy_entries())
+                    temp_trans_stats['fuzzy'] = len(
+                        [f_entry for f_entry in po.fuzzy_entries() if not f_entry.obsolete]
+                    )
+                    temp_trans_stats['total'] = temp_trans_stats['translated'] + \
+                        temp_trans_stats['untranslated'] + temp_trans_stats['fuzzy']
                     trans_stats['stats'].append(temp_trans_stats.copy())
         except Exception as e:
             task_log.update(self._log_task(
@@ -1292,6 +1328,7 @@ class ActionMapper(BaseManager):
                  server_url,
                  build_system,
                  release_slug,
+                 repo_branch,
                  ci_pipeline_uuid,
                  upstream_url,
                  trans_file_ext,
@@ -1319,6 +1356,7 @@ class ActionMapper(BaseManager):
         self.base_dir = job_base_dir
         self.buildsys = build_system
         self.release = release_slug
+        self.repo_branch = repo_branch
         self.ci_pipeline_uuid = ci_pipeline_uuid
         self.upstream_url = upstream_url
         self.trans_file_ext = trans_file_ext
@@ -1393,7 +1431,7 @@ class ActionMapper(BaseManager):
             'pkg_ci_auth_usr': self.pkg_ci_auth_usr, 'pkg_ci_auth_token': self.pkg_ci_auth_token,
             'ci_release': self.ci_release, 'ci_target_langs': self.ci_target_langs,
             'ci_project_uid': self.ci_project_uid, 'ci_lang_job_map': self.ci_lang_job_map,
-            'pkg_downstream_name': self.pkg_downstream_name
+            'pkg_downstream_name': self.pkg_downstream_name, 'repo_branch': self.repo_branch
         }
 
         while current_node is not None:

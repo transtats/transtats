@@ -25,4 +25,5 @@ job:
     - prehook: merge_POT
     - posthook: skip
     - update: false
+    - prepend_branch: false
   type: pushtrans

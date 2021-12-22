@@ -22,6 +22,7 @@ from django.core.exceptions import ImproperlyConfigured
 __all__ = [
     'BASE_DIR',
     'SECRET_KEY',
+    'TS_AUTH_SYSTEM',
     'INSTALLED_APPS',
     'MIDDLEWARE',
     'ROOT_URLCONF',
@@ -49,7 +50,8 @@ __all__ = [
     'STATIC_URL',
     'STATIC_ROOT',
     'CRISPY_TEMPLATE_PACK',
-    'CACHES'
+    'CACHES',
+    'REST_FRAMEWORK'
 ]
 
 # Imports from your apps
@@ -81,6 +83,7 @@ def app_config_vars(var):
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = app_config_vars('DJANGO_SECRET_KEY')
+TS_AUTH_SYSTEM = app_config_vars('TS_AUTH_SYSTEM')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -115,6 +118,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'transtats.middleware.CustomMiddleware',
 ]
 
 ROOT_URLCONF = 'transtats.urls'
@@ -270,3 +274,5 @@ CACHES = {
         'LOCATION': os.path.join(os.path.dirname(BASE_DIR), 'false', 'ts-cache'),
     }
 }
+
+REST_FRAMEWORK = {'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'}

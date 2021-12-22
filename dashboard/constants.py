@@ -18,6 +18,13 @@
 
 # Supported translation platforms
 TRANSPLATFORM_ENGINES = ('damnedlies', 'transifex', 'zanata', 'weblate', 'memsource')
+TP_BRANCH_CALLING_NAME = (
+    (TRANSPLATFORM_ENGINES[0], 'Branches'),
+    (TRANSPLATFORM_ENGINES[1], 'Resources'),
+    (TRANSPLATFORM_ENGINES[2], 'Versions'),
+    (TRANSPLATFORM_ENGINES[3], 'Components'),
+    (TRANSPLATFORM_ENGINES[4], 'Jobs'),
+)
 
 API_TOKEN_PREFIX = {
     TRANSPLATFORM_ENGINES[1]: "api",
@@ -43,6 +50,7 @@ TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream', 'syncdow
                 'dpushtrans')
 
 TS_CI_JOBS = (TS_JOB_TYPES[7], TS_JOB_TYPES[8], TS_JOB_TYPES[9])
+PIPELINE_CONFIG_EVENTS = ('Push Translations', 'Pull Translations', 'Update Source')
 
 # Branch Mapping Keys
 BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys', 'buildsys_tag', 'upstream_release')

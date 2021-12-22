@@ -3,176 +3,51 @@
     <div class="card-pf card-pf-utilization" id="card-packages-summary">
       <div class="card-pf-heading">
         <h2 class="card-pf-title">
-          Summary
-          <a class="pull-right" id="button-update-summary" data-toggle="tooltip" title="Update summary" onclick="refresh_packages_summary();" href="#"><i class="fa fa-refresh"></i></a>
+          <span style="margin-right: 1%">Summary</span>
+          <a id="button-update-summary" data-toggle="tooltip" title="Update summary" onclick="refresh_packages_summary();" href="#">
+            <i class="fa fa-refresh"></i></a>
+          {% if last_updated %}
+            <span class="h5 pull-right text-muted">Updated {{ last_updated|timesince }} ago</span>
+          {% endif %}
         </h2>
       </div>
       <div class="card-pf-body">
         <div class="row">
           {% if pkgsummary %}
           <div class="col-xs-12 col-sm-4 col-md-4">
+            <h3 class="card-pf-subtitle">Out of Sync <small class="text-info">Build System stats differ from Platform</small></h3>
+            <p class="card-pf-utilization-details">
+              <span class="card-pf-utilization-card-details-count" id="affected-count-2">0</span>
+              <span class="card-pf-utilization-card-details-description">
+                <span class="card-pf-utilization-card-details-line-2"><span class="text-danger h5">affected</span> of {{ package_count }}</span>
+              </span>
+            </p>
+            <script>
+              $('#affected-count-2').text({{ pkgsummary.pkg_having_stats_diff|default:0 }})
+            </script>
+          </div>
+          <div class="col-xs-12 col-sm-4 col-md-4">
             <h3 class="card-pf-subtitle">Improper Branch Mapping</h3>
             <p class="card-pf-utilization-details">
-              <span class="card-pf-utilization-card-details-count" id="not-affected-count-1">0</span>
+              <span class="card-pf-utilization-card-details-count" id="affected-count-1">0</span>
               <span class="card-pf-utilization-card-details-description">
-                <span class="card-pf-utilization-card-details-line-1">Not affected</span>
-                <span class="card-pf-utilization-card-details-line-2">of {{ package_count }}</span>
+                <span class="card-pf-utilization-card-details-line-2"><span class="text-warning h5">affected</span> of {{ package_count }}</span>
               </span>
             </p>
-            <div id="chart-donut-packages-1"></div>
-            <div class="chart-pf-sparkline" id="chart-sparkline-packages-1"></div>
             <script>
-              var notAffectedCount = {{ package_count }} - {{ pkgsummary.pkg_improper_branch_mapping|default:0 }}
-              $('#not-affected-count-1').text(notAffectedCount)
-              var donutConfig = $().c3ChartDefaults().getDefaultDonutConfig('A');
-              donutConfig.bindto = '#chart-donut-packages-1';
-              donutConfig.color = {
-                pattern: ["#EC7A08", "#D1D1D1"]
-              };
-              donutConfig.data = {
-                type: "donut",
-                columns: [
-                  ["affected", {{ pkgsummary.pkg_improper_branch_mapping|default:0 }}],
-                  ["not affected", notAffectedCount]
-                ],
-                groups: [
-                  ["affected", "notaffected"]
-                ],
-                order: null
-              };
-              donutConfig.tooltip = {
-                contents: function (d) {
-                  return '<span class="donut-tooltip-pf" style="white-space: nowrap;">' +
-                    Math.round(d[0].ratio * 100) + '%' + ' Packages ' + d[0].name +
-                    '</span>';
-                }
-              };
-
-              var chart1 = c3.generate(donutConfig);
-              var donutChartTitle = d3.select("#chart-donut-packages-1").select('text.c3-chart-arcs-title');
-              donutChartTitle.text("");
-              donutChartTitle.insert('tspan').text("{{ pkgsummary.pkg_improper_branch_mapping|default:0 }}").classed('donut-title-big-pf', true).attr('dy', 0).attr('x', 0);
-              donutChartTitle.insert('tspan').text("Affected").classed('donut-title-small-pf', true).attr('dy', 23).attr('x', 0);
-
-              // var sparklineConfig = $().c3ChartDefaults().getDefaultSparklineConfig();
-              // sparklineConfig.bindto = '#chart-sparkline-packages-1';
-              // sparklineConfig.data = {
-              //   columns: [
-              //     ['%', 10, 50, 28, 20, 31, 27, 60, 36, 0, 55, 62, 68, 69, 88, 74, 88, 0],
-              //   ],
-              //   type: 'area'
-              // };
-              // var chart2 = c3.generate(sparklineConfig);
+              $('#affected-count-1').text({{ pkgsummary.pkg_improper_branch_mapping|default:0 }})
             </script>
           </div>
           <div class="col-xs-12 col-sm-4 col-md-4">
-            <h3 class="card-pf-subtitle">Out of Sync <small>Build System stats differ from Platform</small></h3>
+            <h3 class="card-pf-subtitle">Last sync with Platform <small class="text-info">more than a week ago</small></h3>
             <p class="card-pf-utilization-details">
-              <span class="card-pf-utilization-card-details-count" id="not-affected-count-2">0</span>
+              <span class="card-pf-utilization-card-details-count" id="affected-count-3">0</span>
               <span class="card-pf-utilization-card-details-description">
-                <span class="card-pf-utilization-card-details-line-1">Not affected</span>
-                <span class="card-pf-utilization-card-details-line-2">of {{ package_count }}</span>
+                <span class="card-pf-utilization-card-details-line-2"><span class="text-warning h5">affected</span> of {{ package_count }}</span>
               </span>
             </p>
-            <div id="chart-donut-packages-2"></div>
-            <div class="chart-pf-sparkline" id="chart-sparkline-packages-2"></div>
             <script>
-              var notAffectedCount = {{ package_count }} - {{ pkgsummary.pkg_having_stats_diff|default:0 }}
-              $('#not-affected-count-2').text(notAffectedCount)
-              var donutConfig = $().c3ChartDefaults().getDefaultDonutConfig('A');
-              donutConfig.bindto = '#chart-donut-packages-2';
-              donutConfig.color = {
-                pattern: ["#CC0000", "#D1D1D1"]
-              };
-              donutConfig.data = {
-                type: "donut",
-                columns: [
-                  ["affected", {{ pkgsummary.pkg_having_stats_diff|default:0 }}],
-                  ["not affected", notAffectedCount]
-                ],
-                groups: [
-                  ["affected", "notaffected"]
-                ],
-                order: null
-              };
-              donutConfig.tooltip = {
-                contents: function (d) {
-                  return '<span class="donut-tooltip-pf" style="white-space: nowrap;">' +
-                    Math.round(d[0].ratio * 100) + '%' + ' Packages ' + d[0].name +
-                    '</span>';
-                }
-              };
-
-              var chart5 = c3.generate(donutConfig);
-              var donutChartTitle = d3.select("#chart-donut-packages-2").select('text.c3-chart-arcs-title');
-              donutChartTitle.text("");
-              donutChartTitle.insert('tspan').text("{{ pkgsummary.pkg_having_stats_diff|default:0 }}").classed('donut-title-big-pf', true).attr('dy', 0).attr('x', 0);
-              donutChartTitle.insert('tspan').text("Affected").classed('donut-title-small-pf', true).attr('dy', 23).attr('x', 0);
-
-              // var sparklineConfig = $().c3ChartDefaults().getDefaultSparklineConfig();
-              // sparklineConfig.bindto = '#chart-sparkline-packages-2';
-              // sparklineConfig.data = {
-              //   columns: [
-              //     ['%', 60, 55, 70, 44, 31, 67, 54, 46, 58, 75, 62, 68, 69, 88, 74, 88, 85],
-              //   ],
-              //   type: 'area'
-              // };
-              // var chart6 = c3.generate(sparklineConfig);
-            </script>
-          </div>
-          <div class="col-xs-12 col-sm-4 col-md-4">
-            <h3 class="card-pf-subtitle">Last sync with Platform <small>more than a week ago</small></h3>
-            <p class="card-pf-utilization-details">
-              <span class="card-pf-utilization-card-details-count" id="not-affected-count-3">0</span>
-              <span class="card-pf-utilization-card-details-description">
-                <span class="card-pf-utilization-card-details-line-1">Not affected</span>
-                <span class="card-pf-utilization-card-details-line-2">of {{ package_count }}</span>
-              </span>
-            </p>
-            <div id="chart-donut-packages-3"></div>
-            <div class="chart-pf-sparkline" id="chart-sparkline-packages-3"></div>
-            <script>
-              var notAffectedCount = {{ package_count }} - {{ pkgsummary.pkg_transtats_week_old|default:0 }}
-              $('#not-affected-count-3').text(notAffectedCount)
-              var donutConfig = $().c3ChartDefaults().getDefaultDonutConfig('A');
-              donutConfig.bindto = '#chart-donut-packages-3';
-              donutConfig.color = {
-                pattern: ["#3f9c35", "#D1D1D1"]
-              };
-              donutConfig.data = {
-                type: "donut",
-                columns: [
-                  ["affected", {{ pkgsummary.pkg_transtats_week_old|default:0 }}],
-                  ["not affected", notAffectedCount]
-                ],
-                groups: [
-                  ["affected", "notaffected"]
-                ],
-                order: null
-              };
-              donutConfig.tooltip = {
-                contents: function (d) {
-                  return '<span class="donut-tooltip-pf" style="white-space: nowrap;">' +
-                    Math.round(d[0].ratio * 100) + '%' + ' Packages ' + d[0].name +
-                    '</span>';
-                }
-              };
-
-              var chart3 = c3.generate(donutConfig);
-              var donutChartTitle = d3.select("#chart-donut-packages-3").select('text.c3-chart-arcs-title');
-              donutChartTitle.text("");
-              donutChartTitle.insert('tspan').text("{{ pkgsummary.pkg_transtats_week_old|default:0 }}").classed('donut-title-big-pf', true).attr('dy', 0).attr('x', 0);
-              donutChartTitle.insert('tspan').text("Affected").classed('donut-title-small-pf', true).attr('dy', 23).attr('x', 0);
-
-              // var sparklineConfig = $().c3ChartDefaults().getDefaultSparklineConfig();
-              // sparklineConfig.bindto = '#chart-sparkline-packages-3';
-              // sparklineConfig.data = {
-              //   columns: [
-              //     ['%', 10, 13, 32, 14, 5, 36, 38, 40, 20, 10, 12, 11, 9, 6, 2, 13, 3],
-              //   ],
-              //   type: 'area'
-              // };
-              // var chart4 = c3.generate(sparklineConfig);
+              $('#affected-count-3').text({{ pkgsummary.pkg_transtats_week_old|default:0 }})
             </script>
           </div>
           {% else %}
@@ -197,12 +72,6 @@
           {% endif %}
         </div>
       </div>
-      {% if last_updated %}
-      <div class="card-pf-footer">
-        <span class="text-warning" id="div-update-packages-summary-error">&nbsp;</span>
-        <span class="pull-right text-muted">Updated {{ last_updated|timesince }} ago</span>
-      </div>
-      {% endif %}
     </div>
 
   </div>

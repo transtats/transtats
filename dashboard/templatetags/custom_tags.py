@@ -21,14 +21,17 @@ from datetime import datetime
 from collections import OrderedDict
 from django import template
 
-from dashboard.constants import BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE
+from dashboard.constants import (
+    BRANCH_MAPPING_KEYS, TS_JOB_TYPES, GIT_REPO_TYPE,
+    TP_BRANCH_CALLING_NAME, RELSTREAM_SLUGS
+)
 from dashboard.managers.graphs import (
     GraphManager, ReportsManager, GeoLocationManager
 )
 from dashboard.managers.jobs import JobTemplateManager, JobsLogManager
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.inventory import ReleaseBranchManager
-from dashboard.managers.pipelines import CIPipelineManager
+from dashboard.managers.pipelines import CIPipelineManager, PipelineConfigManager
 
 
 register = template.Library()
@@ -308,13 +311,16 @@ def tag_threshold_based(relbranch, threshold):
 @register.inclusion_tag(
     os.path.join("releases", "_releases_summary.html")
 )
-def tag_releases_summary():
+def tag_releases_summary(tenant):
     return_value = OrderedDict()
     reports_manager = ReportsManager()
     releases_summary = reports_manager.get_reports('releases')
     if releases_summary:
         report = releases_summary.get().report_json_str
         release_report_json = json.loads(report) if isinstance(report, str) else {}
+        if tenant in RELSTREAM_SLUGS:
+            release_report_json = {k: v for k, v in release_report_json.items()
+                                   if tenant.lower() in v.get('slug').lower()}
         pkg_manager = PackagesManager()
         lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
         for release, summary in release_report_json.items():
@@ -384,7 +390,7 @@ def tag_job_form(template_type):
     ci_pipeline_manager = CIPipelineManager()
     ci_pipelines = ci_pipeline_manager.get_ci_pipelines()
     if ci_pipelines:
-        return_value['ci_pipelines'] = ci_pipelines.all()
+        return_value['ci_pipelines'] = ci_pipelines.order_by('-ci_release').all()
     return_value['git_repo_types'] = GIT_REPO_TYPE
     return return_value
 
@@ -413,6 +419,21 @@ def tag_repo_branches(package_name, repo_type):
     branches = package_manager.git_branches(
         package_name, repo_type
     )
+    return_value.update(dict(branches=branches))
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("ci", "_pipeline_branches.html")
+)
+def tag_pipeline_branches(package_name, t_platform):
+    return_value = OrderedDict()
+    package_manager = PackagesManager()
+    branches = package_manager.git_branches(
+        package_name, t_platform.engine_name
+    )
+    return_value.update(dict(title=dict(
+        TP_BRANCH_CALLING_NAME).get(t_platform.engine_name)))
     return_value.update(dict(branches=branches))
     return return_value
 
@@ -485,10 +506,10 @@ def tag_sync_from_coverage(stats, package, release, tag):
 @register.inclusion_tag(
     os.path.join("releases", "_release_map_view.html")
 )
-def tag_release_map_view():
+def tag_release_map_view(request):
     return_value = OrderedDict()
     release_manager = ReleaseBranchManager()
-    latest_release = release_manager.get_latest_release()
+    latest_release = release_manager.get_latest_release(request.tenant)
     geo_location_manager = GeoLocationManager()
     territory_stats = \
         geo_location_manager.get_territory_build_system_stats()
@@ -502,12 +523,12 @@ def tag_release_map_view():
 @register.inclusion_tag(
     os.path.join("releases", "_trending_languages.html")
 )
-def tag_trending_languages():
+def tag_trending_languages(request):
     return_value = OrderedDict()
     reports_manager = ReportsManager()
     releases_summary = reports_manager.get_reports('releases')
     release_manager = ReleaseBranchManager()
-    latest_release = release_manager.get_latest_release()
+    latest_release = release_manager.get_latest_release(request.tenant)
     pkg_manager = PackagesManager()
     lang_locale_dict = {lang: locale for locale, lang in pkg_manager.get_locale_lang_tuple()}
 
@@ -621,4 +642,36 @@ def tag_workflow_steps_dropdown(ci_pipeline):
         pipeline_uuid=ci_pipeline
     )
     return_value['workflow_steps'] = workflow_steps
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("ci", "_job_params.html")
+)
+def tag_pipeline_job_params(tenant, pipeline_uuid, action):
+    return_value = OrderedDict()
+    if not pipeline_uuid and not action:
+        return return_value
+    pipeline_config_manager = PipelineConfigManager()
+    ci_pipeline = pipeline_config_manager.get_ci_pipelines(uuids=[pipeline_uuid]).get()
+    template_json = pipeline_config_manager.format_pipeline_config(
+        pipeline=ci_pipeline, action=action, output_format='html_form', tenant=tenant
+    )
+    template_yaml = yaml.dump(
+        template_json, default_flow_style=False).replace("\'", "")
+    return_value['job_template'] = template_yaml
+    return return_value
+
+
+@register.inclusion_tag(
+    os.path.join("ci", "_pipeline_configs.html")
+)
+def tag_list_pipeline_configs(pipeline, request):
+    return_value = OrderedDict()
+    if not pipeline:
+        return return_value
+    pipeline_config_manager = PipelineConfigManager()
+    pipeline_configs = pipeline_config_manager.get_pipeline_configs(ci_pipelines=[pipeline])
+    return_value['pipeline_configs'] = pipeline_configs.order_by('pipeline_config_event')
+    return_value['user'] = request.user
     return return_value

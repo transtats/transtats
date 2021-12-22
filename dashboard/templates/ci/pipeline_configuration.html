@@ -2,40 +2,49 @@
 {% load custom_tags %}
 
 {% block extrascript %}
+<script src="/static/js/csrf.js"></script>
 <script>
-  $(document).ready(function(){
-
-    $("#li-configurations").addClass('active') && $("#li-push").addClass('active');
-
-    var selector = '#sub-ul li';
-    $(selector).on('click', function(){
-        $(selector).removeClass('active');
-        console.log(this.innerHTML);
-        $(this).addClass('active');
-    });
-
-  });
+  function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}function ajax_job_template(){$.ajax({beforeSend:function(e,n){csrfSafeMethod(n.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#pipelineJobTemplate").html("<span class='spinner spinner-sm spinner-inline'></span>")},type:"POST",url:"{% url 'ajax-pipeline-job-template' %}",data:{pipelineAction:$("#pipelineAction").val(),pipelineUUID:"{{ ci_pipeline.ci_pipeline_uuid }}"},success:function(e){e&&$("#pipelineJobTemplate").html(e)&&$("#saveOutcome").html("")&&$("#divCopyConfig").html("")}})}function ajax_save_pipeline_config(){var n=new Array,i=new Array;$(".checkbox-inline").each(function(){var e=$(this).attr("id");e&&e.includes("downloadTargetLang")&&$(this).is(":checked")&&n.push($(this).val()),e&&e.includes("uploadTargetLang")&&$(this).is(":checked")&&i.push($(this).val())}),$.ajax({beforeSend:function(e,n){csrfSafeMethod(n.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$("#saveOutcome").html("<span class='spinner spinner-sm spinner-inline'></span>"),$("#saveConfiguration").prop("disabled",!0)},type:"POST",url:"{% url 'ajax-save-pipeline-config' %}",data:{chkCopyConfig:$("#checkCopyConfig").is(":checked"),pipelineAction:$("#pipelineAction").val(),ciPipeline:"{{ ci_pipeline.ci_pipeline_uuid }}",package:"{{ ci_pipeline.ci_package.package_name }}",cloneType:"{{ ci_pipeline.ci_package.platform_slug.engine_name }}",cloneBranch:$("#repoCloneBranch").val(),cloneRecursive:$("#cloneRecursive").is(":checked"),filterDomain:$("#filterDomain").val(),filterDir:$("#filterDir").val(),downloadTargetLangs:n.toString(),downloadType:"{{ ci_pipeline.ci_package.platform_slug.engine_name }}",downloadBranch:$("#downloadRepoBranch").val(),downloadWorkflowStep:$("#workflowStep").val(),downloadPrependBranch:$("#prependBranch").is(":checked"),uploadType:"{{ ci_pipeline.ci_package.platform_slug.engine_name }}",uploadBranch:$("#uploadRepoBranch").val(),uploadTargetLangs:i.toString(),uploadImportSettings:$("#importSettings").val(),uploadUpdate:$("#uploadUpdate").is(":checked"),uploadPrependBranch:$("#prependBranch").is(":checked")},success:function(e){e&&$("#saveOutcome").html(e).addClass("h4").removeClass("text-danger").addClass("text-success"),$("#listPipelineConfigs").load(location.href+" #listPipelineConfigs"),$("#saveConfiguration").prop("disabled",!1)},error:function(e,n,i){e&&$("#saveOutcome").html(e.responseText).addClass("h4").removeClass("text-success").addClass("text-danger"),$("#saveConfiguration").prop("disabled",!1)}})}function runJobYAML(e,n){var a="#runYAML"+e,t="#infoExecuteYAML"+e;$.ajax({beforeSend:function(e,n){csrfSafeMethod(n.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}")),$(t).html("<span class='spinner spinner-sm spinner-inline'></span> <span class='h4'>Please wait..</span>"),$(a).prop("disabled",!0)},type:"POST",url:"{% url 'ajax-run-pipeline-config' %}",data:{pipeline_config_id:n},success:function(e){e&&$(t).html(e).addClass("h4").removeClass("text-danger")&&$(a).prop("disabled",!1)},error:function(e,n,i){e&&$(t).html(e.responseText).addClass("h4 text-danger")&&$(a).prop("disabled",!1)}})}function closeJobYAML(e){$("#infoExecuteYAML"+e).html("")}function togglePipelineConfig(e){waitSpinner.show(),$.ajax({beforeSend:function(e,n){csrfSafeMethod(n.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-toggle-pipeline-config' %}",data:{p_config_id:e},success:function(e){waitSpinner.hide(),$("#listPipelineConfigs").load(location.href+" #listPipelineConfigs")},error:function(e){waitSpinner.hide(),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span>Something unexpected happened!</div>')}})}function deletePipelineConfig(e){waitSpinner.show(),$.ajax({beforeSend:function(e,n){csrfSafeMethod(n.type)||this.crossDomain||(csrftoken?e.setRequestHeader("X-CSRFToken",csrftoken):e.setRequestHeader("X-CSRFToken","{{ csrf_token }}"))},type:"POST",url:"{% url 'ajax-delete-pipeline-config' %}",data:{p_config_id:e},success:function(e){waitSpinner.hide(),$("#listPipelineConfigs").load(location.href+" #listPipelineConfigs")},error:function(e){waitSpinner.hide(),$("body").append('<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-danger alert-dismissable fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span class="pficon pficon-close"></span></button><span class="pficon pficon-error-circle-o"></span>Something unexpected happened!</div>')}})}function deactivatePipelineConfig(e){togglePipelineConfig(e)}function activatePipelineConfig(e){togglePipelineConfig(e)}$(document).ready(function(){$("#li-configurations").addClass("active")&&$("#li-push").addClass("active");var e="#sub-ul li";$(e).on("click",function(){$(e).removeClass("active"),console.log(this.innerHTML),$(this).addClass("active")}),$("#pipelineAction").change(function(e){return e.preventDefault(),ajax_job_template(),!1}),$("#saveConfiguration").click(function(e){return e.preventDefault(),ajax_save_pipeline_config(),!1})});
 </script>
 {% endblock %}
 
 {% block pipeline-content %}
-  <ul id="sub-ul" class="nav nav-tabs nav-tabs-pf-secondary">
-    <li id="li-push"><a href="#"><span>Push to CI Platform</span></a></li>
-    <li><a href="#"><span>Pull from CI Platform</span></a></li>
-    <li><a href="#"><span>Update Source at CI Platform</span></a></li>
-  </ul>
-
-  <div class="sub-content-area">
-    <h3>Push Job Settings</h3><hr/>
+  <div class="content-area-2 sub-content-area">
     <div class="row">
-      <div class="col-md-6" style="border: 1px">
-        <h4>Job and it's parameters!</h4>
+      <form role="form" action="" method="post">
+      <div class="col-md-4 form-group">
+        <h4>Action</h4>
+        <div style="padding-bottom: 10px">
+          <select id="pipelineAction" class="form-control" style="width: 250px" autocomplete="off">
+            {% for action in pipeline_config_events %}
+            <option value="{{ action }}">{{ action }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <h4>Template</h4>
+        <div id="pipelineJobTemplate">
+          {% tag_pipeline_job_params request.tenant ci_pipeline.ci_pipeline_uuid pipeline_config_events.0 %}
+        </div>
+        {% if user.is_authenticated %}
+        <div id="divCopyConfig">
+          <label class='checkbox-inline h4'>
+            <input id="checkCopyConfig" class='checkbox' type='checkbox' value='copy-config'>
+            Copy this configuration for other actions too.
+          </label>
+        </div>
+        <div id="spanSaveConfiguration" style="margin-top: 5%;">
+          <span id="saveOutcome" class="pull-right"></span>
+          <button id="saveConfiguration" class="btn btn-primary">Save Configuration</button>
+        </div>
+        {% endif %}
       </div>
-      <div class="col-md-6">
-        <h4>Sync Schedule</h4>
+      <div class="col-md-8">
+        <h3>Saved Configurations</h3><hr/>
+        <div id="listPipelineConfigs">
+          {% tag_list_pipeline_configs ci_pipeline request %}
+        </div>
       </div>
+      </form>
     </div>
-    <h4 class="text-muted" style="margin-top:5%">
-      <span class="pficon pficon-maintenance"> Under Construction</span></h4>
   </div>
 {% endblock %}

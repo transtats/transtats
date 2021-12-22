@@ -75,7 +75,7 @@ Get docker daemon running. Build `transtats` image and get started.
   ```shell
   $ git clone https://github.com/transtats/transtats.git
   $ cd transtats/deploy/docker-compose
-  $ sudo docker-compose up 
+  $ sudo docker-compose up
   ```
 
 - Application should be accessible at `localhost:8080`.
@@ -127,7 +127,7 @@ Get docker daemon running. Build `transtats` image and get started.
   $ make run
   ```
 
-- Application should be accessible at `localhost:8014`.
+- Application should be accessible at `localhost:8014`. [_Change port to 8080 in the Makefile for fedora login_]
   
 ### Post Setup Tasks
 

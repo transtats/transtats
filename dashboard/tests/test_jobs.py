@@ -20,9 +20,11 @@ from fixture.django_testcase import FixtureTestCase
 
 from dashboard.constants import TS_JOB_TYPES
 from dashboard.managers.jobs import JobTemplateManager
-from dashboard.managers.pipelines import CIPipelineManager
+from dashboard.managers.pipelines import (
+    CIPipelineManager, PipelineConfigManager
+)
 from dashboard.tests.testdata.db_fixtures import (
-    JobTemplateData, CIPipelineData
+    JobTemplateData, CIPipelineData, PipelineConfigData
 )
 
 db_fixture = DjangoFixture(style=NamedDataStyle())
@@ -53,7 +55,7 @@ class CIPipelineManagerTest(FixtureTestCase):
     fixture = db_fixture
     datasets = [CIPipelineData]
 
-    def xtest_get_ci_pipelines(self):
+    def test_get_ci_pipelines(self):
         """
         Test get_ci_pipelines
         """
@@ -62,3 +64,21 @@ class CIPipelineManagerTest(FixtureTestCase):
         self.assertEquals(ci_pipelines[0].ci_package.package_name, 'anaconda')
         self.assertEquals(ci_pipelines[0].ci_platform.platform_slug, 'MSRCPUB')
         self.assertEquals(ci_pipelines[0].ci_release.release_name, 'Fedora 27')
+
+
+class PipelineConfigManagerTest(FixtureTestCase):
+
+    pipeline_config_manager = PipelineConfigManager()
+    fixture = db_fixture
+    datasets = [PipelineConfigData]
+
+    def test_get_pipeline_configs(self):
+        """
+        Test get_pipeline_configs
+        """
+        pipeline_configs = self.pipeline_config_manager.get_pipeline_configs()
+        self.assertEqual(len(pipeline_configs), 1, "one pipeline config")
+        self.assertEquals(pipeline_configs[0].ci_pipeline.ci_package.package_name, 'anaconda')
+        self.assertEquals(pipeline_configs[0].pipeline_config_event, 'Push Translations')
+        self.assertEqual(len(pipeline_configs[0].pipeline_config_repo_branches), 1, "one branch")
+        self.assertEquals(pipeline_configs[0].pipeline_config_created_by, 'testuser@transtats.org')

@@ -16,6 +16,7 @@ job:
     - target_langs: %TARGET_LANGS%
     - prehook: skip
     - posthook: repair_fuzzy
+    - prepend_branch: false
   - replace: Downloaded files
   - pullrequest:
     - name: git repo

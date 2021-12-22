@@ -13,14 +13,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import os
 import ast
 import csv
 import json
+import shutil
 from datetime import datetime
 from pathlib import Path
+import threading
 
 # django
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import PermissionDenied
@@ -39,7 +41,8 @@ from django.urls import reverse, reverse_lazy
 # dashboard
 
 from dashboard.constants import (
-    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS, TS_CI_JOBS
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
+    WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
@@ -51,7 +54,9 @@ from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager, SyncStatsManager
 )
 from dashboard.managers.packages import PackagesManager
-from dashboard.managers.pipelines import CIPipelineManager
+from dashboard.managers.pipelines import (
+    CIPipelineManager, PipelineConfigManager
+)
 from dashboard.managers.jobs import (
     YMLBasedJobManager, JobsLogManager, TransplatformSyncManager,
     ReleaseScheduleSyncManager, BuildTagsSyncManager, JobTemplateManager
@@ -61,7 +66,7 @@ from dashboard.managers.graphs import (
 )
 from dashboard.models import (
     Job, Language, LanguageSet, Platform, Visitor, Package,
-    GraphRule, SyncStats, CacheBuildDetails, CIPipeline
+    GraphRule, SyncStats, CacheBuildDetails, CIPipeline, PipelineConfig
 )
 
 
@@ -78,6 +83,7 @@ class ManagersMixin(object):
     reports_manager = ReportsManager()
     geo_location_manager = GeoLocationManager()
     ci_pipeline_manager = CIPipelineManager()
+    pipeline_config_manager = PipelineConfigManager()
 
     def get_summary(self):
         """
@@ -174,6 +180,8 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
         context['releases'] = relbranches
         products = self.inventory_manager.get_release_streams()
+        if self.request.tenant in RELSTREAM_SLUGS:
+            products = products.filter(**{'product_slug': self.request.tenant})
         context['relstreams'] = products
         product_releases = self.release_branch_manager.get_branches_of_relstreams(products)
         p_releases_dict = {}
@@ -292,7 +300,11 @@ class LanguageDetailView(ManagersMixin, DetailView):
             context["language_teams"] = language_teams
         context["locale_lang"] = locale_lang_tuple
         if release_summary:
-            context["release_summary"] = release_summary.report_json
+            release_report_json = release_summary.report_json
+            if self.request.tenant in RELSTREAM_SLUGS:
+                release_report_json = {k: v for k, v in release_summary.report_json.items()
+                                       if self.request.tenant.lower() in v.get('slug').lower()}
+            context["release_summary"] = release_report_json
             context["last_updated"] = release_summary.report_updated
         return context
 
@@ -455,8 +467,11 @@ class NewPackageView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
-        initials.update(dict(transplatform_slug=WEBLATE_SLUGS[1]))
-        default_product = RELSTREAM_SLUGS[1] if settings.FAS_AUTH else RELSTREAM_SLUGS[0]
+        if self.request.tenant == RELSTREAM_SLUGS[0] or self.request.tenant == RELSTREAM_SLUGS[1]:
+            initials.update(dict(transplatform_slug=WEBLATE_SLUGS[1]))
+        if self.request.tenant == RELSTREAM_SLUGS[3]:
+            initials.update(dict(transplatform_slug=TRANSIFEX_SLUGS[0]))
+        default_product = self.request.tenant
         initials.update(dict(release_streams=default_product))
         return initials
 
@@ -500,6 +515,12 @@ class NewPackageView(ManagersMixin, FormView):
                 messages.add_message(request, messages.SUCCESS, (
                     'Great! Package added successfully.'
                 ))
+                t = threading.Thread(
+                    target=self.packages_manager.refresh_package,
+                    args=[post_params['package_name']]
+                )
+                t.setDaemon(True)
+                t.start()
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
 
@@ -836,11 +857,16 @@ class PipelineHistoryView(ManagersMixin, PipelineDetailView):
         return context_data
 
 
-class PipelineConfigurationView(PipelineDetailView):
+class PipelineConfigurationView(ManagersMixin, PipelineDetailView):
     """
     Pipeline Configurations View
     """
     template_name = "ci/pipeline_configuration.html"
+
+    def get_context_data(self, **kwargs):
+        context_data = super(PipelineConfigurationView, self).get_context_data(**kwargs)
+        context_data['pipeline_config_events'] = PIPELINE_CONFIG_EVENTS
+        return context_data
 
 
 class NewLanguageView(SuccessMessageMixin, CreateView):
@@ -1046,8 +1072,26 @@ class PipelinesView(ManagersMixin, ListView):
     context_object_name = 'pipelines'
 
     def get_queryset(self):
-        active_pipelines = self.ci_pipeline_manager.get_ci_pipelines()
+        tenant_releases = \
+            self.release_branch_manager.get_release_branches(relstream=self.request.tenant)
+        active_pipelines = self.ci_pipeline_manager.get_ci_pipelines(releases=tenant_releases)
         return active_pipelines.order_by('ci_package_id').order_by('ci_release_id')
+
+
+class ReleasePipelinesView(ManagersMixin, ListView):
+    """
+    Release Pipelines View
+    """
+    template_name = "ci/list_pipelines.html"
+    context_object_name = 'pipelines'
+
+    def get_queryset(self):
+        tenant_releases = \
+            self.release_branch_manager.get_release_branches(relstream=self.request.tenant)
+        active_pipelines = self.ci_pipeline_manager.get_ci_pipelines(releases=tenant_releases)
+        return active_pipelines.filter(
+            ci_release__release_slug=self.kwargs['release_slug']
+        ).order_by('ci_package__package_name')
 
 
 class AddCIPipeline(ManagersMixin, FormView):
@@ -1593,6 +1637,8 @@ def hide_ci_pipeline(request):
     ci_pipeline_manager = CIPipelineManager()
     # delete all associated jobs
     Job.objects.filter(ci_pipeline_id=ci_pipeline_id).delete()
+    # delete all associated pipeline configs
+    PipelineConfig.objects.filter(ci_pipeline_id=ci_pipeline_id).delete()
     if ci_pipeline_manager.toggle_visibility(ci_pipeline_id):
         return HttpResponse("Pipeline successfully removed.", status=202)
     return HttpResponse(status=500)
@@ -1623,19 +1669,20 @@ def get_target_langs(request):
     :param request: Request object
     :return: HttpResponse object
     """
-    if request.is_ajax():
-        post_params = request.POST.dict()
-        ci_pipeline = post_params.get('ci_pipeline', '')
-        context = Context(
-            {'META': request.META,
-             'ci_pipeline': ci_pipeline}
-        )
-        template_string = """
-                            {% load tag_target_langs from custom_tags %}
-                            {% tag_target_langs ci_pipeline %}
-                        """
-        return HttpResponse(Template(template_string).render(context))
-    return HttpResponse(status=500)
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict()
+    ci_pipeline = post_params.get('ci_pipeline', '')
+    context = Context(
+        {'META': request.META,
+         'ci_pipeline': ci_pipeline}
+    )
+    template_string = """
+                        {% load tag_target_langs from custom_tags %}
+                        {% tag_target_langs ci_pipeline %}
+                    """
+    return HttpResponse(Template(template_string).render(context))
 
 
 def get_workflow_steps(request):
@@ -1644,16 +1691,169 @@ def get_workflow_steps(request):
     :param request: Request object
     :return: HttpResponse object
     """
-    if request.is_ajax():
-        post_params = request.POST.dict()
-        ci_pipeline = post_params.get('ci_pipeline', '')
-        context = Context(
-            {'META': request.META,
-             'ci_pipeline': ci_pipeline}
-        )
-        template_string = """
-                            {% load tag_workflow_steps_dropdown from custom_tags %}
-                            {% tag_workflow_steps_dropdown ci_pipeline %}
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict()
+    ci_pipeline = post_params.get('ci_pipeline', '')
+    context = Context(
+        {'META': request.META,
+         'ci_pipeline': ci_pipeline}
+    )
+    template_string = """
+                        {% load tag_workflow_steps_dropdown from custom_tags %}
+                        {% tag_workflow_steps_dropdown ci_pipeline %}
+                    """
+    return HttpResponse(Template(template_string).render(context))
+
+
+def get_pipeline_job_template(request):
+    """
+    Get Job Template for a CI Pipeline Event
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict()
+    pipeline_action = post_params.get('pipelineAction', '')
+    pipeline_uuid = post_params.get('pipelineUUID', '')
+    context = Context(
+        {'META': request.META,
+         'tenant': request.tenant,
+         'pipeline_action': pipeline_action,
+         'pipeline_uuid': pipeline_uuid}
+    )
+    template_string = """
+                            {% load tag_pipeline_job_params from custom_tags %}
+                            {% tag_pipeline_job_params tenant pipeline_uuid pipeline_action %}
                         """
-        return HttpResponse(Template(template_string).render(context))
-    return HttpResponse(status=500)
+    return HttpResponse(Template(template_string).render(context))
+
+
+def ajax_save_pipeline_config(request):
+    """
+    Save Pipeline Configuration
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict().copy()
+    pipeline_package = post_params.get('package')
+    pipeline_repo_type = post_params.get('cloneType') or \
+        post_params.get('downloadType') or \
+        post_params.get('uploadType')
+    pipeline_repo_branch = post_params.get('cloneBranch') or \
+        post_params.get('downloadBranch') or \
+        post_params.get('uploadBranch')
+    pipeline_target_langs = post_params.get('downloadTargetLangs') or \
+        post_params.get('uploadTargetLangs')
+    pipeline_config_manager = PipelineConfigManager()
+    pipeline_branches = [pipeline_repo_branch]
+    if pipeline_repo_branch == "%RESPECTIVE%":
+        pipeline_branches = pipeline_config_manager.package_manager.git_branches(
+            package_name=pipeline_package, repo_type=pipeline_repo_type
+        )
+    u_email = request.user.email
+    if pipeline_config_manager.process_save_pipeline_config(
+            pipeline_repo_type, pipeline_repo_branch, pipeline_branches,
+            pipeline_target_langs, u_email, **post_params
+    ):
+        return HttpResponse("Pipeline configuration saved.", status=201)
+    return HttpResponse("Saving pipeline configuration failed.", status=500)
+
+
+def ajax_run_pipeline_config(request):
+    """
+    Save Pipeline Configuration
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict().copy()
+    pipeline_config_manager = PipelineConfigManager()
+    pipeline_config = pipeline_config_manager.get_pipeline_configs(
+        pipeline_config_ids=[post_params.get('pipeline_config_id')]).first()
+
+    job_log_id, message = "", "Ok"
+
+    for branch in pipeline_config.pipeline_config_repo_branches:
+        respective_job_template = pipeline_config_manager.get_job_action_template(
+            pipeline_config.ci_pipeline, pipeline_config.pipeline_config_event)
+
+        t_params = respective_job_template.job_template_params
+        job_data = {param.upper(): '' for param in t_params}
+        if '%RESPECTIVE%' in pipeline_config.pipeline_config_yaml:
+            pipeline_config.pipeline_config_yaml.replace('%RESPECTIVE%', branch)
+        job_data.update(dict(YML_FILE=pipeline_config.pipeline_config_yaml))
+
+        job_type = pipeline_config.pipeline_config_json.get('job', {}).get('type')
+        job_pkg = pipeline_config.pipeline_config_json.get('job', {}).get('package')
+        temp_path = 'false/{0}/'.format("-".join([job_pkg, job_type, branch]))
+
+        if 'PACKAGE_NAME' in job_data:
+            job_data['PACKAGE_NAME'] = job_pkg
+        if 'REPO_BRANCH' in job_data:
+            job_data['REPO_BRANCH'] = branch
+
+        job_manager = YMLBasedJobManager(
+            **job_data, **{'params': [p.upper() for p in t_params],
+                           'type': job_type},
+            **{'active_user_email': request.user.email},
+            **{'sandbox_path': temp_path},
+            **{'job_log_file': temp_path + '.log'}
+        )
+
+        try:
+            if os.path.isdir(temp_path):
+                shutil.rmtree(temp_path)
+            os.mkdir(temp_path)
+            job_log_id = job_manager.execute_job()
+            message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
+                      "&nbsp;<span class='text-success'>Success</span>. " + \
+                      "See <a href='/jobs/log/{}/detail'>Log</a> and the History.".format(
+                          str(job_log_id))
+        except Exception as e:
+            return HttpResponse("Something went wrong. See History.", status=500)
+        finally:
+            shutil.rmtree(temp_path)
+    return HttpResponse(message, status=201)
+
+
+def ajax_toggle_pipeline_config(request):
+    """
+    Toggle Pipeline Configuration
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict().copy()
+    pipeline_config_manager = PipelineConfigManager()
+    if pipeline_config_manager.toggle_pipeline_configuration(
+            pipeline_config_id=post_params.get('p_config_id')):
+        return HttpResponse("Ok", status=204)
+    return HttpResponse("Something went wrong.", status=500)
+
+
+def ajax_delete_pipeline_config(request):
+    """
+    Delete Pipeline Configuration
+    :param request: Request object
+    :return: HttpResponse object
+    """
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict().copy()
+    pipeline_config_manager = PipelineConfigManager()
+    if pipeline_config_manager.delete_pipeline_configuration(
+            pipeline_config_id=post_params.get('p_config_id')):
+        return HttpResponse("Ok", status=204)
+    return HttpResponse("Something went wrong.", status=500)

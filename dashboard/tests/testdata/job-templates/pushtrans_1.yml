@@ -23,4 +23,5 @@ job:
     - posthook: skip
     - import_settings: project
     - update: false
+    - prepend_branch: false
   type: pushtrans
