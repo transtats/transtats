@@ -134,7 +134,7 @@ function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}var poll_t
             <label class="control-label">Pipeline and Target Languages</label>
             <div style="padding-bottom:10px">
                 {% if ci_pipelines %}
-                <select id="ciPipeline" class="selectpicker" data-width="100%">
+                <select id="ciPipeline" class="selectpicker" data-dropup-auto="false" data-width="100%">
                     <option selected disabled>Select CI Pipeline</option>
                     {% for ci_pipeline in ci_pipelines %}
                         <option value="{{ ci_pipeline.ci_pipeline_uuid }}">

@@ -1107,6 +1107,15 @@ class AddCIPipeline(ManagersMixin, FormView):
         return super(AddCIPipeline, self).get(request, *args, **kwargs)
 
     def get_form(self, form_class=None, data=None):
+
+        def _sort_choices_by_name(choices):
+            """
+            sort choices by name of a form field
+            :param choices: list of tuples
+            :return: sorted list of tuples
+            """
+            return sorted(choices, key=lambda choice: choice[1])
+
         kwargs = {}
         ci_platforms = self.inventory_manager.get_translation_platforms(ci=True)
         ci_platform_choices = tuple([(platform.platform_id, platform.__str__)
@@ -1116,7 +1125,7 @@ class AddCIPipeline(ManagersMixin, FormView):
         releases = self.release_branch_manager.get_release_branches()
         package_choices = tuple([(package.package_id, package.package_name) for package in packages])
         release_choices = tuple([(release.release_id, release.__str__) for release in releases])
-        kwargs.update(dict(package_choices=package_choices))
+        kwargs.update(dict(package_choices=_sort_choices_by_name(package_choices)))
         kwargs.update(dict(release_choices=release_choices))
         if data:
             kwargs.update({'data': data})
