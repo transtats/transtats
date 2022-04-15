@@ -360,7 +360,7 @@ class StreamBranchesSettingsView(ManagersMixin, TemplateView):
             try:
                 release_stream = self.inventory_manager.get_release_streams(stream_slug=relstream_slug).get()
                 release_branches = self.release_branch_manager.get_release_branches(relstream=relstream_slug)
-            except:
+            except Exception:
                 raise Http404("Product does not exist.")
             else:
                 context['relstream'] = release_stream
@@ -379,7 +379,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
             release_stream = self.inventory_manager.get_release_streams(
                 stream_slug=self.kwargs.get('stream_slug'), only_active=True
             ).get()
-        except:
+        except Exception:
             raise Http404("Product does not exist.")
         else:
             return release_stream
