@@ -102,10 +102,12 @@
                           <span class="pficon pficon-image"></span>
                           {{ pipeline.ci_release.release_name }}
                         </div>
+                        {% if pipeline.ci_project_details_json|get_item:"status" %}
                         <div class="list-view-pf-additional-info-item">
-                          <span class="fa fa-refresh"></span>
-                          Sync Status&nbsp;<span class="pficon pficon-off"></span>
+                          <span class="fa pficon-in-progress"></span>
+                          {{ pipeline.ci_project_details_json|get_item:"status" }}
                         </div>
+                        {% endif %}
                       </div>
                     </div>
                   </div>

@@ -33,7 +33,7 @@ function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}var poll_t
                     {% if job_template %}
                       <a href="{% url 'jobs-yml-based' %}" class="btn btn-default" type="button">Cancel</a>
                       <button class="btn btn-default nextBtn" type="button">
-                          <span class="text-success">Selected.</span> Continue <span class="fa fa-chevron-right"></span></button>
+                          <span class="text-success">Continue </span><span class="fa fa-chevron-right"></span></button>
                     {% else %}
                       <button class="btn btn-primary" onClick="ajax_job_template(this.value)" type="button" value="{{ template.job_template_type }}">Select</button>
                     {% endif %}

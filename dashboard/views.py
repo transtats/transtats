@@ -1075,7 +1075,9 @@ class PipelinesView(ManagersMixin, ListView):
         tenant_releases = \
             self.release_branch_manager.get_release_branches(relstream=self.request.tenant)
         active_pipelines = self.ci_pipeline_manager.get_ci_pipelines(releases=tenant_releases)
-        return active_pipelines.order_by('ci_package_id').order_by('ci_release_id')
+        return active_pipelines.filter(
+            ci_release__track_trans_flag=True
+        ).order_by('ci_package_id').order_by('ci_release__release_name')
 
 
 class ReleasePipelinesView(ManagersMixin, ListView):
