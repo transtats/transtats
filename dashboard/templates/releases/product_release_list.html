@@ -26,6 +26,9 @@
             {{ relbranch.release_name }}
             <span class="pull-right">
               <a href="{% url 'trans-status-release' relbranch.release_slug %}" class="btn btn-default">Stats</a>
+              {% if user.is_authenticated and user.is_staff %}
+              <a href="{% url 'admin:dashboard_release_change' relbranch.release_id %}" class="btn btn-default">Edit</a>
+              {% endif %}
             </span>
           </h2>
           <div class="card-pf-body">

@@ -360,7 +360,7 @@ class StreamBranchesSettingsView(ManagersMixin, TemplateView):
             try:
                 release_stream = self.inventory_manager.get_release_streams(stream_slug=relstream_slug).get()
                 release_branches = self.release_branch_manager.get_release_branches(relstream=relstream_slug)
-            except:
+            except Exception:
                 raise Http404("Product does not exist.")
             else:
                 context['relstream'] = release_stream
@@ -379,7 +379,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
             release_stream = self.inventory_manager.get_release_streams(
                 stream_slug=self.kwargs.get('stream_slug'), only_active=True
             ).get()
-        except:
+        except Exception:
             raise Http404("Product does not exist.")
         else:
             return release_stream
@@ -1075,7 +1075,9 @@ class PipelinesView(ManagersMixin, ListView):
         tenant_releases = \
             self.release_branch_manager.get_release_branches(relstream=self.request.tenant)
         active_pipelines = self.ci_pipeline_manager.get_ci_pipelines(releases=tenant_releases)
-        return active_pipelines.order_by('ci_package_id').order_by('ci_release_id')
+        return active_pipelines.filter(
+            ci_release__track_trans_flag=True
+        ).order_by('ci_package_id').order_by('ci_release__release_name')
 
 
 class ReleasePipelinesView(ManagersMixin, ListView):

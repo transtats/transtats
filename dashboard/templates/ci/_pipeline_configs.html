@@ -30,7 +30,7 @@
             <h2 class="card-pf-title">
                 <span class="pficon pficon-blueprint"></span>
                 {% if pipeline_config.pipeline_config_repo_branches|length > 1 %}
-                    {{ pipeline_config.pipeline_config_repo_branches|join:", "|slice:":60" }} ..
+                    {{ pipeline_config.pipeline_config_repo_branches|join:", "|slice:":35" }} ..
                     <span class="text-info">{{ pipeline_config.pipeline_config_repo_branches|length }}</span>
                     <i class="text-muted">branches</i>
                 {% else %}

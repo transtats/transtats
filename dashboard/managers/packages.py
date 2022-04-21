@@ -940,7 +940,7 @@ class PackagesManager(InventoryManager):
         if not release:
             return branches
         match1 = difflib.get_close_matches(release, branches)
-        return match1[:1] if match1 else default_branch
+        return sorted(match1[:1]) if match1 else default_branch
 
 
 class PackageBranchMapping(object):

@@ -51,8 +51,9 @@
     {% for relstream in relstreams %}
     <div class="list-group-item">
       <div class="list-view-pf-actions">
-        <a class="btn btn-default" href="{% url 'settings-stream-branches' relstream.product_slug %}">Release Schedules</a>
+        <a class="btn btn-default" href="{% url 'settings-stream-branches' relstream.product_slug %}">Show Releases</a>
         {% if user.is_authenticated and user.is_staff %}
+        <a class="btn btn-default" href="{% url 'settings-stream-branches-new' relstream.product_slug %}">Add Release</a>
         <div class="dropdown pull-right dropdown-kebab-pf">
           <button class="btn btn-link dropdown-toggle" type="button" id="dropdown-product-list" data-toggle="dropdown" aria-haspopup="true"
             aria-expanded="true">

@@ -10,7 +10,7 @@
 {% block pipeline-content %}
   <div class="container-fluid container-cards-pf">
     <div class="row row-cards-pf">
-      {% for p_job in ci_pipeline.ci_platform_jobs_json %}
+      {% for p_job in ci_pipeline.ci_platform_jobs_json|dictsort:"filename" %}
         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
             <div class="card-pf">
               <div class="card-pf-heading">
