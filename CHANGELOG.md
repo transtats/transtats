@@ -1,5 +1,6 @@
 
-##### Fri Apr 15 2022 Sundeep Anand <suanand@redhat.com>
+##### Thu Apr 28 2022 Sundeep Anand <suanand@redhat.com>
+* fix issues in Add Release form
 * UI changes: Releases, Pipelines, Job Templates
 * Fix picking up obsolete fuzzy messages ([rhbz#1962078](https://bugzilla.redhat.com/show_bug.cgi?id=1962078#c27))
 * Update CONTRIBUTING.md ([krisnababu](https://github.com/krisnababu))

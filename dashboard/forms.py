@@ -219,17 +219,19 @@ class NewReleaseBranchForm(forms.Form):
                             ('notifications_flag', 'Notification'))
 
     release_name = forms.CharField(
-        label='Release Branch Name', help_text='Version of the release stream.', required=True,
+        label='Release Branch Name', help_text='Product release name with version.', required=True,
     )
     # Placeholder field for showing the slug on the form, this will be disabled
-    relbranch_slug = forms.CharField(label='Release Branch Slug')
+    relbranch_slug = forms.CharField(
+        label='Release Slug', help_text='Slug will be validated with the iCal.'
+    )
     current_phase = forms.ChoiceField(
         label='Current Phase', choices=phases_choices, required=True,
-        help_text='Phase in which this version/branch is running.'
+        help_text='Phase in which this release is running.'
     )
     lang_set = forms.ChoiceField(
         label="Language Set", choices=langset_choices, required=True,
-        help_text='Language set which should be associated with this branch.'
+        help_text='Language set which should be associated with this release.'
     )
     calendar_url = forms.URLField(
         label='iCal URL', help_text='Release schedule calendar URL. (Prefer translation specific)', required=True
@@ -240,7 +242,7 @@ class NewReleaseBranchForm(forms.Form):
     )
     enable_flags = TextArrayField(
         label='Enable flags', widget=forms.CheckboxSelectMultiple, choices=enable_flags_choices,
-        help_text="Selected tasks will be enabled for this release version/branch.",
+        help_text="Selected tasks will be enabled for this release.",
         required=False
     )
 
@@ -263,7 +265,7 @@ class NewReleaseBranchForm(forms.Form):
     helper.layout = Layout(
         Div(
             Field('release_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
-            Field('release_slug', disabled=True),
+            Field('relbranch_slug', disabled=True),
             Field('current_phase', css_class='selectpicker'),
             Field('lang_set', css_class='selectpicker'),
             Field('calendar_url', css_class='form-control'),

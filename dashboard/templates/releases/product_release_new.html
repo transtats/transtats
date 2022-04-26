@@ -17,7 +17,10 @@ Add a new {{ relstream.product_name|capfirst }} release
     return e.toString().toLowerCase().replace(/\s+/g, "-").replace(/\./g, "-").replace(/[^\w\-]+/g, "").replace(/\-\-+/g, "-").replace(/^-+/, "").replace(/-+$/, "")
   }
   function showBranchNameSlug() {
-    document.getElementById("id_relbranch_slug").value = slugify(document.getElementById("id_relbranch_name").value)
+    var elem = document.getElementById("id_relbranch_slug");
+    if(typeof elem !== 'undefined' && elem !== null) {
+      elem.value = slugify(document.getElementById("id_release_name").value);
+    }
   }
 </script>
 {% endblock %}
