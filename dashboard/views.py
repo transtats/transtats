@@ -41,8 +41,8 @@ from django.urls import reverse, reverse_lazy
 # dashboard
 
 from dashboard.constants import (
-    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
-    WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS,
+    TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS, JOB_MULTIPLE_BRANCHES_VAR
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
@@ -1753,7 +1753,6 @@ def ajax_save_pipeline_config(request):
         return HttpResponse("Not an Ajax Call", status=400)
 
     post_params = request.POST.dict().copy()
-    pipeline_package = post_params.get('package')
     pipeline_repo_type = post_params.get('cloneType') or \
         post_params.get('downloadType') or \
         post_params.get('uploadType')
@@ -1763,11 +1762,13 @@ def ajax_save_pipeline_config(request):
     pipeline_target_langs = post_params.get('downloadTargetLangs') or \
         post_params.get('uploadTargetLangs')
     pipeline_config_manager = PipelineConfigManager()
-    pipeline_branches = [pipeline_repo_branch]
-    if pipeline_repo_branch == "%RESPECTIVE%":
-        pipeline_branches = pipeline_config_manager.package_manager.git_branches(
-            package_name=pipeline_package, repo_type=pipeline_repo_type
-        )
+    pipeline_branches = pipeline_repo_branch.split(",")
+    if "," in pipeline_repo_branch and len(pipeline_branches) > 1:
+        if post_params.get('downloadBranch'):
+            post_params['downloadBranch'] = JOB_MULTIPLE_BRANCHES_VAR
+        if post_params.get('uploadBranch'):
+            post_params['uploadBranch'] = JOB_MULTIPLE_BRANCHES_VAR
+        pipeline_repo_branch = JOB_MULTIPLE_BRANCHES_VAR
     u_email = request.user.email
     if pipeline_config_manager.process_save_pipeline_config(
             pipeline_repo_type, pipeline_repo_branch, pipeline_branches,

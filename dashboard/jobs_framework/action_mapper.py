@@ -396,6 +396,7 @@ class Download(JobCommandBase):
                                    if self.double_underscore_delimiter not in v[1]}
 
             project_version = list({k for k, v in ci_lang_job_map.items() for x in v if t_lang in x}) or \
+                input.get('repo_branch') or \
                 input.get('pkg_branch_map', {}).get(input.get('ci_release'), {}).get('platform_version')
 
             if isinstance(project_version, list) and len(project_version) > 0:
@@ -1122,9 +1123,9 @@ class Upload(JobCommandBase):
             raise Exception("Please provide REPO_TYPE.")
         repo_type = kwargs.get('type')
 
-        if not kwargs.get('branch'):
+        if not kwargs.get('branch') and not input.get('repo_branch'):
             raise Exception("Please provide REPO_BRANCH.")
-        repo_branch = kwargs.get('branch')
+        repo_branch = kwargs.get('branch') or input.get('repo_branch')
 
         file_ext = 'po'
         if kwargs.get('ext'):

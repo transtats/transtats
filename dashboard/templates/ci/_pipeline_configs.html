@@ -1,11 +1,11 @@
-
+<h3>Saved Configurations <span class="pull-right badge">{{ pipeline_configs|length }}</span></h3><hr/>
 {% for pipeline_config in pipeline_configs %}
     {% ifchanged %}<div class="h4"><b>{{ pipeline_config.pipeline_config_event }}</b></div>{% endifchanged %}
     <div class="card-pf card-pf-view card-pf-view-xs {% if pipeline_config.pipeline_config_active %}left-border-green{% endif %}" style="margin-left: 2%;">
       <div class="card-pf-body">
         <div class="card-pf-heading-kebab">
             <div class="dropdown pull-right dropdown-kebab-pf">
-              <a href="#" data-toggle="modal" data-target="#modal-show-YAML{{ forloop.counter }}" class="btn btn-sx">Show YAML</a>
+              <a href="#" data-toggle="modal" data-target="#modal-show-YAML{{ forloop.counter }}" class="btn btn-sx">View and Run Job</a>
               {% if user.is_authenticated %}&nbsp;
               <button class="btn btn-link dropdown-toggle" type="button" id="dropupKebabRight3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                 <span class="fa fa-ellipsis-v"></span>

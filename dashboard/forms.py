@@ -83,7 +83,7 @@ class NewPackageForm(forms.Form):
         label='Upstream URL', help_text='Source repository location (Bitbucket, GitHub, Pagure etc).', required=True
     )
     upstream_l10n_url = forms.URLField(
-        label='Upstream Localization URL', help_text='Source repository location with translation resources.', required=False
+        label='Upstream Localization URL', help_text='Optional. Source repository location with translation resources.', required=False
     )
     transplatform_slug = forms.ChoiceField(
         label='Translation Platform',
