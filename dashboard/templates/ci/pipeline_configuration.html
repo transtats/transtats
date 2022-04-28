@@ -13,7 +13,11 @@
     <div class="row">
       <form role="form" action="" method="post">
       <div class="col-md-6 form-group">
-        <h4>Action</h4>
+        <h4>Action
+          <small class="i pficon pficon-info" data-toggle="tooltip"
+                title="Push/Pull translations to/from {{ ci_pipeline.ci_platform.engine_name|title }}.">
+          </small>
+        </h4>
         <div style="padding-bottom: 10px">
           <select id="pipelineAction" class="form-control" style="width: 250px" autocomplete="off">
             {% for action in pipeline_config_events %}
