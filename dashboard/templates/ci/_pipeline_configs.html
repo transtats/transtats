@@ -32,9 +32,9 @@
                 {% if pipeline_config.pipeline_config_repo_branches|length > 1 %}
                     {{ pipeline_config.pipeline_config_repo_branches|join:", "|slice:":35" }} ..
                     <span class="text-info">{{ pipeline_config.pipeline_config_repo_branches|length }}</span>
-                    <i class="text-muted">branches</i>
+                    <i class="text-muted">{{ pipeline_branch_display_name }}</i>
                 {% else %}
-                    {{ pipeline_config.pipeline_config_repo_branches|join:"" }} <i class="text-muted">branch</i>.
+                    {{ pipeline_config.pipeline_config_repo_branches|join:"" }}
                 {% endif %}
             </h2>
         </div>
