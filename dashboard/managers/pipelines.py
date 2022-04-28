@@ -40,7 +40,7 @@ class CIPipelineManager(BaseManager):
     package_manager = PackagesManager()
 
     def get_ci_pipelines(self, fields=None, packages=None, platforms=None,
-                         releases=None, uuids=None, pipeline_ids=None):
+                         releases=None, uuids=None, pipeline_ids=None, track_trans=None):
         """
         fetch ci pipeline(s) from db
         :return: queryset
@@ -61,6 +61,8 @@ class CIPipelineManager(BaseManager):
             kwargs.update(dict(ci_pipeline_uuid__in=uuids))
         if pipeline_ids:
             kwargs.update(dict(ci_pipeline_id__in=pipeline_ids))
+        if track_trans:
+            kwargs.update(dict(ci_release__track_trans_flag=True))
 
         try:
             ci_pipelines = CIPipeline.objects.only(*required_params).filter(**kwargs).all()
