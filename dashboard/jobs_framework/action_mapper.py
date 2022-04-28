@@ -749,9 +749,9 @@ class Load(JobCommandBase):
                     else os.path.join(root_dir, tarballs[0])
 
             if len(src_translations) > 0:
-                src_translations = map(
+                src_translations = list(map(
                     lambda x: os.path.join(root_dir, x), src_translations
-                )
+                ))
             spec_sections = RpmSpecFile(os.path.join(input['base_dir'], spec_file))
 
             version_release = spec_obj.release[:spec_obj.release.index('%')]
@@ -784,7 +784,7 @@ class Load(JobCommandBase):
             ))
             return {
                 'spec_file': spec_file, 'src_tar_file': src_tar_file, 'spec_obj': spec_obj,
-                'src_translations': [i for i in src_translations], 'spec_sections': spec_sections,
+                'src_translations': src_translations, 'spec_sections': spec_sections,
                 'related_tarballs': related_tarballs
             }, {task_subject: task_log}
 
