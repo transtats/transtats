@@ -41,12 +41,13 @@ from django.urls import reverse, reverse_lazy
 # dashboard
 
 from dashboard.constants import (
-    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS,
-    TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS, JOB_MULTIPLE_BRANCHES_VAR
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
+    WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS,
+    JOB_MULTIPLE_BRANCHES_VAR, TP_BRANCH_CALLING_NAME
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
-    NewLanguageForm, UpdateLanguageForm, LanguageSetForm, NewCIPipelineForm,
+    NewLanguageForm, UpdateLanguageForm, LanguageSetForm, PackagePipelineForm,
     NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm,
     CreateCIPipelineForm
 )
@@ -969,19 +970,39 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
 
     def get_form(self, form_class=None, data=None):
         kwargs = {}
+        package_model_object = self.packages_manager.get_packages(
+            [self.kwargs['slug']])
+        if not package_model_object:
+            return kwargs
+        package = package_model_object.get()
         ci_platforms = self.inventory_manager.get_translation_platforms(ci=True)
         ci_platform_choices = tuple([(platform.platform_id, platform.__str__)
                                      for platform in ci_platforms])
         kwargs.update(dict(ci_platform_choices=ci_platform_choices))
         pkg_releases = self.packages_manager.get_package_releases(
-            package_name=self.kwargs['slug']
+            package_name=package.package_name
         )
         pkg_release_choices = tuple([(release.release_id, release.__str__)
                                      for release in pkg_releases])
+        pkg_platform_branches = self.packages_manager.git_branches(
+            package.package_name, package.platform_slug.engine_name
+        )
+        pkg_platform_branch_choices = \
+            tuple([(branch, branch) for branch in pkg_platform_branches])
+        kwargs.update(dict(pkg_platform_branch_choices=pkg_platform_branch_choices))
+        pkg_branch_display_name = dict(TP_BRANCH_CALLING_NAME).get(
+            package.platform_slug.engine_name, 'Branch')
+        if pkg_branch_display_name.endswith("s"):
+            pkg_branch_display_name = pkg_branch_display_name.rstrip("s")
+        elif pkg_branch_display_name.endswith("es"):
+            pkg_branch_display_name = pkg_branch_display_name.rstrip("es")
+        kwargs.update(dict(pkg_branch_display_name=pkg_branch_display_name))
         kwargs.update(dict(pkg_release_choices=pkg_release_choices))
+        kwargs.update(dict(package_name=package.package_name))
+        kwargs.update(dict(package_platform=package.platform_slug.engine_name))
         if data:
             kwargs.update({'data': data})
-        return NewCIPipelineForm(**kwargs)
+        return PackagePipelineForm(**kwargs)
 
     def get_success_url(self):
         return reverse('package-add-ci-pipeline', args=[self.kwargs.get('slug')])

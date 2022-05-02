@@ -19,7 +19,7 @@ from crispy_forms.layout import (
     Submit, Layout, Field, HTML, Reset, Row
 )
 from crispy_forms.bootstrap import (
-    FormActions, InlineRadios, Div, InlineCheckboxes
+    FormActions, InlineRadios, Div, InlineCheckboxes, PrependedText
 )
 from slugify import slugify
 from urllib.parse import urlparse
@@ -41,7 +41,7 @@ from dashboard.constants import (
 __all__ = ['NewPackageForm', 'UpdatePackageForm', 'NewReleaseBranchForm',
            'NewGraphRuleForm', 'NewLanguageForm', 'UpdateLanguageForm',
            'LanguageSetForm', 'NewTransPlatformForm', 'UpdateTransPlatformForm',
-           'UpdateGraphRuleForm']
+           'UpdateGraphRuleForm', 'PackagePipelineForm', 'CreateCIPipelineForm']
 
 ENGINE_CHOICES = tuple([(engine, engine.upper())
                         for engine in TRANSPLATFORM_ENGINES])
@@ -658,9 +658,9 @@ class UpdateTransPlatformForm(forms.ModelForm):
             return self.cleaned_data.get('api_url')
 
 
-class NewCIPipelineForm(forms.ModelForm):
+class PackagePipelineForm(forms.ModelForm):
     """
-    Add new CI Pipeline form
+    Add Package CI Pipeline form
     """
 
     ci_project_web_url = forms.URLField(
@@ -668,12 +668,25 @@ class NewCIPipelineForm(forms.ModelForm):
         help_text='CI Pipeline will be associated with this project.'
     )
 
+    ci_pipeline_default_branch = forms.ChoiceField(required=False)
+    ci_pipeline_auto_create_config = forms.BooleanField(
+        required=False, initial=True, label='Auto Create Pipeline Configurations'
+    )
+
     def __init__(self, *args, **kwargs):
         ci_platform_choices = kwargs.pop('ci_platform_choices')
         pkg_release_choices = kwargs.pop('pkg_release_choices')
-        super(NewCIPipelineForm, self).__init__(*args, **kwargs)
+        pkg_platform_branch_choices = kwargs.pop('pkg_platform_branch_choices')
+        pkg_branch_display_name = kwargs.pop('pkg_branch_display_name')
+        pkg_name, pkg_platform = kwargs.pop('package_name'), kwargs.pop('package_platform')
+        super(PackagePipelineForm, self).__init__(*args, **kwargs)
         self.fields['ci_platform'].choices = ci_platform_choices
         self.fields['ci_release'].choices = pkg_release_choices
+        self.fields['ci_pipeline_default_branch'].choices = pkg_platform_branch_choices
+        self.fields['ci_pipeline_default_branch'].label = f'Pipeline {pkg_branch_display_name}'
+        self.fields['ci_pipeline_default_branch'].help_text = \
+            f'Optional. This will be the default {pkg_branch_display_name.lower()}. ' \
+            f'Resync {pkg_name} with {pkg_platform} for the latest.'
 
     class Meta:
         model = CIPipeline
@@ -689,7 +702,9 @@ class NewCIPipelineForm(forms.ModelForm):
             Field('ci_release', css_class='selectpicker'),
             Field('ci_push_job_template', css_class='selectpicker'),
             Field('ci_pull_job_template', css_class='selectpicker'),
+            Field('ci_pipeline_default_branch', css_class='selectpicker'),
             Field('ci_project_web_url', css_class='form-control'),
+            PrependedText('ci_pipeline_auto_create_config', ''),
             FormActions(
                 Submit('addCIPipeline', 'Add CI Pipeline'),
                 Reset('reset', 'Reset', css_class='btn-danger'),

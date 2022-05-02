@@ -1,11 +1,12 @@
 
-##### Fri May 27 2022 Sundeep Anand <suanand@redhat.com>
+##### Mon Jun 6 2022 Sundeep Anand <suanand@redhat.com>
 * Add target_langs and UniqueConstraint to pipeline_config model
 * Better pipeline history UI: group_by date order_by time dsc
 * Better error messages for exceptions in jobs
 * Executes pipeline configurations in threads
 * fix pipeline push/pull actions for satellite
 * change repo_branch ui field to checkbox for satellite in pipeline config
+* Redesign Package specific Add CI Pipeline form
 * fix issues in Add Release form
 * UI changes: Releases, Pipelines, Job Templates
 * Fix picking up obsolete fuzzy messages ([rhbz#1962078](https://bugzilla.redhat.com/show_bug.cgi?id=1962078#c27))
