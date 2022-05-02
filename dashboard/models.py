@@ -437,7 +437,7 @@ class CIPipeline(ModelMixin, models.Model):
         default=True, verbose_name='CI Pipeline Visibility'
     )
     ci_pipeline_default_branch = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name="Default Branch"
+        max_length=100, default='', blank=True, verbose_name="Default Branch"
     )
     ci_pipeline_auto_create_config = models.BooleanField(
         default=True, verbose_name='Create default configurations', null=True, blank=True
