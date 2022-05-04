@@ -56,9 +56,9 @@
           <div class="modal-body">
               <pre>{{ pipeline_config.pipeline_config_yaml }}</pre>
               {% if pipeline_config.pipeline_config_repo_branches|length > 1 %}
-                <div style="max-height: 60px; overflow: auto">
+                <div style="max-height: 100px; overflow: auto">
                 {% for branch in pipeline_config.pipeline_config_repo_branches %}
-                    <code>{{ branch }}</code>
+                    {{ forloop.counter }}.<span style="margin: 1%"><code>{{ branch }}</code></span>
                 {% endfor %}
                 </div>
               {% endif %}
