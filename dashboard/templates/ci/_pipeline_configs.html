@@ -5,7 +5,13 @@
       <div class="card-pf-body">
         <div class="card-pf-heading-kebab">
             <div class="dropdown pull-right dropdown-kebab-pf">
-              <a href="#" data-toggle="modal" data-target="#modal-show-YAML{{ forloop.counter }}" class="btn btn-sx">View and Run Job</a>
+              <a href="#" data-toggle="modal" data-target="#modal-show-YAML{{ forloop.counter }}" class="btn btn-sx">
+                  {% if user.is_authenticated and pipeline_config.pipeline_config_active %}
+                    View and Run Job
+                  {% else %}
+                    View Job
+                  {% endif %}
+              </a>
               {% if user.is_authenticated %}&nbsp;
               <button class="btn btn-link dropdown-toggle" type="button" id="dropupKebabRight3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                 <span class="fa fa-ellipsis-v"></span>
