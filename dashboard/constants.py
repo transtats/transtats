@@ -51,6 +51,7 @@ TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream', 'syncdow
 
 TS_CI_JOBS = (TS_JOB_TYPES[7], TS_JOB_TYPES[8], TS_JOB_TYPES[9])
 PIPELINE_CONFIG_EVENTS = ('Push Translations', 'Pull Translations', 'Update Source')
+JOB_MULTIPLE_BRANCHES_VAR = "%RESPECTIVE%"
 
 # Branch Mapping Keys
 BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys', 'buildsys_tag', 'upstream_release')

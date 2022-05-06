@@ -69,6 +69,8 @@ class JobCommandBase(BaseManager):
         return log_text
 
     def _log_task(self, log_f, subject, text, text_prefix=None):
+        if ".log" not in log_f:
+            raise Exception("Log file is not formatted.")
         with open(log_f, 'a+') as the_file:
             text_to_write = \
                 '\n<b>' + subject + '</b> ...\n%s\n' % \
@@ -396,6 +398,7 @@ class Download(JobCommandBase):
                                    if self.double_underscore_delimiter not in v[1]}
 
             project_version = list({k for k, v in ci_lang_job_map.items() for x in v if t_lang in x}) or \
+                input.get('repo_branch') or \
                 input.get('pkg_branch_map', {}).get(input.get('ci_release'), {}).get('platform_version')
 
             if isinstance(project_version, list) and len(project_version) > 0:
@@ -746,9 +749,9 @@ class Load(JobCommandBase):
                     else os.path.join(root_dir, tarballs[0])
 
             if len(src_translations) > 0:
-                src_translations = map(
+                src_translations = list(map(
                     lambda x: os.path.join(root_dir, x), src_translations
-                )
+                ))
             spec_sections = RpmSpecFile(os.path.join(input['base_dir'], spec_file))
 
             version_release = spec_obj.release[:spec_obj.release.index('%')]
@@ -781,7 +784,7 @@ class Load(JobCommandBase):
             ))
             return {
                 'spec_file': spec_file, 'src_tar_file': src_tar_file, 'spec_obj': spec_obj,
-                'src_translations': [i for i in src_translations], 'spec_sections': spec_sections,
+                'src_translations': src_translations, 'spec_sections': spec_sections,
                 'related_tarballs': related_tarballs
             }, {task_subject: task_log}
 
@@ -1122,9 +1125,9 @@ class Upload(JobCommandBase):
             raise Exception("Please provide REPO_TYPE.")
         repo_type = kwargs.get('type')
 
-        if not kwargs.get('branch'):
+        if not kwargs.get('branch') and not input.get('repo_branch'):
             raise Exception("Please provide REPO_BRANCH.")
-        repo_branch = kwargs.get('branch')
+        repo_branch = kwargs.get('branch') or input.get('repo_branch')
 
         file_ext = 'po'
         if kwargs.get('ext'):

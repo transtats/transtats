@@ -342,9 +342,6 @@ class PipelineConfigManager(CIPipelineManager):
             repo_type=pipeline.ci_package.platform_slug.engine_name
         )
 
-        if tenant == RELSTREAM_SLUGS[3]:
-            repo_branches.insert(0, "%RESPECTIVE%")
-
         def _format_val(value_str):
             return "<strong>{}</strong>".format(str(value_str))
 
@@ -366,6 +363,11 @@ class PipelineConfigManager(CIPipelineManager):
                                "{}</label>".format(field_id + str(counter), value, "checked", value)
             return html_select
 
+        def _choose_checkboxes_or_dropdown(field_id, values):
+            if tenant == RELSTREAM_SLUGS[3]:
+                return _format_checkboxes(field_id, values)
+            return _format_choices(field_id, values)
+
         prepend_branch_field = "<input id='prependBranch' name='prependBranch' type='checkbox'>"
         if tenant == RELSTREAM_SLUGS[3]:
             prepend_branch_field = "<input id='prependBranch' name='prependBranch' type='checkbox' checked>"
@@ -386,13 +388,13 @@ class PipelineConfigManager(CIPipelineManager):
             "download.target_langs": _format_checkboxes(
                 'downloadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
             "download.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
-            "download.branch": _format_choices("downloadRepoBranch", repo_branches),
+            "download.branch": _choose_checkboxes_or_dropdown("downloadRepoBranch", repo_branches),
             "download.workflow_step": _format_choices(
                 "workflowStep", self.get_ci_platform_workflow_steps(pipeline.ci_pipeline_uuid)
             ),
             "download.prepend_branch": prepend_branch_field,
             "upload.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
-            "upload.branch": _format_choices("uploadRepoBranch", repo_branches),
+            "upload.branch": _choose_checkboxes_or_dropdown("uploadRepoBranch", repo_branches),
             "upload.target_langs": _format_checkboxes(
                 'uploadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
             "upload.import_settings": "<input id='importSettings' type='text' value='project'>",

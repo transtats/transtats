@@ -673,5 +673,8 @@ def tag_list_pipeline_configs(pipeline, request):
     pipeline_config_manager = PipelineConfigManager()
     pipeline_configs = pipeline_config_manager.get_pipeline_configs(ci_pipelines=[pipeline])
     return_value['pipeline_configs'] = pipeline_configs.order_by('pipeline_config_event')
+    pipeline_package_platform = pipeline.ci_package.platform_slug.engine_name
+    return_value['pipeline_branch_display_name'] = \
+        dict(TP_BRANCH_CALLING_NAME).get(pipeline_package_platform, "branches").lower()
     return_value['user'] = request.user
     return return_value
