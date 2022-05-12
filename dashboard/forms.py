@@ -715,7 +715,7 @@ class PackagePipelineForm(forms.ModelForm):
 
     def clean_ci_project_web_url(self):
         """
-        Remove CI Project Web URL
+        Clean CI Project Web URL
         """
         if self.cleaned_data.get('ci_project_web_url'):
             parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])
@@ -768,7 +768,7 @@ class CreateCIPipelineForm(forms.ModelForm):
 
     def clean_ci_project_web_url(self):
         """
-        Remove CI Project Web URL
+        Clean CI Project Web URL
         """
         if self.cleaned_data.get('ci_project_web_url'):
             parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])

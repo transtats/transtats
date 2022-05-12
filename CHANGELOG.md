@@ -4,9 +4,9 @@
 * Better pipeline history UI: group_by date order_by time dsc
 * Better error messages for exceptions in jobs
 * Executes pipeline configurations in threads
+* Redesign Package specific Add CI Pipeline form
 * fix pipeline push/pull actions for satellite
 * change repo_branch ui field to checkbox for satellite in pipeline config
-* Redesign Package specific Add CI Pipeline form
 * fix issues in Add Release form
 * UI changes: Releases, Pipelines, Job Templates
 * Fix picking up obsolete fuzzy messages ([rhbz#1962078](https://bugzilla.redhat.com/show_bug.cgi?id=1962078#c27))

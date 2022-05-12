@@ -161,7 +161,7 @@ class CIPipelineAdmin(admin.ModelAdmin):
                'ci_project_import_settings_json_str', 'ci_project_assign_templates_json_str',
                'ci_project_workflow_steps_json_str', 'ci_project_providers_json_str',
                'ci_project_term_bases_json_str', 'ci_project_qa_checks_json_str', 'ci_project_trans_memory_json_str',
-               'ci_pipeline_last_updated')
+               'ci_pipeline_last_updated', 'ci_pipeline_auto_create_config')
 
 
 @admin.register(Visitor)

@@ -342,6 +342,10 @@ class PipelineConfigManager(CIPipelineManager):
             repo_type=pipeline.ci_package.platform_slug.engine_name
         )
 
+        if pipeline.ci_pipeline_default_branch and \
+                pipeline.ci_pipeline_default_branch in repo_branches:
+            repo_branches = [pipeline.ci_pipeline_default_branch]
+
         def _format_val(value_str):
             return "<strong>{}</strong>".format(str(value_str))
 
