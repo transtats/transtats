@@ -1046,7 +1046,7 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
                         'Great! CI Pipeline added successfully.'
                     ))
             else:
-                new_pipeline_obj, db_operation = \
+                new_pipeline_obj, _ = \
                     self.ci_pipeline_manager.save_ci_pipeline(post_params, get_obj=True)
                 if not new_pipeline_obj:
                     messages.add_message(request, messages.ERROR, (
