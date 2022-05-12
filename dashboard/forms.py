@@ -685,7 +685,7 @@ class PackagePipelineForm(forms.ModelForm):
         self.fields['ci_pipeline_default_branch'].choices = pkg_platform_branch_choices
         self.fields['ci_pipeline_default_branch'].label = f'Pipeline {pkg_branch_display_name}'
         self.fields['ci_pipeline_default_branch'].help_text = \
-            f'Optional. This will be the default {pkg_branch_display_name.lower()}. ' \
+            f'This will be the default {pkg_branch_display_name.lower()}. ' \
             f'Resync {pkg_name} with {pkg_platform} for the latest.'
 
     class Meta:

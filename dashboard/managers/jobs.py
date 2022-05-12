@@ -33,7 +33,7 @@ from django.utils import timezone
 
 # dashboard
 from dashboard.constants import (
-    TS_JOB_TYPES, JOB_EXEC_TYPES, GIT_REPO_TYPE
+    TS_JOB_TYPES, JOB_EXEC_TYPES, GIT_REPO_TYPE, SYS_EMAIL_ADDR
 )
 from dashboard.jobs_framework.action_mapper import ActionMapper
 from dashboard.jobs_framework.ds import TaskList
@@ -746,7 +746,7 @@ class YMLBasedJobManager(BaseManager):
                     'downstream_last_updated': timezone.now()
                 })
             # If invoked by system user, cache build details
-            if self.active_user_email == 'system@transtats.org' and \
+            if self.active_user_email == SYS_EMAIL_ADDR and \
                     self.type == TS_JOB_TYPES[3]:
                 cache_params = {}
                 match_params = {

@@ -426,15 +426,21 @@ def tag_repo_branches(package_name, repo_type):
 @register.inclusion_tag(
     os.path.join("ci", "_pipeline_branches.html")
 )
-def tag_pipeline_branches(package_name, t_platform):
+def tag_pipeline_branches(pipeline):
     return_value = OrderedDict()
-    package_manager = PackagesManager()
-    branches = package_manager.git_branches(
-        package_name, t_platform.engine_name
-    )
-    return_value.update(dict(title=dict(
-        TP_BRANCH_CALLING_NAME).get(t_platform.engine_name)))
+    if not pipeline.ci_pipeline_default_branch:
+        package_manager = PackagesManager()
+        branches = package_manager.git_branches(
+            pipeline.ci_package.package_name,
+            pipeline.ci_package.platform_slug.engine_name
+        )
+    else:
+        branches = [pipeline.ci_pipeline_default_branch]
     return_value.update(dict(branches=branches))
+    return_value.update(
+        dict(title=dict(TP_BRANCH_CALLING_NAME).get(
+            pipeline.ci_package.platform_slug.engine_name))
+    )
     return return_value
 
 
