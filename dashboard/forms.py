@@ -682,7 +682,8 @@ class PackagePipelineForm(forms.ModelForm):
         super(PackagePipelineForm, self).__init__(*args, **kwargs)
         self.fields['ci_platform'].choices = ci_platform_choices
         self.fields['ci_release'].choices = pkg_release_choices
-        self.fields['ci_pipeline_default_branch'].choices = pkg_platform_branch_choices
+        self.fields['ci_pipeline_default_branch'].choices = \
+            sorted(pkg_platform_branch_choices, key=lambda x: x[1])
         self.fields['ci_pipeline_default_branch'].label = f'Pipeline {pkg_branch_display_name}'
         self.fields['ci_pipeline_default_branch'].help_text = \
             f'This will be the default {pkg_branch_display_name.lower()}. ' \

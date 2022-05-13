@@ -180,7 +180,8 @@
         </li>
         {% else %}
         <li>
-          <a class="nav-item-iconic" href="{% if auth == 'fas' %}{% url 'oidc_authentication_init' %}{% else %}{% url 'admin:login' %}{% endif %}">
+          <a class="nav-item-iconic" href="{% if auth == 'fas' %}{% url 'oidc_authentication_init' %}
+          {% else %}{% url 'admin:login' %}?next={{request.path}}{% endif %}">
             <span title="Login" class="fa pficon-users"></span>
             Login
           </a>
