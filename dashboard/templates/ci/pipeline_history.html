@@ -36,10 +36,8 @@
                         {% if log.triggered_by %}
                         &nbsp;&nbsp;&nbsp;<i class="text-muted">Triggered by</i> <span class="text-info">{{ log.triggered_by }}</span>
                         {% endif %}
-                        {% if log.job_visible_on_url %}
-                            <span class="pull-right btn btn-default"><a href="{% url 'log-detail' log.job_uuid %}" style="text-decoration: none;">Job Details</a>&nbsp;
-                            <span class="fa fa-angle-right"></span></span>
-                        {% endif %}
+                        <span class="pull-right btn btn-default"><a href="{% url 'log-detail' log.job_uuid %}" style="text-decoration: none;">Job Details</a>&nbsp;
+                        <span class="fa fa-angle-right"></span></span>
                     </p>
                     <hr/><h3>Tasks</h3>
                     <div class="list-group">
