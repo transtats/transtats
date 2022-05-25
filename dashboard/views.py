@@ -519,7 +519,7 @@ class NewPackageView(ManagersMixin, FormView):
                     target=self.packages_manager.refresh_package,
                     args=[post_params['package_name']]
                 )
-                t.setDaemon(True)
+                t.daemon = True
                 t.start()
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
@@ -1784,35 +1784,10 @@ def ajax_run_pipeline_config(request):
     :param request: Request object
     :return: HttpResponse object
     """
-    if not request.is_ajax():
-        return HttpResponse("Not an Ajax Call", status=400)
+    ajax_run_pipeline_config.message = "Ok"
 
-    post_params = request.POST.dict().copy()
-    pipeline_config_manager = PipelineConfigManager()
-    pipeline_config = pipeline_config_manager.get_pipeline_configs(
-        pipeline_config_ids=[post_params.get('pipeline_config_id')]).first()
-
-    job_log_id, message = "", "Ok"
-
-    for branch in pipeline_config.pipeline_config_repo_branches:
-        respective_job_template = pipeline_config_manager.get_job_action_template(
-            pipeline_config.ci_pipeline, pipeline_config.pipeline_config_event)
-
-        t_params = respective_job_template.job_template_params
-        job_data = {param.upper(): '' for param in t_params}
-        if '%RESPECTIVE%' in pipeline_config.pipeline_config_yaml:
-            pipeline_config.pipeline_config_yaml.replace('%RESPECTIVE%', branch)
-        job_data.update(dict(YML_FILE=pipeline_config.pipeline_config_yaml))
-
-        job_type = pipeline_config.pipeline_config_json.get('job', {}).get('type')
-        job_pkg = pipeline_config.pipeline_config_json.get('job', {}).get('package')
-        temp_path = 'false/{0}/'.format("-".join([job_pkg, job_type, branch]))
-
-        if 'PACKAGE_NAME' in job_data:
-            job_data['PACKAGE_NAME'] = job_pkg
-        if 'REPO_BRANCH' in job_data:
-            job_data['REPO_BRANCH'] = branch
-
+    def _execute_job(*args):
+        job_data, t_params, job_type, temp_path = args
         job_manager = YMLBasedJobManager(
             **job_data, **{'params': [p.upper() for p in t_params],
                            'type': job_type},
@@ -1826,15 +1801,48 @@ def ajax_run_pipeline_config(request):
                 shutil.rmtree(temp_path)
             os.mkdir(temp_path)
             job_log_id = job_manager.execute_job()
-            message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
-                      "&nbsp;<span class='text-success'>Success</span>. " + \
-                      "See <a href='/jobs/log/{}/detail'>Log</a> and the History.".format(
-                          str(job_log_id))
+            ajax_run_pipeline_config.message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
+                "&nbsp;<span class='text-success'>Success</span>. " + \
+                "See <a href='/jobs/log/{}/detail'>Log</a> and the History.".format(str(job_log_id))
         except Exception as e:
             return HttpResponse("Something went wrong. See History.", status=500)
         finally:
             shutil.rmtree(temp_path)
-    return HttpResponse(message, status=201)
+
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict().copy()
+    pipeline_config_manager = PipelineConfigManager()
+    pipeline_config = pipeline_config_manager.get_pipeline_configs(
+        pipeline_config_ids=[post_params.get('pipeline_config_id')]).first()
+
+    for branch in pipeline_config.pipeline_config_repo_branches:
+        respective_job_template = pipeline_config_manager.get_job_action_template(
+            pipeline_config.ci_pipeline, pipeline_config.pipeline_config_event)
+
+        t_params = respective_job_template.job_template_params
+        job_data = {param.upper(): '' for param in t_params}
+        job_data.update(dict(
+            YML_FILE=pipeline_config.pipeline_config_yaml.replace('%RESPECTIVE%', branch)
+        ))
+        job_type = pipeline_config.pipeline_config_json.get('job', {}).get('type')
+        job_pkg = pipeline_config.pipeline_config_json.get('job', {}).get('package')
+        temp_path = 'false/{0}/'.format("-".join([job_pkg, job_type, branch]))
+
+        if 'PACKAGE_NAME' in job_data:
+            job_data['PACKAGE_NAME'] = job_pkg
+        if 'REPO_BRANCH' in job_data:
+            job_data['REPO_BRANCH'] = branch
+
+        t = threading.Thread(
+            target=_execute_job,
+            args=[job_data, t_params, job_type, temp_path],
+        )
+        t.daemon = True
+        t.start()
+        t.join()
+    return HttpResponse(ajax_run_pipeline_config.message, status=200)
 
 
 def ajax_toggle_pipeline_config(request):
