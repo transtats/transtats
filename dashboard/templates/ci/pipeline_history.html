@@ -9,10 +9,17 @@
 {% if logs %}
 <div class="panel-group" id="accordion">
     {% for log in logs %}
+
+        {% ifchanged %}
+            <div style="background-color: white; font-size: large; margin-top: 1.5%; margin-bottom: .5%;" class="text-info">
+              {{ log.job_start_time|date }}
+            </div>
+        {% endifchanged %}
+
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    {{ log.job_start_time|date }}&nbsp;&nbsp;&nbsp;
+                    {{ log.job_start_time|time }}&nbsp;&nbsp;&nbsp;
                     <a data-toggle="collapse" data-parent="#accordion" href="#{{ log.job_uuid }}">
                         <span style="color:grey">Job#</span> <span class="text-info">{{ log.job_uuid }}</span>
                     </a>&nbsp;&nbsp;&nbsp;
