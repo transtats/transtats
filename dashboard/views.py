@@ -1785,6 +1785,7 @@ def ajax_run_pipeline_config(request):
     :return: HttpResponse object
     """
     ajax_run_pipeline_config.message = "Ok"
+    ajax_run_pipeline_config.failed_jobs_count = 0
 
     def _execute_job(*args):
         job_data, t_params, job_type, temp_path = args
@@ -1803,8 +1804,9 @@ def ajax_run_pipeline_config(request):
             job_log_id = job_manager.execute_job()
             ajax_run_pipeline_config.message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
                 "&nbsp;<span class='text-success'>Success</span>. " + \
-                "See <a href='/jobs/log/{}/detail'>Log</a> and the History.".format(str(job_log_id))
+                "See the <a href='/jobs/log/{}/detail'>Log</a> and History.".format(str(job_log_id))
         except Exception as e:
+            ajax_run_pipeline_config.failed_jobs_count += 1
             return HttpResponse("Something went wrong. See History.", status=500)
         finally:
             shutil.rmtree(temp_path)
@@ -1842,6 +1844,14 @@ def ajax_run_pipeline_config(request):
         t.daemon = True
         t.start()
         t.join()
+
+    no_of_branches = len(pipeline_config.pipeline_config_repo_branches)
+    if no_of_branches > 1:
+        no_of_jobs_succeed = no_of_branches - ajax_run_pipeline_config.failed_jobs_count
+        ajax_run_pipeline_config.message = \
+            f"<span class='text-success'>{no_of_jobs_succeed}</span> jobs succeed out of {no_of_branches}. " \
+            f"<span class='text-danger'>{ajax_run_pipeline_config.failed_jobs_count}</span> failed. See History."
+
     return HttpResponse(ajax_run_pipeline_config.message, status=200)
 
 

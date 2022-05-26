@@ -941,7 +941,7 @@ class YMLBasedJobManager(BaseManager):
                 job_manager.mark_job_finish()
             else:
                 job_manager.mark_job_finish(remove=True)
-            time.sleep(4)
+            time.sleep(2)
         # if not a dry run, save results is db
         if action_mapper.result and not getattr(self, 'DRY_RUN', None):
             if self.type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3]):
