@@ -1759,8 +1759,12 @@ def ajax_save_pipeline_config(request):
     pipeline_repo_branch = post_params.get('cloneBranch') or \
         post_params.get('downloadBranch') or \
         post_params.get('uploadBranch')
+    if not pipeline_repo_branch:
+        return HttpResponse("No branch selected.", status=500)
     pipeline_target_langs = post_params.get('downloadTargetLangs') or \
         post_params.get('uploadTargetLangs')
+    if not pipeline_target_langs:
+        return HttpResponse("No target_langs selected.", status=500)
     pipeline_config_manager = PipelineConfigManager()
     pipeline_branches = pipeline_repo_branch.split(",")
     if "," in pipeline_repo_branch and len(pipeline_branches) > 1:
@@ -1784,7 +1788,8 @@ def ajax_run_pipeline_config(request):
     :param request: Request object
     :return: HttpResponse object
     """
-    ajax_run_pipeline_config.message = "Ok"
+    ajax_run_pipeline_config.message = \
+        "&nbsp;<span class='text-warning'>See History.</span>"
     ajax_run_pipeline_config.failed_jobs_count = 0
 
     def _execute_job(*args):
