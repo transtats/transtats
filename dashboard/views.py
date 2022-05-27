@@ -1489,11 +1489,13 @@ def generate_reports(request):
                 context = Context(
                     {'META': request.META,
                      'relsummary': releases_summary,
-                     'last_updated': datetime.now()}
+                     'last_updated': datetime.now(),
+                     'tenant': request.tenant
+                     }
                 )
                 template_string = """
                                 {% load tag_releases_summary from custom_tags %}
-                                {% tag_releases_summary %}
+                                {% tag_releases_summary tenant %}
                             """
                 return HttpResponse(Template(template_string).render(context))
         if report_subject == 'packages':
@@ -1810,7 +1812,7 @@ def ajax_run_pipeline_config(request):
             ajax_run_pipeline_config.message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
                 "&nbsp;<span class='text-success'>Success</span>. " + \
                 "See the <a href='/jobs/log/{}/detail'>Log</a> and History.".format(str(job_log_id))
-        except Exception as e:
+        except Exception as _:
             ajax_run_pipeline_config.failed_jobs_count += 1
             return HttpResponse("Something went wrong. See History.", status=500)
         finally:

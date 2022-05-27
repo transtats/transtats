@@ -1209,8 +1209,8 @@ class Upload(JobCommandBase):
                             trans_submit_resp[lang] = submit_resp
                         else:
                             raise Exception(
-                                "Submit failed for lang {}. {} response: {} ".format(
-                                    lang, platform_engine.title(), submit_resp)
+                                "Submit failed for lang {} of branch {}. {} response: {} ".format(
+                                    lang, repo_branch, platform_engine.title(), submit_resp)
                             )
 
         return {'submit_translations': trans_submit_resp}, {task_subject: task_log}
