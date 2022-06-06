@@ -3,7 +3,7 @@
 #
 # Run Command: cd transtats
 # Build Image: docker build -t transtats/transtats .
-# Run Container with env variable: docker run -d --name container -p 8080:8014 -e DATABASE_NAME=transtats -e \
+# Run Container with env variable: docker run -d --name container -p 8080:8080 -e DATABASE_NAME=transtats -e \
 #                                  DATABASE_USER=postgres -e DATABASE_PASSWD=postgres -e DATABASE_HOST=localhost transtats/transtats
 #
 # Requires libxcrypt-compat, f30 onwards
@@ -45,6 +45,6 @@ RUN pip3 install -r /workspace/requirements/dev.txt
 RUN mkdir /var/run/sshd
 RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
-EXPOSE 22 8014 8015
+EXPOSE 22 8080 8015
 
 CMD ["/usr/sbin/sshd", "-D"]

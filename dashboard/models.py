@@ -543,10 +543,14 @@ class PipelineConfig(ModelMixin, models.Model):
                                     verbose_name="CI Pipeline", null=True)
     pipeline_config_event = models.CharField(max_length=1000)
     pipeline_config_active = models.BooleanField(default=False)
-    pipeline_config_json_str = models.TextField(unique=True)
+    pipeline_config_json_str = models.TextField()
     pipeline_config_repo_branches = ArrayField(
         models.CharField(max_length=1000, blank=True), default=list,
         verbose_name="Repo Branches"
+    )
+    pipeline_config_target_lang = ArrayField(
+        models.CharField(max_length=1000, blank=True), default=list,
+        verbose_name="Repo Target Langs"
     )
     pipeline_config_created_on = models.DateTimeField(null=True)
     pipeline_config_updated_on = models.DateTimeField(null=True)
@@ -566,6 +570,10 @@ class PipelineConfig(ModelMixin, models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'cipipelineconfig'
+        constraints = [
+            models.UniqueConstraint(fields=['pipeline_config_json_str', 'pipeline_config_repo_branches'],
+                                    name='unique_pipeline_config')
+        ]
         verbose_name = "Pipeline Config"
 
 

@@ -520,6 +520,8 @@ class PipelineConfigManager(CIPipelineManager):
             pc_kwargs.update(dict(pipeline_config_active=True))
             pc_kwargs.update(dict(pipeline_config_json_str=params[2]))
             pc_kwargs.update(dict(pipeline_config_repo_branches=params[3]))
+            if target_langs and isinstance(target_langs, str):
+                pc_kwargs.update(dict(pipeline_config_target_lang=target_langs.split(',')))
             pc_kwargs.update(dict(pipeline_config_created_on=timezone.now()))
             pc_kwargs.update(dict(pipeline_config_created_by=params[4]))
             return self.save_pipeline_config(pc_kwargs)

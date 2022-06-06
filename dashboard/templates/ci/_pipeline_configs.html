@@ -36,11 +36,16 @@
             <h2 class="card-pf-title">
                 <span class="pficon pficon-blueprint"></span>
                 {% if pipeline_config.pipeline_config_repo_branches|length > 1 %}
-                    {{ pipeline_config.pipeline_config_repo_branches|join:", "|slice:":35" }} ..
                     <span class="text-info">{{ pipeline_config.pipeline_config_repo_branches|length }}</span>
                     <i class="text-muted">{{ pipeline_branch_display_name }}</i>
+                    {{ pipeline_config.pipeline_config_repo_branches|join:", "|slice:":30" }} ...
                 {% else %}
                     {{ pipeline_config.pipeline_config_repo_branches|join:"" }}
+                    <i class="text-muted" style="margin-right: 2%">{{ pipeline_branch_display_name }}</i>
+                {% endif %}
+                {% if pipeline_config.pipeline_config_target_lang %}
+                    <span class="text-info">{{ pipeline_config.pipeline_config_target_lang|length }}</span>
+                    <i class="text-muted">langs</i>
                 {% endif %}
             </h2>
         </div>

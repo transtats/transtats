@@ -232,7 +232,7 @@ class Download(JobCommandBase):
 
         srpm_downloaded_path = self._download_file(srpm_download_url)
         if srpm_downloaded_path == '404':
-            raise Exception('SRPM download failed. URL returns 404.')
+            raise Exception('SRPM download failed. URL returns 404 NOT FOUND error.')
         if srpm_downloaded_path:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
@@ -458,7 +458,10 @@ class Download(JobCommandBase):
                             t_lang, str(pull_resp)
                         )
                     ))
-                    raise Exception("Pull failed: {}".format(pull_resp))
+                    raise Exception(
+                        "Pull failed for lang {}. {} response: {}".format(
+                            t_lang, platform_engine.title(), pull_resp)
+                    )
 
         return {'download_dir': download_folder, 'trans_files': translated_files,
                 'target_langs': target_langs}, {task_subject: task_log}
@@ -598,11 +601,11 @@ class Generate(JobCommandBase):
                                     kwargs.get('domain', input['package'])
                     ))
                 else:
+                    error_response = 'POT file generation failed with command: %s' % command
                     task_log.update(self._log_task(
-                        input['log_f'], task_subject,
-                        'POT file generation failed with command: %s' % command
-                    ))
-                    raise Exception('POT file generation failed.')
+                        input['log_f'], task_subject, error_response)
+                    )
+                    raise Exception(error_response)
         else:
             task_log.update(self._log_task(
                 input['log_f'], task_subject, 'Command to generate POT missing.'
@@ -996,7 +999,7 @@ class Upload(JobCommandBase):
 
         if target_langs and input.get('ci_pipeline_uuid') and input.get('ci_target_langs'):
             if not set(target_langs).issubset(set(input['ci_target_langs'])):
-                raise Exception("Provided target langs do NOT belong to CI Pipeline.")
+                raise Exception("Provided target langs do NOT belong to the CI Pipeline.")
 
         # filter files to be uploaded
         collected_files = self._collect_files(
@@ -1026,7 +1029,7 @@ class Upload(JobCommandBase):
 
                 if kwargs.get('update') and input.get('ci_lang_job_map') \
                         and lang not in set([i[0] for i in ci_lang_job_map.values()]):
-                    raise Exception("Job ID NOT found for lang: {}.".format(lang))
+                    raise Exception("Job ID NOT found for lang: {}. Please refresh the pipeline.".format(lang))
 
                 api_kwargs['headers'] = dict()
                 api_kwargs['auth_user'] = platform_auth_user
@@ -1106,7 +1109,11 @@ class Upload(JobCommandBase):
                     if upload_status:
                         job_post_resp[lang] = upload_resp
                     else:
-                        raise Exception("Push failed: {}".format(upload_resp))
+                        raise Exception(
+                            "Push failed for lang {}. {} response: {}".format(
+                                lang, platform_engine.title(), upload_resp
+                            )
+                        )
 
         return {'push_files_resp': {platform_project: job_post_resp}}, {task_subject: task_log}
 
@@ -1201,7 +1208,10 @@ class Upload(JobCommandBase):
                         if submit_status:
                             trans_submit_resp[lang] = submit_resp
                         else:
-                            raise Exception("Submit failed: {}".format(submit_resp))
+                            raise Exception(
+                                "Submit failed for lang {} of branch {}. {} response: {} ".format(
+                                    lang, repo_branch, platform_engine.title(), submit_resp)
+                            )
 
         return {'submit_translations': trans_submit_resp}, {task_subject: task_log}
 
