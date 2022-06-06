@@ -1,5 +1,7 @@
 
-##### Fri May 27 2022 Sundeep Anand <suanand@redhat.com>
+##### Mon Jun 6 2022 Sundeep Anand <suanand@redhat.com> - release_0.8.6
+* Create default Pipeline Configurations
+* Redesign Package specific Add CI Pipeline form
 * Add target_langs and UniqueConstraint to pipeline_config model
 * Better pipeline history UI: group_by date order_by time dsc
 * Better error messages for exceptions in jobs

@@ -138,10 +138,11 @@ class CIPipelineManager(BaseManager):
             self.refresh_ci_pipeline(pipeline_id=pipeline.ci_pipeline_id,
                                      toggle_visibility=False)
 
-    def save_ci_pipeline(self, ci_pipeline):
+    def save_ci_pipeline(self, ci_pipeline, get_obj=None):
         """
         Save CI Pipeline in db
         :param ci_pipeline: dict
+        :param get_obj: boolean
         :return: boolean
         """
         if not ci_pipeline:
@@ -154,9 +155,11 @@ class CIPipelineManager(BaseManager):
 
         try:
             ci_pipeline['ci_pipeline_visibility'] = True
-            CIPipeline.objects.update_or_create(
+            db_response = CIPipeline.objects.update_or_create(
                 **match_params, defaults=ci_pipeline
             )
+            if get_obj:
+                return db_response[0], "Created" if db_response[1] else "Updated"
         except Exception as e:
             self.app_logger(
                 'ERROR', "CI Pipeline could not be saved, details: " + str(e)
@@ -342,6 +345,10 @@ class PipelineConfigManager(CIPipelineManager):
             repo_type=pipeline.ci_package.platform_slug.engine_name
         )
 
+        if pipeline.ci_pipeline_default_branch and \
+                pipeline.ci_pipeline_default_branch in repo_branches:
+            repo_branches = [pipeline.ci_pipeline_default_branch]
+
         def _format_val(value_str):
             return "<strong>{}</strong>".format(str(value_str))
 
@@ -456,7 +463,7 @@ class PipelineConfigManager(CIPipelineManager):
         Formats Job Template for the Pipeline Configurations
         :param pipeline: Pipeline Object
         :param action: str
-        :param output_format: str
+        :param output_format: str (html_form or values)
         :param tenant: str or None
         :return: dict
         """
@@ -524,6 +531,7 @@ class PipelineConfigManager(CIPipelineManager):
                 pc_kwargs.update(dict(pipeline_config_target_lang=target_langs.split(',')))
             pc_kwargs.update(dict(pipeline_config_created_on=timezone.now()))
             pc_kwargs.update(dict(pipeline_config_created_by=params[4]))
+            pc_kwargs.update(dict(pipeline_config_is_default=kwargs.get("is_default", False)))
             return self.save_pipeline_config(pc_kwargs)
 
         if not self.__true_false_type(copy_config):

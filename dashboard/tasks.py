@@ -27,7 +27,9 @@ from celery.utils.log import get_task_logger
 
 from django.utils import timezone
 
-from dashboard.constants import TS_JOB_TYPES, BRANCH_MAPPING_KEYS, WEBLATE_SLUGS
+from dashboard.constants import (
+    TS_JOB_TYPES, BRANCH_MAPPING_KEYS, WEBLATE_SLUGS, SYS_EMAIL_ADDR
+)
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers.jobs import JobTemplateManager, YMLBasedJobManager
 from dashboard.managers.graphs import (
@@ -135,7 +137,7 @@ def task_sync_packages_with_build_system():
             job_manager = YMLBasedJobManager(
                 **job_data, **{'params': [p.upper() for p in t_params],
                                'type': TS_JOB_TYPES[3]},
-                **{'active_user_email': 'system@transtats.org'},
+                **{'active_user_email': SYS_EMAIL_ADDR},
                 **{'sandbox_path': temp_path},
                 **{'job_log_file': temp_path + '.log'}
             )

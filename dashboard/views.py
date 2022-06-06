@@ -41,12 +41,13 @@ from django.urls import reverse, reverse_lazy
 # dashboard
 
 from dashboard.constants import (
-    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, WEBLATE_SLUGS,
-    TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS, JOB_MULTIPLE_BRANCHES_VAR
+    TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
+    WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS,
+    JOB_MULTIPLE_BRANCHES_VAR, TP_BRANCH_CALLING_NAME, SYS_EMAIL_ADDR
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
-    NewLanguageForm, UpdateLanguageForm, LanguageSetForm, NewCIPipelineForm,
+    NewLanguageForm, UpdateLanguageForm, LanguageSetForm, PackagePipelineForm,
     NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm,
     CreateCIPipelineForm
 )
@@ -969,19 +970,39 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
 
     def get_form(self, form_class=None, data=None):
         kwargs = {}
+        package_model_object = self.packages_manager.get_packages(
+            [self.kwargs['slug']])
+        if not package_model_object:
+            return kwargs
+        package = package_model_object.get()
         ci_platforms = self.inventory_manager.get_translation_platforms(ci=True)
         ci_platform_choices = tuple([(platform.platform_id, platform.__str__)
                                      for platform in ci_platforms])
         kwargs.update(dict(ci_platform_choices=ci_platform_choices))
         pkg_releases = self.packages_manager.get_package_releases(
-            package_name=self.kwargs['slug']
+            package_name=package.package_name
         )
         pkg_release_choices = tuple([(release.release_id, release.__str__)
                                      for release in pkg_releases])
+        pkg_platform_branches = self.packages_manager.git_branches(
+            package.package_name, package.platform_slug.engine_name
+        )
+        pkg_platform_branch_choices = \
+            tuple([(branch, branch) for branch in pkg_platform_branches])
+        kwargs.update(dict(pkg_platform_branch_choices=pkg_platform_branch_choices))
+        pkg_branch_display_name = dict(TP_BRANCH_CALLING_NAME).get(
+            package.platform_slug.engine_name, 'Branch')
+        if pkg_branch_display_name.endswith("s"):
+            pkg_branch_display_name = pkg_branch_display_name.rstrip("s")
+        elif pkg_branch_display_name.endswith("es"):
+            pkg_branch_display_name = pkg_branch_display_name.rstrip("es")
+        kwargs.update(dict(pkg_branch_display_name=pkg_branch_display_name))
         kwargs.update(dict(pkg_release_choices=pkg_release_choices))
+        kwargs.update(dict(package_name=package.package_name))
+        kwargs.update(dict(package_platform=package.platform_slug.engine_name))
         if data:
             kwargs.update({'data': data})
-        return NewCIPipelineForm(**kwargs)
+        return PackagePipelineForm(**kwargs)
 
     def get_success_url(self):
         return reverse('package-add-ci-pipeline', args=[self.kwargs.get('slug')])
@@ -1014,14 +1035,56 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
             post_params['ci_project_details_json_str'] = json.dumps(p_details)
             if p_details.get('project_jobs'):
                 post_params['ci_platform_jobs_json_str'] = json.dumps(p_details['project_jobs'])
-            if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
-                messages.add_message(request, messages.ERROR, (
-                    'Alas! Something unexpected happened. Please try adding pipeline again!'
-                ))
+
+            if not post_params["ci_pipeline_auto_create_config"]:
+                if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
+                    messages.add_message(request, messages.ERROR, (
+                        'Alas! Something unexpected happened. Please try adding pipeline again!'
+                    ))
+                else:
+                    messages.add_message(request, messages.SUCCESS, (
+                        'Great! CI Pipeline added successfully.'
+                    ))
             else:
-                messages.add_message(request, messages.SUCCESS, (
-                    'Great! CI Pipeline added successfully.'
-                ))
+                new_pipeline_obj, _ = \
+                    self.ci_pipeline_manager.save_ci_pipeline(post_params, get_obj=True)
+                if not new_pipeline_obj:
+                    messages.add_message(request, messages.ERROR, (
+                        'Alas! Something unexpected happened. Please try adding pipeline again!'
+                    ))
+                else:
+                    for event in PIPELINE_CONFIG_EVENTS:
+                        pipeline_config_args = []
+                        pipeline_config_kwargs = {}
+                        pipeline_config_args.extend([
+                            new_pipeline_obj.ci_package.platform_slug.engine_name,
+                            post_params["ci_pipeline_default_branch"],
+                            [post_params["ci_pipeline_default_branch"]],
+                            ",".join(new_pipeline_obj.ci_project_details_json.get("targetLangs", [])),
+                            SYS_EMAIL_ADDR
+                        ])
+                        pipeline_config_kwargs.update(dict(chkCopyConfig='true'))
+                        pipeline_config_kwargs.update(dict(ciPipeline=str(new_pipeline_obj.ci_pipeline_uuid)))
+                        pipeline_config_kwargs.update(dict(pipelineAction=event))
+                        pipeline_config_kwargs.update(dict(package=new_pipeline_obj.ci_package.package_name))
+                        pipeline_config_kwargs.update(dict(package=new_pipeline_obj.ci_package.package_name))
+                        pipeline_config_kwargs.update(dict(is_default=True))
+                        pipeline_config_kwargs.update(dict(uploadImportSettings='project'))
+                        prepend_branch = 'true' if request.tenant == RELSTREAM_SLUGS[3] else 'false'
+                        pipeline_config_kwargs.update(dict(downloadPrependBranch=prepend_branch))
+                        pipeline_config_kwargs.update(dict(uploadPrependBranch=prepend_branch))
+                        pipeline_config_kwargs.update(dict(uploadUpdate='false'))
+
+                        if not self.pipeline_config_manager.process_save_pipeline_config(
+                                *pipeline_config_args, **pipeline_config_kwargs
+                        ):
+                            messages.add_message(request, messages.WARNING, (
+                                'CI Pipeline added successfully. However, Saving default Configurations failed.'
+                            ))
+                        else:
+                            messages.add_message(request, messages.SUCCESS, (
+                                'Great! CI Pipeline and default Configurations are added successfully.'
+                            ))
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, context=context_data)
 

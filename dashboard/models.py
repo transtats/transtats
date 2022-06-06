@@ -436,6 +436,12 @@ class CIPipeline(ModelMixin, models.Model):
     ci_pipeline_visibility = models.BooleanField(
         default=True, verbose_name='CI Pipeline Visibility'
     )
+    ci_pipeline_default_branch = models.CharField(
+        max_length=100, default='', blank=True, verbose_name="Default Branch"
+    )
+    ci_pipeline_auto_create_config = models.BooleanField(
+        default=True, verbose_name='Create default configurations', null=True, blank=True
+    )
 
     @property
     def ci_project_details_json(self):
@@ -556,6 +562,7 @@ class PipelineConfig(ModelMixin, models.Model):
     pipeline_config_updated_on = models.DateTimeField(null=True)
     pipeline_config_last_accessed = models.DateTimeField(null=True)
     pipeline_config_created_by = models.EmailField(null=True)
+    pipeline_config_is_default = models.BooleanField(default=False)
 
     @property
     def pipeline_config_json(self):
