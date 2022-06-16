@@ -69,7 +69,7 @@
                             <li><a id="idRemovePipeline"
                                    onClick='javascript:removePipeline({{ pipeline.ci_pipeline_id }})'>
                               <span class="pficon pficon-error-circle-o" aria-hidden="true"></span>
-                              <span class="text-danger">Remove</span></a></li>
+                              <span class="text-danger">Clear & Hide</span></a></li>
                           </ul>
                       </div>
                     {% endif %}
@@ -102,10 +102,12 @@
                           <span class="pficon pficon-image"></span>
                           {{ pipeline.ci_release.release_name }}
                         </div>
+                        {% if pipeline.ci_project_details_json|get_item:"status" %}
                         <div class="list-view-pf-additional-info-item">
-                          <span class="fa fa-refresh"></span>
-                          Sync Status&nbsp;<span class="pficon pficon-off"></span>
+                          <span class="fa pficon-in-progress"></span>
+                          {{ pipeline.ci_project_details_json|get_item:"status" }}
                         </div>
+                        {% endif %}
                       </div>
                     </div>
                   </div>
@@ -180,8 +182,8 @@
                             <dd>{{ pipeline.ci_project_details_json|get_item:"status" }}</dd>
                           </div>
                           <div class="col-md-5">
-                            <span class="h5">Manage <a href="{% url 'pipeline-configuration' pipeline.ci_pipeline_uuid %}">configurations</a> to reuse and automate.</span>
-                            <hr/><div class="h5">Run the jobs manually with more control.</div>
+                            <span class="h5">Manage <a href="{% url 'pipeline-configuration' pipeline.ci_pipeline_uuid %}">configurations</a> to run jobs seamlessly.</span>
+                            <hr/><div class="h5"><span class="text-info">Or,</span> Run the jobs manually with more control.</div>
                             <dt>Push Job Template</dt>
                             <dd><a href="{% url 'jobs-yml-based' %}?template={{ pipeline.ci_push_job_template.job_template_type }}&package={{ pipeline.ci_package.package_name }}">
                               {{ pipeline.ci_push_job_template.job_template_name }}</a></dd>
@@ -193,7 +195,7 @@
                       </dl>
                     </div>
                     <div class="col-md-3">
-                      {% tag_pipeline_branches pipeline.ci_package.package_name pipeline.ci_package.platform_slug %}
+                      {% tag_pipeline_branches pipeline %}
                     </div>
                     <div class="col-md-9">
                       {% if pipeline.ci_platform_jobs_json %}

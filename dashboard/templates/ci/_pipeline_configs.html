@@ -1,11 +1,17 @@
-
+<h3>Saved Configurations <span class="pull-right badge">{{ pipeline_configs|length }}</span></h3><hr/>
 {% for pipeline_config in pipeline_configs %}
     {% ifchanged %}<div class="h4"><b>{{ pipeline_config.pipeline_config_event }}</b></div>{% endifchanged %}
     <div class="card-pf card-pf-view card-pf-view-xs {% if pipeline_config.pipeline_config_active %}left-border-green{% endif %}" style="margin-left: 2%;">
       <div class="card-pf-body">
         <div class="card-pf-heading-kebab">
             <div class="dropdown pull-right dropdown-kebab-pf">
-              <a href="#" data-toggle="modal" data-target="#modal-show-YAML{{ forloop.counter }}" class="btn btn-sx">Show YAML</a>
+              <a href="#" data-toggle="modal" data-target="#modal-show-YAML{{ forloop.counter }}" class="btn btn-sx">
+                  {% if user.is_authenticated and pipeline_config.pipeline_config_active %}
+                    View and Run Job
+                  {% else %}
+                    View Job
+                  {% endif %}
+              </a>
               {% if user.is_authenticated %}&nbsp;
               <button class="btn btn-link dropdown-toggle" type="button" id="dropupKebabRight3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                 <span class="fa fa-ellipsis-v"></span>
@@ -30,11 +36,16 @@
             <h2 class="card-pf-title">
                 <span class="pficon pficon-blueprint"></span>
                 {% if pipeline_config.pipeline_config_repo_branches|length > 1 %}
-                    {{ pipeline_config.pipeline_config_repo_branches|join:", "|slice:":60" }} ..
                     <span class="text-info">{{ pipeline_config.pipeline_config_repo_branches|length }}</span>
-                    <i class="text-muted">branches</i>
+                    <i class="text-muted">{{ pipeline_branch_display_name }}</i>
+                    {{ pipeline_config.pipeline_config_repo_branches|join:", "|slice:":30" }} ...
                 {% else %}
-                    {{ pipeline_config.pipeline_config_repo_branches|join:"" }} <i class="text-muted">branch</i>.
+                    {{ pipeline_config.pipeline_config_repo_branches|join:"" }}
+                    <i class="text-muted" style="margin-right: 2%">{{ pipeline_branch_display_name }}</i>
+                {% endif %}
+                {% if pipeline_config.pipeline_config_target_lang %}
+                    <span class="text-info">{{ pipeline_config.pipeline_config_target_lang|length }}</span>
+                    <i class="text-muted">langs</i>
                 {% endif %}
             </h2>
         </div>
@@ -56,9 +67,9 @@
           <div class="modal-body">
               <pre>{{ pipeline_config.pipeline_config_yaml }}</pre>
               {% if pipeline_config.pipeline_config_repo_branches|length > 1 %}
-                <div style="max-height: 60px; overflow: auto">
+                <div style="max-height: 100px; overflow: auto">
                 {% for branch in pipeline_config.pipeline_config_repo_branches %}
-                    <code>{{ branch }}</code>
+                    {{ forloop.counter }}.<span style="margin: 1%"><code>{{ branch }}</code></span>
                 {% endfor %}
                 </div>
               {% endif %}

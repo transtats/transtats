@@ -42,11 +42,12 @@ from django.urls import reverse, reverse_lazy
 
 from dashboard.constants import (
     TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
-    WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS
+    WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS,
+    JOB_MULTIPLE_BRANCHES_VAR, TP_BRANCH_CALLING_NAME, SYS_EMAIL_ADDR
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
-    NewLanguageForm, UpdateLanguageForm, LanguageSetForm, NewCIPipelineForm,
+    NewLanguageForm, UpdateLanguageForm, LanguageSetForm, PackagePipelineForm,
     NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm,
     CreateCIPipelineForm
 )
@@ -360,7 +361,7 @@ class StreamBranchesSettingsView(ManagersMixin, TemplateView):
             try:
                 release_stream = self.inventory_manager.get_release_streams(stream_slug=relstream_slug).get()
                 release_branches = self.release_branch_manager.get_release_branches(relstream=relstream_slug)
-            except:
+            except Exception:
                 raise Http404("Product does not exist.")
             else:
                 context['relstream'] = release_stream
@@ -379,7 +380,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
             release_stream = self.inventory_manager.get_release_streams(
                 stream_slug=self.kwargs.get('stream_slug'), only_active=True
             ).get()
-        except:
+        except Exception:
             raise Http404("Product does not exist.")
         else:
             return release_stream
@@ -519,7 +520,7 @@ class NewPackageView(ManagersMixin, FormView):
                     target=self.packages_manager.refresh_package,
                     args=[post_params['package_name']]
                 )
-                t.setDaemon(True)
+                t.daemon = True
                 t.start()
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, {'form': form, 'POST': 'invalid'})
@@ -969,19 +970,39 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
 
     def get_form(self, form_class=None, data=None):
         kwargs = {}
+        package_model_object = self.packages_manager.get_packages(
+            [self.kwargs['slug']])
+        if not package_model_object:
+            return kwargs
+        package = package_model_object.get()
         ci_platforms = self.inventory_manager.get_translation_platforms(ci=True)
         ci_platform_choices = tuple([(platform.platform_id, platform.__str__)
                                      for platform in ci_platforms])
         kwargs.update(dict(ci_platform_choices=ci_platform_choices))
         pkg_releases = self.packages_manager.get_package_releases(
-            package_name=self.kwargs['slug']
+            package_name=package.package_name
         )
         pkg_release_choices = tuple([(release.release_id, release.__str__)
                                      for release in pkg_releases])
+        pkg_platform_branches = self.packages_manager.git_branches(
+            package.package_name, package.platform_slug.engine_name
+        )
+        pkg_platform_branch_choices = \
+            tuple([(branch, branch) for branch in pkg_platform_branches])
+        kwargs.update(dict(pkg_platform_branch_choices=pkg_platform_branch_choices))
+        pkg_branch_display_name = dict(TP_BRANCH_CALLING_NAME).get(
+            package.platform_slug.engine_name, 'Branch')
+        if pkg_branch_display_name.endswith("s"):
+            pkg_branch_display_name = pkg_branch_display_name.rstrip("s")
+        elif pkg_branch_display_name.endswith("es"):
+            pkg_branch_display_name = pkg_branch_display_name.rstrip("es")
+        kwargs.update(dict(pkg_branch_display_name=pkg_branch_display_name))
         kwargs.update(dict(pkg_release_choices=pkg_release_choices))
+        kwargs.update(dict(package_name=package.package_name))
+        kwargs.update(dict(package_platform=package.platform_slug.engine_name))
         if data:
             kwargs.update({'data': data})
-        return NewCIPipelineForm(**kwargs)
+        return PackagePipelineForm(**kwargs)
 
     def get_success_url(self):
         return reverse('package-add-ci-pipeline', args=[self.kwargs.get('slug')])
@@ -1014,14 +1035,56 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
             post_params['ci_project_details_json_str'] = json.dumps(p_details)
             if p_details.get('project_jobs'):
                 post_params['ci_platform_jobs_json_str'] = json.dumps(p_details['project_jobs'])
-            if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
-                messages.add_message(request, messages.ERROR, (
-                    'Alas! Something unexpected happened. Please try adding pipeline again!'
-                ))
+
+            if not post_params["ci_pipeline_auto_create_config"]:
+                if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
+                    messages.add_message(request, messages.ERROR, (
+                        'Alas! Something unexpected happened. Please try adding pipeline again!'
+                    ))
+                else:
+                    messages.add_message(request, messages.SUCCESS, (
+                        'Great! CI Pipeline added successfully.'
+                    ))
             else:
-                messages.add_message(request, messages.SUCCESS, (
-                    'Great! CI Pipeline added successfully.'
-                ))
+                new_pipeline_obj, _ = \
+                    self.ci_pipeline_manager.save_ci_pipeline(post_params, get_obj=True)
+                if not new_pipeline_obj:
+                    messages.add_message(request, messages.ERROR, (
+                        'Alas! Something unexpected happened. Please try adding pipeline again!'
+                    ))
+                else:
+                    for event in PIPELINE_CONFIG_EVENTS:
+                        pipeline_config_args = []
+                        pipeline_config_kwargs = {}
+                        pipeline_config_args.extend([
+                            new_pipeline_obj.ci_package.platform_slug.engine_name,
+                            post_params["ci_pipeline_default_branch"],
+                            [post_params["ci_pipeline_default_branch"]],
+                            ",".join(new_pipeline_obj.ci_project_details_json.get("targetLangs", [])),
+                            SYS_EMAIL_ADDR
+                        ])
+                        pipeline_config_kwargs.update(dict(chkCopyConfig='true'))
+                        pipeline_config_kwargs.update(dict(ciPipeline=str(new_pipeline_obj.ci_pipeline_uuid)))
+                        pipeline_config_kwargs.update(dict(pipelineAction=event))
+                        pipeline_config_kwargs.update(dict(package=new_pipeline_obj.ci_package.package_name))
+                        pipeline_config_kwargs.update(dict(package=new_pipeline_obj.ci_package.package_name))
+                        pipeline_config_kwargs.update(dict(is_default=True))
+                        pipeline_config_kwargs.update(dict(uploadImportSettings='project'))
+                        prepend_branch = 'true' if request.tenant == RELSTREAM_SLUGS[3] else 'false'
+                        pipeline_config_kwargs.update(dict(downloadPrependBranch=prepend_branch))
+                        pipeline_config_kwargs.update(dict(uploadPrependBranch=prepend_branch))
+                        pipeline_config_kwargs.update(dict(uploadUpdate='false'))
+
+                        if not self.pipeline_config_manager.process_save_pipeline_config(
+                                *pipeline_config_args, **pipeline_config_kwargs
+                        ):
+                            messages.add_message(request, messages.WARNING, (
+                                'CI Pipeline added successfully. However, Saving default Configurations failed.'
+                            ))
+                        else:
+                            messages.add_message(request, messages.SUCCESS, (
+                                'Great! CI Pipeline and default Configurations are added successfully.'
+                            ))
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, context=context_data)
 
@@ -1075,7 +1138,9 @@ class PipelinesView(ManagersMixin, ListView):
         tenant_releases = \
             self.release_branch_manager.get_release_branches(relstream=self.request.tenant)
         active_pipelines = self.ci_pipeline_manager.get_ci_pipelines(releases=tenant_releases)
-        return active_pipelines.order_by('ci_package_id').order_by('ci_release_id')
+        return active_pipelines.filter(
+            ci_release__track_trans_flag=True
+        ).order_by('ci_package_id').order_by('ci_release__release_name')
 
 
 class ReleasePipelinesView(ManagersMixin, ListView):
@@ -1107,6 +1172,15 @@ class AddCIPipeline(ManagersMixin, FormView):
         return super(AddCIPipeline, self).get(request, *args, **kwargs)
 
     def get_form(self, form_class=None, data=None):
+
+        def _sort_choices_by_name(choices):
+            """
+            sort choices by name of a form field
+            :param choices: list of tuples
+            :return: sorted list of tuples
+            """
+            return sorted(choices, key=lambda choice: choice[1])
+
         kwargs = {}
         ci_platforms = self.inventory_manager.get_translation_platforms(ci=True)
         ci_platform_choices = tuple([(platform.platform_id, platform.__str__)
@@ -1116,7 +1190,7 @@ class AddCIPipeline(ManagersMixin, FormView):
         releases = self.release_branch_manager.get_release_branches()
         package_choices = tuple([(package.package_id, package.package_name) for package in packages])
         release_choices = tuple([(release.release_id, release.__str__) for release in releases])
-        kwargs.update(dict(package_choices=package_choices))
+        kwargs.update(dict(package_choices=_sort_choices_by_name(package_choices)))
         kwargs.update(dict(release_choices=release_choices))
         if data:
             kwargs.update({'data': data})
@@ -1478,11 +1552,13 @@ def generate_reports(request):
                 context = Context(
                     {'META': request.META,
                      'relsummary': releases_summary,
-                     'last_updated': datetime.now()}
+                     'last_updated': datetime.now(),
+                     'tenant': request.tenant
+                     }
                 )
                 template_string = """
                                 {% load tag_releases_summary from custom_tags %}
-                                {% tag_releases_summary %}
+                                {% tag_releases_summary tenant %}
                             """
                 return HttpResponse(Template(template_string).render(context))
         if report_subject == 'packages':
@@ -1742,21 +1818,26 @@ def ajax_save_pipeline_config(request):
         return HttpResponse("Not an Ajax Call", status=400)
 
     post_params = request.POST.dict().copy()
-    pipeline_package = post_params.get('package')
     pipeline_repo_type = post_params.get('cloneType') or \
         post_params.get('downloadType') or \
         post_params.get('uploadType')
     pipeline_repo_branch = post_params.get('cloneBranch') or \
         post_params.get('downloadBranch') or \
         post_params.get('uploadBranch')
+    if not pipeline_repo_branch:
+        return HttpResponse("No branch selected.", status=500)
     pipeline_target_langs = post_params.get('downloadTargetLangs') or \
         post_params.get('uploadTargetLangs')
+    if not pipeline_target_langs:
+        return HttpResponse("No target_langs selected.", status=500)
     pipeline_config_manager = PipelineConfigManager()
-    pipeline_branches = [pipeline_repo_branch]
-    if pipeline_repo_branch == "%RESPECTIVE%":
-        pipeline_branches = pipeline_config_manager.package_manager.git_branches(
-            package_name=pipeline_package, repo_type=pipeline_repo_type
-        )
+    pipeline_branches = pipeline_repo_branch.split(",")
+    if "," in pipeline_repo_branch and len(pipeline_branches) > 1:
+        if post_params.get('downloadBranch'):
+            post_params['downloadBranch'] = JOB_MULTIPLE_BRANCHES_VAR
+        if post_params.get('uploadBranch'):
+            post_params['uploadBranch'] = JOB_MULTIPLE_BRANCHES_VAR
+        pipeline_repo_branch = JOB_MULTIPLE_BRANCHES_VAR
     u_email = request.user.email
     if pipeline_config_manager.process_save_pipeline_config(
             pipeline_repo_type, pipeline_repo_branch, pipeline_branches,
@@ -1772,35 +1853,12 @@ def ajax_run_pipeline_config(request):
     :param request: Request object
     :return: HttpResponse object
     """
-    if not request.is_ajax():
-        return HttpResponse("Not an Ajax Call", status=400)
+    ajax_run_pipeline_config.message = \
+        "&nbsp;<span class='text-warning'>See History.</span>"
+    ajax_run_pipeline_config.failed_jobs_count = 0
 
-    post_params = request.POST.dict().copy()
-    pipeline_config_manager = PipelineConfigManager()
-    pipeline_config = pipeline_config_manager.get_pipeline_configs(
-        pipeline_config_ids=[post_params.get('pipeline_config_id')]).first()
-
-    job_log_id, message = "", "Ok"
-
-    for branch in pipeline_config.pipeline_config_repo_branches:
-        respective_job_template = pipeline_config_manager.get_job_action_template(
-            pipeline_config.ci_pipeline, pipeline_config.pipeline_config_event)
-
-        t_params = respective_job_template.job_template_params
-        job_data = {param.upper(): '' for param in t_params}
-        if '%RESPECTIVE%' in pipeline_config.pipeline_config_yaml:
-            pipeline_config.pipeline_config_yaml.replace('%RESPECTIVE%', branch)
-        job_data.update(dict(YML_FILE=pipeline_config.pipeline_config_yaml))
-
-        job_type = pipeline_config.pipeline_config_json.get('job', {}).get('type')
-        job_pkg = pipeline_config.pipeline_config_json.get('job', {}).get('package')
-        temp_path = 'false/{0}/'.format("-".join([job_pkg, job_type, branch]))
-
-        if 'PACKAGE_NAME' in job_data:
-            job_data['PACKAGE_NAME'] = job_pkg
-        if 'REPO_BRANCH' in job_data:
-            job_data['REPO_BRANCH'] = branch
-
+    def _execute_job(*args):
+        job_data, t_params, job_type, temp_path = args
         job_manager = YMLBasedJobManager(
             **job_data, **{'params': [p.upper() for p in t_params],
                            'type': job_type},
@@ -1814,15 +1872,57 @@ def ajax_run_pipeline_config(request):
                 shutil.rmtree(temp_path)
             os.mkdir(temp_path)
             job_log_id = job_manager.execute_job()
-            message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
-                      "&nbsp;<span class='text-success'>Success</span>. " + \
-                      "See <a href='/jobs/log/{}/detail'>Log</a> and the History.".format(
-                          str(job_log_id))
-        except Exception as e:
+            ajax_run_pipeline_config.message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
+                "&nbsp;<span class='text-success'>Success</span>. " + \
+                "See the <a href='/jobs/log/{}/detail'>Log</a> and History.".format(str(job_log_id))
+        except Exception as _:
+            ajax_run_pipeline_config.failed_jobs_count += 1
             return HttpResponse("Something went wrong. See History.", status=500)
         finally:
             shutil.rmtree(temp_path)
-    return HttpResponse(message, status=201)
+
+    if not request.is_ajax():
+        return HttpResponse("Not an Ajax Call", status=400)
+
+    post_params = request.POST.dict().copy()
+    pipeline_config_manager = PipelineConfigManager()
+    pipeline_config = pipeline_config_manager.get_pipeline_configs(
+        pipeline_config_ids=[post_params.get('pipeline_config_id')]).first()
+
+    for branch in pipeline_config.pipeline_config_repo_branches:
+        respective_job_template = pipeline_config_manager.get_job_action_template(
+            pipeline_config.ci_pipeline, pipeline_config.pipeline_config_event)
+
+        t_params = respective_job_template.job_template_params
+        job_data = {param.upper(): '' for param in t_params}
+        job_data.update(dict(
+            YML_FILE=pipeline_config.pipeline_config_yaml.replace('%RESPECTIVE%', branch)
+        ))
+        job_type = pipeline_config.pipeline_config_json.get('job', {}).get('type')
+        job_pkg = pipeline_config.pipeline_config_json.get('job', {}).get('package')
+        temp_path = 'false/{0}/'.format("-".join([job_pkg, job_type, branch]))
+
+        if 'PACKAGE_NAME' in job_data:
+            job_data['PACKAGE_NAME'] = job_pkg
+        if 'REPO_BRANCH' in job_data:
+            job_data['REPO_BRANCH'] = branch
+
+        t = threading.Thread(
+            target=_execute_job,
+            args=[job_data, t_params, job_type, temp_path],
+        )
+        t.daemon = True
+        t.start()
+        t.join()
+
+    no_of_branches = len(pipeline_config.pipeline_config_repo_branches)
+    if no_of_branches > 1:
+        no_of_jobs_succeed = no_of_branches - ajax_run_pipeline_config.failed_jobs_count
+        ajax_run_pipeline_config.message = \
+            f"<span class='text-success'>{no_of_jobs_succeed}</span> jobs succeed out of {no_of_branches}. " \
+            f"<span class='text-danger'>{ajax_run_pipeline_config.failed_jobs_count}</span> failed. See History."
+
+    return HttpResponse(ajax_run_pipeline_config.message, status=200)
 
 
 def ajax_toggle_pipeline_config(request):

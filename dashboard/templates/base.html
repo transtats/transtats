@@ -180,7 +180,8 @@
         </li>
         {% else %}
         <li>
-          <a class="nav-item-iconic" href="{% if auth == 'fas' %}{% url 'oidc_authentication_init' %}{% else %}{% url 'admin:login' %}{% endif %}">
+          <a class="nav-item-iconic" href="{% if auth == 'fas' %}{% url 'oidc_authentication_init' %}
+          {% else %}{% url 'admin:login' %}?next={{request.path}}{% endif %}">
             <span title="Login" class="fa pficon-users"></span>
             Login
           </a>
@@ -199,24 +200,6 @@
         <a href="/">
           <span class="fa fa-dashboard" data-toggle="tooltip" title="Dashboard"></span>
           <span class="list-group-item-value">Dashboard</span>
-        </a>
-      </li>
-      <li class="list-group-item" id="li-languages">
-        <a href="{% url 'settings-languages' %}">
-          <span class="fa fa-language" data-toggle="tooltip" title="Languages"></span>
-          <span class="list-group-item-value">Languages</span>
-        </a>
-      </li>
-      <li class="list-group-item" id="li-packages">
-        <a href="{% url 'settings-packages' %}">
-          <span class="pficon pficon-bundle" data-toggle="tooltip" title="Packages"></span>
-          <span class="list-group-item-value">Packages</span>
-        </a>
-      </li>
-      <li class="list-group-item" id="li-translation-platforms">
-        <a href="{% url 'settings-trans-platforms' %}">
-          <span class="fa fa-server" data-toggle="tooltip" title="Translation Platforms"></span>
-          <span class="list-group-item-value">Platforms</span>
         </a>
       </li>
       <li class="list-group-item secondary-nav-item-pf" id="li-jobs" data-target="div-jobs-secondary-nav">
@@ -262,10 +245,28 @@
           {% endif %}
         </div>
       </li>
+      <li class="list-group-item" id="li-languages">
+        <a href="{% url 'settings-languages' %}">
+          <span class="fa fa-language" data-toggle="tooltip" title="Languages"></span>
+          <span class="list-group-item-value">Languages</span>
+        </a>
+      </li>
+      <li class="list-group-item" id="li-packages">
+        <a href="{% url 'settings-packages' %}">
+          <span class="pficon pficon-bundle" data-toggle="tooltip" title="Packages"></span>
+          <span class="list-group-item-value">Packages</span>
+        </a>
+      </li>
       <li class="list-group-item" id="li-pipelines">
         <a href="{% url 'pipelines' %}">
           <span class="pficon pficon-automation" data-toggle="tooltip" title="Pipelines"></span>
           <span class="list-group-item-value">Pipelines</span>
+        </a>
+      </li>
+      <li class="list-group-item" id="li-translation-platforms">
+        <a href="{% url 'settings-trans-platforms' %}">
+          <span class="fa fa-server" data-toggle="tooltip" title="Translation Platforms"></span>
+          <span class="list-group-item-value">Platforms</span>
         </a>
       </li>
       <li class="list-group-item" id="li-coverage">

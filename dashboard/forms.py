@@ -19,7 +19,7 @@ from crispy_forms.layout import (
     Submit, Layout, Field, HTML, Reset, Row
 )
 from crispy_forms.bootstrap import (
-    FormActions, InlineRadios, Div, InlineCheckboxes
+    FormActions, InlineRadios, Div, InlineCheckboxes, PrependedText
 )
 from slugify import slugify
 from urllib.parse import urlparse
@@ -41,7 +41,7 @@ from dashboard.constants import (
 __all__ = ['NewPackageForm', 'UpdatePackageForm', 'NewReleaseBranchForm',
            'NewGraphRuleForm', 'NewLanguageForm', 'UpdateLanguageForm',
            'LanguageSetForm', 'NewTransPlatformForm', 'UpdateTransPlatformForm',
-           'UpdateGraphRuleForm']
+           'UpdateGraphRuleForm', 'PackagePipelineForm', 'CreateCIPipelineForm']
 
 ENGINE_CHOICES = tuple([(engine, engine.upper())
                         for engine in TRANSPLATFORM_ENGINES])
@@ -83,7 +83,7 @@ class NewPackageForm(forms.Form):
         label='Upstream URL', help_text='Source repository location (Bitbucket, GitHub, Pagure etc).', required=True
     )
     upstream_l10n_url = forms.URLField(
-        label='Upstream Localization URL', help_text='Source repository location with translation resources.', required=False
+        label='Upstream Localization URL', help_text='Optional. Source repository location with translation resources.', required=False
     )
     transplatform_slug = forms.ChoiceField(
         label='Translation Platform',
@@ -219,17 +219,19 @@ class NewReleaseBranchForm(forms.Form):
                             ('notifications_flag', 'Notification'))
 
     release_name = forms.CharField(
-        label='Release Branch Name', help_text='Version of the release stream.', required=True,
+        label='Release Branch Name', help_text='Product release name with version.', required=True,
     )
     # Placeholder field for showing the slug on the form, this will be disabled
-    relbranch_slug = forms.CharField(label='Release Branch Slug')
+    relbranch_slug = forms.CharField(
+        label='Release Slug', help_text='Slug will be validated with the iCal.'
+    )
     current_phase = forms.ChoiceField(
         label='Current Phase', choices=phases_choices, required=True,
-        help_text='Phase in which this version/branch is running.'
+        help_text='Phase in which this release is running.'
     )
     lang_set = forms.ChoiceField(
         label="Language Set", choices=langset_choices, required=True,
-        help_text='Language set which should be associated with this branch.'
+        help_text='Language set which should be associated with this release.'
     )
     calendar_url = forms.URLField(
         label='iCal URL', help_text='Release schedule calendar URL. (Prefer translation specific)', required=True
@@ -240,7 +242,7 @@ class NewReleaseBranchForm(forms.Form):
     )
     enable_flags = TextArrayField(
         label='Enable flags', widget=forms.CheckboxSelectMultiple, choices=enable_flags_choices,
-        help_text="Selected tasks will be enabled for this release version/branch.",
+        help_text="Selected tasks will be enabled for this release.",
         required=False
     )
 
@@ -263,7 +265,7 @@ class NewReleaseBranchForm(forms.Form):
     helper.layout = Layout(
         Div(
             Field('release_name', css_class='form-control', onkeyup="showBranchNameSlug()"),
-            Field('release_slug', disabled=True),
+            Field('relbranch_slug', disabled=True),
             Field('current_phase', css_class='selectpicker'),
             Field('lang_set', css_class='selectpicker'),
             Field('calendar_url', css_class='form-control'),
@@ -656,9 +658,9 @@ class UpdateTransPlatformForm(forms.ModelForm):
             return self.cleaned_data.get('api_url')
 
 
-class NewCIPipelineForm(forms.ModelForm):
+class PackagePipelineForm(forms.ModelForm):
     """
-    Add new CI Pipeline form
+    Add Package CI Pipeline form
     """
 
     ci_project_web_url = forms.URLField(
@@ -666,12 +668,26 @@ class NewCIPipelineForm(forms.ModelForm):
         help_text='CI Pipeline will be associated with this project.'
     )
 
+    ci_pipeline_default_branch = forms.ChoiceField(required=False)
+    ci_pipeline_auto_create_config = forms.BooleanField(
+        required=False, initial=True, label='Auto Create Pipeline Configurations'
+    )
+
     def __init__(self, *args, **kwargs):
         ci_platform_choices = kwargs.pop('ci_platform_choices')
         pkg_release_choices = kwargs.pop('pkg_release_choices')
-        super(NewCIPipelineForm, self).__init__(*args, **kwargs)
+        pkg_platform_branch_choices = kwargs.pop('pkg_platform_branch_choices')
+        pkg_branch_display_name = kwargs.pop('pkg_branch_display_name')
+        pkg_name, pkg_platform = kwargs.pop('package_name'), kwargs.pop('package_platform')
+        super(PackagePipelineForm, self).__init__(*args, **kwargs)
         self.fields['ci_platform'].choices = ci_platform_choices
         self.fields['ci_release'].choices = pkg_release_choices
+        self.fields['ci_pipeline_default_branch'].choices = \
+            sorted(pkg_platform_branch_choices, key=lambda x: x[1])
+        self.fields['ci_pipeline_default_branch'].label = f'Pipeline {pkg_branch_display_name}'
+        self.fields['ci_pipeline_default_branch'].help_text = \
+            f'This will be the default {pkg_branch_display_name.lower()}. ' \
+            f'Resync {pkg_name} with {pkg_platform} for the latest.'
 
     class Meta:
         model = CIPipeline
@@ -687,7 +703,9 @@ class NewCIPipelineForm(forms.ModelForm):
             Field('ci_release', css_class='selectpicker'),
             Field('ci_push_job_template', css_class='selectpicker'),
             Field('ci_pull_job_template', css_class='selectpicker'),
+            Field('ci_pipeline_default_branch', css_class='selectpicker'),
             Field('ci_project_web_url', css_class='form-control'),
+            PrependedText('ci_pipeline_auto_create_config', ''),
             FormActions(
                 Submit('addCIPipeline', 'Add CI Pipeline'),
                 Reset('reset', 'Reset', css_class='btn-danger'),
@@ -698,7 +716,7 @@ class NewCIPipelineForm(forms.ModelForm):
 
     def clean_ci_project_web_url(self):
         """
-        Remove CI Project Web URL
+        Clean CI Project Web URL
         """
         if self.cleaned_data.get('ci_project_web_url'):
             parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])
@@ -751,7 +769,7 @@ class CreateCIPipelineForm(forms.ModelForm):
 
     def clean_ci_project_web_url(self):
         """
-        Remove CI Project Web URL
+        Clean CI Project Web URL
         """
         if self.cleaned_data.get('ci_project_web_url'):
             parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])

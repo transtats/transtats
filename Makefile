@@ -44,7 +44,7 @@ migrate:
 
 .PHONY: run
 run:
-	python3 manage.py runserver 0:8014
+	python3 manage.py runserver 0:8080
 
 .PHONY: shell
 shell:

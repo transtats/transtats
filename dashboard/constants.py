@@ -51,6 +51,7 @@ TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream', 'syncdow
 
 TS_CI_JOBS = (TS_JOB_TYPES[7], TS_JOB_TYPES[8], TS_JOB_TYPES[9])
 PIPELINE_CONFIG_EVENTS = ('Push Translations', 'Pull Translations', 'Update Source')
+JOB_MULTIPLE_BRANCHES_VAR = "%RESPECTIVE%"
 
 # Branch Mapping Keys
 BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys', 'buildsys_tag', 'upstream_release')
@@ -69,4 +70,7 @@ CALENDAR_VERBS = ('BEGIN:VEVENT', 'END:VEVENT', 'BEGIN:VTODO', 'END:VTODO')
 
 # Git Repositories
 GIT_PLATFORMS = ('GitHub', 'GitLab', 'Pagure')
-GIT_REPO_TYPE = ('default', 'localization', TRANSPLATFORM_ENGINES[3], TRANSPLATFORM_ENGINES[1])
+GIT_REPO_TYPE = ('default', 'localization', TRANSPLATFORM_ENGINES[3], TRANSPLATFORM_ENGINES[1],
+                 TRANSPLATFORM_ENGINES[2])
+
+SYS_EMAIL_ADDR = "system@transtats.org"

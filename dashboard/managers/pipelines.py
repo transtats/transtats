@@ -40,7 +40,7 @@ class CIPipelineManager(BaseManager):
     package_manager = PackagesManager()
 
     def get_ci_pipelines(self, fields=None, packages=None, platforms=None,
-                         releases=None, uuids=None, pipeline_ids=None):
+                         releases=None, uuids=None, pipeline_ids=None, track_trans=None):
         """
         fetch ci pipeline(s) from db
         :return: queryset
@@ -61,6 +61,8 @@ class CIPipelineManager(BaseManager):
             kwargs.update(dict(ci_pipeline_uuid__in=uuids))
         if pipeline_ids:
             kwargs.update(dict(ci_pipeline_id__in=pipeline_ids))
+        if track_trans:
+            kwargs.update(dict(ci_release__track_trans_flag=True))
 
         try:
             ci_pipelines = CIPipeline.objects.only(*required_params).filter(**kwargs).all()
@@ -136,10 +138,11 @@ class CIPipelineManager(BaseManager):
             self.refresh_ci_pipeline(pipeline_id=pipeline.ci_pipeline_id,
                                      toggle_visibility=False)
 
-    def save_ci_pipeline(self, ci_pipeline):
+    def save_ci_pipeline(self, ci_pipeline, get_obj=None):
         """
         Save CI Pipeline in db
         :param ci_pipeline: dict
+        :param get_obj: boolean
         :return: boolean
         """
         if not ci_pipeline:
@@ -152,9 +155,11 @@ class CIPipelineManager(BaseManager):
 
         try:
             ci_pipeline['ci_pipeline_visibility'] = True
-            CIPipeline.objects.update_or_create(
+            db_response = CIPipeline.objects.update_or_create(
                 **match_params, defaults=ci_pipeline
             )
+            if get_obj:
+                return db_response[0], "Created" if db_response[1] else "Updated"
         except Exception as e:
             self.app_logger(
                 'ERROR', "CI Pipeline could not be saved, details: " + str(e)
@@ -340,8 +345,9 @@ class PipelineConfigManager(CIPipelineManager):
             repo_type=pipeline.ci_package.platform_slug.engine_name
         )
 
-        if tenant == RELSTREAM_SLUGS[3]:
-            repo_branches.insert(0, "%RESPECTIVE%")
+        if pipeline.ci_pipeline_default_branch and \
+                pipeline.ci_pipeline_default_branch in repo_branches:
+            repo_branches = [pipeline.ci_pipeline_default_branch]
 
         def _format_val(value_str):
             return "<strong>{}</strong>".format(str(value_str))
@@ -364,6 +370,11 @@ class PipelineConfigManager(CIPipelineManager):
                                "{}</label>".format(field_id + str(counter), value, "checked", value)
             return html_select
 
+        def _choose_checkboxes_or_dropdown(field_id, values):
+            if tenant == RELSTREAM_SLUGS[3]:
+                return _format_checkboxes(field_id, values)
+            return _format_choices(field_id, values)
+
         prepend_branch_field = "<input id='prependBranch' name='prependBranch' type='checkbox'>"
         if tenant == RELSTREAM_SLUGS[3]:
             prepend_branch_field = "<input id='prependBranch' name='prependBranch' type='checkbox' checked>"
@@ -384,13 +395,13 @@ class PipelineConfigManager(CIPipelineManager):
             "download.target_langs": _format_checkboxes(
                 'downloadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
             "download.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
-            "download.branch": _format_choices("downloadRepoBranch", repo_branches),
+            "download.branch": _choose_checkboxes_or_dropdown("downloadRepoBranch", repo_branches),
             "download.workflow_step": _format_choices(
                 "workflowStep", self.get_ci_platform_workflow_steps(pipeline.ci_pipeline_uuid)
             ),
             "download.prepend_branch": prepend_branch_field,
             "upload.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
-            "upload.branch": _format_choices("uploadRepoBranch", repo_branches),
+            "upload.branch": _choose_checkboxes_or_dropdown("uploadRepoBranch", repo_branches),
             "upload.target_langs": _format_checkboxes(
                 'uploadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
             "upload.import_settings": "<input id='importSettings' type='text' value='project'>",
@@ -452,7 +463,7 @@ class PipelineConfigManager(CIPipelineManager):
         Formats Job Template for the Pipeline Configurations
         :param pipeline: Pipeline Object
         :param action: str
-        :param output_format: str
+        :param output_format: str (html_form or values)
         :param tenant: str or None
         :return: dict
         """
@@ -516,8 +527,11 @@ class PipelineConfigManager(CIPipelineManager):
             pc_kwargs.update(dict(pipeline_config_active=True))
             pc_kwargs.update(dict(pipeline_config_json_str=params[2]))
             pc_kwargs.update(dict(pipeline_config_repo_branches=params[3]))
+            if target_langs and isinstance(target_langs, str):
+                pc_kwargs.update(dict(pipeline_config_target_lang=target_langs.split(',')))
             pc_kwargs.update(dict(pipeline_config_created_on=timezone.now()))
             pc_kwargs.update(dict(pipeline_config_created_by=params[4]))
+            pc_kwargs.update(dict(pipeline_config_is_default=kwargs.get("is_default", False)))
             return self.save_pipeline_config(pc_kwargs)
 
         if not self.__true_false_type(copy_config):

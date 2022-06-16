@@ -33,7 +33,7 @@ from django.utils import timezone
 
 # dashboard
 from dashboard.constants import (
-    TS_JOB_TYPES, JOB_EXEC_TYPES, GIT_REPO_TYPE
+    TS_JOB_TYPES, JOB_EXEC_TYPES, GIT_REPO_TYPE, SYS_EMAIL_ADDR
 )
 from dashboard.jobs_framework.action_mapper import ActionMapper
 from dashboard.jobs_framework.ds import TaskList
@@ -230,84 +230,84 @@ class JobsLogManager(BaseManager):
 
         if not fields_to_analyse and not len(fields_to_analyse) > 0:
             return
-        else:
-            try:
-                analysed_data = {}
-                total_no_of_messages = []
 
-                for field in fields_to_analyse:
-                    if field == analysable_fields[0]:
-                        build_details = list(job_data.get(analysable_fields[0], {}).values())
-                        if build_details and len(build_details) > 0:
-                            build_details = load(build_details[0], Loader=FullLoader)
-                        if isinstance(build_details, dict):
-                            analysed_data.update({
-                                'meta_data': {
-                                    'package': build_details.get('package_name', ''),
-                                    'nvr': build_details.get('nvr', ''),
-                                    'built_on': build_details.get('completion_time', '')
-                                }
-                            })
-                    elif field == analysable_fields[1]:
-                        stats_json_data = list(job_data.get(analysable_fields[1], {}).values())
-                        if stats_json_data and len(stats_json_data) > 0:
-                            data = {}
-                            for json_data in stats_json_data:
-                                if '{' in json_data:
-                                    data = load(json_data[json_data.find('{'):],
-                                                Loader=FullLoader)
-                            stats_json = data.get('stats', {})
-                            if stats_json and isinstance(stats_json, list):
+        try:
+            analysed_data = {}
+            total_no_of_messages = []
 
-                                lang_id_name = self.package_manager.get_lang_id_name_dict() or []
-                                locale_lang_dict = dict(self.package_manager.get_locale_lang_tuple())
-                                locale_key = 'locale'
+            for field in fields_to_analyse:
+                if field == analysable_fields[0]:
+                    build_details = list(job_data.get(analysable_fields[0], {}).values())
+                    if build_details and len(build_details) > 0:
+                        build_details = load(build_details[0], Loader=FullLoader)
+                    if isinstance(build_details, dict):
+                        analysed_data.update({
+                            'meta_data': {
+                                'package': build_details.get('package_name', ''),
+                                'nvr': build_details.get('nvr', ''),
+                                'built_on': build_details.get('completion_time', '')
+                            }
+                        })
+                elif field == analysable_fields[1]:
+                    stats_json_data = list(job_data.get(analysable_fields[1], {}).values())
+                    if stats_json_data and len(stats_json_data) > 0:
+                        data = {}
+                        for json_data in stats_json_data:
+                            if '{' in json_data:
+                                data = load(json_data[json_data.find('{'):],
+                                            Loader=FullLoader)
+                        stats_json = data.get('stats', {})
+                        if stats_json and isinstance(stats_json, list):
 
-                                processed_stats = []
-                                analysed_data['stats'] = []
-                                for locale, l_alias in list(lang_id_name.keys()):
-                                    filter_stat = []
-                                    stats_chunk = []
+                            lang_id_name = self.package_manager.get_lang_id_name_dict() or []
+                            locale_lang_dict = dict(self.package_manager.get_locale_lang_tuple())
+                            locale_key = 'locale'
 
-                                    try:
-                                        filter_stat = self.package_manager.filter_n_reduce_stats(
-                                            locale_key, locale, l_alias, stats_json
-                                        )
-                                    except Exception as e:
-                                        self.app_logger(
-                                            'ERROR', "Error while filtering stats, details: " + str(e))
-                                    else:
-                                        filter_stat = filter_stat[0] \
-                                            if isinstance(filter_stat, list) and len(filter_stat) > 0 else {}
+                            processed_stats = []
+                            analysed_data['stats'] = []
+                            for locale, l_alias in list(lang_id_name.keys()):
+                                filter_stat = []
+                                stats_chunk = []
 
-                                    stats_chunk.append(locale_lang_dict.get(locale, locale))
-                                    if filter_stat.get('total') and filter_stat.get('total') > 0:
-                                        total_no_of_messages.append(filter_stat.get('total'))
-                                    stats_chunk.append(filter_stat.get('total', 0))
-                                    stats_chunk.append(filter_stat.get('translated', 0))
-                                    stats_chunk.append(filter_stat.get('fuzzy', 0))
-                                    stats_chunk.append(filter_stat.get('untranslated', 0))
-                                    completion_percentage = 0
-                                    try:
-                                        completion_percentage = int((filter_stat.get('translated', 0) * 100 /
-                                                                     filter_stat.get('total', 0)))
-                                    except ZeroDivisionError:
-                                        pass
-                                    stats_chunk.append(completion_percentage)
-                                    if stats_chunk:
-                                        non_zero_stats = [i for i in stats_chunk[1:] if i > 0]
-                                        if non_zero_stats and len(non_zero_stats) > 0:
-                                            processed_stats.append(stats_chunk)
+                                try:
+                                    filter_stat = self.package_manager.filter_n_reduce_stats(
+                                        locale_key, locale, l_alias, stats_json
+                                    )
+                                except Exception as e:
+                                    self.app_logger(
+                                        'ERROR', "Error while filtering stats, details: " + str(e))
+                                else:
+                                    filter_stat = filter_stat[0] \
+                                        if isinstance(filter_stat, list) and len(filter_stat) > 0 else {}
 
-                                analysed_data['stats'].extend(processed_stats)
-                            analysed_data.update(dict(headings=field_heading))
-            except Exception as e:
-                self.app_logger(
-                    'ERROR', "Error while analysing job data, details: " + str(e))
-                return
-            if len(set(total_no_of_messages)) > 1:
-                analysed_data['pot_differ'] = "Total number of messages differ across languages."
-            return analysed_data
+                                stats_chunk.append(locale_lang_dict.get(locale, locale))
+                                if filter_stat.get('total') and filter_stat.get('total') > 0:
+                                    total_no_of_messages.append(filter_stat.get('total'))
+                                stats_chunk.append(filter_stat.get('total', 0))
+                                stats_chunk.append(filter_stat.get('translated', 0))
+                                stats_chunk.append(filter_stat.get('fuzzy', 0))
+                                stats_chunk.append(filter_stat.get('untranslated', 0))
+                                completion_percentage = 0
+                                try:
+                                    completion_percentage = int((filter_stat.get('translated', 0) * 100 /
+                                                                 filter_stat.get('total', 0)))
+                                except ZeroDivisionError:
+                                    pass
+                                stats_chunk.append(completion_percentage)
+                                if stats_chunk:
+                                    non_zero_stats = [i for i in stats_chunk[1:] if i > 0]
+                                    if non_zero_stats and len(non_zero_stats) > 0:
+                                        processed_stats.append(stats_chunk)
+
+                            analysed_data['stats'].extend(processed_stats)
+                        analysed_data.update(dict(headings=field_heading))
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Error while analysing job data, details: " + str(e))
+            return
+        if len(set(total_no_of_messages)) > 1:
+            analysed_data['pot_differ'] = "Total number of messages differ across languages."
+        return analysed_data
 
 
 class TransplatformSyncManager(BaseManager):
@@ -677,8 +677,7 @@ class YMLBasedJobManager(BaseManager):
                 if getattr(self, 'REPO_TYPE', '') and self.REPO_TYPE == GIT_REPO_TYPE[1]:
                     if not package_detail.upstream_l10n_url:
                         raise Exception('Localization repo URL not found.')
-                    else:
-                        upstream_repo_url = package_detail.upstream_l10n_url
+                    upstream_repo_url = package_detail.upstream_l10n_url
                 if getattr(self, 'REPO_TYPE', '') and self.REPO_TYPE == GIT_REPO_TYPE[2]:
                     if not self.REPO_TYPE == package_detail.platform_slug.engine_name:
                         raise Exception('Package Platform is NOT Weblate.')
@@ -747,7 +746,7 @@ class YMLBasedJobManager(BaseManager):
                     'downstream_last_updated': timezone.now()
                 })
             # If invoked by system user, cache build details
-            if self.active_user_email == 'system@transtats.org' and \
+            if self.active_user_email == SYS_EMAIL_ADDR and \
                     self.type == TS_JOB_TYPES[3]:
                 cache_params = {}
                 match_params = {
@@ -941,7 +940,7 @@ class YMLBasedJobManager(BaseManager):
                 job_manager.mark_job_finish()
             else:
                 job_manager.mark_job_finish(remove=True)
-            time.sleep(4)
+            time.sleep(2)
         # if not a dry run, save results is db
         if action_mapper.result and not getattr(self, 'DRY_RUN', None):
             if self.type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3]):

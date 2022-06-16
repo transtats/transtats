@@ -4,7 +4,7 @@ django-celery-beat==2.1.0
 django-cors-headers
 django-crispy-forms
 django-debug-toolbar
-Django==2.2.24
+Django==2.2.28
 djangorestframework==3.11.2
 future
 gitdb2

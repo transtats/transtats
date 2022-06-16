@@ -388,9 +388,9 @@ def tag_job_form(template_type):
     if release_branches:
         return_value['releases'] = release_branches
     ci_pipeline_manager = CIPipelineManager()
-    ci_pipelines = ci_pipeline_manager.get_ci_pipelines()
+    ci_pipelines = ci_pipeline_manager.get_ci_pipelines(track_trans=True)
     if ci_pipelines:
-        return_value['ci_pipelines'] = ci_pipelines.order_by('-ci_release').all()
+        return_value['ci_pipelines'] = ci_pipelines.order_by('-ci_release__release_name').all()
     return_value['git_repo_types'] = GIT_REPO_TYPE
     return return_value
 
@@ -426,15 +426,21 @@ def tag_repo_branches(package_name, repo_type):
 @register.inclusion_tag(
     os.path.join("ci", "_pipeline_branches.html")
 )
-def tag_pipeline_branches(package_name, t_platform):
+def tag_pipeline_branches(pipeline):
     return_value = OrderedDict()
-    package_manager = PackagesManager()
-    branches = package_manager.git_branches(
-        package_name, t_platform.engine_name
-    )
-    return_value.update(dict(title=dict(
-        TP_BRANCH_CALLING_NAME).get(t_platform.engine_name)))
+    if not pipeline.ci_pipeline_default_branch:
+        package_manager = PackagesManager()
+        branches = package_manager.git_branches(
+            pipeline.ci_package.package_name,
+            pipeline.ci_package.platform_slug.engine_name
+        )
+    else:
+        branches = [pipeline.ci_pipeline_default_branch]
     return_value.update(dict(branches=branches))
+    return_value.update(
+        dict(title=dict(TP_BRANCH_CALLING_NAME).get(
+            pipeline.ci_package.platform_slug.engine_name))
+    )
     return return_value
 
 
@@ -673,5 +679,8 @@ def tag_list_pipeline_configs(pipeline, request):
     pipeline_config_manager = PipelineConfigManager()
     pipeline_configs = pipeline_config_manager.get_pipeline_configs(ci_pipelines=[pipeline])
     return_value['pipeline_configs'] = pipeline_configs.order_by('pipeline_config_event')
+    pipeline_package_platform = pipeline.ci_package.platform_slug.engine_name
+    return_value['pipeline_branch_display_name'] = \
+        dict(TP_BRANCH_CALLING_NAME).get(pipeline_package_platform, "branches").lower()
     return_value['user'] = request.user
     return return_value

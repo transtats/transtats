@@ -20,10 +20,10 @@ Upcoming Releases
 | And releases are scheduled every quarter end.
 
 
-Transtats 0.8.6
+Transtats 0.8.7
 ---------------
 
-| Target delivery: End of Mar 2022
+| Target delivery: End of Sept 2022
 
 
 ToDo List
@@ -42,6 +42,7 @@ ToDo List
     - Prepare deployment for OpenShift 4.
         - Move from docker to buildah, single container to a pod.
     - Find an alternative of vagrant in dev env.
+        - docker-compose may be.
 
 - Expanding Support
     - Translation File Format *in Jobs*
@@ -51,10 +52,9 @@ ToDo List
         - ``verifytrans``
 
 - Automation
-    - Pipeline configurations and scheduling.
-    - Automate Pipeline Creation.
     - Batch processing of pipeline actions.
     - Scheduling jobs based on release dates.
+    - Scheduling of pipeline configurations.
 
 - User Personalization
     - Multiple Authentication: FAS, SAML, Social.

@@ -436,6 +436,12 @@ class CIPipeline(ModelMixin, models.Model):
     ci_pipeline_visibility = models.BooleanField(
         default=True, verbose_name='CI Pipeline Visibility'
     )
+    ci_pipeline_default_branch = models.CharField(
+        max_length=100, default='', blank=True, verbose_name="Default Branch"
+    )
+    ci_pipeline_auto_create_config = models.BooleanField(
+        default=True, verbose_name='Create default configurations', null=True, blank=True
+    )
 
     @property
     def ci_project_details_json(self):
@@ -543,15 +549,20 @@ class PipelineConfig(ModelMixin, models.Model):
                                     verbose_name="CI Pipeline", null=True)
     pipeline_config_event = models.CharField(max_length=1000)
     pipeline_config_active = models.BooleanField(default=False)
-    pipeline_config_json_str = models.TextField(unique=True)
+    pipeline_config_json_str = models.TextField()
     pipeline_config_repo_branches = ArrayField(
         models.CharField(max_length=1000, blank=True), default=list,
         verbose_name="Repo Branches"
+    )
+    pipeline_config_target_lang = ArrayField(
+        models.CharField(max_length=1000, blank=True), default=list,
+        verbose_name="Repo Target Langs"
     )
     pipeline_config_created_on = models.DateTimeField(null=True)
     pipeline_config_updated_on = models.DateTimeField(null=True)
     pipeline_config_last_accessed = models.DateTimeField(null=True)
     pipeline_config_created_by = models.EmailField(null=True)
+    pipeline_config_is_default = models.BooleanField(default=False)
 
     @property
     def pipeline_config_json(self):
@@ -566,6 +577,10 @@ class PipelineConfig(ModelMixin, models.Model):
 
     class Meta:
         db_table = TABLE_PREFIX + 'cipipelineconfig'
+        constraints = [
+            models.UniqueConstraint(fields=['pipeline_config_json_str', 'pipeline_config_repo_branches'],
+                                    name='unique_pipeline_config')
+        ]
         verbose_name = "Pipeline Config"
 
 
