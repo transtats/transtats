@@ -299,9 +299,6 @@ class RestClient(object):
             resource = resource + "?" + ext
         elif isinstance(extension, str):
             resource = resource + "?" + extension
-        if 'auth_token_ext' in kwargs and kwargs.get('auth_token_ext'):
-            separator = "&" if "?" in resource else "?"
-            resource = resource + separator + kwargs.get('auth_token_ext')
         # Lets check with cache, if it's a GET request
         if service_details.http_method == 'GET' and not kwargs.get('no_cache_api'):
             c_content, c_json_content = self.cache_manager.get_cached_response(base_url, resource)

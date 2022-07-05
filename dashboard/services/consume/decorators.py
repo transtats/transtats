@@ -57,12 +57,13 @@ def set_api_auth():
             if 'headers' not in kwargs:
                 kwargs['headers'] = dict()
             if rest_client.service == TRANSPLATFORM_ENGINES[4]:
-                # Memsource needs active token as an extension.
+                # Memsource needs token in Authorization header.
                 cache_api_manager = CacheAPIManager()
                 latest_token = cache_api_manager.tally_auth_token(url)
-                kwargs.update(dict(
-                    auth_token_ext="token={}".format(latest_token)
-                ))
+                kwargs['headers']['Authorization'] = "{} {}".format(
+                    API_TOKEN_PREFIX.get(rest_client.service) or kwargs['auth_user'],
+                    latest_token
+                )
             if kwargs.get('auth_user') and kwargs.get('auth_token'):
                 auth_tuple = tuple()
                 if rest_client.service == TRANSPLATFORM_ENGINES[1]:
