@@ -691,7 +691,7 @@ class ReleaseBranchManager(InventoryManager):
                 for event in required_events:
                     for event_dict in ical_events:
                         if (event.lower() in event_dict.get('SUMMARY').lower() and
-                                relbranch_slug in event_dict.get('SUMMARY').lower()):
+                                relbranch_slug in event_dict.get('SUMMARY').lower().replace('_', '-')):
                             key = DELIMITER.join(event_dict.get('SUMMARY').split(DELIMITER)[1:])
                             branch_schedule_dict[key] = event_dict.get('DTEND', '')
 
