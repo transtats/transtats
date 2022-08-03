@@ -22,7 +22,8 @@ from django.utils import timezone
 
 # dadhboard
 from dashboard.constants import (
-    TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, PIPELINE_CONFIG_EVENTS
+    TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
+    PIPELINE_CONFIG_EVENTS, GIT_REPO_TYPE
 )
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers import BaseManager
@@ -340,6 +341,15 @@ class PipelineConfigManager(CIPipelineManager):
         :return: dict
         """
 
+        upstream_repo_type = GIT_REPO_TYPE[0]
+        if pipeline.ci_package.upstream_l10n_url:
+            upstream_repo_type = GIT_REPO_TYPE[1]
+
+        upstream_repo_branches = self.package_manager.git_branches(
+            package_name=pipeline.ci_package.package_name,
+            repo_type=upstream_repo_type
+        )
+
         repo_branches = self.package_manager.git_branches(
             package_name=pipeline.ci_package.package_name,
             repo_type=pipeline.ci_package.platform_slug.engine_name
@@ -386,8 +396,8 @@ class PipelineConfigManager(CIPipelineManager):
         key_val_map = {
             "ci_pipeline": _format_val(pipeline.ci_pipeline_uuid),
             "package": _format_val(pipeline.ci_package.package_name),
-            "clone.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
-            "clone.branch": _format_choices("repoCloneBranch", repo_branches),
+            "clone.type": _format_val(upstream_repo_type),
+            "clone.branch": _format_choices("repoCloneBranch", upstream_repo_branches),
             "clone.recursive": "<input type='checkbox' id='cloneRecursive' name='cloneRecursive'>",
             "filter.domain": "<input id='filterDomain' type='text' value='{}'>".format(
                 pipeline.ci_package.package_name),
