@@ -686,7 +686,7 @@ class ReleaseBranchManager(InventoryManager):
         DELIMITER = ":"
         branch_schedule_dict = OrderedDict()
 
-        if product_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2], RELSTREAM_SLUGS[3]):
+        if product_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2], RELSTREAM_SLUGS[3], RELSTREAM_SLUGS[4]):
             try:
                 for event in required_events:
                     for event_dict in ical_events:

@@ -739,6 +739,8 @@ class KojiResources(object):
                 tag_starts_with = 'rhevm'
             elif product.product_slug == RELSTREAM_SLUGS[3]:
                 tag_starts_with = 'satellite'
+            elif product.product_slug == RELSTREAM_SLUGS[4]:
+                tag_starts_with = 'insights'
         elif product.product_slug == RELSTREAM_SLUGS[1]:
             tag_starts_with = 'f'
 
