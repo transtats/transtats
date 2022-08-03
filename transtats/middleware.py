@@ -38,7 +38,7 @@ class CustomMiddleware(object):
         """
         request.tenant = settings.TS_AUTH_SYSTEM \
             if settings.TS_AUTH_SYSTEM in RELSTREAM_SLUGS and \
-            view_func.__module__ in ['dashboard.views'] else "default"
+            view_func.__module__ in ['dashboard.views'] else None
 
         return None
 

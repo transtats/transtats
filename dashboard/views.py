@@ -1187,7 +1187,7 @@ class AddCIPipeline(ManagersMixin, FormView):
                                      for platform in ci_platforms])
         kwargs.update(dict(ci_platform_choices=ci_platform_choices))
         packages = self.packages_manager.get_packages()
-        releases = self.release_branch_manager.get_release_branches()
+        releases = self.release_branch_manager.get_release_branches(relstream=self.request.tenant)
         package_choices = tuple([(package.package_id, package.package_name) for package in packages])
         release_choices = tuple([(release.release_id, release.__str__) for release in releases])
         kwargs.update(dict(package_choices=_sort_choices_by_name(package_choices)))
