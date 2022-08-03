@@ -57,12 +57,11 @@ def set_api_auth():
             if 'headers' not in kwargs:
                 kwargs['headers'] = dict()
             if rest_client.service == TRANSPLATFORM_ENGINES[4]:
-                # Memsource needs active token as an extension.
+                # Memsource needs token in Authorization header.
                 cache_api_manager = CacheAPIManager()
                 latest_token = cache_api_manager.tally_auth_token(url)
-                kwargs.update(dict(
-                    auth_token_ext="token={}".format(latest_token)
-                ))
+                memsource_auth_user = API_TOKEN_PREFIX.get(rest_client.service) or kwargs['auth_user']
+                kwargs['headers']['Authorization'] = f"{memsource_auth_user} {latest_token}"
             if kwargs.get('auth_user') and kwargs.get('auth_token'):
                 auth_tuple = tuple()
                 if rest_client.service == TRANSPLATFORM_ENGINES[1]:
@@ -77,10 +76,8 @@ def set_api_auth():
                     kwargs['headers']['X-Auth-Token'] = kwargs['auth_token']
                 elif rest_client.service == TRANSPLATFORM_ENGINES[3]:
                     # Weblate needs credentials in the headers either.
-                    kwargs['headers']['Authorization'] = "{} {}".format(
-                        API_TOKEN_PREFIX.get(rest_client.service) or kwargs['auth_user'],
-                        kwargs['auth_token']
-                    )
+                    weblate_auth_user = API_TOKEN_PREFIX.get(rest_client.service) or kwargs['auth_user']
+                    kwargs['headers']['Authorization'] = f"{weblate_auth_user} {kwargs['auth_token']}"
                 kwargs.update(dict(auth_tuple=auth_tuple))
             return caller(rest_client, url, resource, *args, **kwargs)
         return inner_decorator

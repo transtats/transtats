@@ -1,3 +1,5 @@
+##### Tue Jul 5 2022 Sundeep Anand <suanand@redhat.com>
+* Update Memsource API Authentication
 
 ##### Mon Jun 6 2022 Sundeep Anand <suanand@redhat.com> - release_0.8.6
 * Create default Pipeline Configurations

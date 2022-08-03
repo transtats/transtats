@@ -68,7 +68,6 @@ class ServiceConfig(object):
         """
         Sets initial params
         """
-
         master_config_dict = {
             GIT_PLATFORMS[0]: {
                 '_config_dict': github_config,
@@ -166,7 +165,9 @@ class RestHandle(object):
         """
         RestHandle constructor
         :param args: base="http://localhost", uri="/zanata", method="GET"
-        :param kwargs: body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS, connection_type=None,
+        :param kwargs: body=None, headers=None,
+                        redirections=DEFAULT_MAX_REDIRECTS,
+                        connection_type=None,
                         cache=".cache", ext="?lang=hi"
         """
         if len([arg for arg in args if arg]) != 3:
@@ -180,8 +181,8 @@ class RestHandle(object):
     def _get_url(self):
         if self.base_url[-1:] == '/':
             self.base_url = self.base_url[:-1]
-        return '%s%s%s' % (self.base_url, self.uri, getattr(self, 'ext')) \
-            if hasattr(self, 'ext') else '%s%s' % (self.base_url, self.uri)
+        return f"{self.base_url}{self.uri}{getattr(self, 'ext')}" \
+            if hasattr(self, 'ext') else f"{self.base_url}{self.uri}"
 
     def _call_request(self, uri, http_method, **kwargs):
         # TS gateway to services
@@ -250,7 +251,6 @@ class RestHandle(object):
 
 
 class RestClient(object):
-
     """
     REST Client for all Managers
     """
@@ -299,9 +299,6 @@ class RestClient(object):
             resource = resource + "?" + ext
         elif isinstance(extension, str):
             resource = resource + "?" + extension
-        if 'auth_token_ext' in kwargs and kwargs.get('auth_token_ext'):
-            separator = "&" if "?" in resource else "?"
-            resource = resource + separator + kwargs.get('auth_token_ext')
         # Lets check with cache, if it's a GET request
         if service_details.http_method == 'GET' and not kwargs.get('no_cache_api'):
             c_content, c_json_content = self.cache_manager.get_cached_response(base_url, resource)
