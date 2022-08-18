@@ -470,7 +470,9 @@ class NewPackageView(ManagersMixin, FormView):
         initials = {}
         if self.request.tenant == RELSTREAM_SLUGS[0] or self.request.tenant == RELSTREAM_SLUGS[1]:
             initials.update(dict(transplatform_slug=WEBLATE_SLUGS[1]))
-        if self.request.tenant == RELSTREAM_SLUGS[3]:
+        if self.request.tenant == RELSTREAM_SLUGS[3] or self.request.tenant == RELSTREAM_SLUGS[4]:
+            if self.request.tenant == RELSTREAM_SLUGS[4]:
+                initials.update(dict(auto_create_project='True'))
             initials.update(dict(transplatform_slug=TRANSIFEX_SLUGS[0]))
         default_product = self.request.tenant
         initials.update(dict(release_streams=default_product))
@@ -498,6 +500,14 @@ class NewPackageView(ManagersMixin, FormView):
             messages.add_message(request, messages.ERROR, (
                 'One of the required fields is missing.'))
             return render(request, self.template_name, {'form': form})
+
+        if post_params.get('auto_create_project', ['False'])[0] == 'True':
+            # Attempt project creation at translation platform
+            self.packages_manager.create_platform_project(
+                project_slug=post_params['package_name'],
+                repo_url=post_params['upstream_url'],
+                platform_slug=post_params['transplatform_slug'],
+            )
         # Validate package with translation platform
         validate_package = self.packages_manager.validate_package(**post_params)
         if not validate_package:

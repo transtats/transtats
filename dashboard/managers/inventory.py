@@ -307,6 +307,36 @@ class InventoryManager(BaseManager):
                     self._get_lang_contact(platform, language)
         return language_team_contact
 
+    def create_platform_project(self, project_slug, repo_url, platform_slug):
+        """
+        Create a Project at Translation Platform
+        :param project_slug: str
+        :param repo_url: str
+        :param platform_slug: str
+        :return: dict
+        """
+        request_kwargs = dict()
+        platform = Platform.objects.filter(platform_slug=platform_slug).get()
+        if platform.engine_name == TRANSPLATFORM_ENGINES[1]:
+            # Transifex payload for new project
+            request_kwargs['data'] = '{"slug":"%s","name":"%s","source_language_code":"en",' \
+                                     '"description":"%s", "repository_url": "%s"}' % \
+                                     (project_slug, project_slug, project_slug, repo_url)
+        request_kwargs.update(dict(
+            auth_user=platform.auth_login_id, auth_token=platform.auth_token_key
+        ))
+
+        api_response = None
+        try:
+            api_response = self.api_resources.create_project(
+                translation_platform=platform.engine_name,
+                instance_url=platform.api_url, **request_kwargs
+            )
+        except Exception as e:
+            self.logger("Something unexpected happened while creating a project at platform.")
+
+        return api_response
+
     def get_release_streams(self, stream_slug=None, only_active=None,
                             built=None, fields=None):
         """

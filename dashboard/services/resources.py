@@ -226,6 +226,12 @@ class TransplatformResources(ResourcesBase):
         return {'releases': pick_releases}
 
     @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[1])
+    def _create_transifex_project(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response
+
+    @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
     def _fetch_damnedlies_project_details(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
@@ -545,6 +551,25 @@ class TransplatformResources(ResourcesBase):
                 'resources': ['project_details', 'project_jobs'],
                 'combine_results': True,
                 'project': args[0],
+            }
+        }
+        selected_config = method_mapper[translation_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def create_project(self, translation_platform, instance_url, *args, **kwargs):
+        """
+        Create a Project at Translation or CI Platform
+        :param translation_platform: Translation Platform API
+        :param instance_url: Translation Platform Server URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: dict
+        """
+        method_mapper = {
+            TRANSPLATFORM_ENGINES[1]: {
+                'method': self._create_transifex_project,
+                'base_url': instance_url,
+                'resources': ['create_project'],
             }
         }
         selected_config = method_mapper[translation_platform]

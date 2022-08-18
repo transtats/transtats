@@ -41,6 +41,16 @@ resource_config_dict = {
             },
         }),
     ]),
+    'ProjectsResourcePOST': OrderedDict([
+        ('/projects', {
+            http_methods[1]: {
+                'path_params': None,
+                'query_params': None,
+                'request_media_type': media_types[0],
+                'response_media_type': media_types[0],
+            },
+        }),
+    ]),
     'SourceDocResource': OrderedDict([
         ('/project/<project_slug>/resource/<resource_slug>/content/', {
             http_methods[0]: {
@@ -107,6 +117,8 @@ project_trans_file = resource('TranslationsResource', list(resource_config_dict[
                               http_methods[0])
 upload_trans_file = resource('TranslationsResourcePUT', list(resource_config_dict['TranslationsResourcePUT'].keys())[0],
                              http_methods[2])
+create_project = resource('ProjectsResourcePOST', list(resource_config_dict['ProjectsResource'].keys())[0],
+                          http_methods[1])
 # Transtats Transifex support operates on resources listed here
 resources = {
     'list_projects': list_projects,
@@ -116,4 +128,5 @@ resources = {
     'create_resource': create_resource,
     'project_trans_file': project_trans_file,
     'upload_trans_file': upload_trans_file,
+    'create_project': create_project,
 }

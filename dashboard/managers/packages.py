@@ -321,6 +321,9 @@ class PackagesManager(InventoryManager):
             if 'update_stats' in kwargs:
                 del kwargs['update_stats']
 
+            if 'auto_create_project' in kwargs:
+                del kwargs['auto_create_project']
+
             kwargs['platform_slug'] = platform
             kwargs['products'] = kwargs.pop('release_streams')
             kwargs['platform_name'] = kwargs['package_name']
