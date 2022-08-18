@@ -479,7 +479,7 @@ class NewPackageView(ManagersMixin, FormView):
     def get_form(self, form_class=None, data=None):
         kwargs = {}
         active_platforms = \
-            self.inventory_manager.get_transplatform_slug_url()
+            self.inventory_manager.get_transplatform_slug_url(ci=False)
         active_streams = self.inventory_manager.get_relstream_slug_name()
         kwargs.update({'platform_choices': active_platforms})
         kwargs.update({'products_choices': active_streams})

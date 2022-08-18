@@ -150,7 +150,7 @@ class InventoryManagerTest(FixtureTestCase):
         Test get_transplatforms_set
         """
         active_platforms, inactive_platforms = self.inventory_manager.get_transplatforms_set()
-        self.assertEqual(len(active_platforms), 3)
+        self.assertEqual(len(active_platforms), 2)
         self.assertEqual(len(inactive_platforms), 0)
 
     def test_get_engine_from_slug(self):
@@ -172,8 +172,7 @@ class InventoryManagerTest(FixtureTestCase):
         test get_transplatform_slug_url
         """
         slug_url_tuple = self.inventory_manager.get_transplatform_slug_url()
-        self.assertTupleEqual(slug_url_tuple, (('MSRCPUB', 'https://cloud.memsource.com/web'),
-                                               ('ZNTAFED', 'https://fedora.zanata.org'),
+        self.assertTupleEqual(slug_url_tuple, (('ZNTAFED', 'https://fedora.zanata.org'),
                                                ('ZNTAPUB', 'https://translate.zanata.org')))
 
     def xtest_get_relbranch_locales(self):

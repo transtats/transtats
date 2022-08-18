@@ -211,6 +211,8 @@ class InventoryManager(BaseManager):
             filter_kwargs.update(dict(server_status=True))
         if ci:
             filter_kwargs.update(dict(ci_status=True))
+        else:
+            filter_kwargs.update(dict(ci_status=False))
 
         platforms = None
         try:
@@ -252,12 +254,12 @@ class InventoryManager(BaseManager):
         engine = [i for i, j in platform_relation.items() if platform_slug in j]
         return engine[0] if isinstance(engine, list) and len(engine) > 0 else ''
 
-    def get_transplatform_slug_url(self):
+    def get_transplatform_slug_url(self, ci=None):
         """
         Get slug and api_url for active transplatform
         :return: tuple
         """
-        active_platforms = self.get_translation_platforms(only_active=True)
+        active_platforms = self.get_translation_platforms(only_active=True, ci=ci)
         return tuple([(platform.platform_slug, platform.api_url)
                       for platform in active_platforms]) or ()
 
