@@ -211,7 +211,7 @@ class InventoryManager(BaseManager):
             filter_kwargs.update(dict(server_status=True))
         if ci:
             filter_kwargs.update(dict(ci_status=True))
-        else:
+        if ci is False:
             filter_kwargs.update(dict(ci_status=False))
 
         platforms = None
