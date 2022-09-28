@@ -831,6 +831,10 @@ class Apply(JobCommandBase):
 
         tar_dir = {'src_tar_dir': input['src_tar_dir']}
 
+        patches_from_spec = input['spec_obj'].patches
+        if patches_from_spec:
+            tar_dir.update(dict(patches=patches_from_spec))
+
         if input['src_translations']:
             s_sections = input['spec_sections']
             self._apply_prep(
@@ -865,7 +869,6 @@ class Apply(JobCommandBase):
                     command_std_output = patch_output.stdout.read().decode("utf-8")
                     patch_output.kill()
                     p_value += 1
-            time.sleep(1)
         except Exception as e:
             os.chdir(input['base_dir'])
             task_log.update(self._log_task(
@@ -920,6 +923,9 @@ class Filter(JobCommandBase):
 
         task_subject = "Filter %s files" % file_ext.upper()
         task_log = OrderedDict()
+
+        if input.get('patches', []):
+            time.sleep(1)
 
         try:
             trans_files = []
