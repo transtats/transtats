@@ -19,6 +19,7 @@
 
 import re
 import os
+import time
 import difflib
 from requests.auth import HTTPBasicAuth
 import requests
@@ -864,6 +865,7 @@ class Apply(JobCommandBase):
                     command_std_output = patch_output.stdout.read().decode("utf-8")
                     patch_output.kill()
                     p_value += 1
+            time.sleep(1)
         except Exception as e:
             os.chdir(input['base_dir'])
             task_log.update(self._log_task(
