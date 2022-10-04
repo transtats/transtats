@@ -122,7 +122,7 @@ class NewPackageForm(forms.Form):
     )
 
     def is_valid(self):
-        return False if len(self.errors) >= 1 else True
+        return not len(self.errors) >= 1
 
 
 class UpdatePackageForm(forms.ModelForm):
@@ -269,7 +269,7 @@ class NewReleaseBranchForm(forms.Form):
     )
 
     def is_valid(self):
-        return False if len(self.errors) >= 1 else True
+        return not len(self.errors) >= 1
 
 
 class NewGraphRuleForm(forms.Form):
@@ -370,7 +370,7 @@ class NewGraphRuleForm(forms.Form):
         return cleaned_data
 
     def is_valid(self):
-        return False if len(self.errors) >= 1 else True
+        return not len(self.errors) >= 1
 
 
 class UpdateGraphRuleForm(forms.ModelForm):
