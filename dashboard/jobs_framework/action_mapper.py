@@ -881,8 +881,8 @@ class Apply(JobCommandBase):
                 input['log_f'], task_subject, patches,
                 text_prefix='%s patches applied' % len(patches)
             ))
-        finally:
-            return tar_dir, {task_subject: task_log}
+
+        return tar_dir, {task_subject: task_log}
 
 
 class Filter(JobCommandBase):
