@@ -42,9 +42,7 @@ class BaseManager(object):
         self.api_resources = APIResources()
 
     def app_logger(self, log_level, log_msg):
-        """
-        Custom application logger
-        """
+        """Custom application logger"""
         level_map = {
             'DEBUG': 10, 'INFO': 20, 'WARNING': 30,
             'ERROR': 40, 'CRITICAL': 50

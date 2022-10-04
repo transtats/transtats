@@ -17,15 +17,13 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-"""Parser for RPM Specfiles.
-"""
+"""Parser for RPM Specfiles."""
 
 __author__ = "Harald Hoyer <harald@redhat.com>"
 
 
 class RpmSpecFile:
-    """Class for parsing an rpm specfile
-    """
+    """Class for parsing an rpm specfile"""
     sections = ["description",
                 "package",
                 "prep",
@@ -56,15 +54,13 @@ class RpmSpecFile:
         self.parse()
 
     def readFile(self, filename):
-        """Initialize with filename
-        """
+        """Initialize with filename"""
         fd = open(filename)
         self.lines = fd.read().splitlines()
         fd.close()
 
     def parse(self):
-        """Parse the specfile lines
-        """
+        """Parse the specfile lines"""
         section = "package"
         package = "head"
         # search for the package name
@@ -106,18 +102,15 @@ class RpmSpecFile:
                 self.section[section].append(line)
 
     def getName(self):
-        """returns the package name
-        """
+        """returns the package name"""
         return self.Name
 
     def getSections(self):
-        """returns all section names, which are known and in the specfile
-        """
+        """returns all section names, which are known and in the specfile"""
         return self.section.keys()
 
     def getPackages(self):
-        """returns a list of package names
-        """
+        """returns a list of package names"""
         if "description" in self.section:
             return self.section["description"].keys()
         else:

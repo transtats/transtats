@@ -32,9 +32,7 @@ TABLE_PREFIX = 'ts_'
 
 
 class Languages(models.Model):
-    """
-    Languages Model
-    """
+    """Languages Model"""
     locale_id = models.CharField(
         max_length=50, primary_key=True, verbose_name="Locale ID"
     )
@@ -58,9 +56,7 @@ class Languages(models.Model):
 
 
 class LanguageSet(models.Model):
-    """
-    Language Set Model
-    """
+    """Language Set Model"""
     lang_set_id = models.AutoField(primary_key=True)
     lang_set_name = models.CharField(
         max_length=1000, verbose_name="Language Set Name"
@@ -85,9 +81,7 @@ class LanguageSet(models.Model):
 
 
 class TransPlatform(models.Model):
-    """
-    Translation Platforms Model
-    """
+    """Translation Platforms Model"""
     platform_id = models.AutoField(primary_key=True)
     engine_name = models.CharField(
         max_length=200, verbose_name="Platform Engine"
@@ -118,9 +112,7 @@ class TransPlatform(models.Model):
 
 
 class ReleaseStream(models.Model):
-    """
-    Release Stream Model
-    """
+    """Release Stream Model"""
     relstream_id = models.AutoField(primary_key=True)
     relstream_name = models.CharField(
         max_length=200, verbose_name="Release Stream Name"
@@ -173,9 +165,7 @@ class ReleaseStream(models.Model):
 
 
 class StreamBranches(models.Model):
-    """
-    Stream Branches Model
-    """
+    """Stream Branches Model"""
     relbranch_id = models.AutoField(primary_key=True)
     relbranch_name = models.CharField(max_length=500, verbose_name="Release Branch Name")
     relbranch_slug = models.CharField(max_length=500, unique=True, verbose_name="Release Branch Slug")
@@ -200,9 +190,7 @@ class StreamBranches(models.Model):
 
 
 class Packages(models.Model):
-    """
-    Packages Model
-    """
+    """Packages Model"""
     package_id = models.AutoField(primary_key=True)
     package_name = models.CharField(max_length=1000, unique=True, verbose_name="Package Name")
     upstream_name = models.CharField(max_length=1000, null=True, blank=True,
@@ -248,9 +236,7 @@ class Packages(models.Model):
 
 
 class JobTemplates(models.Model):
-    """
-    Job Templates Model
-    """
+    """Job Templates Model"""
     job_template_id = models.AutoField(primary_key=True)
     job_template_type = models.CharField(max_length=100, unique=True)
     job_template_name = models.CharField(max_length=500)
@@ -270,9 +256,7 @@ class JobTemplates(models.Model):
 
 
 class Jobs(models.Model):
-    """
-    Jobs Model
-    """
+    """Jobs Model"""
     job_id = models.AutoField(primary_key=True)
     job_uuid = models.UUIDField(default=uuid4, editable=False)
     job_type = models.CharField(max_length=200)
@@ -299,9 +283,7 @@ class Jobs(models.Model):
 
 
 class SyncStats(models.Model):
-    """
-    Sync Stats Model
-    """
+    """Sync Stats Model"""
     sync_id = models.AutoField(primary_key=True)
     package_name = models.CharField(max_length=500)
     job_uuid = models.UUIDField()
@@ -317,9 +299,7 @@ class SyncStats(models.Model):
 
 
 class GraphRules(models.Model):
-    """
-    Graph Rules Model
-    """
+    """Graph Rules Model"""
     graph_rule_id = models.AutoField(primary_key=True)
     rule_name = models.CharField(max_length=1000, unique=True)
     rule_packages = ArrayField(
@@ -339,9 +319,7 @@ class GraphRules(models.Model):
 
 
 class CacheAPI(models.Model):
-    """
-    Cache API Model
-    """
+    """Cache API Model"""
     cache_api_id = models.AutoField(primary_key=True)
     base_url = models.URLField(max_length=800)
     resource = models.CharField(max_length=200)
@@ -358,9 +336,7 @@ class CacheAPI(models.Model):
 
 
 class Reports(models.Model):
-    """
-    Reports Model
-    """
+    """Reports Model"""
     reports_id = models.AutoField(primary_key=True)
     report_subject = models.CharField(max_length=200, unique=True)
     report_json = JSONField(null=True)
@@ -375,9 +351,7 @@ class Reports(models.Model):
 
 
 class Visitor(models.Model):
-    """
-    Visitors Model
-    """
+    """Visitors Model"""
     visitor_id = models.AutoField(primary_key=True)
     visitor_ip = models.GenericIPAddressField()
     visitor_user_agent = models.CharField(max_length=500)

@@ -19,9 +19,7 @@ from dashboard.constants import RELSTREAM_SLUGS
 
 class CustomMiddleware(object):
     def __init__(self, get_response):
-        """
-        One-time configuration and initialisation.
-        """
+        """One-time configuration and initialisation."""
         self.get_response = get_response
 
     def __call__(self, request):
@@ -33,9 +31,7 @@ class CustomMiddleware(object):
         return response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        """
-        Called just before Django calls the view.
-        """
+        """Called just before Django calls the view."""
         request.tenant = settings.TS_AUTH_SYSTEM \
             if settings.TS_AUTH_SYSTEM in RELSTREAM_SLUGS and \
             view_func.__module__ in ['dashboard.views'] else "default"
@@ -43,13 +39,9 @@ class CustomMiddleware(object):
         return None
 
     def process_exception(self, request, exception):
-        """
-        Called when a view raises an exception.
-        """
+        """Called when a view raises an exception."""
         return None
 
     def process_template_response(self, request, response):
-        """
-        Called just after the view has finished executing.
-        """
+        """Called just after the view has finished executing."""
         return response

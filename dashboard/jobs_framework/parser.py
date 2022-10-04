@@ -19,9 +19,7 @@ __all__ = ['YMLPreProcessor', 'YMLJobParser']
 
 
 class YMLPreProcessor(object):
-    """
-    Load and form YML, fill values
-    """
+    """Load and form YML, fill values"""
 
     delimiter = '%'
 
@@ -44,9 +42,7 @@ class YMLPreProcessor(object):
 
 
 class YMLJobParser(object):
-    """
-    Parse YML and build objects
-    """
+    """Parse YML and build objects"""
     test_yml_path = 'dashboard/tests/testdata/job-templates/stringchange.yml'
 
     def __init__(self, yml_stream=None):

@@ -35,14 +35,10 @@ __all__ = ['APIResources']
 
 
 class ResourcesBase(object):
-    """
-    Base class for resources
-    """
+    """Base class for resources"""
     @staticmethod
     def _execute_method(api_config, *args, **kwargs):
-        """
-        Executes located method with required params
-        """
+        """Executes located method with required params"""
         try:
             if api_config.get('ext'):
                 kwargs.update(dict(ext=True))
@@ -61,9 +57,7 @@ class ResourcesBase(object):
 
 
 class GitPlatformResources(ResourcesBase):
-    """
-    Git Platform related Resources
-    """
+    """Git Platform related Resources"""
 
     @staticmethod
     @call_service(GIT_PLATFORMS[0])
@@ -152,9 +146,7 @@ class GitPlatformResources(ResourcesBase):
 
 
 class TransplatformResources(ResourcesBase):
-    """
-    Translation Platform related Resources
-    """
+    """Translation Platform related Resources"""
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
@@ -694,9 +686,7 @@ class TransplatformResources(ResourcesBase):
 
 
 class KojiResources(object):
-    """
-    Koji Resources
-    """
+    """Koji Resources"""
 
     @staticmethod
     def _session(hub):
@@ -711,9 +701,7 @@ class KojiResources(object):
         # self.session.gssapi_login()
 
     def establish_kerberos_ticket(self):
-        """
-        Get kerberos ticket in-place
-        """
+        """Get kerberos ticket in-place"""
         userid = "transtats"
         realm = "FEDORAPROJECT.ORG"
 
@@ -724,9 +712,7 @@ class KojiResources(object):
         kinit.wait()
 
     def build_tags(self, hub_url, product):
-        """
-        Get build tags
-        """
+        """Get build tags"""
         all_tags = []
         active_repos = self._session(hub_url).getActiveRepos()
         tag_starts_with = ''

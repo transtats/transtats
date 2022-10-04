@@ -33,9 +33,7 @@ __all__ = ['CIPipelineManager', 'PipelineConfigManager']
 
 
 class CIPipelineManager(BaseManager):
-    """
-    Continuous Integration Pipeline Manager
-    """
+    """Continuous Integration Pipeline Manager"""
 
     package_manager = PackagesManager()
 
@@ -285,9 +283,7 @@ class CIPipelineManager(BaseManager):
 
 
 class PipelineConfigManager(CIPipelineManager):
-    """
-    Pipeline Configurations Manager
-    """
+    """Pipeline Configurations Manager"""
 
     def get_pipeline_configs(self, fields=None, ci_pipelines=None, pipeline_config_ids=None):
         """

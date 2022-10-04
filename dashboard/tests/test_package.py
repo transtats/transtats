@@ -38,9 +38,7 @@ class PackagesManagerTest(FixtureTestCase):
     datasets = [LanguageData, LanguageSetData, ProductData, ReleaseData, PackageData]
 
     def test_get_packages(self):
-        """
-        Test get_packages
-        """
+        """Test get_packages"""
         packages = self.packages_manager.get_packages()
         self.assertEqual(len(packages), 4)
         package_names = [PackageData.package_anaconda.package_name,
@@ -55,17 +53,13 @@ class PackagesManagerTest(FixtureTestCase):
         # self.assertTrue(set(params).issubset(vars(packages.get()).keys()))
 
     def test_is_package_exist(self):
-        """
-        Test is_package_exist
-        """
+        """Test is_package_exist"""
         self.assertTrue(self.packages_manager.is_package_exist(PackageData.package_anaconda.package_name))
         self.assertFalse(self.packages_manager.is_package_exist('otherpackage'))
 
     @patch('requests.request', new=mock_requests_get_add_package)
     def test_add_package(self):
-        """
-        Test add_package
-        """
+        """Test add_package"""
         transplatform = PlatformData.platform_zanata_fedora.platform_slug
         kwargs = {'package_name': 'authconfig', 'upstream_url': 'https://github.com/jcam/authconfig',
                   'transplatform_slug': transplatform, 'release_streams': ['fedora']}
@@ -76,25 +70,19 @@ class PackagesManagerTest(FixtureTestCase):
         self.assertFalse(package_added)
 
     def test_count_packages(self):
-        """
-        Test count_packages
-        """
+        """Test count_packages"""
         count = self.packages_manager.count_packages()
         self.assertEqual(count, 4)
 
     def test_get_package_name_tuple(self):
-        """
-        Test get_package_name_tuple
-        """
+        """Test get_package_name_tuple"""
         tuples = self.packages_manager.get_package_name_tuple()
         self.assertEqual(len(tuples), 4)
         self.assertEquals(tuples[0], ('anaconda', 'anaconda'))
 
     @patch('requests.request', new=mock_requests_get_validate_package)
     def xtest_validate_package(self):
-        """
-        Test validate_package
-        """
+        """Test validate_package"""
         transplatform = PlatformData.platform_zanata_public.platform_slug
         package_candlepin_name = PackageData.package_candlepin.package_name
         package_validated = self.packages_manager.validate_package(package_name=package_candlepin_name,
@@ -105,9 +93,7 @@ class PackagesManagerTest(FixtureTestCase):
         self.assertFalse(package_validated)
 
     def xtest_get_lang_id_name_dict(self):
-        """
-        Test get_lang_id_name_dict
-        """
+        """Test get_lang_id_name_dict"""
         lang_dict = self.packages_manager.get_lang_id_name_dict(
             release_branch=ReleaseData.release_f27.release_slug
         )
@@ -115,9 +101,7 @@ class PackagesManagerTest(FixtureTestCase):
             [(('fr_FR', 'fr'), 'French'), (('ja_JP', 'ja'), 'Japanese'), (('ru_RU', 'ru'), 'Russian')]))
 
     def xtest_get_package_releases(self):
-        """
-        Test get_package_releases
-        """
+        """Test get_package_releases"""
         package_releases = self.packages_manager.get_package_releases(
             PackageData.package_anaconda.package_name
         )
@@ -128,9 +112,7 @@ class PackagesManagerTest(FixtureTestCase):
 
     @patch('requests.request', new=mock_requests_get_git_branches)
     def xtest_git_branches(self):
-        """
-        Test git_branches
-        """
+        """Test git_branches"""
         scm_branch = self.packages_manager.git_branches(
             package_name=PackageData.package_anaconda.package_name,
             repo_type='l10n'

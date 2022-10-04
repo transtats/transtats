@@ -52,14 +52,10 @@ __all__ = ['InventoryManager', 'SyncStatsManager', 'ReleaseBranchManager']
 
 
 class InventoryManager(BaseManager):
-    """
-    Manage application inventories
-    """
+    """Manage application inventories"""
 
     def get_locales(self, only_active=None, pick_locales=None, pick_alias=None):
-        """
-        fetch all languages from db
-        """
+        """fetch all languages from db"""
         filter_kwargs = {}
         if only_active:
             filter_kwargs.update(dict(lang_status=True))
@@ -80,9 +76,7 @@ class InventoryManager(BaseManager):
         return locales
 
     def get_active_locales_count(self):
-        """
-        Return count of active locales
-        """
+        """Return count of active locales"""
         try:
             return Language.objects.filter(lang_status=True).count()
         except Exception as e:
@@ -110,9 +104,7 @@ class InventoryManager(BaseManager):
         return locale_qset.get().locale_id if locale_qset else alias
 
     def get_locale_lang_tuple(self, locales=None):
-        """
-        Creates locale
-        """
+        """Creates locale"""
         locales = self.get_locales(pick_locales=locales) \
             if locales else self.get_locales(only_active=True)
         return tuple([(locale.locale_id, locale.lang_name)
@@ -132,9 +124,7 @@ class InventoryManager(BaseManager):
         return active_locales, inactive_locales, aliases
 
     def get_langset(self, langset_slug, fields=None):
-        """
-        fetch desired language set from db
-        """
+        """fetch desired language set from db"""
         langset = None
         fetch_fields = []
         if fields and isinstance(fields, (tuple, list)):
@@ -149,9 +139,7 @@ class InventoryManager(BaseManager):
         return langset
 
     def get_langsets(self, fields=None):
-        """
-        fetch all language sets from db
-        """
+        """fetch all language sets from db"""
         langsets = None
         filter_fields = fields if isinstance(fields, (tuple, list)) else ()
         filter_kwargs = {}
@@ -164,9 +152,7 @@ class InventoryManager(BaseManager):
         return langsets
 
     def get_locale_groups(self, locale):
-        """
-        fetch list of langlist, a locale belongs to
-        """
+        """fetch list of langlist, a locale belongs to"""
         groups_locale_belongs_to = []
         lang_sets = self.get_langsets()
         for langset in lang_sets:
@@ -175,18 +161,14 @@ class InventoryManager(BaseManager):
         return {locale: groups_locale_belongs_to}
 
     def get_all_locales_groups(self):
-        """
-        get_locale_groups for all available locales
-        """
+        """get_locale_groups for all available locales"""
         all_locales_groups = {}
         for locale in self.get_locales():
             all_locales_groups.update(self.get_locale_groups(locale.locale_id))
         return all_locales_groups
 
     def get_relbranch_locales(self, release_branch):
-        """
-        Fetch locales specific to release branch
-        """
+        """Fetch locales specific to release branch"""
         required_locales = []
         try:
             release_branch_specific_lang_set = \
@@ -201,9 +183,7 @@ class InventoryManager(BaseManager):
         return required_locales
 
     def get_translation_platforms(self, engine=None, only_active=None, ci=None):
-        """
-        fetch all translation platforms from db
-        """
+        """fetch all translation platforms from db"""
         filter_kwargs = {}
         if engine:
             filter_kwargs.update(dict(engine_name=engine))
@@ -307,9 +287,7 @@ class InventoryManager(BaseManager):
 
     def get_release_streams(self, stream_slug=None, only_active=None,
                             built=None, fields=None):
-        """
-        Fetch all products from the db
-        """
+        """Fetch all products from the db"""
         filter_kwargs = {}
         if only_active:
             filter_kwargs.update(dict(product_status=True))
@@ -362,9 +340,7 @@ class InventoryManager(BaseManager):
 
 
 class SyncStatsManager(BaseManager):
-    """
-    Sync Translation Stats Manager
-    """
+    """Sync Translation Stats Manager"""
 
     def get_sync_stats(self, pkgs=None, fields=None, versions=None, sources=None):
         """
@@ -564,9 +540,7 @@ class SyncStatsManager(BaseManager):
 
 
 class ReleaseBranchManager(InventoryManager):
-    """
-    Release Stream Branch Manager
-    """
+    """Release Stream Branch Manager"""
 
     def get_release_branches(self, relstream=None, relbranch=None, fields=None):
         """
@@ -594,9 +568,7 @@ class ReleaseBranchManager(InventoryManager):
         return relbranches
 
     def is_relbranch_exist(self, release_branch):
-        """
-        Checks release branch existence
-        """
+        """Checks release branch existence"""
         if self.get_release_branches(relbranch=release_branch):
             return True
         return False
