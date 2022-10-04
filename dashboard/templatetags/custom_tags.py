@@ -620,7 +620,7 @@ def tag_target_langs(ci_pipeline):
 )
 def tag_pipeline_workflow_steps(pipeline_jobs):
     return_value = OrderedDict()
-    p_jobs_group = dict()
+    p_jobs_group = {}
     for pipeline_job in pipeline_jobs:
         workflow_step = pipeline_job.get('workflowStep')
         if not workflow_step:

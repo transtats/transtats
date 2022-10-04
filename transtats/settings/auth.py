@@ -54,4 +54,4 @@ REST_FRAMEWORK.update({
     )
 })
 
-CORS_ORIGIN_ALLOW_ALL = True if FAS_AUTH else False
+CORS_ORIGIN_ALLOW_ALL = bool(FAS_AUTH)

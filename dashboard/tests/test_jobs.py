@@ -37,9 +37,7 @@ class JobTemplateManagerTest(FixtureTestCase):
     datasets = [JobTemplateData]
 
     def test_get_job_templates(self):
-        """
-        Test get_job_templates
-        """
+        """Test get_job_templates"""
         templates = self.job_template_manager.get_job_templates()
         self.assertEqual(len(templates), 2, "two job templates")
         templates = self.job_template_manager.get_job_templates(
@@ -56,9 +54,7 @@ class CIPipelineManagerTest(FixtureTestCase):
     datasets = [CIPipelineData]
 
     def test_get_ci_pipelines(self):
-        """
-        Test get_ci_pipelines
-        """
+        """Test get_ci_pipelines"""
         ci_pipelines = self.ci_pipeline_manager.get_ci_pipelines()
         self.assertEqual(len(ci_pipelines), 1, "one ci pipeline")
         self.assertEquals(ci_pipelines[0].ci_package.package_name, 'anaconda')
@@ -73,9 +69,7 @@ class PipelineConfigManagerTest(FixtureTestCase):
     datasets = [PipelineConfigData]
 
     def test_get_pipeline_configs(self):
-        """
-        Test get_pipeline_configs
-        """
+        """Test get_pipeline_configs"""
         pipeline_configs = self.pipeline_config_manager.get_pipeline_configs()
         self.assertEqual(len(pipeline_configs), 1, "one pipeline config")
         self.assertEquals(pipeline_configs[0].ci_pipeline.ci_package.package_name, 'anaconda')

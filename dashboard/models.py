@@ -44,9 +44,7 @@ class ModelMixin(object):
 
 
 class Language(models.Model):
-    """
-    Language Model
-    """
+    """Language Model"""
     locale_id = models.CharField(
         max_length=50, primary_key=True, verbose_name="Locale ID"
     )
@@ -70,9 +68,7 @@ class Language(models.Model):
 
 
 class LanguageSet(models.Model):
-    """
-    Language Set Model
-    """
+    """Language Set Model"""
     lang_set_id = models.AutoField(primary_key=True)
     lang_set_name = models.CharField(
         max_length=1000, verbose_name="Language Set Name"
@@ -97,9 +93,7 @@ class LanguageSet(models.Model):
 
 
 class Platform(ModelMixin, models.Model):
-    """
-    Translation Platforms Model
-    """
+    """Translation Platforms Model"""
     platform_id = models.AutoField(primary_key=True)
     engine_name = models.CharField(
         max_length=200, verbose_name="Platform Engine"
@@ -147,9 +141,7 @@ class Platform(ModelMixin, models.Model):
 
 
 class Product(models.Model):
-    """
-    Product Model
-    """
+    """Product Model"""
     product_id = models.AutoField(primary_key=True)
     product_name = models.CharField(
         max_length=200, verbose_name="Product Name"
@@ -208,9 +200,7 @@ class Product(models.Model):
 
 
 class Release(ModelMixin, models.Model):
-    """
-    Releases Model
-    """
+    """Releases Model"""
     release_id = models.AutoField(primary_key=True)
     release_name = models.CharField(max_length=500, verbose_name="Release Name")
     release_slug = models.CharField(max_length=500, unique=True, verbose_name="Release SLUG")
@@ -245,9 +235,7 @@ class Release(ModelMixin, models.Model):
 
 
 class Package(ModelMixin, models.Model):
-    """
-    Packages Model
-    """
+    """Packages Model"""
     package_id = models.AutoField(primary_key=True)
     package_name = models.CharField(max_length=1000, unique=True, verbose_name="Package Name")
     upstream_name = models.CharField(max_length=1000, null=True, blank=True,
@@ -347,9 +335,7 @@ class Package(ModelMixin, models.Model):
 
 
 class PackageSet(models.Model):
-    """
-    Package Set Model
-    """
+    """Package Set Model"""
     package_set_id = models.AutoField(primary_key=True)
     package_set_name = models.CharField(
         max_length=1000, verbose_name="Package Set Name"
@@ -371,9 +357,7 @@ class PackageSet(models.Model):
 
 
 class JobTemplate(ModelMixin, models.Model):
-    """
-    Job Templates Model
-    """
+    """Job Templates Model"""
     job_template_id = models.AutoField(primary_key=True)
     job_template_type = models.CharField(max_length=100, unique=True)
     job_template_name = models.CharField(max_length=500)
@@ -398,9 +382,7 @@ class JobTemplate(ModelMixin, models.Model):
 
 
 class CIPipeline(ModelMixin, models.Model):
-    """
-    Continuous Integration Pipeline Model
-    """
+    """Continuous Integration Pipeline Model"""
     ci_pipeline_id = models.AutoField(primary_key=True)
     ci_pipeline_uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
     ci_package = models.ForeignKey(
@@ -495,9 +477,7 @@ class CIPipeline(ModelMixin, models.Model):
 
 
 class CIPlatformJob(ModelMixin, models.Model):
-    """
-    CI Pipeline Platform Job Model
-    """
+    """CI Pipeline Platform Job Model"""
     ci_platform_job_id = models.AutoField(primary_key=True)
     ci_pipeline = models.ForeignKey(
         CIPipeline, on_delete=models.PROTECT,
@@ -541,9 +521,7 @@ class CIPlatformJob(ModelMixin, models.Model):
 
 
 class PipelineConfig(ModelMixin, models.Model):
-    """
-    Pipeline Configurations Model
-    """
+    """Pipeline Configurations Model"""
     pipeline_config_id = models.AutoField(primary_key=True)
     ci_pipeline = models.ForeignKey(CIPipeline, on_delete=models.PROTECT,
                                     verbose_name="CI Pipeline", null=True)
@@ -585,9 +563,7 @@ class PipelineConfig(ModelMixin, models.Model):
 
 
 class Job(ModelMixin, models.Model):
-    """
-    Jobs Model
-    """
+    """Jobs Model"""
     job_id = models.AutoField(primary_key=True)
     job_uuid = models.UUIDField(default=uuid4, editable=False)
     job_type = models.CharField(max_length=200)
@@ -629,9 +605,7 @@ class Job(ModelMixin, models.Model):
 
 
 class SyncStats(ModelMixin, models.Model):
-    """
-    Sync Stats Model
-    """
+    """Sync Stats Model"""
     sync_id = models.AutoField(primary_key=True)
     package_name = models.ForeignKey(
         Package, on_delete=models.PROTECT,
@@ -658,9 +632,7 @@ class SyncStats(ModelMixin, models.Model):
 
 
 class GraphRule(models.Model):
-    """
-    Graph Rules Model
-    """
+    """Graph Rules Model"""
     graph_rule_id = models.AutoField(primary_key=True)
     rule_name = models.CharField(max_length=1000, unique=True,
                                  verbose_name="Rule Name")
@@ -694,9 +666,7 @@ class GraphRule(models.Model):
 
 
 class CacheAPI(ModelMixin, models.Model):
-    """
-    Cache API Model
-    """
+    """Cache API Model"""
     cache_api_id = models.AutoField(primary_key=True)
     base_url = models.URLField(max_length=800)
     resource = models.CharField(max_length=200)
@@ -717,9 +687,7 @@ class CacheAPI(ModelMixin, models.Model):
 
 
 class CacheBuildDetails(ModelMixin, models.Model):
-    """
-    Cache Build Details Model
-    """
+    """Cache Build Details Model"""
     cache_build_details_id = models.AutoField(primary_key=True)
     package_name = models.ForeignKey(
         Package, on_delete=models.PROTECT,
@@ -747,9 +715,7 @@ class CacheBuildDetails(ModelMixin, models.Model):
 
 
 class Report(ModelMixin, models.Model):
-    """
-    Reports Model
-    """
+    """Reports Model"""
     reports_id = models.AutoField(primary_key=True)
     report_subject = models.CharField(max_length=200, unique=True)
     report_json_str = models.TextField(null=True, blank=True)
@@ -768,9 +734,7 @@ class Report(ModelMixin, models.Model):
 
 
 class Visitor(models.Model):
-    """
-    Visitors Model
-    """
+    """Visitors Model"""
     visitor_id = models.AutoField(primary_key=True)
     visitor_ip = models.GenericIPAddressField()
     visitor_user_agent = models.CharField(max_length=500)

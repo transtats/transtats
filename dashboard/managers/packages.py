@@ -44,9 +44,7 @@ __all__ = ['PackagesManager', 'PackageBranchMapping']
 
 
 class PackagesManager(InventoryManager):
-    """
-    Packages Manager
-    """
+    """Packages Manager"""
 
     PROCESS_STATS = True
     LATEST_BUILD_COUNT = 10
@@ -54,9 +52,7 @@ class PackagesManager(InventoryManager):
     release_manager = ReleaseBranchManager()
 
     def get_packages(self, pkgs=None, pkg_params=None):
-        """
-        fetch packages from db
-        """
+        """fetch packages from db"""
         packages = None
         fields = pkg_params if isinstance(pkg_params, (list, tuple)) else []
         kwargs = {}
@@ -72,17 +68,13 @@ class PackagesManager(InventoryManager):
         return packages
 
     def is_package_exist(self, package_name):
-        """
-        check package existence
-        """
+        """check package existence"""
         if self.get_packages(pkgs=[package_name]):
             return True
         return False
 
     def update_package(self, package_name, fields):
-        """
-        Update a package with certain fields
-        """
+        """Update a package with certain fields"""
         try:
             Package.objects.filter(package_name=package_name).update(**fields)
         except Exception as e:
@@ -107,9 +99,7 @@ class PackagesManager(InventoryManager):
         return releases
 
     def get_relbranch_specific_pkgs(self, release_branch, fields=None):
-        """
-        fetch release branch specific packages from db
-        """
+        """fetch release branch specific packages from db"""
         packages = ()
         fields_required = fields if fields else ()
         try:
@@ -134,8 +124,7 @@ class PackagesManager(InventoryManager):
             release_branch, fields=['package_name', 'release_branch_mapping']
         )
         branch_locales = self.get_relbranch_locales(release_branch)
-        locales_count_match = True \
-            if len(branch_locales) == self.get_active_locales_count() else False
+        locales_count_match = len(branch_locales) == self.get_active_locales_count()
         for package in release_packages:
             version = package.release_branch_mapping_json[release_branch][BRANCH_MAPPING_KEYS[0]]
             package_stats = self.syncstats_manager.get_sync_stats(
@@ -241,16 +230,12 @@ class PackagesManager(InventoryManager):
         return trans_stats_by_rule
 
     def count_packages(self):
-        """
-        packages count
-        """
+        """packages count"""
         packages = self.get_packages()
         return packages.count() if packages else 0
 
     def get_package_name_tuple(self, t_status=False, check_mapping=False):
-        """
-        returns (package_name, upstream_name) tuple (only sync'd ones)
-        """
+        """returns (package_name, upstream_name) tuple (only sync'd ones)"""
         packages = self.get_packages()
         name_list = [(package.package_name, package.upstream_name) for package in packages]
         if t_status:
@@ -262,9 +247,7 @@ class PackagesManager(InventoryManager):
         return tuple(sorted(name_list))
 
     def get_project_details(self, transplatform, package_name):
-        """
-        Get platform-wise project details
-        """
+        """Get platform-wise project details"""
         resp_dict = None
         platform_url = None
         if transplatform.engine_name == TRANSPLATFORM_ENGINES[0]:
@@ -411,9 +394,7 @@ class PackagesManager(InventoryManager):
         return self._is_package_exist(package_name, platform.engine_name, projects_json)
 
     def get_lang_id_name_dict(self, release_branch=None):
-        """
-        Generates {(locale, alias): language_name} dict
-        """
+        """Generates {(locale, alias): language_name} dict"""
         active_locales = self.get_locales(
             pick_locales=self.get_relbranch_locales(release_branch)
         ) if release_branch else self.get_locales_set()[0]
@@ -465,7 +446,7 @@ class PackagesManager(InventoryManager):
     def _get_pkg_and_ext(self, package_name):
         package = self.get_packages([package_name]).get()
         # extension for Transifex should be true, otherwise false
-        extension = (True if package.platform_slug.engine_name == TRANSPLATFORM_ENGINES[0] else False)
+        extension = package.platform_slug.engine_name == TRANSPLATFORM_ENGINES[0]
         return package, extension
 
     def sync_update_package_details(self, package_name):
@@ -696,7 +677,7 @@ class PackagesManager(InventoryManager):
 
         for method in steps:
             status.append(method(package_name))
-        return True if [i for i in status if i] else False
+        return bool([i for i in status if i])
 
     def _formats_stats_diff(self, lang_sequence, stats_diff_dict):
         lang_dict = {}
@@ -840,9 +821,7 @@ class PackagesManager(InventoryManager):
         return stats_by_release
 
     def fetch_latest_builds(self, package_name):
-        """
-        Fetch latest build details from build system(s)
-        """
+        """Fetch latest build details from build system(s)"""
         if not package_name:
             return []
 
@@ -900,7 +879,7 @@ class PackagesManager(InventoryManager):
             owner_repo = [item[:-4] if item.endswith(".git")
                           else item for item in owner_repo]
             return instance_url, owner_repo
-        return instance_url, tuple()
+        return instance_url, ()
 
     @staticmethod
     def _determine_git_platform(instance_url):
@@ -953,9 +932,7 @@ class PackagesManager(InventoryManager):
 
 
 class PackageBranchMapping(object):
-    """
-    Creates Branch Mapping
-    """
+    """Creates Branch Mapping"""
     package = None
     package_name = None
     original_versions = None
@@ -996,18 +973,14 @@ class PackageBranchMapping(object):
                     self.release_build_tags_dict.update(build_tags)
 
     def _get_stream_branch_belongs_to(self, branch):
-        """
-        Get stream to which a branch belongs to
-        """
+        """Get stream to which a branch belongs to"""
         for stream, branches in self.release_branches_dict.items():
             if branch in branches:
                 return stream
         return ''
 
     def _sort_and_match_version_nm(self, release_branch, from_branches):
-        """
-        Sort versions matching stream and then try to match version number
-        """
+        """Sort versions matching stream and then try to match version number"""
         belonging_stream = self._get_stream_branch_belongs_to(release_branch).lower()
         relevant_versions = [version for version in from_branches if belonging_stream in version]
         version_numbers = re.findall(r'\d+', release_branch)
@@ -1019,9 +992,7 @@ class PackageBranchMapping(object):
         return False, ''
 
     def _check_release_version(self, branch, versions, shortform=None):
-        """
-        Match version numbers
-        """
+        """Match version numbers"""
         short_form = shortform if shortform else ''
         version_numbers = re.findall(r'\d+', branch)
         if len(version_numbers) >= 1:
@@ -1029,9 +1000,7 @@ class PackageBranchMapping(object):
         return [version for version in versions if short_form in version]
 
     def _compare_with_short_names(self, release_branch, from_branches):
-        """
-        Try short forms combined with version number
-        """
+        """Try short forms combined with version number"""
         belonging_stream = self._get_stream_branch_belongs_to(release_branch).lower()
         short_form = belonging_stream
         if belonging_stream == RELSTREAM_SLUGS[1]:

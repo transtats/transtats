@@ -346,7 +346,7 @@ class TransplatformResources(ResourcesBase):
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
     def _fetch_damnedlies_locale_release_stats(base_url, resource, *url_params, **kwargs):
-        locale_stat_dict = dict()
+        locale_stat_dict = {}
         locale_stat_dict["unit"] = "MESSAGE"
         locale_stat_dict["locale"] = url_params[0]
         response = kwargs.get('rest_response', {})
@@ -406,7 +406,7 @@ class TransplatformResources(ResourcesBase):
         if service_resp.get('err_content') or service_resp.get('text'):
             return False, service_resp.get('err_content') or \
                 {service_resp.get('status_code', 'Error'): service_resp.get('text')}
-        return False, dict()
+        return False, {}
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[1])

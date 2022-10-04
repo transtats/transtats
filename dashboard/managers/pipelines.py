@@ -34,9 +34,7 @@ __all__ = ['CIPipelineManager', 'PipelineConfigManager']
 
 
 class CIPipelineManager(BaseManager):
-    """
-    Continuous Integration Pipeline Manager
-    """
+    """Continuous Integration Pipeline Manager"""
 
     package_manager = PackagesManager()
 
@@ -87,8 +85,8 @@ class CIPipelineManager(BaseManager):
         project_uuid = project_url
         if ci_platform.engine_name == TRANSPLATFORM_ENGINES[4] and "/" in project_url:
             project_uuid = project_url.split("/")[-1:][0]
-        response_dict = dict()
-        kwargs = dict()
+        response_dict = {}
+        kwargs = {}
         kwargs.update(dict(no_cache_api=True))
         response_dict = self.api_resources.fetch_project_details(
             ci_platform.engine_name, ci_platform.api_url, project_uuid, **kwargs
@@ -116,7 +114,7 @@ class CIPipelineManager(BaseManager):
                         if toggle_visibility and self.toggle_visibility(pipeline_id):
                             return True
                 else:
-                    pipeline_params = dict()
+                    pipeline_params = {}
                     pipeline_params['ci_project_web_url'] = ci_pipeline.ci_project_web_url
                     pipeline_params['ci_project_details_json_str'] = json.dumps(resp_dict)
                     pipeline_params['ci_platform_jobs_json_str'] = json.dumps(
@@ -238,12 +236,12 @@ class CIPipelineManager(BaseManager):
         :param workflow_step: Str
         :return: dict
         """
-        ci_lang_job_map = dict()
+        ci_lang_job_map = {}
         if not pipelines:
             return ci_lang_job_map
         for pipeline in pipelines:
             if pipeline.ci_platform_jobs_json:
-                ci_lang_job_map[pipeline.ci_pipeline_uuid] = dict()
+                ci_lang_job_map[pipeline.ci_pipeline_uuid] = {}
                 for job_detail in pipeline.ci_platform_jobs_json:
                     if job_detail.get('targetLang') and job_detail.get('uid') and job_detail.get('filename'):
 
@@ -286,9 +284,7 @@ class CIPipelineManager(BaseManager):
 
 
 class PipelineConfigManager(CIPipelineManager):
-    """
-    Pipeline Configurations Manager
-    """
+    """Pipeline Configurations Manager"""
 
     def get_pipeline_configs(self, fields=None, ci_pipelines=None, pipeline_config_ids=None):
         """
@@ -483,11 +479,11 @@ class PipelineConfigManager(CIPipelineManager):
         :param tenant: str or None
         :return: dict
         """
-        key_val_map = dict()
+        key_val_map = {}
         if not pipeline and not action:
             return key_val_map
 
-        respective_job_template_json = self.get_job_action_template(pipeline, action).job_template_json or dict()
+        respective_job_template_json = self.get_job_action_template(pipeline, action).job_template_json or {}
         pipeline_config = respective_job_template_json.copy()
 
         if output_format and output_format == 'html_form':
@@ -537,7 +533,7 @@ class PipelineConfigManager(CIPipelineManager):
         ci_pipeline = self.get_ci_pipelines(uuids=[pipeline_uuid]).get()
 
         def _save_pipeline_config(*params):
-            pc_kwargs = dict()
+            pc_kwargs = {}
             pc_kwargs.update(dict(ci_pipeline=params[0]))
             pc_kwargs.update(dict(pipeline_config_event=params[1]))
             pc_kwargs.update(dict(pipeline_config_active=True))

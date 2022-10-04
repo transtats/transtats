@@ -43,9 +43,7 @@ logger = get_task_logger(__name__)
 
 @shared_task()
 def task_sync_packages_with_platform():
-    """
-    sync all packages with translation platform
-    """
+    """sync all packages with translation platform"""
 
     logger.info("Starting task_sync_packages_with_platform ..")
 
@@ -93,9 +91,7 @@ def task_sync_packages_with_platform():
 
 @shared_task()
 def task_sync_packages_with_build_system():
-    """
-    sync all packages with build system
-    """
+    """sync all packages with build system"""
 
     logger.info("Starting task_sync_packages_with_build_system ..")
 

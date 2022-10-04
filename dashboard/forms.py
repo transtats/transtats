@@ -56,9 +56,7 @@ SLUG_CHOICES = tuple([(slug, slug) for slug in all_platform_slugs])
 
 
 class TextArrayField(forms.MultipleChoiceField):
-    """
-    Multiple Check Box Field
-    """
+    """Multiple Check Box Field"""
     def to_python(self, value):
         """Normalize data to a list of strings."""
         # Return an empty list if no input was given.
@@ -70,9 +68,7 @@ class TextArrayField(forms.MultipleChoiceField):
 
 
 class NewPackageForm(forms.Form):
-    """
-    Add new package to package list
-    """
+    """Add new package to package list"""
     platform_choices = ()
     products_choices = ()
 
@@ -132,13 +128,11 @@ class NewPackageForm(forms.Form):
     )
 
     def is_valid(self):
-        return False if len(self.errors) >= 1 else True
+        return not len(self.errors) >= 1
 
 
 class UpdatePackageForm(forms.ModelForm):
-    """
-    Update package form
-    """
+    """Update package form"""
     products = TextArrayField(widget=forms.CheckboxSelectMultiple)
 
     def __init__(self, *args, **kwargs):
@@ -172,9 +166,7 @@ class UpdatePackageForm(forms.ModelForm):
     )
 
     def clean_package_name(self):
-        """
-        Don't allow to override the value of 'package_name' as it is readonly field
-        """
+        """Don't allow to override the value of 'package_name' as it is readonly field"""
         package_name = getattr(self.instance, 'package_name', None)
         if package_name:
             return package_name
@@ -214,9 +206,7 @@ class UpdatePackageForm(forms.ModelForm):
 
 
 class NewReleaseBranchForm(forms.Form):
-    """
-    Add new branch to release stream
-    """
+    """Add new branch to release stream"""
     action_url = ''
     phases_choices = ()
     langset_choices = ()
@@ -285,13 +275,11 @@ class NewReleaseBranchForm(forms.Form):
     )
 
     def is_valid(self):
-        return False if len(self.errors) >= 1 else True
+        return not len(self.errors) >= 1
 
 
 class NewGraphRuleForm(forms.Form):
-    """
-    Add new graph rule
-    """
+    """Add new graph rule"""
     rule_packages_choices = ()
     rule_langs_choices = ()
     rule_relbranch_choices = ()
@@ -388,13 +376,11 @@ class NewGraphRuleForm(forms.Form):
         return cleaned_data
 
     def is_valid(self):
-        return False if len(self.errors) >= 1 else True
+        return not len(self.errors) >= 1
 
 
 class UpdateGraphRuleForm(forms.ModelForm):
-    """
-    Update Graph Rule form
-    """
+    """Update Graph Rule form"""
 
     def __init__(self, *args, **kwargs):
         super(UpdateGraphRuleForm, self).__init__(*args, **kwargs)
@@ -424,9 +410,7 @@ class UpdateGraphRuleForm(forms.ModelForm):
     )
 
     def clean_rule_name(self):
-        """
-        Don't allow to override the value of 'rule_name' as it is readonly field
-        """
+        """Don't allow to override the value of 'rule_name' as it is readonly field"""
         rule_name = getattr(self.instance, 'rule_name', None)
         if rule_name:
             return rule_name
@@ -435,9 +419,7 @@ class UpdateGraphRuleForm(forms.ModelForm):
 
 
 class NewLanguageForm(forms.ModelForm):
-    """
-    Add new language form
-    """
+    """Add new language form"""
     def __init__(self, *args, **kwargs):
         super(NewLanguageForm, self).__init__(*args, **kwargs)
 
@@ -464,9 +446,7 @@ class NewLanguageForm(forms.ModelForm):
 
 
 class UpdateLanguageForm(forms.ModelForm):
-    """
-    Update language form
-    """
+    """Update language form"""
     def __init__(self, *args, **kwargs):
         super(UpdateLanguageForm, self).__init__(*args, **kwargs)
 
@@ -503,9 +483,7 @@ class UpdateLanguageForm(forms.ModelForm):
 
 
 class LanguageSetForm(forms.ModelForm):
-    """
-    Language set form, for new language set and update language set
-    """
+    """Language set form, for new language set and update language set"""
     class Meta:
         model = LanguageSet
         fields = '__all__'
@@ -544,9 +522,7 @@ class LanguageSetForm(forms.ModelForm):
 
 
 class NewTransPlatformForm(forms.ModelForm):
-    """
-    Add new TransPlatform form
-    """
+    """Add new TransPlatform form"""
     def __init__(self, *args, **kwargs):
         super(NewTransPlatformForm, self).__init__(*args, **kwargs)
 
@@ -583,9 +559,7 @@ class NewTransPlatformForm(forms.ModelForm):
     )
 
     def clean_api_url(self):
-        """
-        Remove trailing slash if any
-        """
+        """Remove trailing slash if any"""
         api_url = self.cleaned_data.get('api_url')
         if api_url:
             return api_url if not api_url.endswith('/') else api_url.rstrip('/')
@@ -594,9 +568,7 @@ class NewTransPlatformForm(forms.ModelForm):
 
 
 class UpdateTransPlatformForm(forms.ModelForm):
-    """
-    Update TransPlatform form
-    """
+    """Update TransPlatform form"""
     def __init__(self, *args, **kwargs):
         super(UpdateTransPlatformForm, self).__init__(*args, **kwargs)
 
@@ -634,9 +606,7 @@ class UpdateTransPlatformForm(forms.ModelForm):
     )
 
     def clean_engine_name(self):
-        """
-        Don't allow to override the value of 'engine_name' as it is readonly field
-        """
+        """Don't allow to override the value of 'engine_name' as it is readonly field"""
         engine_name = getattr(self.instance, 'engine_name', None)
         if engine_name:
             return engine_name
@@ -644,9 +614,7 @@ class UpdateTransPlatformForm(forms.ModelForm):
             return self.cleaned_data.get('engine_name')
 
     def clean_platform_slug(self):
-        """
-        Don't allow to override the value of 'platform_slug' as it is readonly field
-        """
+        """Don't allow to override the value of 'platform_slug' as it is readonly field"""
         platform_slug = getattr(self.instance, 'platform_slug', None)
         if platform_slug:
             return platform_slug
@@ -654,9 +622,7 @@ class UpdateTransPlatformForm(forms.ModelForm):
             return self.cleaned_data.get('platform_slug')
 
     def clean_api_url(self):
-        """
-        Remove trailing slash if any
-        """
+        """Remove trailing slash if any"""
         api_url = getattr(self.instance, 'api_url', None)
         if api_url:
             return api_url if not api_url.endswith('/') else api_url.rstrip('/')
@@ -665,9 +631,7 @@ class UpdateTransPlatformForm(forms.ModelForm):
 
 
 class PackagePipelineForm(forms.ModelForm):
-    """
-    Add Package CI Pipeline form
-    """
+    """Add Package CI Pipeline form"""
 
     ci_project_web_url = forms.URLField(
         label='CI Platform Project URL', required=True,
@@ -721,9 +685,7 @@ class PackagePipelineForm(forms.ModelForm):
     )
 
     def clean_ci_project_web_url(self):
-        """
-        Clean CI Project Web URL
-        """
+        """Clean CI Project Web URL"""
         if self.cleaned_data.get('ci_project_web_url'):
             parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])
             return "{}://{}{}".format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
@@ -731,9 +693,7 @@ class PackagePipelineForm(forms.ModelForm):
 
 
 class CreateCIPipelineForm(forms.ModelForm):
-    """
-    Add new CI Pipeline form
-    """
+    """Add new CI Pipeline form"""
 
     ci_project_web_url = forms.URLField(
         label='CI Platform Project URL', required=True,
@@ -774,9 +734,7 @@ class CreateCIPipelineForm(forms.ModelForm):
     )
 
     def clean_ci_project_web_url(self):
-        """
-        Clean CI Project Web URL
-        """
+        """Clean CI Project Web URL"""
         if self.cleaned_data.get('ci_project_web_url'):
             parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])
             return "{}://{}{}".format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)

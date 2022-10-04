@@ -755,9 +755,9 @@ class ReleaseBranchManager(InventoryManager):
             kwargs['product_slug'] = product
             kwargs['scm_branch'] = kwargs.get('scm_branch')
             kwargs['created_on'] = timezone.now()
-            kwargs['sync_calendar'] = True if 'sync_calendar' in flags else False
-            kwargs['notifications_flag'] = True if 'notifications_flag' in flags else False
-            kwargs['track_trans_flag'] = True if 'track_trans_flag' in flags else False
+            kwargs['sync_calendar'] = 'sync_calendar' in flags
+            kwargs['notifications_flag'] = 'notifications_flag' in flags
+            kwargs['track_trans_flag'] = 'track_trans_flag' in flags
             new_release_branch = Release(**kwargs)
             new_release_branch.save()
         except Exception as e:

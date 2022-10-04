@@ -122,13 +122,9 @@ class JobCommandBase(BaseManager):
 
 
 class Get(JobCommandBase):
-    """
-    Handles all operations for GET Command
-    """
+    """Handles all operations for GET Command"""
     def latest_build_info(self, input, kwargs):
-        """
-        Fetch latest build info from koji
-        """
+        """Fetch latest build info from koji"""
         task_subject = "Latest Build Details"
         task_log = OrderedDict()
 
@@ -147,9 +143,7 @@ class Get(JobCommandBase):
         return {'builds': builds}, {task_subject: task_log}
 
     def task_info(self, input, kwargs):
-        """
-        Fetch task info and results
-        """
+        """Fetch task info and results"""
         task_subject = "Task Details"
         task_log = OrderedDict()
 
@@ -176,9 +170,7 @@ class Get(JobCommandBase):
 
 
 class Download(JobCommandBase):
-    """
-    Handles all operations for DOWNLOAD Command
-    """
+    """Handles all operations for DOWNLOAD Command"""
 
     def _download_file(self, file_link, file_path=None, headers=None, auth=None):
         req = requests.get(file_link, headers=headers, auth=auth)
@@ -388,7 +380,7 @@ class Download(JobCommandBase):
             platform_auth_user = input.get('pkg_ci_auth_usr') or input.get('pkg_tp_auth_usr')
             platform_auth_token = input.get('pkg_ci_auth_token') or input.get('pkg_tp_auth_token')
 
-            service_kwargs = dict()
+            service_kwargs = {}
             service_kwargs['auth_user'] = platform_auth_user
             service_kwargs['auth_token'] = platform_auth_token
 
@@ -410,7 +402,7 @@ class Download(JobCommandBase):
 
             service_kwargs.update(dict(no_cache_api=True))
 
-            service_args = list()
+            service_args = []
             service_args.append(platform_project)
             service_args.append(project_version)
 
@@ -468,9 +460,7 @@ class Download(JobCommandBase):
                 'target_langs': target_langs}, {task_subject: task_log}
 
     def translation_files(self, input, kwargs):
-        """
-        Download translations from a translation Platform
-        """
+        """Download translations from a translation Platform"""
         input_params = input.copy()
         eliminate_items = ['ci_project_uid', 'pkg_ci_engine', 'pkg_ci_url',
                            'pkg_ci_auth_usr', 'pkg_ci_auth_token', 'ci_lang_job_map']
@@ -480,9 +470,7 @@ class Download(JobCommandBase):
 
 
 class Clone(JobCommandBase):
-    """
-    Handles all operations for CLONE Command
-    """
+    """Handles all operations for CLONE Command"""
 
     def _format_weblate_git_url(self, input_params):
         clone_url = input_params['upstream_repo_url']
@@ -493,9 +481,7 @@ class Clone(JobCommandBase):
         )
 
     def git_repository(self, input, kwargs):
-        """
-        Clone GIT repository
-        """
+        """Clone GIT repository"""
         task_subject = "Clone Repository"
         task_log = OrderedDict()
 
@@ -539,9 +525,7 @@ class Clone(JobCommandBase):
 
 
 class Generate(JobCommandBase):
-    """
-    Handles all operations for GENERATE Command
-    """
+    """Handles all operations for GENERATE Command"""
 
     def _verify_command(self, command):
         """
@@ -617,9 +601,7 @@ class Generate(JobCommandBase):
 
 
 class Unpack(JobCommandBase):
-    """
-    Handles all operations for UNPACK Command
-    """
+    """Handles all operations for UNPACK Command"""
 
     def srpm(self, input, kwargs):
         """
@@ -662,9 +644,7 @@ class Unpack(JobCommandBase):
             return root
 
     def tarball(self, input, kwargs):
-        """
-        Untar source tarball
-        """
+        """Untar source tarball"""
 
         task_subject = "Unpack tarball"
         task_log = OrderedDict()
@@ -702,14 +682,10 @@ class Unpack(JobCommandBase):
 
 
 class Load(JobCommandBase):
-    """
-    Handles all operations for LOAD Command
-    """
+    """Handles all operations for LOAD Command"""
 
     def spec_file(self, input, kwargs):
-        """
-        locate and load spec file
-        """
+        """locate and load spec file"""
         task_subject = "Load Spec file"
         task_log = OrderedDict()
 
@@ -794,9 +770,7 @@ class Load(JobCommandBase):
 
 
 class Apply(JobCommandBase):
-    """
-    Handles all operations for APPLY Command
-    """
+    """Handles all operations for APPLY Command"""
 
     def _apply_prep(self, input, prep_section, tar_dir, w_log, sub):
         file_ext = '.po'
@@ -886,9 +860,7 @@ class Apply(JobCommandBase):
 
 
 class Filter(JobCommandBase):
-    """
-    Handles all operations for FILTER Command
-    """
+    """Handles all operations for FILTER Command"""
 
     @staticmethod
     def _determine_podir(files, domain):
@@ -914,9 +886,7 @@ class Filter(JobCommandBase):
         return len(trans_dirs) > 1, trans_dirs
 
     def files(self, input, kwargs):
-        """
-        Filter files from tarball
-        """
+        """Filter files from tarball"""
         file_ext = 'po'
         if kwargs.get('ext'):
             file_ext = kwargs['ext'].lower()
@@ -956,7 +926,7 @@ class Filter(JobCommandBase):
                 input['log_f'], task_subject, trans_files,
                 text_prefix='%s %s files filtered' % (len(trans_files), file_ext.upper())
             ))
-            result_dict = dict()
+            result_dict = {}
             result_dict.update({'trans_files': trans_files, 'file_ext': file_ext})
             if is_podir:
                 result_dict.update(dict(podir=True))
@@ -964,9 +934,7 @@ class Filter(JobCommandBase):
 
 
 class Upload(JobCommandBase):
-    """
-    Handles all operations for UPLOAD Command
-    """
+    """Handles all operations for UPLOAD Command"""
 
     @staticmethod
     def _collect_files(t_files, file_ext, target_langs, podir=False):
@@ -1024,7 +992,7 @@ class Upload(JobCommandBase):
 
             # let's try pushing the collected files, one by one
             for lang, file_path in collected_files.items():
-                api_kwargs = dict()
+                api_kwargs = {}
                 with open(file_path, 'rb') as f:
                     api_kwargs['data'] = f.read()
 
@@ -1041,12 +1009,12 @@ class Upload(JobCommandBase):
                         and lang not in set([i[0] for i in ci_lang_job_map.values()]):
                     raise Exception("Job ID NOT found for lang: {}. Please refresh the pipeline.".format(lang))
 
-                api_kwargs['headers'] = dict()
+                api_kwargs['headers'] = {}
                 api_kwargs['auth_user'] = platform_auth_user
                 api_kwargs['auth_token'] = platform_auth_token
 
                 if platform_engine == TRANSPLATFORM_ENGINES[4]:
-                    memsource_kwargs = dict()
+                    memsource_kwargs = {}
                     if kwargs.get('update'):
                         # narrow down ci_lang_job_map by filter
                         if kwargs.get('prepend_branch') and input.get('repo_branch'):
@@ -1171,7 +1139,7 @@ class Upload(JobCommandBase):
 
             # let's try uploading the collected files, one by one
             for lang, file_path in collected_files.items():
-                api_kwargs = dict()
+                api_kwargs = {}
 
                 file_name = file_path.split(os.sep)[-1]
 
@@ -1179,7 +1147,7 @@ class Upload(JobCommandBase):
                 # todo: extend support for scm repositories
                 if repo_type in TRANSPLATFORM_ENGINES:
 
-                    api_kwargs['data'], api_kwargs['files'] = dict(), dict()
+                    api_kwargs['data'], api_kwargs['files'] = {}, {}
                     platform_engine, platform_api_url, platform_auth_user, platform_auth_token = \
                         input.get('pkg_tp_engine'), input.get('pkg_tp_url'), \
                         input.get('pkg_tp_auth_usr'), input.get('pkg_tp_auth_token')
@@ -1227,14 +1195,10 @@ class Upload(JobCommandBase):
 
 
 class Calculate(JobCommandBase):
-    """
-    Handles all operations for CALCULATE Command
-    """
+    """Handles all operations for CALCULATE Command"""
 
     def stats(self, input, kwargs):
-        """
-        Calculate stats from filtered translations
-        """
+        """Calculate stats from filtered translations"""
 
         task_subject = "Calculate Translation Stats"
         task_log = OrderedDict()
@@ -1255,7 +1219,7 @@ class Calculate(JobCommandBase):
                         'Something went wrong while parsing %s: %s' % (po_file, str(e))
                     ))
                 else:
-                    temp_trans_stats = dict()
+                    temp_trans_stats = {}
                     temp_trans_stats['unit'] = "MESSAGE"
                     temp_trans_stats['locale'] = po_file.split(os.sep)[-2] if input.get('podir') \
                         else po_file.split(os.sep)[-1].split('.')[0]
@@ -1279,9 +1243,7 @@ class Calculate(JobCommandBase):
             return {'trans_stats': trans_stats}, {task_subject: task_log}
 
     def diff(self, input, kwargs):
-        """
-        Calculate diff between two
-        """
+        """Calculate diff between two"""
         task_subject = "Calculate Differences"
         task_log = OrderedDict()
         diff_lines = ''
@@ -1327,9 +1289,7 @@ class Calculate(JobCommandBase):
 
 
 class ActionMapper(BaseManager):
-    """
-    YML Parsed Objects to Actions Mapper
-    """
+    """YML Parsed Objects to Actions Mapper"""
     COMMANDS = [
         'GET',          # Call some method
         'DOWNLOAD',     # Download some resource
@@ -1471,7 +1431,7 @@ class ActionMapper(BaseManager):
             if current_node.log:
                 self.__log.update(current_node.log)
 
-            self.tasks.status = True if current_node.output else False
+            self.tasks.status = bool(current_node.output)
             if current_node.output and 'builds' in current_node.output:
                 if not current_node.output['builds']:
                     break
@@ -1527,9 +1487,7 @@ class ActionMapper(BaseManager):
         return self.tasks.status
 
     def clean_workspace(self):
-        """
-        Remove downloaded SRPM, and its stuffs
-        """
+        """Remove downloaded SRPM, and its stuffs"""
         try:
             if self.cleanup_resources.get('srpm_path'):
                 os.remove(self.cleanup_resources.get('srpm_path'))

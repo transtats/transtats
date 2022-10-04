@@ -30,17 +30,13 @@ from dashboard.services.consume.config.memsource import \
 
 
 class CacheAPIManager(object):
-    """
-    Class to handle db interface to services
-    """
+    """Class to handle db interface to services"""
 
     EXPIRY_MIN = 60
 
     def save_api_response(self, req_base_url, req_resource, resp_content,
                           resp_content_json, *req_args, **req_kwargs):
-        """
-        Save API responses in db
-        """
+        """Save API responses in db"""
         cache_params = {}
         match_params = {
             'base_url': req_base_url,
@@ -106,10 +102,10 @@ class CacheAPIManager(object):
                 else:
                     # either no or invalid API auth token, prepare and call API
                     config = memsource_resources.get('request_token')
-                    payload = dict()
+                    payload = {}
                     payload.update(dict(userName=platform.auth_login_id))
                     payload.update(dict(password=platform.auth_token_key))
-                    headers = dict()
+                    headers = {}
                     headers['Accept'] = memsource_media_types[0]
                     headers['Content-Type'] = memsource_media_types[0]
 
