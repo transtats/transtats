@@ -191,6 +191,8 @@ class InventoryManager(BaseManager):
             filter_kwargs.update(dict(server_status=True))
         if ci:
             filter_kwargs.update(dict(ci_status=True))
+        if ci is False:
+            filter_kwargs.update(dict(ci_status=False))
 
         platforms = None
         try:
@@ -232,12 +234,12 @@ class InventoryManager(BaseManager):
         engine = [i for i, j in platform_relation.items() if platform_slug in j]
         return engine[0] if isinstance(engine, list) and len(engine) > 0 else ''
 
-    def get_transplatform_slug_url(self):
+    def get_transplatform_slug_url(self, ci=None):
         """
         Get slug and api_url for active transplatform
         :return: tuple
         """
-        active_platforms = self.get_translation_platforms(only_active=True)
+        active_platforms = self.get_translation_platforms(only_active=True, ci=ci)
         return tuple([(platform.platform_slug, platform.api_url)
                       for platform in active_platforms]) or ()
 
@@ -284,6 +286,37 @@ class InventoryManager(BaseManager):
                 language_team_contact[platform.api_url] = \
                     self._get_lang_contact(platform, language)
         return language_team_contact
+
+    def create_platform_project(self, project_slug, repo_url, platform_slug):
+        """
+        Create a Project at Translation Platform
+        :param project_slug: str
+        :param repo_url: str
+        :param platform_slug: str
+        :return: dict
+        """
+        request_kwargs = {}
+        platform = Platform.objects.filter(platform_slug=platform_slug).get()
+        if platform.engine_name == TRANSPLATFORM_ENGINES[1]:
+            # Transifex payload for new project
+            request_kwargs['data'] = '{"slug":"%s","name":"%s","source_language_code":"en",' \
+                                     '"description":"%s", "repository_url": "%s"}' % \
+                                     (project_slug, project_slug, project_slug, repo_url)
+        request_kwargs.update(dict(
+            auth_user=platform.auth_login_id, auth_token=platform.auth_token_key
+        ))
+
+        api_response = None
+        try:
+            api_response = self.api_resources.create_project(
+                translation_platform=platform.engine_name,
+                instance_url=platform.api_url, **request_kwargs
+            )
+        except Exception as e:
+            self.logger("Something unexpected happened while creating a project "
+                        "at platform, details: " + str(e))
+
+        return api_response
 
     def get_release_streams(self, stream_slug=None, only_active=None,
                             built=None, fields=None):
@@ -467,7 +500,6 @@ class SyncStatsManager(BaseManager):
         :param p_stats: processed stats dict
         :return: boolean
         """
-
         filter_kwargs = dict(package_name=project,
                              project_version=version,
                              source=stats_source)
@@ -658,12 +690,12 @@ class ReleaseBranchManager(InventoryManager):
         DELIMITER = ":"
         branch_schedule_dict = OrderedDict()
 
-        if product_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2], RELSTREAM_SLUGS[3]):
+        if product_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2], RELSTREAM_SLUGS[3], RELSTREAM_SLUGS[4]):
             try:
                 for event in required_events:
                     for event_dict in ical_events:
                         if (event.lower() in event_dict.get('SUMMARY').lower() and
-                                relbranch_slug in event_dict.get('SUMMARY').lower()):
+                                relbranch_slug in event_dict.get('SUMMARY').lower().replace('_', '-')):
                             key = DELIMITER.join(event_dict.get('SUMMARY').split(DELIMITER)[1:])
                             branch_schedule_dict[key] = event_dict.get('DTEND', '')
 

@@ -436,7 +436,6 @@ class GraphManager(BaseManager):
         :param threshold: translation %age margin: int
         :return: dict
         """
-
         consolidated_stats = self._consolidate_branch_specific_stats(
             self._get_branch_specific_pkgs_stats(release_branch)
         )
@@ -561,6 +560,7 @@ class ReportsManager(GraphManager):
         pkg_tracking_for_RHEL = all_packages.filter(products__icontains=RELSTREAM_SLUGS[0]).count()
         pkg_tracking_for_fedora = all_packages.filter(products__icontains=RELSTREAM_SLUGS[1]).count()
         pkg_tracking_for_satellite = all_packages.filter(products__icontains=RELSTREAM_SLUGS[3]).count()
+        pkg_tracking_for_console = all_packages.filter(products__icontains=RELSTREAM_SLUGS[4]).count()
         pkg_details_week_old = all_packages.filter(
             details_json_last_updated__lte=timezone.now() - timezone.timedelta(days=7)).count()
         pkg_transtats_week_old = all_packages.filter(
@@ -580,6 +580,7 @@ class ReportsManager(GraphManager):
             RELSTREAM_SLUGS[0]: pkg_tracking_for_RHEL or 0,
             RELSTREAM_SLUGS[1]: pkg_tracking_for_fedora or 0,
             RELSTREAM_SLUGS[3]: pkg_tracking_for_satellite or 0,
+            RELSTREAM_SLUGS[4]: pkg_tracking_for_console or 0,
             'pkg_details_week_old': pkg_details_week_old or 0,
             'pkg_transtats_week_old': pkg_transtats_week_old or 0,
             'pkg_upstream_week_old': pkg_upstream_week_old or 0,
@@ -760,7 +761,6 @@ class GeoLocationManager(ReportsManager):
 
     def save_territory_build_system_stats(self):
         """Save Territory's Build System Stats in Percentage"""
-
         tenant = settings.TS_AUTH_SYSTEM \
             if settings.TS_AUTH_SYSTEM in RELSTREAM_SLUGS \
             else "default"

@@ -1,4 +1,5 @@
-##### Tue Jul 5 2022 Sundeep Anand <suanand@redhat.com>
+##### Thu Jul 18 2022 Sundeep Anand <suanand@redhat.com>
+* Auto Create Transifex Project from package creation form.
 * Update Memsource API Authentication
 
 ##### Mon Jun 6 2022 Sundeep Anand <suanand@redhat.com> - release_0.8.6

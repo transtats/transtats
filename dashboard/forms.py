@@ -85,6 +85,11 @@ class NewPackageForm(forms.Form):
         label='Translation Platform',
         choices=platform_choices, help_text='Translation statistics will be fetched from this server.'
     )
+    auto_create_project = TextArrayField(
+        label="Create Project at Platform",
+        widget=forms.CheckboxSelectMultiple, choices=(('True', 'Yes'),),
+        help_text="Attempt project creation at platform if it does not exist.", required=False
+    )
     release_streams = TextArrayField(
         label='Products', widget=forms.CheckboxSelectMultiple, choices=products_choices,
         help_text="Translation progress for selected products will be tracked."
@@ -111,6 +116,7 @@ class NewPackageForm(forms.Form):
             Field('upstream_url', css_class='form-control'),
             Field('upstream_l10n_url', css_class='form-control'),
             Field('transplatform_slug', css_class='selectpicker'),
+            InlineCheckboxes('auto_create_project'),
             InlineCheckboxes('release_streams'),
             HTML("<hr/>"),
             HTML("<h5 class='text-info'>Servers configured here may be contacted at intervals.</h5>"),

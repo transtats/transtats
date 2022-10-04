@@ -304,6 +304,9 @@ class PackagesManager(InventoryManager):
             if 'update_stats' in kwargs:
                 del kwargs['update_stats']
 
+            if 'auto_create_project' in kwargs:
+                del kwargs['auto_create_project']
+
             kwargs['platform_slug'] = platform
             kwargs['products'] = kwargs.pop('release_streams')
             kwargs['platform_name'] = kwargs['package_name']
@@ -915,8 +918,10 @@ class PackagesManager(InventoryManager):
                 if package.package_details_json and package.package_details_json.get('iterations') \
                 else default_branch
         instance_url, git_owner_repo = self._parse_git_url(upstream_url)
+        kwargs = {}
+        kwargs.update(dict(no_cache_api=True))
         branches = self.api_resources.fetch_repo_branches(
-            self._determine_git_platform(instance_url), instance_url, *git_owner_repo
+            self._determine_git_platform(instance_url), instance_url, *git_owner_repo, **kwargs
         )
         if not branches:
             return default_branch

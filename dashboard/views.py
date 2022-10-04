@@ -434,9 +434,11 @@ class NewPackageView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
-        if self.request.tenant == RELSTREAM_SLUGS[0] or self.request.tenant == RELSTREAM_SLUGS[1]:
+        if self.request.tenant in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[1]):
             initials.update(dict(transplatform_slug=WEBLATE_SLUGS[1]))
-        if self.request.tenant == RELSTREAM_SLUGS[3]:
+        if self.request.tenant in (RELSTREAM_SLUGS[3], RELSTREAM_SLUGS[4]):
+            if self.request.tenant == RELSTREAM_SLUGS[4]:
+                initials.update(dict(auto_create_project='True'))
             initials.update(dict(transplatform_slug=TRANSIFEX_SLUGS[0]))
         default_product = self.request.tenant
         initials.update(dict(release_streams=default_product))
@@ -445,7 +447,7 @@ class NewPackageView(ManagersMixin, FormView):
     def get_form(self, form_class=None, data=None):
         kwargs = {}
         active_platforms = \
-            self.inventory_manager.get_transplatform_slug_url()
+            self.inventory_manager.get_transplatform_slug_url(ci=False)
         active_streams = self.inventory_manager.get_relstream_slug_name()
         kwargs.update({'platform_choices': active_platforms})
         kwargs.update({'products_choices': active_streams})
@@ -464,6 +466,14 @@ class NewPackageView(ManagersMixin, FormView):
             messages.add_message(request, messages.ERROR, (
                 'One of the required fields is missing.'))
             return render(request, self.template_name, {'form': form})
+
+        if post_params.get('auto_create_project', ['False'])[0] == 'True':
+            # Attempt project creation at translation platform
+            self.packages_manager.create_platform_project(
+                project_slug=post_params['package_name'],
+                repo_url=post_params['upstream_url'],
+                platform_slug=post_params['transplatform_slug'],
+            )
         # Validate package with translation platform
         validate_package = self.packages_manager.validate_package(**post_params)
         if not validate_package:
@@ -1099,7 +1109,7 @@ class AddCIPipeline(ManagersMixin, FormView):
                                      for platform in ci_platforms])
         kwargs.update(dict(ci_platform_choices=ci_platform_choices))
         packages = self.packages_manager.get_packages()
-        releases = self.release_branch_manager.get_release_branches()
+        releases = self.release_branch_manager.get_release_branches(relstream=self.request.tenant)
         package_choices = tuple([(package.package_id, package.package_name) for package in packages])
         release_choices = tuple([(release.release_id, release.__str__) for release in releases])
         kwargs.update(dict(package_choices=_sort_choices_by_name(package_choices)))

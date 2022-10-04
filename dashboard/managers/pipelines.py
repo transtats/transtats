@@ -22,7 +22,8 @@ from django.utils import timezone
 
 # dadhboard
 from dashboard.constants import (
-    TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, PIPELINE_CONFIG_EVENTS
+    TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
+    PIPELINE_CONFIG_EVENTS, GIT_REPO_TYPE
 )
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers import BaseManager
@@ -336,6 +337,15 @@ class PipelineConfigManager(CIPipelineManager):
         :return: dict
         """
 
+        upstream_repo_type = GIT_REPO_TYPE[0]
+        if pipeline.ci_package.upstream_l10n_url:
+            upstream_repo_type = GIT_REPO_TYPE[1]
+
+        upstream_repo_branches = self.package_manager.git_branches(
+            package_name=pipeline.ci_package.package_name,
+            repo_type=upstream_repo_type
+        )
+
         repo_branches = self.package_manager.git_branches(
             package_name=pipeline.ci_package.package_name,
             repo_type=pipeline.ci_package.platform_slug.engine_name
@@ -345,8 +355,8 @@ class PipelineConfigManager(CIPipelineManager):
                 pipeline.ci_pipeline_default_branch in repo_branches:
             repo_branches = [pipeline.ci_pipeline_default_branch]
 
-        def _format_val(value_str):
-            return "<strong>{}</strong>".format(str(value_str))
+        def _format_val(field_id, value_str):
+            return "<strong id={}>{}</strong>".format(field_id, str(value_str))
 
         def _format_choices(field_id, values):
             html_select = ""
@@ -379,24 +389,29 @@ class PipelineConfigManager(CIPipelineManager):
         if action == PIPELINE_CONFIG_EVENTS[2]:
             upload_update_field = "<input id='uploadUpdate' name='uploadUpdate' type='checkbox' checked>"
 
+        file_filter_ext = 'PO'
+        if tenant == RELSTREAM_SLUGS[4]:
+            file_filter_ext = 'JSON'
+
         key_val_map = {
-            "ci_pipeline": _format_val(pipeline.ci_pipeline_uuid),
-            "package": _format_val(pipeline.ci_package.package_name),
-            "clone.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
-            "clone.branch": _format_choices("repoCloneBranch", repo_branches),
+            "ci_pipeline": _format_val("ciPipeline", pipeline.ci_pipeline_uuid),
+            "package": _format_val("packageName", pipeline.ci_package.package_name),
+            "clone.type": _format_val("cloneType", upstream_repo_type),
+            "clone.branch": _format_choices("repoCloneBranch", upstream_repo_branches),
             "clone.recursive": "<input type='checkbox' id='cloneRecursive' name='cloneRecursive'>",
             "filter.domain": "<input id='filterDomain' type='text' value='{}'>".format(
                 pipeline.ci_package.package_name),
+            "filter.ext": "<input id='filterExt' type='text' value='{}'>".format(file_filter_ext),
             "filter.dir": "<input id='filterDir' type='text' value=''>",
             "download.target_langs": _format_checkboxes(
                 'downloadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
-            "download.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
+            "download.type": _format_val("downloadType", pipeline.ci_package.platform_slug.engine_name),
             "download.branch": _choose_checkboxes_or_dropdown("downloadRepoBranch", repo_branches),
             "download.workflow_step": _format_choices(
                 "workflowStep", self.get_ci_platform_workflow_steps(pipeline.ci_pipeline_uuid)
             ),
             "download.prepend_branch": prepend_branch_field,
-            "upload.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
+            "upload.type": _format_val("uploadType", pipeline.ci_package.platform_slug.engine_name),
             "upload.branch": _choose_checkboxes_or_dropdown("uploadRepoBranch", repo_branches),
             "upload.target_langs": _format_checkboxes(
                 'uploadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
@@ -430,6 +445,7 @@ class PipelineConfigManager(CIPipelineManager):
             "clone.branch": config_values.get('cloneBranch', ''),
             "clone.recursive": self.__true_false_type(config_values.get('cloneRecursive', '')),
             "filter.domain": config_values.get('filterDomain', ''),
+            "filter.ext": config_values.get('filterExt', ''),
             "filter.dir": config_values.get('filterDir', ''),
             "download.target_langs": config_values.get('downloadTargetLangs', '').split(','),
             "download.type": config_values.get('downloadType', ''),

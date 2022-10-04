@@ -855,8 +855,8 @@ class Apply(JobCommandBase):
                 input['log_f'], task_subject, patches,
                 text_prefix='%s patches applied' % len(patches)
             ))
-        finally:
-            return tar_dir, {task_subject: task_log}
+
+        return tar_dir, {task_subject: task_log}
 
 
 class Filter(JobCommandBase):
@@ -927,7 +927,7 @@ class Filter(JobCommandBase):
                 text_prefix='%s %s files filtered' % (len(trans_files), file_ext.upper())
             ))
             result_dict = {}
-            result_dict.update({'trans_files': trans_files})
+            result_dict.update({'trans_files': trans_files, 'file_ext': file_ext})
             if is_podir:
                 result_dict.update(dict(podir=True))
             return result_dict, {task_subject: task_log}
@@ -965,6 +965,8 @@ class Upload(JobCommandBase):
         platform_project = input.get('ci_project_uid') or input.get('package')
 
         file_ext = 'po'
+        if input.get('file_ext'):
+            file_ext = input['file_ext'].lower()
         if kwargs.get('ext'):
             file_ext = kwargs['ext'].lower()
         ci_lang_job_map = input.get('ci_lang_job_map', {})
