@@ -1429,7 +1429,7 @@ class ActionMapper(BaseManager):
             if current_node.log:
                 self.__log.update(current_node.log)
 
-            self.tasks.status = True if current_node.output else False
+            self.tasks.status = bool(current_node.output)
             if current_node.output and 'builds' in current_node.output:
                 if not current_node.output['builds']:
                     break

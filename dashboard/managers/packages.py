@@ -124,8 +124,7 @@ class PackagesManager(InventoryManager):
             release_branch, fields=['package_name', 'release_branch_mapping']
         )
         branch_locales = self.get_relbranch_locales(release_branch)
-        locales_count_match = True \
-            if len(branch_locales) == self.get_active_locales_count() else False
+        locales_count_match = len(branch_locales) == self.get_active_locales_count()
         for package in release_packages:
             version = package.release_branch_mapping_json[release_branch][BRANCH_MAPPING_KEYS[0]]
             package_stats = self.syncstats_manager.get_sync_stats(
@@ -444,7 +443,7 @@ class PackagesManager(InventoryManager):
     def _get_pkg_and_ext(self, package_name):
         package = self.get_packages([package_name]).get()
         # extension for Transifex should be true, otherwise false
-        extension = (True if package.platform_slug.engine_name == TRANSPLATFORM_ENGINES[0] else False)
+        extension = package.platform_slug.engine_name == TRANSPLATFORM_ENGINES[0]
         return package, extension
 
     def sync_update_package_details(self, package_name):
@@ -675,7 +674,7 @@ class PackagesManager(InventoryManager):
 
         for method in steps:
             status.append(method(package_name))
-        return True if [i for i in status if i] else False
+        return bool([i for i in status if i])
 
     def _formats_stats_diff(self, lang_sequence, stats_diff_dict):
         lang_dict = {}

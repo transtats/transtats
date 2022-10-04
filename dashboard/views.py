@@ -1575,7 +1575,7 @@ def change_lang_status(request):
                 return HttpResponse("Status should be 'enable' or 'disable'", status=422)
             try:
                 language_object = Language.objects.get(locale_id=language)
-                language_object.lang_status = True if new_lang_status == 'enable' else False
+                language_object.lang_status = new_lang_status == 'enable'
                 language_object.save()
             except Exception as status_change_error:
                 return HttpResponse("Something went wrong.", status=500)
