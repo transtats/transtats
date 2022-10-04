@@ -44,9 +44,7 @@ __all__ = ['GraphManager', 'ReportsManager', 'GeoLocationManager']
 
 
 class GraphManager(BaseManager):
-    """
-    Manage graph representations
-    """
+    """Manage graph representations"""
 
     package_manager = PackagesManager()
     branch_manager = ReleaseBranchManager()
@@ -176,9 +174,7 @@ class GraphManager(BaseManager):
             return True
 
     def _normalize_stats(self, stats_nested_list, index_list):
-        """
-        Normalize stats for a locale index and picks higher value
-        """
+        """Normalize stats for a locale index and picks higher value"""
         temp_index_list = []
         temp_stat_list = []
         for index, stat in stats_nested_list:
@@ -243,9 +239,7 @@ class GraphManager(BaseManager):
         return self._format_stats_for_default_graphs(lang_id_name, stats_dict, pkg_desc, prepend_source)
 
     def _format_stats_for_lang_wise_graphs(self, input_locale, locale_sequence, stats_dict, desc):
-        """
-        Formats stats dict for bar graph-ready material
-        """
+        """Formats stats dict for bar graph-ready material"""
         stats_for_graphs_dict = OrderedDict()
         stats_branches = list(stats_dict.keys())
         stats_for_graphs_dict['pkg_desc'] = desc
@@ -300,9 +294,7 @@ class GraphManager(BaseManager):
         return rule_data, len(packages), len(locales), len(tags), release
 
     def _consolidate_branch_specific_stats(self, packages_stats_dict):
-        """
-        Sum up stats per language
-        """
+        """Sum up stats per language"""
         temp_stats_dict = {}
         pkgs_stats_list = list(packages_stats_dict.values())
         pkgs_length = len(pkgs_stats_list)
@@ -316,9 +308,7 @@ class GraphManager(BaseManager):
         return sorted([(i, 100 - int(j / pkgs_length)) for i, j in temp_stats_dict.items()])
 
     def _format_data_for_pie_chart(self, consolidated_stats, lang_options):
-        """
-        Takes consolidated stats and formats for pie chart
-        """
+        """Takes consolidated stats and formats for pie chart"""
         formatted_stats = []
         formatted_langs = []
         for lang, stat in consolidated_stats:
@@ -329,9 +319,7 @@ class GraphManager(BaseManager):
                 'select_options': sorted(formatted_langs, key=itemgetter('text'))}
 
     def _get_branch_specific_pkgs_stats(self, relbranch):
-        """
-        Generates translation stats of all packages in all langs of attached lang-set
-        """
+        """Generates translation stats of all packages in all langs of attached lang-set"""
         specific_pkgs = [package.package_name for package in
                          self.package_manager.get_relbranch_specific_pkgs(relbranch, ['package_name'])]
         all_pkgs_stats_dict = OrderedDict()
@@ -348,9 +336,7 @@ class GraphManager(BaseManager):
         return all_pkgs_stats_dict
 
     def get_workload_graph_data(self, release_branch):
-        """
-        Build or generates workload graph data
-        """
+        """Build or generates workload graph data"""
         consolidated_stats = self._consolidate_branch_specific_stats(
             self._get_branch_specific_pkgs_stats(release_branch)
         )
@@ -387,9 +373,7 @@ class GraphManager(BaseManager):
         return stats_summary_dict
 
     def get_workload_estimate(self, release_branch, locale=None):
-        """
-        Build list of packages with translation workload for a given branch
-        """
+        """Build list of packages with translation workload for a given branch"""
         headers = WORKLOAD_HEADERS
         pkg_stats = self.package_manager.get_release_specific_package_stats(
             release_branch=release_branch)
@@ -405,15 +389,11 @@ class GraphManager(BaseManager):
         ))
 
     def get_workload_combined(self, release_branch):
-        """
-        Build list of packages with translation workload for a given branch in all languages
-        """
+        """Build list of packages with translation workload for a given branch in all languages"""
         return self.get_workload_estimate(release_branch)
 
     def get_workload_detailed(self, release_branch):
-        """
-        Build translation workload percentage for a given branch in all languages
-        """
+        """Build translation workload percentage for a given branch in all languages"""
         relbranch_packages_stats = self._get_branch_specific_pkgs_stats(release_branch)
         locale_lang_tuple = self.package_manager.get_locale_lang_tuple(
             locales=self.package_manager.get_relbranch_locales(release_branch)
@@ -456,7 +436,6 @@ class GraphManager(BaseManager):
         :param threshold: translation %age margin: int
         :return: dict
         """
-
         consolidated_stats = self._consolidate_branch_specific_stats(
             self._get_branch_specific_pkgs_stats(release_branch)
         )
@@ -474,9 +453,7 @@ class GraphManager(BaseManager):
 
 
 class ReportsManager(GraphManager):
-    """
-    Manage Reports Generations
-    """
+    """Manage Reports Generations"""
 
     package_manager = PackagesManager()
 
@@ -528,9 +505,7 @@ class ReportsManager(GraphManager):
         return {k: v for k, v in lang_stats_dict.items() if k in active_languages}
 
     def analyse_releases_status(self):
-        """
-        Summarize Releases Status
-        """
+        """Summarize Releases Status"""
         relbranches = self.branch_manager.get_relbranch_name_slug_tuple()
         relbranch_report = {}
         for branch_slug, branch_name in relbranches:
@@ -577,9 +552,7 @@ class ReportsManager(GraphManager):
         return False
 
     def analyse_packages_status(self):
-        """
-        Summarize Packages Status
-        """
+        """Summarize Packages Status"""
         all_packages = self.package_manager.get_packages(pkg_params=[
             'package_name', 'products', 'details_json_last_updated', 'stats_diff',
             'release_branch_mapping', 'platform_last_updated', 'upstream_last_updated'
@@ -712,9 +685,7 @@ class ReportsManager(GraphManager):
 
 
 class GeoLocationManager(ReportsManager):
-    """
-    Geo Location Manager
-    """
+    """Geo Location Manager"""
 
     def get_locales_from_territory_id(self, territory_id):
         """
@@ -789,9 +760,7 @@ class GeoLocationManager(ReportsManager):
         return filtered_stats, last_updated
 
     def save_territory_build_system_stats(self):
-        """
-        Save Territory's Build System Stats in Percentage
-        """
+        """Save Territory's Build System Stats in Percentage"""
 
         tenant = settings.TS_AUTH_SYSTEM \
             if settings.TS_AUTH_SYSTEM in RELSTREAM_SLUGS \
