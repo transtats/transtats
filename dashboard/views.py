@@ -931,7 +931,7 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
         post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
         form = self.get_form(data=post_data)
 
-        context_data = dict()
+        context_data = {}
         context_data['form'] = form
         package_name = self.kwargs.get('slug')
         context_data.update(dict(package_name=package_name))
@@ -1115,7 +1115,7 @@ class AddCIPipeline(ManagersMixin, FormView):
         post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
         form = self.get_form(data=post_data)
 
-        context_data = dict()
+        context_data = {}
         context_data['form'] = form
 
         if form.is_valid():

@@ -102,10 +102,10 @@ class CacheAPIManager(object):
                 else:
                     # either no or invalid API auth token, prepare and call API
                     config = memsource_resources.get('request_token')
-                    payload = dict()
+                    payload = {}
                     payload.update(dict(userName=platform.auth_login_id))
                     payload.update(dict(password=platform.auth_token_key))
-                    headers = dict()
+                    headers = {}
                     headers['Accept'] = memsource_media_types[0]
                     headers['Content-Type'] = memsource_media_types[0]
 
