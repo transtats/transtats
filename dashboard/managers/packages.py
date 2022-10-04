@@ -876,7 +876,7 @@ class PackagesManager(InventoryManager):
             owner_repo = [item[:-4] if item.endswith(".git")
                           else item for item in owner_repo]
             return instance_url, owner_repo
-        return instance_url, tuple()
+        return instance_url, ()
 
     @staticmethod
     def _determine_git_platform(instance_url):

@@ -55,7 +55,7 @@ def set_api_auth():
     def service_decorator(caller):
         def inner_decorator(rest_client, url, resource, *args, **kwargs):
             if 'headers' not in kwargs:
-                kwargs['headers'] = dict()
+                kwargs['headers'] = {}
             if rest_client.service == TRANSPLATFORM_ENGINES[4]:
                 # Memsource needs token in Authorization header.
                 cache_api_manager = CacheAPIManager()
@@ -63,7 +63,7 @@ def set_api_auth():
                 memsource_auth_user = API_TOKEN_PREFIX.get(rest_client.service) or kwargs['auth_user']
                 kwargs['headers']['Authorization'] = f"{memsource_auth_user} {latest_token}"
             if kwargs.get('auth_user') and kwargs.get('auth_token'):
-                auth_tuple = tuple()
+                auth_tuple = ()
                 if rest_client.service == TRANSPLATFORM_ENGINES[1]:
                     # Transifex need auth_tuple for HTTPBasicAuth.
                     auth_tuple = (

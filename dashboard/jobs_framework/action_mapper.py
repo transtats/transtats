@@ -380,7 +380,7 @@ class Download(JobCommandBase):
             platform_auth_user = input.get('pkg_ci_auth_usr') or input.get('pkg_tp_auth_usr')
             platform_auth_token = input.get('pkg_ci_auth_token') or input.get('pkg_tp_auth_token')
 
-            service_kwargs = dict()
+            service_kwargs = {}
             service_kwargs['auth_user'] = platform_auth_user
             service_kwargs['auth_token'] = platform_auth_token
 
@@ -402,7 +402,7 @@ class Download(JobCommandBase):
 
             service_kwargs.update(dict(no_cache_api=True))
 
-            service_args = list()
+            service_args = []
             service_args.append(platform_project)
             service_args.append(project_version)
 
@@ -926,7 +926,7 @@ class Filter(JobCommandBase):
                 input['log_f'], task_subject, trans_files,
                 text_prefix='%s %s files filtered' % (len(trans_files), file_ext.upper())
             ))
-            result_dict = dict()
+            result_dict = {}
             result_dict.update({'trans_files': trans_files})
             if is_podir:
                 result_dict.update(dict(podir=True))
@@ -990,7 +990,7 @@ class Upload(JobCommandBase):
 
             # let's try pushing the collected files, one by one
             for lang, file_path in collected_files.items():
-                api_kwargs = dict()
+                api_kwargs = {}
                 with open(file_path, 'rb') as f:
                     api_kwargs['data'] = f.read()
 
@@ -1007,12 +1007,12 @@ class Upload(JobCommandBase):
                         and lang not in set([i[0] for i in ci_lang_job_map.values()]):
                     raise Exception("Job ID NOT found for lang: {}. Please refresh the pipeline.".format(lang))
 
-                api_kwargs['headers'] = dict()
+                api_kwargs['headers'] = {}
                 api_kwargs['auth_user'] = platform_auth_user
                 api_kwargs['auth_token'] = platform_auth_token
 
                 if platform_engine == TRANSPLATFORM_ENGINES[4]:
-                    memsource_kwargs = dict()
+                    memsource_kwargs = {}
                     if kwargs.get('update'):
                         # narrow down ci_lang_job_map by filter
                         if kwargs.get('prepend_branch') and input.get('repo_branch'):
@@ -1137,7 +1137,7 @@ class Upload(JobCommandBase):
 
             # let's try uploading the collected files, one by one
             for lang, file_path in collected_files.items():
-                api_kwargs = dict()
+                api_kwargs = {}
 
                 file_name = file_path.split(os.sep)[-1]
 
@@ -1145,7 +1145,7 @@ class Upload(JobCommandBase):
                 # todo: extend support for scm repositories
                 if repo_type in TRANSPLATFORM_ENGINES:
 
-                    api_kwargs['data'], api_kwargs['files'] = dict(), dict()
+                    api_kwargs['data'], api_kwargs['files'] = {}, {}
                     platform_engine, platform_api_url, platform_auth_user, platform_auth_token = \
                         input.get('pkg_tp_engine'), input.get('pkg_tp_url'), \
                         input.get('pkg_tp_auth_usr'), input.get('pkg_tp_auth_token')
@@ -1217,7 +1217,7 @@ class Calculate(JobCommandBase):
                         'Something went wrong while parsing %s: %s' % (po_file, str(e))
                     ))
                 else:
-                    temp_trans_stats = dict()
+                    temp_trans_stats = {}
                     temp_trans_stats['unit'] = "MESSAGE"
                     temp_trans_stats['locale'] = po_file.split(os.sep)[-2] if input.get('podir') \
                         else po_file.split(os.sep)[-1].split('.')[0]

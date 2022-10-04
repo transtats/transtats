@@ -74,9 +74,9 @@ class RpmSpecFile:
         if self.Name:
             package = self.Name
 
-        self.section = dict()
-        self.section[section] = dict()
-        self.section[section][package] = list()
+        self.section = {}
+        self.section[section] = {}
+        self.section[section][package] = []
 
         # Now split into sections
         for line in self.lines:
@@ -91,9 +91,9 @@ class RpmSpecFile:
                         package = self.Name
 
                     if section not in self.section:
-                        self.section[section] = dict()
+                        self.section[section] = {}
                     if package not in self.section[section]:
-                        self.section[section][package] = list()
+                        self.section[section][package] = []
                     continue
 
             if package:
