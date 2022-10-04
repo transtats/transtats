@@ -54,9 +54,7 @@ __all__ = ['JobTemplateManager', 'JobManager', 'JobsLogManager',
 
 
 class JobTemplateManager(BaseManager):
-    """
-    Job Templates Manager
-    """
+    """Job Templates Manager"""
     def get_job_templates(self, *fields, **filters):
         """
         Get Job Templates from db
@@ -76,13 +74,9 @@ class JobTemplateManager(BaseManager):
 
 
 class JobManager(object):
-    """
-    Base Manager for Jobs
-    """
+    """Base Manager for Jobs"""
     def _new_job_id(self):
-        """
-        a UUID based on the host ID and current time
-        """
+        """a UUID based on the host ID and current time"""
         return uuid4()
 
     def __init__(self, job_type):
@@ -125,9 +119,7 @@ class JobManager(object):
             return True
 
     def mark_job_finish(self, remove=None):
-        """
-        Update job with finish details
-        """
+        """Update job with finish details"""
         try:
             if remove:
                 Job.objects.filter(job_uuid=self.uuid).delete()
@@ -151,16 +143,12 @@ class JobManager(object):
 
 
 class JobsLogManager(BaseManager):
-    """
-    Maintains Job Logs
-    """
+    """Maintains Job Logs"""
 
     package_manager = PackagesManager()
 
     def get_job_logs(self, remarks=None, result=None, no_pipeline=True):
-        """
-        Fetch all job logs from the db
-        """
+        """Fetch all job logs from the db"""
         job_logs = None
         filters = {}
         if remarks:
@@ -195,9 +183,7 @@ class JobsLogManager(BaseManager):
         return job_log
 
     def get_joblog_stats(self):
-        """
-        Stats about jobs log
-        """
+        """Stats about jobs log"""
         last_ran_on = None
         last_ran_type = None
         jobs_logs = self.get_job_logs()
@@ -311,29 +297,21 @@ class JobsLogManager(BaseManager):
 
 
 class TransplatformSyncManager(BaseManager):
-    """
-    Translation Platform Sync Manager
-    """
+    """Translation Platform Sync Manager"""
 
     def __init__(self, *args, **kwargs):
-        """
-        entry point
-        """
+        """entry point"""
         super(TransplatformSyncManager, self).__init__(self, *args, **kwargs)
         self.job_manager = JobManager(TS_JOB_TYPES[0])
 
     def syncstats_initiate_job(self):
-        """
-        Creates a Sync Job
-        """
+        """Creates a Sync Job"""
         if self.job_manager.create_job(user_email=self.active_user_email):
             return self.job_manager.uuid
         return None
 
     def sync_trans_stats(self):
-        """
-        Run Sync process in sequential steps
-        """
+        """Run Sync process in sequential steps"""
         stages = (
             self.update_trans_projects,
             self.update_project_details,
@@ -343,9 +321,7 @@ class TransplatformSyncManager(BaseManager):
         [method() for method in stages]
 
     def update_trans_projects(self):
-        """
-        Update projects json for transplatform in db
-        """
+        """Update projects json for transplatform in db"""
         self.job_manager.log_json['Projects'] = OrderedDict()
         try:
             transplatforms = Platform.objects.only('engine_name', 'api_url',
@@ -391,9 +367,7 @@ class TransplatformSyncManager(BaseManager):
         return self.job_manager.job_result
 
     def update_project_details(self):
-        """
-        Update project details json in db
-        """
+        """Update project details json in db"""
         self.job_manager.log_json['Project-Details'] = OrderedDict()
         try:
             project_urls = Package.objects.select_related()
@@ -435,30 +409,22 @@ class TransplatformSyncManager(BaseManager):
 
 
 class ReleaseScheduleSyncManager(BaseManager):
-    """
-    Release Schedule Sync Manager
-    """
+    """Release Schedule Sync Manager"""
 
     def __init__(self, *args, **kwargs):
-        """
-        entry point
-        """
+        """entry point"""
         super(ReleaseScheduleSyncManager, self).__init__(self, *args, **kwargs)
         self.job_manager = JobManager(TS_JOB_TYPES[1])
         self.release_branch_manager = ReleaseBranchManager()
 
     def syncschedule_initiate_job(self):
-        """
-        Creates a Sync Job
-        """
+        """Creates a Sync Job"""
         if self.job_manager.create_job(user_email=self.active_user_email):
             return self.job_manager.uuid
         return None
 
     def sync_release_schedule(self):
-        """
-        Run Sync process in sequential steps
-        """
+        """Run Sync process in sequential steps"""
         stages = (
             self.update_event_dates,
             self.job_manager.mark_job_finish,
@@ -467,9 +433,7 @@ class ReleaseScheduleSyncManager(BaseManager):
         [method() for method in stages]
 
     def update_event_dates(self):
-        """
-        Update schedule_json for all release branches
-        """
+        """Update schedule_json for all release branches"""
         SUBJECT = 'Release Branches'
         self.job_manager.log_json[SUBJECT] = OrderedDict()
 
@@ -516,30 +480,22 @@ class ReleaseScheduleSyncManager(BaseManager):
 
 
 class BuildTagsSyncManager(BaseManager):
-    """
-    Build Tags Sync Manager
-    """
+    """Build Tags Sync Manager"""
 
     def __init__(self, *args, **kwargs):
-        """
-        entry point
-        """
+        """entry point"""
         super(BuildTagsSyncManager, self).__init__(self, *args, **kwargs)
         self.job_manager = JobManager(TS_JOB_TYPES[4])
         self.release_branch_manager = ReleaseBranchManager()
 
     def syncbuildtags_initiate_job(self):
-        """
-        Creates a Sync Job
-        """
+        """Creates a Sync Job"""
         if self.job_manager.create_job(user_email=self.active_user_email):
             return self.job_manager.uuid
         return None
 
     def sync_build_tags(self):
-        """
-        Run Sync process in sequential steps
-        """
+        """Run Sync process in sequential steps"""
         stages = (
             self.update_build_system_tags,
             self.job_manager.mark_job_finish,
@@ -548,9 +504,7 @@ class BuildTagsSyncManager(BaseManager):
         [method() for method in stages]
 
     def update_build_system_tags(self):
-        """
-        Update build system tags
-        """
+        """Update build system tags"""
         SUBJECT = 'Build System Tags'
         self.job_manager.log_json[SUBJECT] = OrderedDict()
 
@@ -616,9 +570,7 @@ class YMLBasedJobManager(BaseManager):
         return "-".join(args)
 
     def __init__(self, *args, **kwargs):
-        """
-        Set Job Environment here
-        """
+        """Set Job Environment here"""
         super(YMLBasedJobManager, self).__init__(**kwargs)
         self.suffix = self.job_suffix(
             [getattr(self, param, '') for param in self.params][:3]
@@ -775,9 +727,7 @@ class YMLBasedJobManager(BaseManager):
             raise Exception('Stats could NOT be saved in db.')
 
     def _save_push_results_in_db(self, job_details):
-        """
-        Save jobs which are created/updated in CI Platform for a project
-        """
+        """Save jobs which are created/updated in CI Platform for a project"""
         try:
             for platform_project, jobs in job_details.items():
                 if platform_project != self.ci_project_uid:
@@ -798,9 +748,7 @@ class YMLBasedJobManager(BaseManager):
             raise Exception('Details could NOT be saved in db.')
 
     def _wipe_workspace(self):
-        """
-        This makes sandbox clean for a new job to run
-        """
+        """This makes sandbox clean for a new job to run"""
         # remove log file if exists
         if os.path.exists(self.job_log_file):
             os.remove(self.job_log_file)

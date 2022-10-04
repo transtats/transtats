@@ -38,36 +38,26 @@ from dashboard.managers.jobs import (
 
 
 class InventoryManagerMixin(object):
-    """
-    Required Manager
-    """
+    """Required Manager"""
     inventory_manager = ReleaseBranchManager()
 
 
 class GraphManagerMixin(object):
-    """
-    Required Manager
-    """
+    """Required Manager"""
     graph_manager = GraphManager()
 
 
 class JobManagerMixin(object):
-    """
-    Required Managers
-    """
+    """Required Managers"""
     job_log_manager = JobsLogManager()
     job_template_manager = JobTemplateManager()
 
 
 class PingServer(APIView):
-    """
-    Ping Server API
-    """
+    """Ping Server API"""
 
     def get(self, request):
-        """
-        Ping Transtats Server.
-        """
+        """Ping Transtats Server."""
         response_text = {"server": "Transtats " + __release__}
         if 'callback' in request.query_params and request.query_params.get('callback'):
             response_text = '%s(%s);' % (request.query_params['callback'], response_text)
@@ -76,13 +66,9 @@ class PingServer(APIView):
 
 
 class PackageExist(GraphManagerMixin, APIView):
-    """
-    Package Exist API
-    """
+    """Package Exist API"""
     def get(self, request, **kwargs):
-        """
-        Determine, if the package exist in Transtats or not.
-        """
+        """Determine, if the package exist in Transtats or not."""
         response_text = {}
         if kwargs.get('package_name'):
             package = kwargs['package_name']
@@ -92,13 +78,9 @@ class PackageExist(GraphManagerMixin, APIView):
 
 
 class PackageHealth(GraphManagerMixin, APIView):
-    """
-    Package Health API
-    """
+    """Package Health API"""
     def get(self, request, **kwargs):
-        """
-        Get package health
-        """
+        """Get package health"""
         response_text = {}
         if kwargs.get('package_name'):
             package = kwargs['package_name']
@@ -117,9 +99,7 @@ class PackageHealth(GraphManagerMixin, APIView):
 
 
 class PackageStatus(GraphManagerMixin, APIView):
-    """
-    Package Translation Status API
-    """
+    """Package Translation Status API"""
 
     def _process_stats_data(self, trans_stats_data):
         """
@@ -146,9 +126,7 @@ class PackageStatus(GraphManagerMixin, APIView):
 
     @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
-        """
-        Translation status of a package at various places.
-        """
+        """Translation status of a package at various places."""
         response_text = {}
         if kwargs.get('package_name'):
             package = kwargs['package_name']
@@ -165,9 +143,7 @@ class PackageStatus(GraphManagerMixin, APIView):
 
 
 class AddPackage(GraphManagerMixin, APIView):
-    """
-    Add New Package API
-    """
+    """Add New Package API"""
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
@@ -210,15 +186,11 @@ class AddPackage(GraphManagerMixin, APIView):
 
 
 class GraphRuleCoverage(GraphManagerMixin, APIView):
-    """
-    Graph Rule Coverage API
-    """
+    """Graph Rule Coverage API"""
 
     @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
-        """
-        Translation coverage of multiple packages for a product release in selected languages.
-        """
+        """Translation coverage of multiple packages for a product release in selected languages."""
         response_text = {}
         if kwargs.get('coverage_rule'):
             rule = kwargs['coverage_rule']
@@ -234,9 +206,7 @@ class GraphRuleCoverage(GraphManagerMixin, APIView):
 
 
 class ReleaseStatus(InventoryManagerMixin, GraphManagerMixin, APIView):
-    """
-    Release Status API
-    """
+    """Release Status API"""
 
     def _process_stats_data(self, trans_stats_data):
         """
@@ -253,9 +223,7 @@ class ReleaseStatus(InventoryManagerMixin, GraphManagerMixin, APIView):
 
     @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
-        """
-        Translation status of a product release for linked packages.
-        """
+        """Translation status of a product release for linked packages."""
         response_text = {}
         if kwargs.get('release_stream'):
             release = kwargs['release_stream']
@@ -272,15 +240,11 @@ class ReleaseStatus(InventoryManagerMixin, GraphManagerMixin, APIView):
 
 
 class ReleaseStatusDetail(ReleaseStatus):
-    """
-    Release Status Detail API
-    """
+    """Release Status Detail API"""
 
     @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
-        """
-        Detailed (language-wise) translation status of a product release.
-        """
+        """Detailed (language-wise) translation status of a product release."""
         response_text = {}
         if kwargs.get('release_stream'):
             release = kwargs['release_stream']
@@ -299,15 +263,11 @@ class ReleaseStatusDetail(ReleaseStatus):
 
 
 class ReleaseStatusLocale(ReleaseStatus):
-    """
-    Release Status Locale API View
-    """
+    """Release Status Locale API View"""
 
     @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
-        """
-        Translation status of a product release in a particular language.
-        """
+        """Translation status of a product release in a particular language."""
         response_text = {}
         if kwargs.get('release_stream') and kwargs.get('locale'):
             release = kwargs['release_stream']
@@ -334,17 +294,13 @@ class ReleaseStatusLocale(ReleaseStatus):
 
 
 class RunJob(JobManagerMixin, APIView):
-    """
-    Run YML Job API
-    """
+    """Run YML Job API"""
 
     authentication_classes = (TokenAuthentication, )
     permission_classes = (IsAuthenticated, )
 
     def post(self, request, **kwargs):
-        """
-        API to run YML Jobs. Requires authentication token.
-        """
+        """API to run YML Jobs. Requires authentication token."""
         data_received = self.request.data.copy()
         active_user = getattr(request, 'user', None)
         active_user_email = active_user.email \
@@ -406,15 +362,11 @@ class RunJob(JobManagerMixin, APIView):
 
 
 class JobLog(JobManagerMixin, APIView):
-    """
-    Job Log API
-    """
+    """Job Log API"""
 
     @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request, **kwargs):
-        """
-        Fetch details about a YML job ran successfully in Transtats.
-        """
+        """Fetch details about a YML job ran successfully in Transtats."""
         response_text = {}
         response_code = None
         if kwargs.get('job_id'):

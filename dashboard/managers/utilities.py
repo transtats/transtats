@@ -117,9 +117,7 @@ COUNTRY_CODE_2to3_LETTERS = {"BD": "BGD", "BE": "BEL", "BF": "BFA", "BG": "BGR",
 
 
 def parse_project_details_json(engine, json_dict):
-    """
-    Parse project details json
-    """
+    """Parse project details json"""
     if not isinstance(json_dict, dict):
         json_dict = {}
     project = ''

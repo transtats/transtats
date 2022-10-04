@@ -30,17 +30,13 @@ from dashboard.services.consume.config.memsource import \
 
 
 class CacheAPIManager(object):
-    """
-    Class to handle db interface to services
-    """
+    """Class to handle db interface to services"""
 
     EXPIRY_MIN = 60
 
     def save_api_response(self, req_base_url, req_resource, resp_content,
                           resp_content_json, *req_args, **req_kwargs):
-        """
-        Save API responses in db
-        """
+        """Save API responses in db"""
         cache_params = {}
         match_params = {
             'base_url': req_base_url,

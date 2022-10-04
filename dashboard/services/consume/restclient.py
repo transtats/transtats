@@ -60,14 +60,10 @@ __all__ = ['ServiceConfig', 'RestHandle', 'RestClient']
 
 
 class ServiceConfig(object):
-    """
-    REST communication service configuration
-    """
+    """REST communication service configuration"""
 
     def _set_initials(self, service, resource, auth=None):
-        """
-        Sets initial params
-        """
+        """Sets initial params"""
         master_config_dict = {
             GIT_PLATFORMS[0]: {
                 '_config_dict': github_config,
@@ -123,9 +119,7 @@ class ServiceConfig(object):
             setattr(self, str(attrib), value)
 
     def __init__(self, service, resource, auth=None):
-        """
-        entry point
-        """
+        """entry point"""
         self._set_initials(service, resource, auth)
         for attrib, value in (self._config_dict[self._service.rest_resource]
                               [self._service.mount_point][self._service.http_method].items()):
@@ -157,9 +151,7 @@ class ServiceConfig(object):
 
 
 class RestHandle(object):
-    """
-    handle for REST communication
-    """
+    """handle for REST communication"""
 
     def __init__(self, *args, **kwargs):
         """
@@ -251,9 +243,7 @@ class RestHandle(object):
 
 
 class RestClient(object):
-    """
-    REST Client for all Managers
-    """
+    """REST Client for all Managers"""
 
     SAVE_RESPONSE = True
     cache_manager = CacheAPIManager()

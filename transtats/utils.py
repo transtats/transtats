@@ -13,9 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""
-Some base utilities/classes.
-"""
+"""Some base utilities/classes."""
 import logging
 
 # third party
@@ -28,9 +26,7 @@ from django.urls import reverse
 
 
 class TranstatsOIDCBackend(OIDCAuthenticationBackend):
-    """
-    OIDC Authentication Backend Wrapper
-    """
+    """OIDC Authentication Backend Wrapper"""
 
     logger = logging.getLogger(__name__)
 

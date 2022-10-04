@@ -17,9 +17,7 @@ __all__ = ['TaskList']
 
 
 class TaskNode(object):
-    """
-    Node class for each task in a job
-    """
+    """Node class for each task in a job"""
     def __init__(self, cmd, task):
 
         self.command = cmd
@@ -66,9 +64,7 @@ class TaskNode(object):
 
 
 class TaskList(object):
-    """
-    Linked list to hold task's nodes
-    """
+    """Linked list to hold task's nodes"""
     def __init__(self):
 
         self.head = None
@@ -77,9 +73,7 @@ class TaskList(object):
 
     @property
     def length(self):
-        """
-        Returns number of list items
-        """
+        """Returns number of list items"""
         count = 0
         current_node = self.head
 
@@ -89,9 +83,7 @@ class TaskList(object):
         return count
 
     def search_tasks_for_cmd(self, command):
-        """
-        Returns node positions for a specific command
-        """
+        """Returns node positions for a specific command"""
         current_node = self.head
         # Assuming list starts with index 0
         node_id = 0
@@ -106,9 +98,7 @@ class TaskList(object):
         return task_positions
 
     def add_task(self, item):
-        """
-        Add new task at the end of the list
-        """
+        """Add new task at the end of the list"""
         if isinstance(item, TaskNode):
             if self.head is None:
                 self.head = item
