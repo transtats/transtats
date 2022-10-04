@@ -468,9 +468,9 @@ class NewPackageView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
-        if self.request.tenant == RELSTREAM_SLUGS[0] or self.request.tenant == RELSTREAM_SLUGS[1]:
+        if self.request.tenant in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[1]):
             initials.update(dict(transplatform_slug=WEBLATE_SLUGS[1]))
-        if self.request.tenant == RELSTREAM_SLUGS[3] or self.request.tenant == RELSTREAM_SLUGS[4]:
+        if self.request.tenant in (RELSTREAM_SLUGS[3], RELSTREAM_SLUGS[4]):
             if self.request.tenant == RELSTREAM_SLUGS[4]:
                 initials.update(dict(auto_create_project='True'))
             initials.update(dict(transplatform_slug=TRANSIFEX_SLUGS[0]))

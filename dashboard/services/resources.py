@@ -15,6 +15,7 @@
 
 # Service Layer: Process and cache REST resource's responses here.
 
+import logging
 from subprocess import Popen, PIPE
 from collections import OrderedDict
 try:
@@ -32,6 +33,8 @@ from dashboard.services.consume import call_service
 
 
 __all__ = ['APIResources']
+
+logger = logging.getLogger(__name__)
 
 
 class ResourcesBase(object):
@@ -54,9 +57,8 @@ class ResourcesBase(object):
             return api_config['method'](
                 api_config['base_url'], service_resource, *args, **kwargs
             )
-        except (KeyError, Exception):
-            # log error
-            pass
+        except Exception as exp:
+            logger.log(level=10, msg=f"Resource execution caught an exception. Details: {str(exp)}")
         return {}
 
 
@@ -409,7 +411,7 @@ class TransplatformResources(ResourcesBase):
     def __push_response(service_resp):
         if service_resp.get('json_content'):
             return True, service_resp['json_content']
-        elif service_resp.get('err_content') or service_resp.get('text'):
+        if service_resp.get('err_content') or service_resp.get('text'):
             return False, service_resp.get('err_content') or \
                 {service_resp.get('status_code', 'Error'): service_resp.get('text')}
         return False, dict()
@@ -826,9 +828,9 @@ class KojiResources(object):
         if build and not srpm and not task:
             path = koji.pathinfo.build(build)
             return path[0] if isinstance(path, list) and len(path) > 0 else path
-        elif srpm and not build and not task:
+        if srpm and not build and not task:
             return koji.pathinfo.rpm(srpm)
-        elif task and not build and not srpm:
+        if task and not build and not srpm:
             return koji.pathinfo.task(task)
 
 

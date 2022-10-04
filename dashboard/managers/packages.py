@@ -939,7 +939,7 @@ class PackagesManager(InventoryManager):
                 if package.package_details_json and package.package_details_json.get('iterations') \
                 else default_branch
         instance_url, git_owner_repo = self._parse_git_url(upstream_url)
-        kwargs = dict()
+        kwargs = {}
         kwargs.update(dict(no_cache_api=True))
         branches = self.api_resources.fetch_repo_branches(
             self._determine_git_platform(instance_url), instance_url, *git_owner_repo, **kwargs
