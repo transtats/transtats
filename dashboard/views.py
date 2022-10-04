@@ -215,7 +215,7 @@ class TransCoverageView(ManagersMixin, TemplateView):
         )
         if not rule:
             raise Http404("Coverage rule does not exist.")
-        elif not rule.get().rule_visibility_public and \
+        if not rule.get().rule_visibility_public and \
                 not request.user.is_authenticated:
             raise PermissionDenied
         return super(TransCoverageView, self).get(
