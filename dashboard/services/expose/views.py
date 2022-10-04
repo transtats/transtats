@@ -316,7 +316,7 @@ class RunJob(JobManagerMixin, APIView):
             job_template = job_templates.first() \
                 if job_templates and len(job_templates) > 0 else {}
             if job_template:
-                job_params = [param for param in job_template.job_template_params]
+                job_params = list(job_template.job_template_params)
                 unavailable_params = [param for param in job_params if not data_received.get(param)]
                 if not unavailable_params:
                     fields = [param.upper() for param in job_params] + ['YML_FILE']
