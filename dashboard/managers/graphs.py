@@ -761,7 +761,6 @@ class GeoLocationManager(ReportsManager):
 
     def save_territory_build_system_stats(self):
         """Save Territory's Build System Stats in Percentage"""
-
         tenant = settings.TS_AUTH_SYSTEM \
             if settings.TS_AUTH_SYSTEM in RELSTREAM_SLUGS \
             else "default"
