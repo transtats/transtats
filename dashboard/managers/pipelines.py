@@ -389,9 +389,12 @@ class PipelineConfigManager(CIPipelineManager):
         if action == PIPELINE_CONFIG_EVENTS[2]:
             upload_update_field = "<input id='uploadUpdate' name='uploadUpdate' type='checkbox' checked>"
 
+        filter_dir = ''
         file_filter_ext = 'PO'
+        upload_pre_hook = ''
         if tenant == RELSTREAM_SLUGS[4]:
-            file_filter_ext = 'JSON'
+            file_filter_ext, filter_dir = 'JSON', 'locales'
+            upload_pre_hook = 'copy_template_for_target_langs'
 
         key_val_map = {
             "ci_pipeline": _format_val("ciPipeline", pipeline.ci_pipeline_uuid),
@@ -402,7 +405,7 @@ class PipelineConfigManager(CIPipelineManager):
             "filter.domain": "<input id='filterDomain' type='text' value='{}'>".format(
                 pipeline.ci_package.package_name),
             "filter.ext": "<input id='filterExt' type='text' value='{}'>".format(file_filter_ext),
-            "filter.dir": "<input id='filterDir' type='text' value=''>",
+            "filter.dir": "<input id='filterDir' type='text' value='{}'>".format(filter_dir),
             "download.target_langs": _format_checkboxes(
                 'downloadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
             "download.type": _format_val("downloadType", pipeline.ci_package.platform_slug.engine_name),
@@ -415,6 +418,7 @@ class PipelineConfigManager(CIPipelineManager):
             "upload.branch": _choose_checkboxes_or_dropdown("uploadRepoBranch", repo_branches),
             "upload.target_langs": _format_checkboxes(
                 'uploadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
+            "upload.prehook": "<input id='preHook' type='text' value='{}'>".format(upload_pre_hook),
             "upload.import_settings": "<input id='importSettings' type='text' value='project'>",
             "upload.update": upload_update_field,
             "upload.prepend_branch": prepend_branch_field,
@@ -455,6 +459,7 @@ class PipelineConfigManager(CIPipelineManager):
             "upload.type": config_values.get('uploadType', ''),
             "upload.branch": config_values.get('uploadBranch', ''),
             "upload.target_langs": config_values.get('uploadTargetLangs', '').split(','),
+            "upload.prehook": config_values.get('uploadPreHook', ''),
             "upload.import_settings": config_values.get('uploadImportSettings', ''),
             "upload.update": self.__true_false_type(config_values.get('uploadUpdate', '')),
             "upload.prepend_branch": self.__true_false_type(config_values.get('uploadPrependBranch', '')),

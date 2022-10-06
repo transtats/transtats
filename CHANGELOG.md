@@ -1,4 +1,5 @@
-##### Thu Jul 18 2022 Sundeep Anand <suanand@redhat.com>
+##### Thu Oct 6 2022 Sundeep Anand <suanand@redhat.com>
+* Add copy_template_for_target_langs upload prehook in push jobs.
 * Auto Create Transifex Project from package creation form.
 * Update Memsource API Authentication
 
