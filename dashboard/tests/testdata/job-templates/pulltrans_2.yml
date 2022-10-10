@@ -2,7 +2,7 @@ job:
   ci_pipeline: %PIPELINE_UUID%
   exception: raise
   execution: sequential
-  name: pull translations
+  name: pull translations and request merge
   package: %PACKAGE_NAME%
   return_type: json
   tasks:
@@ -14,12 +14,15 @@ job:
   - download:
     - name: Pull translated files
     - target_langs: %TARGET_LANGS%
+    - workflow_step: %WORKFLOW_STEP%
     - prehook: skip
-    - posthook: repair_fuzzy
+    - posthook: skip
     - prepend_branch: false
-  - replace: Downloaded files
+  - copy:
+    - name: Downloaded files
+    - dir: ''
   - pullrequest:
     - name: git repo
     - type: %REPO_TYPE%
     - branch: %REPO_BRANCH%
-  type: pulltrans
+  type: pulltransmerge
