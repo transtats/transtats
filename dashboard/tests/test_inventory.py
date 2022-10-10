@@ -137,7 +137,7 @@ class InventoryManagerTest(FixtureTestCase):
         platform_engine = self.inventory_manager.get_engine_from_slug(
             PlatformData.platform_memsource_cloud.platform_slug
         )
-        self.assertEqual(platform_engine, 'memsource')
+        self.assertEqual(platform_engine, 'phrase')
 
     def test_get_transplatform_slug_url(self):
         """test get_transplatform_slug_url"""
