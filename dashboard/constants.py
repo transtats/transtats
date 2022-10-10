@@ -48,7 +48,7 @@ DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
 # Job Types
 TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream', 'syncdownstream',
                 'syncbuildtags', 'stringchange', 'verifytrans', 'pushtrans', 'pulltrans',
-                'dpushtrans')
+                'dpushtrans', 'pulltransmerge')
 
 TS_CI_JOBS = (TS_JOB_TYPES[7], TS_JOB_TYPES[8], TS_JOB_TYPES[9])
 PIPELINE_CONFIG_EVENTS = ('Push Translations', 'Pull Translations', 'Update Source')
