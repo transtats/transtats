@@ -420,7 +420,10 @@ class PipelineConfigManager(CIPipelineManager):
                 'uploadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
             "upload.prehook": "<input id='preHook' type='text' value='{}'>".format(upload_pre_hook),
             "upload.import_settings": "<input id='importSettings' type='text' value='project'>",
+            "copy.dir": "<input id='copyDir' type='text' value=''>",
             "upload.update": upload_update_field,
+            "pullrequest.type": _format_val("pullrequestType", upstream_repo_type),
+            "pullrequest.branch": _format_choices("repoPullRequestBranch", upstream_repo_branches),
             "upload.prepend_branch": prepend_branch_field,
         }
         return key_val_map

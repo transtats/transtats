@@ -1365,6 +1365,40 @@ class Calculate(JobCommandBase):
         return {'pot_diff': diff_msg, 'full_diff': diff_lines, 'diff_count': diff_count}, {task_subject: task_log}
 
 
+class Copy(JobCommandBase):
+    """Handles all operations for COPY Command"""
+
+    def downloaded_files(self, input, kwargs):
+        """Copy downloaded files to provided dir"""
+
+        task_subject = "Copy Downloaded Files"
+        task_log = OrderedDict()
+
+        if not kwargs.get('dir'):
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Dir value was empty, nothing to copy.'
+            ))
+            return input, {task_subject: task_log}
+
+        # copy files
+        return {}, {task_subject: task_log}
+
+
+class Pullrequest(JobCommandBase):
+    """Handles all operations for PULLREQUEST Command"""
+
+    def git_repo(self, input, kwargs):
+        """Prepare merge request and submit"""
+
+        task_subject = "Pull Request"
+        task_log = OrderedDict()
+
+        # Prepare Merge Request
+        # Submit a Pull Request
+        return {}, {task_subject: task_log}
+
+
 class ActionMapper(BaseManager):
     """YML Parsed Objects to Actions Mapper"""
     COMMANDS = [
@@ -1378,6 +1412,8 @@ class ActionMapper(BaseManager):
         'CLONE',        # Clone source repository
         'GENERATE',     # Exec command to create
         'UPLOAD',       # Upload some resource
+        'COPY',         # Copy files from one dir to another
+        'PULLREQUEST',  # Create and submit pull request
     ]
 
     def __init__(self,

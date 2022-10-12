@@ -1189,7 +1189,7 @@ def schedule_job(request):
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
         elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5], TS_JOB_TYPES[6], TS_JOB_TYPES[7],
-                          TS_JOB_TYPES[8], TS_JOB_TYPES[9], 'YMLbasedJob'):
+                          TS_JOB_TYPES[8], TS_JOB_TYPES[9], TS_JOB_TYPES[10], 'YMLbasedJob'):
 
             if job_type in TS_CI_JOBS and 'anonymous' in active_user_email:
                 message = "&nbsp;&nbsp;<span class='text-warning'>Please login to continue.</span>"
