@@ -11,6 +11,7 @@ job:
     - type: %REPO_TYPE%
     - branch: %REPO_BRANCH%
     - recursive: false
+    - fork: true
   - download:
     - name: Pull translated files
     - target_langs: %TARGET_LANGS%
@@ -22,7 +23,7 @@ job:
     - name: Downloaded files
     - dir: ''
   - pullrequest:
-    - name: git repo
+    - name: github repo
     - type: %REPO_TYPE%
     - branch: %REPO_BRANCH%
   type: pulltransmerge

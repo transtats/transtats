@@ -19,12 +19,12 @@ def add_job_template(apps, schema_editor):
                                           '"execution":"sequential","name":"pull translations and request merge",'
                                           '"package":"%PACKAGE_NAME%","return_type":"json","tasks":[{"clone":'
                                           '[{"name":"git repo"},{"type":"%REPO_TYPE%"},{"branch":"%REPO_BRANCH%"},'
-                                          '{"recursive":false}]},{"download":[{"name":"Pull translated files"},'
-                                          '{"target_langs":"%TARGET_LANGS%"},{"workflow_step":"%WORKFLOW_STEP%"},'
-                                          '{"prehook":"skip"},{"posthook":"skip"},{"prepend_branch":false}]},'
-                                          '{"copy":[{"name":"Downloaded files"},{"dir":""}]},{"pullrequest":'
-                                          '[{"name":"git repo"},{"type":"%REPO_TYPE%"},{"branch":"%REPO_BRANCH%"}]}],'
-                                          '"type":"pulltransmerge"}}'
+                                          '{"recursive":false},{"fork":true}]},{"download":'
+                                          '[{"name":"Pull translated files"},{"target_langs":"%TARGET_LANGS%"},'
+                                          '{"workflow_step":"%WORKFLOW_STEP%"},{"prehook":"skip"},{"posthook":"skip"},'
+                                          '{"prepend_branch":false}]},{"copy":[{"name":"Downloaded files"},{"dir":""}]},'
+                                          '{"pullrequest":[{"name":"github repo"},{"type":"%REPO_TYPE%"},'
+                                          '{"branch":"%REPO_BRANCH%"}]}],"type":"pulltransmerge"}}'
                     ),
     ]
 
