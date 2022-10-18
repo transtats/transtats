@@ -1388,14 +1388,14 @@ class Copy(JobCommandBase):
 class Pullrequest(JobCommandBase):
     """Handles all operations for PULLREQUEST Command"""
 
-    def git_repo(self, input, kwargs):
+    def github_repo(self, input, kwargs):
         """Prepare merge request and submit"""
 
         task_subject = "Pull Request"
         task_log = OrderedDict()
 
         # Prepare Merge Request
-        # Submit a Pull Request
+        # Submit a GitHub Pull Request
         return {}, {task_subject: task_log}
 
 
