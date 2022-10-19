@@ -9,5 +9,6 @@
   "TS_AUTH_SYSTEM": "default",
   "OIDC_BASE_DOMAIN": "iddev.fedorainfracloud.org",
   "OIDC_RP_CLIENT_ID": "transtatsdev",
-  "OIDC_RP_CLIENT_SECRET": "oidc-secret-key"
+  "OIDC_RP_CLIENT_SECRET": "oidc-secret-key",
+  "GITHUB_TOKEN": "github-token"
 }
