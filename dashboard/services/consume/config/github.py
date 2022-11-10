@@ -61,6 +61,16 @@ resource_config_dict = {
             },
         }),
     ]),
+    'ListRepos': OrderedDict([
+        ('/users/{owner}/repos', {
+            http_methods[0]: {
+                'path_params': ('owner', ),
+                'query_params': None,
+                'request_media_type': media_types[2],
+                'response_media_type': media_types[2],
+            },
+        }),
+    ]),
     'ListForks': OrderedDict([
         ('/repos/{owner}/{repo}/forks', {
             http_methods[0]: {
@@ -95,6 +105,7 @@ list_pull_requests = resource(
 create_pull_requests = resource(
     'CreatePullRequests', list(resource_config_dict['CreatePullRequests'].keys())[0], http_methods[1]
 )
+list_repos = resource('ListRepos', list(resource_config_dict['ListRepos'].keys())[0], http_methods[0])
 list_forks = resource('ListForks', list(resource_config_dict['ListForks'].keys())[0], http_methods[0])
 create_forks = resource('CreateForks', list(resource_config_dict['CreateForks'].keys())[0], http_methods[1])
 
@@ -104,6 +115,7 @@ resources = {
     'delete_repository': delete_repository,
     'list_pull_requests': list_pull_requests,
     'create_pull_requests': create_pull_requests,
+    'list_repos': list_repos,
     'list_forks': list_forks,
     'create_forks': create_forks,
 }
