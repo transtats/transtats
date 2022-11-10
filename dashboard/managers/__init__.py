@@ -15,9 +15,11 @@
 
 import inspect
 import logging
+from urllib.parse import urlparse
 
 # dashboard
 from dashboard.services.resources import APIResources
+from dashboard.constants import GIT_PLATFORMS
 
 
 __all__ = ['BaseManager']
@@ -52,3 +54,27 @@ class BaseManager(object):
         log_message = "%s in %s:%i %s" % (func.co_name, func.co_filename,
                                           func.co_firstlineno, log_msg)
         self.logger.log(level_map.get(log_level, 10), log_message)
+
+    @staticmethod
+    def _parse_git_url(git_url):
+        """
+        Parses Git URL for instance_url, owner and repo
+        :param git_url: git repository URL
+        :return: instance_url, owner_repo tuple
+        """
+        parsed_url = urlparse(git_url)
+        instance_url = "{}://{}".format(parsed_url.scheme, parsed_url.netloc)
+        owner_repo = tuple(filter(None, parsed_url.path.split('/')))
+        if owner_repo:
+            # handle .git extension for upstream url
+            owner_repo = [item[:-4] if item.endswith(".git")
+                          else item for item in owner_repo]
+            return instance_url, owner_repo
+        return instance_url, ()
+
+    @staticmethod
+    def _determine_git_platform(instance_url):
+        for platform in GIT_PLATFORMS:
+            if platform.lower() in instance_url:
+                return platform
+        return ''

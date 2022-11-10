@@ -37,6 +37,8 @@ from shutil import copy2, rmtree
 from subprocess import Popen, PIPE, call
 from urllib.parse import urlparse
 
+from django.conf import settings
+
 # dashboard
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, BRANCH_MAPPING_KEYS,
@@ -481,6 +483,20 @@ class Clone(JobCommandBase):
             input_params['pkg_tp_auth_token'], parsed_url.netloc + parsed_url.path
         )
 
+    def _is_fork_exist(self, repo_clone_url):
+        instance_url, git_owner_repo = self._parse_git_url(repo_clone_url)
+        git_platform = self._determine_git_platform(instance_url)
+        git_owner, git_repo = git_owner_repo
+        kwargs = {}
+        kwargs.update(dict(no_cache_api=True))
+        repositories = self.api_resources.list_repos(
+            git_platform, instance_url, settings.GITHUB_USER, **kwargs
+        )
+        for repository in repositories:
+            if repository.get('name', '') == git_repo and repository.get('fork'):
+                return True
+        return False
+
     def git_repository(self, input, kwargs):
         """Clone GIT repository"""
         task_subject = "Clone Repository"
@@ -496,6 +512,11 @@ class Clone(JobCommandBase):
             clone_kwargs.update(dict(branch=kwargs['branch']))
 
         repo_clone_url = input['upstream_repo_url']
+        if kwargs.get("fork"):
+            # deletes the fork if exists already
+            fork_exists = self._is_fork_exist(repo_clone_url)
+            # create a new fork and proceed cloning
+
         if kwargs.get('type') == TRANSPLATFORM_ENGINES[3]:
             repo_clone_url = self._format_weblate_git_url(input)
 
