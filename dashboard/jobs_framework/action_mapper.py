@@ -497,6 +497,25 @@ class Clone(JobCommandBase):
                 return True
         return False
 
+    def _delete_fork(self, repo_clone_url):
+        instance_url, git_owner_repo = self._parse_git_url(repo_clone_url)
+        git_platform = self._determine_git_platform(instance_url)
+        git_owner, git_repo = git_owner_repo
+        kwargs = {}
+        kwargs.update(dict(no_cache_api=True))
+        delete_repo_resp = self.api_resources.delete_repo(
+            git_platform, instance_url, *(settings.GITHUB_USER, git_repo), **kwargs
+        )
+        return delete_repo_resp
+
+    def _create_fork(self, repo_clone_url):
+        instance_url, git_owner_repo = self._parse_git_url(repo_clone_url)
+        git_platform, kwargs = self._determine_git_platform(instance_url), {}
+        create_fork_api_response = self.api_resources.create_fork(
+            git_platform, instance_url, *git_owner_repo, **kwargs
+        )
+        return create_fork_api_response.get("html_url", "")
+
     def git_repository(self, input, kwargs):
         """Clone GIT repository"""
         task_subject = "Clone Repository"
@@ -513,9 +532,14 @@ class Clone(JobCommandBase):
 
         repo_clone_url = input['upstream_repo_url']
         if kwargs.get("fork"):
-            # deletes the fork if exists already
+            # delete the fork if exists already
             fork_exists = self._is_fork_exist(repo_clone_url)
+            if fork_exists:
+                self._delete_fork(repo_clone_url)
             # create a new fork and proceed cloning
+            fork_url = self._create_fork(repo_clone_url)
+            if fork_url:
+                repo_clone_url = fork_url
 
         if kwargs.get('type') == TRANSPLATFORM_ENGINES[3]:
             repo_clone_url = self._format_weblate_git_url(input)
@@ -523,7 +547,7 @@ class Clone(JobCommandBase):
         try:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
-                'Start cloning %s repository.' % input['upstream_repo_url']
+                'Start cloning %s repository.' % repo_clone_url
             ))
             clone_result = Repo.clone_from(
                 repo_clone_url, src_tar_dir, **clone_kwargs
