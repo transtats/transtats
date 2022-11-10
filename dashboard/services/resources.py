@@ -123,6 +123,18 @@ class GitPlatformResources(ResourcesBase):
         response = kwargs.get('rest_response', {})
         return response.get('json_content', {})
 
+    @staticmethod
+    @call_service(GIT_PLATFORMS[0])
+    def _create_github_fork(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('json_content', {})
+
+    @staticmethod
+    @call_service(GIT_PLATFORMS[0])
+    def _delete_github_repo(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('status_code', 0) == 204
+
     def fetch_repo_branches(self, git_platform, instance_url, *args, **kwargs):
         """
         Fetches all projects or modules json from API
@@ -167,6 +179,44 @@ class GitPlatformResources(ResourcesBase):
                 'method': self._fetch_github_repos,
                 'base_url': 'https://api.github.com',
                 'resources': ['list_repos'],
+            },
+        }
+        selected_config = method_mapper[git_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def delete_repo(self, git_platform, instance_url, *args, **kwargs):
+        """
+        Delete repository json from API
+        :param git_platform: Git Platform API URL
+        :param instance_url: Git Platform Instance URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: list
+        """
+        method_mapper = {
+            GIT_PLATFORMS[0]: {
+                'method': self._delete_github_repo,
+                'base_url': 'https://api.github.com',
+                'resources': ['delete_repository'],
+            },
+        }
+        selected_config = method_mapper[git_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def create_fork(self, git_platform, instance_url, *args, **kwargs):
+        """
+        Create a new fork from API
+        :param git_platform: Git Platform API URL
+        :param instance_url: Git Platform Instance URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: list
+        """
+        method_mapper = {
+            GIT_PLATFORMS[0]: {
+                'method': self._create_github_fork,
+                'base_url': 'https://api.github.com',
+                'resources': ['create_forks'],
             },
         }
         selected_config = method_mapper[git_platform]
