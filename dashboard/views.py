@@ -43,7 +43,8 @@ from django.urls import reverse, reverse_lazy
 from dashboard.constants import (
     TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
     WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS,
-    JOB_MULTIPLE_BRANCHES_VAR, TP_BRANCH_CALLING_NAME, SYS_EMAIL_ADDR
+    JOB_MULTIPLE_BRANCHES_VAR, TP_BRANCH_CALLING_NAME, SYS_EMAIL_ADDR,
+    TRANSLATION_FILE_FORMATS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
@@ -434,11 +435,13 @@ class NewPackageView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
+        initials.update(dict(translation_file_ext=TRANSLATION_FILE_FORMATS[0]))
         if self.request.tenant in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[1]):
             initials.update(dict(transplatform_slug=WEBLATE_SLUGS[1]))
         if self.request.tenant in (RELSTREAM_SLUGS[3], RELSTREAM_SLUGS[4]):
             if self.request.tenant == RELSTREAM_SLUGS[4]:
                 initials.update(dict(auto_create_project='True'))
+                initials.update(dict(translation_file_ext=TRANSLATION_FILE_FORMATS[1]))
             initials.update(dict(transplatform_slug=TRANSIFEX_SLUGS[0]))
         default_product = self.request.tenant
         initials.update(dict(release_streams=default_product))
@@ -451,6 +454,9 @@ class NewPackageView(ManagersMixin, FormView):
         active_streams = self.inventory_manager.get_relstream_slug_name()
         kwargs.update({'platform_choices': active_platforms})
         kwargs.update({'products_choices': active_streams})
+        file_formats = [(file_format, file_format.upper())
+                        for file_format in TRANSLATION_FILE_FORMATS]
+        kwargs.update({'format_choices': file_formats})
         kwargs.update({'initial': self.get_initial()})
         if data:
             kwargs.update({'data': data})

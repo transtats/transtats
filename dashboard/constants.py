@@ -60,6 +60,9 @@ BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys', 'buildsys_tag', 'upstream
 # Supported Build Systems
 BUILD_SYSTEMS = ('brew', 'koji')
 
+# Supported File Formats
+TRANSLATION_FILE_FORMATS = ('po', 'json')
+
 # YML Jobs Execution Types
 JOB_EXEC_TYPES = ('sequential', 'parallel')
 

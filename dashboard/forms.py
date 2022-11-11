@@ -71,6 +71,7 @@ class NewPackageForm(forms.Form):
     """Add new package to package list"""
     platform_choices = ()
     products_choices = ()
+    format_choices = ()
 
     package_name = forms.CharField(
         label='Package Name', help_text='Package id as-in translation platform. Use hyphen (-) to separate words.', required=True,
@@ -94,13 +95,19 @@ class NewPackageForm(forms.Form):
         label='Products', widget=forms.CheckboxSelectMultiple, choices=products_choices,
         help_text="Translation progress for selected products will be tracked."
     )
+    translation_file_ext = TextArrayField(
+        label='Translation Format', widget=forms.RadioSelect, choices=format_choices,
+        help_text="File format translations are stored in the project."
+    )
 
     def __init__(self, *args, **kwargs):
         self.platform_choices = kwargs.pop('platform_choices')
         self.products_choices = kwargs.pop('products_choices')
+        self.format_choices = kwargs.pop('format_choices')
         super(NewPackageForm, self).__init__(*args, **kwargs)
         self.fields['transplatform_slug'].choices = self.platform_choices
         self.fields['release_streams'].choices = self.products_choices
+        self.fields['translation_file_ext'].choices = self.format_choices
         super(NewPackageForm, self).full_clean()
 
     helper = FormHelper()
@@ -115,6 +122,7 @@ class NewPackageForm(forms.Form):
             Field('package_name', css_class='form-control', onkeyup="showPackageSlug()"),
             Field('upstream_url', css_class='form-control'),
             Field('upstream_l10n_url', css_class='form-control'),
+            Field('translation_file_ext'),
             Field('transplatform_slug', css_class='selectpicker'),
             InlineCheckboxes('auto_create_project'),
             InlineCheckboxes('release_streams'),
@@ -129,6 +137,15 @@ class NewPackageForm(forms.Form):
 
     def is_valid(self):
         return not len(self.errors) >= 1
+
+    def clean_translation_file_ext(self):
+        """Check if translation_file_ext is in required format"""
+        cleaned_data = super().clean()
+        translation_file_ext = cleaned_data['translation_file_ext']
+        if isinstance(translation_file_ext, (list, tuple)) and translation_file_ext:
+            return translation_file_ext[0]
+        else:
+            return self.cleaned_data.get('translation_file_ext', None)
 
 
 class UpdatePackageForm(forms.ModelForm):
