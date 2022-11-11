@@ -358,6 +358,8 @@ class Download(JobCommandBase):
         ci_lang_job_map = input.get('ci_lang_job_map', {})
 
         file_ext = 'po'
+        if input.get('trans_file_ext') and input['trans_file_ext'] != file_ext:
+            file_ext = input['trans_file_ext'].lstrip(".")
         if kwargs.get('ext'):
             file_ext = kwargs['ext'].lower()
 
