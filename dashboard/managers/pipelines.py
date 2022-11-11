@@ -391,10 +391,16 @@ class PipelineConfigManager(CIPipelineManager):
 
         filter_dir = ''
         file_filter_ext = 'PO'
+
         upload_pre_hook = ''
         if tenant == RELSTREAM_SLUGS[4]:
             file_filter_ext, filter_dir = 'JSON', 'locales'
             upload_pre_hook = 'copy_template_for_target_langs'
+
+        copy_div_val = ''
+        if tenant == RELSTREAM_SLUGS[4]:
+            file_filter_ext = 'JSON'
+            copy_div_val = 'src/locales'
 
         key_val_map = {
             "ci_pipeline": _format_val("ciPipeline", pipeline.ci_pipeline_uuid),
@@ -420,7 +426,7 @@ class PipelineConfigManager(CIPipelineManager):
                 'uploadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
             "upload.prehook": "<input id='preHook' type='text' value='{}'>".format(upload_pre_hook),
             "upload.import_settings": "<input id='importSettings' type='text' value='project'>",
-            "copy.dir": "<input id='copyDir' type='text' value=''>",
+            "copy.dir": f"<input id='copyDir' type='text' value='{copy_div_val}'>",
             "upload.update": upload_update_field,
             "pullrequest.type": _format_val("pullrequestType", upstream_repo_type),
             "pullrequest.branch": _format_choices("repoPullRequestBranch", upstream_repo_branches),
@@ -466,6 +472,7 @@ class PipelineConfigManager(CIPipelineManager):
             "upload.import_settings": config_values.get('uploadImportSettings', ''),
             "upload.update": self.__true_false_type(config_values.get('uploadUpdate', '')),
             "upload.prepend_branch": self.__true_false_type(config_values.get('uploadPrependBranch', '')),
+            "copy.dir": config_values.get('copyDir', ''),
         }
         return key_val_map
 

@@ -1429,6 +1429,21 @@ class Copy(JobCommandBase):
             return input, {task_subject: task_log}
 
         # copy files
+        copy_target_dir = os.path.join(input['src_tar_dir'], kwargs['dir'])
+        downloaded_translation_files = input['trans_files']
+
+        copied_files = []
+        for trans_file in downloaded_translation_files:
+            source = os.path.join(input['base_dir'], trans_file)
+            destination_dir = os.path.join(input['base_dir'], copy_target_dir)
+            copied_file_path = copy2(source, destination_dir)
+            copied_file = list(filter(None, copied_file_path.split(os.sep)))[-1]
+            copied_files.append(copied_file)
+
+        task_log.update(self._log_task(
+            input['log_f'], task_subject, copied_files,
+            text_prefix=f"{len(copied_files)} files copied to the repository."
+        ))
         return {}, {task_subject: task_log}
 
 
