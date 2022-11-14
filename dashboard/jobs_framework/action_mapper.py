@@ -1412,13 +1412,14 @@ class Copy(JobCommandBase):
             destination_dir = os.path.join(input['base_dir'], copy_target_dir)
             copied_file_path = copy2(source, destination_dir)
             copied_file = list(filter(None, copied_file_path.split(os.sep)))[-1]
-            copied_files.append(copied_file)
+            copied_files.append(os.path.join(kwargs['dir'], copied_file))
 
         task_log.update(self._log_task(
             input['log_f'], task_subject, copied_files,
             text_prefix=f"{len(copied_files)} files copied to the repository."
         ))
-        return {}, {task_subject: task_log}
+        return {'copied_files': copied_files,
+                'repo_dir': input['src_tar_dir']}, {task_subject: task_log}
 
 
 class Pullrequest(JobCommandBase):
@@ -1431,6 +1432,14 @@ class Pullrequest(JobCommandBase):
         task_log = OrderedDict()
 
         # Prepare Merge Request
+        modified_repo = Repo(input['src_tar_dir'])
+        for copied_file in input['copied_files']:
+            modified_repo.index.add(copied_file)
+        commit_object = modified_repo.index.commit("Add or Update Translations")
+
+        push_results = modified_repo.remotes.origin.push()
+        push_summary = push_results[0].summary if push_results else ""
+
         # Submit a GitHub Pull Request
         return {}, {task_subject: task_log}
 

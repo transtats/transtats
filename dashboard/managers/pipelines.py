@@ -473,6 +473,8 @@ class PipelineConfigManager(CIPipelineManager):
             "upload.update": self.__true_false_type(config_values.get('uploadUpdate', '')),
             "upload.prepend_branch": self.__true_false_type(config_values.get('uploadPrependBranch', '')),
             "copy.dir": config_values.get('copyDir', ''),
+            "pullrequest.type": config_values.get("pullrequestType", ''),
+            "pullrequest.branch": config_values.get("repoPullRequestBranch", ''),
         }
         return key_val_map
 
