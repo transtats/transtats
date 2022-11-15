@@ -17,6 +17,7 @@
 # Every command has its own class and task gets matched
 #   with most appropriate method therein
 
+import json
 import re
 import os
 import shutil
@@ -1431,17 +1432,74 @@ class Pullrequest(JobCommandBase):
         task_subject = "Pull Request"
         task_log = OrderedDict()
 
+        upstream_repo_url = input['upstream_repo_url']
+        instance_url, git_owner_repo = self._parse_git_url(upstream_repo_url)
+        git_platform = self._determine_git_platform(instance_url)
+
         # Prepare Merge Request
         modified_repo = Repo(input['src_tar_dir'])
         for copied_file in input['copied_files']:
             modified_repo.index.add(copied_file)
         commit_object = modified_repo.index.commit("Add or Update Translations")
 
+        if commit_object and commit_object.hexsha:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, input['copied_files'],
+                text_prefix=f"Files have been committed. SHA: {commit_object.hexsha}"
+            ))
+
+        # set git push origin url
+        github_token = settings.GITHUB_TOKEN
+        origin_urls = [url for url in modified_repo.remotes.origin.urls]
+        if not origin_urls:
+            raise Exception('Push URL cannot be blank.')
+        origin_url = origin_urls[0]
+        origin_url_parts = urlparse(origin_url)
+        origin_url_with_token = "{}://{}:x-oauth-basic@{}/{}".format(
+            origin_url_parts.scheme, github_token, origin_url_parts.netloc, origin_url_parts.path
+        )
+        modified_repo.remotes.origin.set_url(origin_url_with_token)
+
+        # push contents to GitHub
         push_results = modified_repo.remotes.origin.push()
         push_summary = push_results[0].summary if push_results else ""
 
+        if push_summary:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, f"Files have been pushed to {git_platform}."
+            ))
+
         # Submit a GitHub Pull Request
-        return {}, {task_subject: task_log}
+        pull_request_api_payload = dict()
+        pull_request_api_payload['title'] = commit_object.summary
+        pull_request_api_payload['body'] = "Translations for {} languages.".format(
+            ", ".join(input['ci_target_langs'])
+        )
+        pull_request_branch_from = modified_repo.active_branch.name
+        pull_request_api_payload['head'] = "{}:{}".format(
+            settings.GITHUB_USER, pull_request_branch_from
+        )
+        pull_request_branch_to = kwargs['branch']
+        pull_request_api_payload['base'] = pull_request_branch_to
+
+        kwargs = dict()
+        kwargs['data'] = json.dumps(pull_request_api_payload)
+        kwargs.update(dict(no_cache_api=True))
+        create_pull_request_resp = self.api_resources.create_merge_request(
+            git_platform, instance_url, *git_owner_repo, **kwargs
+        )
+
+        pull_request_url = ''
+        if create_pull_request_resp:
+            pull_request_url = create_pull_request_resp['html_url']
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, f"Pull request has been created. Visit {pull_request_url}."
+            ))
+        else:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, "Pull request could not be created."
+            ))
+        return {'pull_request_url': pull_request_url}, {task_subject: task_log}
 
 
 class ActionMapper(BaseManager):
