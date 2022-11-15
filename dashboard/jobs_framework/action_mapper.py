@@ -19,6 +19,7 @@
 
 import re
 import os
+import shutil
 import time
 import difflib
 from requests.auth import HTTPBasicAuth
@@ -888,6 +889,7 @@ class Filter(JobCommandBase):
     def files(self, input, kwargs):
         """Filter files from tarball"""
         file_ext = 'po'
+        result_dict = {}
         if kwargs.get('ext'):
             file_ext = kwargs['ext'].lower()
 
@@ -926,11 +928,11 @@ class Filter(JobCommandBase):
                 input['log_f'], task_subject, trans_files,
                 text_prefix='%s %s files filtered' % (len(trans_files), file_ext.upper())
             ))
-            result_dict = {}
             result_dict.update({'trans_files': trans_files, 'file_ext': file_ext})
             if is_podir:
                 result_dict.update(dict(podir=True))
-            return result_dict, {task_subject: task_log}
+
+        return result_dict, {task_subject: task_log}
 
 
 class Upload(JobCommandBase):
@@ -953,6 +955,49 @@ class Upload(JobCommandBase):
 
         return collected_files
 
+    def copy_template_for_target_langs(self, input: dict, task_log: dict) -> None:
+        """
+        Pre hook: copy_template_for_target_langs
+            - copy a template for all the target langs
+        """
+        task_subject = "Upload Prehook: copy_template_for_target_langs"
+
+        if not input.get('trans_files'):
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, 'No template found.')
+            )
+            return
+
+        first_trans_file = input['trans_files'][0]
+        if isinstance(first_trans_file, str) and \
+                'template' in first_trans_file.lower() or 'pot' in first_trans_file.lower():
+            translation_template = first_trans_file
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, translation_template, text_prefix='Template collected'
+            ))
+
+            target_langs = []
+            if input.get('ci_target_langs'):
+                target_langs = self.format_target_langs(langs=input['ci_target_langs'])
+
+            source_file = os.path.join(input['base_dir'], translation_template)
+            for lang in target_langs:
+                translation_lang_file = translation_template
+                if 'template' in translation_template:
+                    translation_lang_file = translation_template.replace('template', lang)
+                if 'pot' in translation_template:
+                    translation_lang_file = translation_template.replace('pot', 'po')
+                dist_file = os.path.join(input['base_dir'], translation_lang_file)
+                # copy template to language file
+                shutil.copyfile(source_file, dist_file)
+                # add an entry in input values
+                input['trans_files'].append(translation_lang_file)
+
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, '{} files copied for {}.'.format(
+                    len(target_langs), ", ".join(target_langs))
+            ))
+
     def push_files(self, input, kwargs):
         """
         Push translations to a Platform
@@ -960,6 +1005,12 @@ class Upload(JobCommandBase):
         """
         task_subject = "Push translations files"
         task_log = OrderedDict()
+
+        if kwargs.get('prehook'):
+            pre_hook = kwargs['prehook']
+            pre_hook_fn = getattr(self, pre_hook, None)
+            if pre_hook_fn:
+                pre_hook_fn(input, task_log)
 
         job_post_resp = OrderedDict()
         platform_project = input.get('ci_project_uid') or input.get('package')
