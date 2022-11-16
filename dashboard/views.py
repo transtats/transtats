@@ -818,6 +818,10 @@ class PipelineConfigurationView(ManagersMixin, PipelineDetailView):
     def get_context_data(self, **kwargs):
         context_data = super(PipelineConfigurationView, self).get_context_data(**kwargs)
         context_data['pipeline_config_events'] = PIPELINE_CONFIG_EVENTS
+        context_data['allow_config_copy'] = False
+        if self.object.ci_push_job_template.job_template_type == TS_JOB_TYPES[9] and \
+                self.object.ci_pull_job_template.job_template_type == TS_JOB_TYPES[8]:
+            context_data['allow_config_copy'] = True
         return context_data
 
 
