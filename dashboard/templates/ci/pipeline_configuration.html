@@ -30,7 +30,7 @@ function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}function a
           {% tag_pipeline_job_params request.tenant ci_pipeline.ci_pipeline_uuid pipeline_config_events.0 %}
         </div>
         {% if user.is_authenticated %}
-        {% if request.tenant != 'console' %}  <!-- disable this for console product temporarily -->
+        {% if allow_config_copy %}
         <div id="divCopyConfig">
           <label class='checkbox-inline h4'>
             <input id="checkCopyConfig" class='checkbox' type='checkbox' value='copy-config'>
