@@ -21,9 +21,9 @@ job:
     - prepend_branch: false
   - copy:
     - name: Downloaded files
-    - dir: ''
+    - dir: %COPY_DIR%
   - pullrequest:
-    - name: github repo
+    - name: git repo
     - type: %REPO_TYPE%
     - branch: %REPO_BRANCH%
   type: pulltransmerge

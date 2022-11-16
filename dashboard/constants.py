@@ -78,3 +78,4 @@ GIT_REPO_TYPE = ('default', 'localization', TRANSPLATFORM_ENGINES[3], TRANSPLATF
                  TRANSPLATFORM_ENGINES[2])
 
 SYS_EMAIL_ADDR = "system@transtats.org"
+RH_EMAIL_ADDR = "transtats@redhat.com"

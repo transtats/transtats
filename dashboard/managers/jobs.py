@@ -557,6 +557,7 @@ class YMLBasedJobManager(BaseManager):
             - pushtrans
             - pulltrans
             - dpushtrans
+            - pulltransmerge
     """
 
     sandbox_path = 'dashboard/sandbox/'
@@ -626,6 +627,7 @@ class YMLBasedJobManager(BaseManager):
                     raise Exception('Upstream URL could NOT be located for %s package.' % package)
             else:
                 upstream_repo_url = package_detail.upstream_url
+                upstream_l10n_url = package_detail.upstream_l10n_url
                 if getattr(self, 'REPO_TYPE', '') and self.REPO_TYPE == GIT_REPO_TYPE[1]:
                     if not package_detail.upstream_l10n_url:
                         raise Exception('Localization repo URL not found.')
@@ -636,6 +638,7 @@ class YMLBasedJobManager(BaseManager):
                     self.upstream_repo_url = self._weblate_git_url(package_detail)
                 else:
                     self.upstream_repo_url = self._check_git_ext(upstream_repo_url)
+                    self.upstream_l10n_url = self._check_git_ext(upstream_l10n_url)
                 t_ext = package_detail.translation_file_ext
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
@@ -835,6 +838,7 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'repo_branch', ''),
             getattr(self, 'ci_pipeline_uuid', ''),
             getattr(self, 'upstream_repo_url', ''),
+            getattr(self, 'upstream_l10n_url', ''),
             getattr(self, 'trans_file_ext', ''),
             getattr(self, 'pkg_upstream_name', ''),
             getattr(self, 'pkg_downstream_name', ''),

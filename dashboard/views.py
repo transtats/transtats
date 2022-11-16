@@ -473,7 +473,8 @@ class NewPackageView(ManagersMixin, FormView):
                 'One of the required fields is missing.'))
             return render(request, self.template_name, {'form': form})
 
-        if post_params.get('auto_create_project', ['False'])[0] == 'True':
+        if post_params.get('auto_create_project') and \
+                post_params['auto_create_project'][0] == 'True':
             # Attempt project creation at translation platform
             self.packages_manager.create_platform_project(
                 project_slug=post_params['package_name'],

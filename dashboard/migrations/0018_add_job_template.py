@@ -14,7 +14,8 @@ def add_job_template(apps, schema_editor):
     job_templates = [
         JobTemplate(job_template_type="pulltransmerge", job_template_name="Pull Translations and Request Merge",
                     job_template_desc="Download translations from CI platform and creates merge request.",
-                    job_template_params="{package_name,repo_type,repo_branch,pipeline_uuid,target_langs,workflow_step}",
+                    job_template_params="{package_name,repo_type,repo_branch,pipeline_uuid,target_langs,workflow_step,"
+                                        "copy_dir}",
                     job_template_json_str='{"job":{"ci_pipeline":"%PIPELINE_UUID%","exception":"raise",'
                                           '"execution":"sequential","name":"pull translations and request merge",'
                                           '"package":"%PACKAGE_NAME%","return_type":"json","tasks":[{"clone":'
@@ -22,9 +23,10 @@ def add_job_template(apps, schema_editor):
                                           '{"recursive":false},{"fork":true}]},{"download":'
                                           '[{"name":"Pull translated files"},{"target_langs":"%TARGET_LANGS%"},'
                                           '{"workflow_step":"%WORKFLOW_STEP%"},{"prehook":"skip"},{"posthook":"skip"},'
-                                          '{"prepend_branch":false}]},{"copy":[{"name":"Downloaded files"},{"dir":""}]},'
-                                          '{"pullrequest":[{"name":"github repo"},{"type":"%REPO_TYPE%"},'
-                                          '{"branch":"%REPO_BRANCH%"}]}],"type":"pulltransmerge"}}'
+                                          '{"prepend_branch":false}]},{"copy":[{"name":"Downloaded files"},'
+                                          '{"dir":"%COPY_DIR%"}]}, {"pullrequest":[{"name":"git repo"},'
+                                          '{"type":"%REPO_TYPE%"},{"branch":"%REPO_BRANCH%"}]}],'
+                                          '"type":"pulltransmerge"}}'
                     ),
     ]
 
