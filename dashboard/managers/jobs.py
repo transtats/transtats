@@ -638,7 +638,8 @@ class YMLBasedJobManager(BaseManager):
                     self.upstream_repo_url = self._weblate_git_url(package_detail)
                 else:
                     self.upstream_repo_url = self._check_git_ext(upstream_repo_url)
-                    self.upstream_l10n_url = self._check_git_ext(upstream_l10n_url)
+                    if upstream_l10n_url:
+                        self.upstream_l10n_url = self._check_git_ext(upstream_l10n_url)
                 t_ext = package_detail.translation_file_ext
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
