@@ -50,7 +50,7 @@ TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream', 'syncdow
                 'syncbuildtags', 'stringchange', 'verifytrans', 'pushtrans', 'pulltrans',
                 'dpushtrans', 'pulltransmerge')
 
-TS_CI_JOBS = (TS_JOB_TYPES[7], TS_JOB_TYPES[8], TS_JOB_TYPES[9])
+TS_CI_JOBS = (TS_JOB_TYPES[7], TS_JOB_TYPES[8], TS_JOB_TYPES[9], TS_JOB_TYPES[10])
 PIPELINE_CONFIG_EVENTS = ('Push Translations', 'Pull Translations', 'Update Source')
 JOB_MULTIPLE_BRANCHES_VAR = "%RESPECTIVE%"
 
