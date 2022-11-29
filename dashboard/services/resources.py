@@ -16,6 +16,7 @@
 # Service Layer: Process and cache REST resource's responses here.
 # ToDo: Refactor the code to adhere Strategy Design Pattern.
 
+import json
 import logging
 from subprocess import Popen, PIPE
 from collections import OrderedDict
@@ -139,6 +140,14 @@ class GitPlatformResources(ResourcesBase):
     @call_service(GIT_PLATFORMS[0])
     def _create_github_pull_request(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
+        json_response = json.loads(response['content']) \
+            if not response['raw'].ok else response.get('json_content', {})
+        return response['raw'].ok, json_response
+
+    @staticmethod
+    @call_service(GIT_PLATFORMS[0])
+    def _fetch_github_user(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
         return response.get('json_content', {})
 
     def fetch_repo_branches(self, git_platform, instance_url, *args, **kwargs):
@@ -242,6 +251,25 @@ class GitPlatformResources(ResourcesBase):
                 'method': self._create_github_pull_request,
                 'base_url': 'https://api.github.com',
                 'resources': ['create_pull_requests'],
+            },
+        }
+        selected_config = method_mapper[git_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def user_details(self, git_platform, instance_url, *args, **kwargs):
+        """
+        Fetches user details json from API
+        :param git_platform: Git Platform API URL
+        :param instance_url: Git Platform Instance URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: list
+        """
+        method_mapper = {
+            GIT_PLATFORMS[0]: {
+                'method': self._fetch_github_user,
+                'base_url': 'https://api.github.com',
+                'resources': ['user_details'],
             },
         }
         selected_config = method_mapper[git_platform]
