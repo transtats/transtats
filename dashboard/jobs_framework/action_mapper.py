@@ -124,6 +124,18 @@ class JobCommandBase(BaseManager):
             return "{}_{}".format(lang, territory)
         return locale
 
+    @property
+    def github_user(self):
+        github_user = settings.GITHUB_USER
+        kwargs = {}
+        kwargs.update(dict(no_cache_api=True))
+        github_user_details = self.api_resources.user_details(
+            GIT_PLATFORMS[0], instance_url='', **kwargs
+        )
+        if github_user_details and github_user_details.get("login"):
+            github_user = github_user_details["login"]
+        return github_user
+
 
 class Get(JobCommandBase):
     """Handles all operations for GET Command"""
@@ -495,8 +507,13 @@ class Clone(JobCommandBase):
         git_owner, git_repo = git_owner_repo
         kwargs = {}
         kwargs.update(dict(no_cache_api=True))
+
+        git_user = settings.GITHUB_USER
+        if git_platform == GIT_PLATFORMS[0]:
+            git_user = self.github_user
+
         repositories = self.api_resources.list_repos(
-            git_platform, instance_url, settings.GITHUB_USER, **kwargs
+            git_platform, instance_url, git_user, **kwargs
         )
         for repository in repositories:
             if repository.get('name', '') == git_repo and repository.get('fork'):
@@ -509,8 +526,13 @@ class Clone(JobCommandBase):
         git_owner, git_repo = git_owner_repo
         kwargs = {}
         kwargs.update(dict(no_cache_api=True))
+
+        git_user = settings.GITHUB_USER
+        if git_platform == GIT_PLATFORMS[0]:
+            git_user = self.github_user
+
         delete_repo_resp = self.api_resources.delete_repo(
-            git_platform, instance_url, *(settings.GITHUB_USER, git_repo), **kwargs
+            git_platform, instance_url, *(git_user, git_repo), **kwargs
         )
         return delete_repo_resp
 
@@ -1454,8 +1476,13 @@ class Pullrequest(JobCommandBase):
 
         # Prepare Merge Request
         modified_repo = Repo(input['src_tar_dir'])
+
+        git_user = settings.GITHUB_USER
+        if git_platform == GIT_PLATFORMS[0]:
+            git_user = self.github_user
+
         modified_repo.config_writer().set_value(
-            "user", "name", settings.GITHUB_USER).release()
+            "user", "name", git_user).release()
         modified_repo.config_writer().set_value(
             "user", "email", RH_EMAIL_ADDR).release()
         for copied_file in input['copied_files']:
@@ -1500,7 +1527,7 @@ class Pullrequest(JobCommandBase):
             )
             pull_request_branch_from = modified_repo.active_branch.name
             pull_request_api_payload['head'] = "{}:{}".format(
-                settings.GITHUB_USER, pull_request_branch_from
+                self.github_user, pull_request_branch_from
             )
             pull_request_branch_to = kwargs['branch']
             pull_request_api_payload['base'] = pull_request_branch_to
@@ -1508,19 +1535,29 @@ class Pullrequest(JobCommandBase):
         kwargs = dict()
         kwargs['data'] = json.dumps(pull_request_api_payload)
         kwargs.update(dict(no_cache_api=True))
-        create_pull_request_resp = self.api_resources.create_merge_request(
+        api_resp_status, create_pull_request_resp = self.api_resources.create_merge_request(
             git_platform, instance_url, *git_owner_repo, **kwargs
         )
 
         pull_request_url = ''
-        if create_pull_request_resp:
+        if api_resp_status:
             pull_request_url = create_pull_request_resp['html_url']
             task_log.update(self._log_task(
                 input['log_f'], task_subject, f"Pull request has been created. Visit {pull_request_url}"
             ))
         else:
+            create_pull_request_failure_reason = create_pull_request_resp
+            if git_platform == GIT_PLATFORMS[0]:
+                try:
+                    create_pull_request_failure_reason = create_pull_request_resp['errors'][0]['message']
+                except (IndexError, KeyError):
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject, "GitHub response parsing failed."
+                    ))
+
             task_log.update(self._log_task(
-                input['log_f'], task_subject, "Pull request could not be created."
+                input['log_f'], task_subject, f"Pull request could not be created. "
+                                              f"{create_pull_request_failure_reason}"
             ))
         return {'pull_request_url': pull_request_url}, {task_subject: task_log}
 

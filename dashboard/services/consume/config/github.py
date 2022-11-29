@@ -91,6 +91,16 @@ resource_config_dict = {
             },
         }),
     ]),
+    'UserDetails': OrderedDict([
+        ('/user', {
+            http_methods[0]: {
+                'path_params': None,
+                'query_params': None,
+                'request_media_type': media_types[2],
+                'response_media_type': media_types[2],
+            },
+        }),
+    ]),
 }
 
 resource = namedtuple('service', 'rest_resource mount_point http_method')
@@ -108,6 +118,7 @@ create_pull_requests = resource(
 list_repos = resource('ListRepos', list(resource_config_dict['ListRepos'].keys())[0], http_methods[0])
 list_forks = resource('ListForks', list(resource_config_dict['ListForks'].keys())[0], http_methods[0])
 create_forks = resource('CreateForks', list(resource_config_dict['CreateForks'].keys())[0], http_methods[1])
+user_details = resource('UserDetails', list(resource_config_dict['UserDetails'].keys())[0], http_methods[0])
 
 # Transtats GitHub support operates on resources listed here
 resources = {
@@ -118,4 +129,5 @@ resources = {
     'list_repos': list_repos,
     'list_forks': list_forks,
     'create_forks': create_forks,
+    'user_details': user_details,
 }
