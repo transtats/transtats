@@ -44,13 +44,13 @@ from dashboard.constants import (
     TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
     WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS,
     JOB_MULTIPLE_BRANCHES_VAR, TP_BRANCH_CALLING_NAME, SYS_EMAIL_ADDR,
-    TRANSLATION_FILE_FORMATS
+    TRANSLATION_FILE_FORMATS, MEMSOURCE_SLUGS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
     NewLanguageForm, UpdateLanguageForm, LanguageSetForm, PackagePipelineForm,
     NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm,
-    CreateCIPipelineForm
+    CreateCIPipelineForm, PlatformProjectTemplatesForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager, SyncStatsManager
@@ -1171,6 +1171,47 @@ class AddCIPipeline(ManagersMixin, FormView):
                 ))
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, context=context_data)
+
+
+class PlatformProjectTemplatesView(ManagersMixin, FormView):
+    """Platform Project Templates"""
+    template_name = 'ci/project_templates.html'
+
+    def get_success_url(self):
+        return reverse('platform-project-templates')
+
+    def _fetch_latest_templates_dict(self):
+        latest_templates = \
+            self.inventory_manager.fetch_latest_platform_project_templates(MEMSOURCE_SLUGS[0])
+        latest_templates_dict = \
+            self.inventory_manager.filter_uid_name_from_project_templates(latest_templates)
+        return latest_templates_dict
+
+    def get_form(self, form_class=None, data=None):
+        templates = self._fetch_latest_templates_dict()
+        kwargs = dict()
+        kwargs['template_choices'] = tuple([(uid, name) for uid, name in templates.items()])
+        return PlatformProjectTemplatesForm(**kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(PlatformProjectTemplatesView, self).get_context_data(**kwargs)
+        context['latest_templates'] = self._fetch_latest_templates_dict()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_data)
+
+        context = dict()
+        context['form'] = form
+        context['latest_templates'] = self._fetch_latest_templates_dict()
+
+        if form.is_valid():
+            post_params = form.cleaned_data
+            # ToDO save default template
+
+            return HttpResponseRedirect(self.get_success_url())
+        return render(request, self.template_name, context=context)
 
 
 def schedule_job(request):

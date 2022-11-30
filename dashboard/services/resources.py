@@ -591,6 +591,21 @@ class TransplatformResources(ResourcesBase):
         response = kwargs.get('rest_response', {})
         return response.get('json_content')
 
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[4])
+    def _memsource_fetch_project_templates(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        if response.get("json_content").get("content"):
+            kwargs['combine_results'].extend(response['json_content']['content'])
+        resp_page_number = response.get("json_content").get("pageNumber", 0)
+        resp_total_pages = response.get("json_content").get("totalPages", 0)
+        if resp_total_pages > 1 and resp_page_number < resp_total_pages:
+            kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
+            TransplatformResources._memsource_fetch_project_templates(
+                base_url, resource, *url_params, **kwargs
+            )
+        return kwargs['combine_results']
+
     def fetch_all_projects(self, translation_platform, instance_url, *args, **kwargs):
         """
         Fetches all projects or modules json from API
@@ -835,6 +850,26 @@ class TransplatformResources(ResourcesBase):
                 'method': self._memsource_import_setting_details,
                 'base_url': instance_url,
                 'resources': ['import_setting_details'],
+            }
+        }
+        selected_config = method_mapper[translation_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def fetch_project_templates(self, translation_platform, instance_url, *args, **kwargs):
+        """
+        Fetch project templates from CI Platform
+        :param translation_platform: Translation Platform API
+        :param instance_url: Translation Platform Server URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: dict
+        """
+        method_mapper = {
+            TRANSPLATFORM_ENGINES[4]: {
+                'method': self._memsource_fetch_project_templates,
+                'base_url': instance_url,
+                'resources': ['list_project_templates'],
+                'combine_results': True,
             }
         }
         selected_config = method_mapper[translation_platform]

@@ -15,6 +15,7 @@
             {% if request.user.is_staff %}
               | <a class="btn btn-default" href="{% url 'add-ci-pipeline' %}">
                 <i class="pficon pficon-add-circle-o"></i> Add Pipeline </a>
+                <a class="btn btn-default" href="{% url 'platform-project-templates' %}"> Platform Project Templates </a>
             {% endif %}
             {% if pipelines %}
               <span class="pull-right badge">{{ pipelines|length }}</span>
