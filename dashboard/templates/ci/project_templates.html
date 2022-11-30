@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block extrascript %}
+<script src="/static/js/csrf.js"></script>
+<script>
+  function csrfSafeMethod(t){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(t)}
+</script>
+{% endblock %}
+
+{% block pagecontent %}
+    <div class="panel panel-default content-area-2">
+        <div class="panel-heading lead"> Platform Project Templates </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-6 p-1 m-1">
+                    <table class="h5 table table-striped">
+                        <thead>
+                            <tr>
+                              <th scope="col">#</th>
+                              <th scope="col">UID</th>
+                              <th scope="col">Name</th>
+                            </tr>
+                        </thead>
+                    {% for uid, template_name in latest_templates.items %}
+                        <tr class="p-1 m-1">
+                            <td width="10%"><b>{{ forloop.counter }}.</b></td>
+                            <td width="35%"><span class="text-primary">{{ uid }}</span></td>
+                            <td width="55%">{{ template_name}}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan=3">No templates found.</td></tr>
+                    {% endfor %}
+                     </table>
+                </div>
+                <div class="col-md-6 p-2 m-1">
+                    {% for message in messages %}
+                      {% if 'success' in message.tags %}
+                      <div class="alert alert-success alert-dismissable">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                          <span class="pficon pficon-close"></span>
+                        </button>
+                        <span class="pficon pficon-ok"></span>
+                        {{ message }}
+                      </div>
+                      {% endif %}
+                      {% if 'error' in message.tags %}
+                      <div class="alert alert-danger alert-dismissable">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                          <span class="pficon pficon-close"></span>
+                        </button>
+                        <span class="pficon pficon-error-circle-o"></span>
+                        {{ message }}
+                      </div>
+                      {% endif %}
+                    {% endfor %}
+                  <div style="padding-left:0.5em; padding-right:0.5em">
+                    {% crispy form %}
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

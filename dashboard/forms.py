@@ -756,3 +756,36 @@ class CreateCIPipelineForm(forms.ModelForm):
             parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])
             return "{}://{}{}".format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
         return ""
+
+
+class PlatformProjectTemplatesForm(forms.Form):
+    """PlatformProjectTemplates Create or Update Form"""
+
+    default_project_template = forms.ChoiceField(
+        label='Default Project Template',
+        help_text='This will be the project template used while creating a pipeline.',
+        required=True
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.template_choices = kwargs.pop('template_choices')
+        super(PlatformProjectTemplatesForm, self).__init__(*args, **kwargs)
+        self.fields['default_project_template'].choices = self.template_choices
+        super(PlatformProjectTemplatesForm, self).full_clean()
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.error_text_inline = True
+    helper.form_show_errors = True
+
+    helper.layout = Layout(
+        Div(
+            Field('default_project_template'),
+            HTML("<hr/>"),
+            FormActions(
+                Submit('setDefault', 'Set Default'),
+                Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )

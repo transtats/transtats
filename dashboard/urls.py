@@ -36,7 +36,8 @@ from dashboard.views import (
     LanguageDetailView, LanguageReleaseView, TerritoryView, CleanUpJobs, get_repo_branches, get_target_langs,
     refresh_ci_pipeline, graph_data, job_template, PipelineDetailView, PipelineHistoryView, PipelineConfigurationView,
     ReleasePipelinesView, PipelinesView, AddCIPipeline, get_workflow_steps, get_pipeline_job_template,
-    ajax_save_pipeline_config, ajax_run_pipeline_config, ajax_toggle_pipeline_config, ajax_delete_pipeline_config
+    ajax_save_pipeline_config, ajax_run_pipeline_config, ajax_toggle_pipeline_config, ajax_delete_pipeline_config,
+    PlatformProjectTemplatesView
 )
 
 LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
@@ -61,6 +62,7 @@ app_pipeline_urls = [
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/history$', PipelineHistoryView.as_view(), name="pipeline-history"),
     url(r'^(?P<pipeline_id>[0-9a-f-]+)/configurations$', PipelineConfigurationView.as_view(),
         name="pipeline-configuration"),
+    url(r'^project-templates', PlatformProjectTemplatesView.as_view(), name="platform-project-templates"),
 ]
 
 app_setting_urls = [
