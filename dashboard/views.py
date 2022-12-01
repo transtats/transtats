@@ -1223,7 +1223,7 @@ class PlatformProjectTemplatesView(ManagersMixin, FormView):
         context_data['form'] = form
         context_data['templates_uid_name_dict'] = self._templates_uid_name_dict()
 
-        if form.is_valid():
+        if form.is_valid() and post_data.get('default_project_template'):
             default_template_uid = post_data['default_project_template']
             ci_platform = self._get_ci_platform()
             if ci_platform:
