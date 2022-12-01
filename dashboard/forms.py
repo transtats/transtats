@@ -789,3 +789,6 @@ class PlatformProjectTemplatesForm(forms.Form):
             )
         )
     )
+
+    def is_valid(self):
+        return not len(self.errors) >= 1

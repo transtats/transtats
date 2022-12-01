@@ -1,4 +1,5 @@
-##### The Nov 15 2022 Sundeep Anand <suanand@redhat.com>
+##### Thu Dec 1 2022 Sundeep Anand <suanand@redhat.com>
+* Enable selecting Phrase Project Template as default
 * Implement merge request actions in jobs mapper
 * Add required GitHub API endpoints and provision API token
 * Add new job template to pull translations and submit merge request

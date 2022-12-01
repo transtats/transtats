@@ -183,7 +183,7 @@ class InventoryManager(BaseManager):
             )
         return required_locales
 
-    def get_translation_platforms(self, engine=None, only_active=None, ci=None):
+    def get_translation_platforms(self, engine=None, only_active=None, ci=None, slug=None):
         """fetch all translation platforms from db"""
         filter_kwargs = {}
         if engine:
@@ -194,6 +194,8 @@ class InventoryManager(BaseManager):
             filter_kwargs.update(dict(ci_status=True))
         if ci is False:
             filter_kwargs.update(dict(ci_status=False))
+        if slug:
+            filter_kwargs.update(dict(platform_slug=slug))
 
         platforms = None
         try:
@@ -378,37 +380,37 @@ class InventoryManager(BaseManager):
         if platform:
             filter_kwargs.update(dict(platform=platform))
 
-        pp_templates = None
         try:
             pp_templates = PlatformProjectTemplates.objects.filter(**filter_kwargs)
         except Exception as e:
             self.app_logger(
                 'ERROR', "Platform project templates could not be fetched, details: " + str(e)
             )
-        return pp_templates
+        else:
+            return pp_templates
 
     def create_or_update_project_template(self, platform: Platform,
-                                          default_template: str,
+                                          default_template_uid: str,
                                           project_templates_dict: dict = None) -> bool:
         """
         Save Platform Project Templates to db
         :param platform: platform db model
-        :param default_template: str
+        :param default_template_uid: str
         :param project_templates_dict: project_templates dict
         :return: boolean
         """
-        if not platform and not default_template:
+        if not platform and not default_template_uid:
             raise TypeError()
         default_params = {}
         match_params = {
             'platform': platform
         }
         default_params.update(match_params)
-        default_params['default_template'] = default_template
+        default_params['default_project_template'] = default_template_uid
         if project_templates_dict and not isinstance(project_templates_dict, dict):
             raise TypeError()
         if project_templates_dict:
-            default_params['project_template_json_str'] = str(project_templates_dict)
+            default_params['project_template_json_str'] = json.dumps(project_templates_dict)
         try:
             PlatformProjectTemplates.objects.update_or_create(
                 **match_params, defaults=default_params

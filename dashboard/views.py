@@ -1176,42 +1176,72 @@ class AddCIPipeline(ManagersMixin, FormView):
 class PlatformProjectTemplatesView(ManagersMixin, FormView):
     """Platform Project Templates"""
     template_name = 'ci/project_templates.html'
+    latest_templates = None
+    ci_platform_slug = MEMSOURCE_SLUGS[0]
 
     def get_success_url(self):
         return reverse('platform-project-templates')
 
-    def _fetch_latest_templates_dict(self):
+    def _fetch_latest_templates(self):
+        """Restrict fetching templates to Memsource, for now."""
         latest_templates = \
-            self.inventory_manager.fetch_latest_platform_project_templates(MEMSOURCE_SLUGS[0])
+            self.inventory_manager.fetch_latest_platform_project_templates(self.ci_platform_slug)
+        return latest_templates
+
+    def _templates_uid_name_dict(self):
+        if not self.latest_templates:
+            self.latest_templates = self._fetch_latest_templates()
         latest_templates_dict = \
-            self.inventory_manager.filter_uid_name_from_project_templates(latest_templates)
+            self.inventory_manager.filter_uid_name_from_project_templates(self.latest_templates)
         return latest_templates_dict
 
+    def _get_ci_platform(self):
+        ci_platform_qs = self.inventory_manager.get_translation_platforms(slug=self.ci_platform_slug)
+        if ci_platform_qs:
+            return ci_platform_qs.first()
+
     def get_form(self, form_class=None, data=None):
-        templates = self._fetch_latest_templates_dict()
+        templates = self._templates_uid_name_dict()
         kwargs = dict()
         kwargs['template_choices'] = tuple([(uid, name) for uid, name in templates.items()])
         return PlatformProjectTemplatesForm(**kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(PlatformProjectTemplatesView, self).get_context_data(**kwargs)
-        context['latest_templates'] = self._fetch_latest_templates_dict()
+        context['templates_uid_name_dict'] = self._templates_uid_name_dict()
+        project_template_qs = self.inventory_manager.get_project_templates(platform=self._get_ci_platform())
+        if project_template_qs:
+            default_project_template_uid = project_template_qs.first().default_project_template
+            context['default_project_template_uid'] = default_project_template_uid
         return context
 
     def post(self, request, *args, **kwargs):
         post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
         form = self.get_form(data=post_data)
 
-        context = dict()
-        context['form'] = form
-        context['latest_templates'] = self._fetch_latest_templates_dict()
+        context_data = dict()
+        context_data['form'] = form
+        context_data['templates_uid_name_dict'] = self._templates_uid_name_dict()
 
         if form.is_valid():
-            post_params = form.cleaned_data
-            # ToDO save default template
-
+            default_template_uid = post_data['default_project_template']
+            ci_platform = self._get_ci_platform()
+            if ci_platform:
+                project_templates_dict = {template['uid']: template for template in self.latest_templates}
+                save_project_template = self.inventory_manager.create_or_update_project_template(
+                    platform=ci_platform, default_template_uid=default_template_uid,
+                    project_templates_dict=project_templates_dict
+                )
+                if not save_project_template:
+                    messages.add_message(request, messages.ERROR, (
+                        'Alas! Something unexpected happened. Please try saving again!'
+                    ))
+                else:
+                    messages.add_message(request, messages.SUCCESS, (
+                        'Great! Default template saved successfully.'
+                    ))
             return HttpResponseRedirect(self.get_success_url())
-        return render(request, self.template_name, context=context)
+        return render(request, self.template_name, context=context_data)
 
 
 def schedule_job(request):

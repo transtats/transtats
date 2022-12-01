@@ -10,7 +10,11 @@
 
 {% block pagecontent %}
     <div class="panel panel-default content-area-2">
-        <div class="panel-heading lead"> Platform Project Templates </div>
+        <div class="panel-heading lead"> Platform Project Templates
+            {% if templates_uid_name_dict %}
+              <span class="pull-right badge"> {{ templates_uid_name_dict|length }} </span>
+            {% endif %}
+        </div>
         <div class="panel-body">
             <div class="row">
                 <div class="col-md-6 p-1 m-1">
@@ -22,11 +26,15 @@
                               <th scope="col">Name</th>
                             </tr>
                         </thead>
-                    {% for uid, template_name in latest_templates.items %}
+                    {% for uid, template_name in templates_uid_name_dict.items %}
                         <tr class="p-1 m-1">
                             <td width="10%"><b>{{ forloop.counter }}.</b></td>
                             <td width="35%"><span class="text-primary">{{ uid }}</span></td>
-                            <td width="55%">{{ template_name}}</td>
+                            <td width="55%">{{ template_name}}
+                                {% if default_project_template_uid and default_project_template_uid == uid %}
+                                    <span class="pull-right badge"> default </span>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% empty %}
                         <tr><td colspan=3">No templates found.</td></tr>

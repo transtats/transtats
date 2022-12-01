@@ -154,6 +154,12 @@ class PlatformProjectTemplates(ModelMixin, models.Model):
     def project_template_json(self):
         return self.str2json(self.project_template_json_str)
 
+    @property
+    def default_project_template_json(self):
+        if not self.project_template_json:
+            return {}
+        return self.project_template_json.get(self.default_project_template, {})
+
     class Meta:
         db_table = TABLE_PREFIX + 'platformprojecttemplates'
         verbose_name = "Platform Project Templates"
