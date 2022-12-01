@@ -436,6 +436,8 @@ class InventoryManager(BaseManager):
         latest_project_templates = self.api_resources.fetch_project_templates(
             ci_platform.engine_name, ci_platform.api_url
         )
+        if not isinstance(latest_project_templates, (list, tuple, set)):
+            return []
         return latest_project_templates
 
     @staticmethod

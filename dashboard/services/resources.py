@@ -318,10 +318,10 @@ class TransplatformResources(ResourcesBase):
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _fetch_memsource_projects(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        if response.get("json_content").get("content"):
+        if response.get("json_content", {}).get("content"):
             kwargs['combine_results'].extend(response['json_content']['content'])
-        resp_page_number = response.get("json_content").get("pageNumber", 0)
-        resp_total_pages = response.get("json_content").get("totalPages", 0)
+        resp_page_number = response.get("json_content", {}).get("pageNumber", 0)
+        resp_total_pages = response.get("json_content", {}).get("totalPages", 0)
         if resp_total_pages > 1 and resp_page_number < resp_total_pages:
             kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
             TransplatformResources._fetch_memsource_projects(
@@ -444,10 +444,10 @@ class TransplatformResources(ResourcesBase):
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _fetch_memsource_project_jobs(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        if response.get("json_content").get("content"):
+        if response.get("json_content", {}).get("content"):
             kwargs['combine_results'].extend(response['json_content']['content'])
-        resp_page_number = response.get("json_content").get("pageNumber", 0)
-        resp_total_pages = response.get("json_content").get("totalPages", 0)
+        resp_page_number = response.get("json_content", {}).get("pageNumber", 0)
+        resp_total_pages = response.get("json_content", {}).get("totalPages", 0)
         if resp_total_pages > 1 and resp_page_number < resp_total_pages:
             kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
             TransplatformResources._fetch_memsource_project_jobs(
@@ -595,10 +595,10 @@ class TransplatformResources(ResourcesBase):
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _memsource_fetch_project_templates(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        if response.get("json_content").get("content"):
+        if response.get("json_content", {}).get("content"):
             kwargs['combine_results'].extend(response['json_content']['content'])
-        resp_page_number = response.get("json_content").get("pageNumber", 0)
-        resp_total_pages = response.get("json_content").get("totalPages", 0)
+        resp_page_number = response.get("json_content", {}).get("pageNumber", 0)
+        resp_total_pages = response.get("json_content", {}).get("totalPages", 0)
         if resp_total_pages > 1 and resp_page_number < resp_total_pages:
             kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
             TransplatformResources._memsource_fetch_project_templates(
