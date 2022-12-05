@@ -389,6 +389,14 @@ class InventoryManager(BaseManager):
         else:
             return pp_templates
 
+    def get_default_project_template(self, platform=None) -> dict:
+        """Get Default Platform Project Templates from db"""
+        project_templates_qs = self.get_project_templates(platform=platform)
+        if not project_templates_qs:
+            return {}
+        project_template = project_templates_qs.first()
+        return project_template.default_project_template_json
+
     def create_or_update_project_template(self, platform: Platform,
                                           default_template_uid: str,
                                           project_templates_dict: dict = None) -> bool:
@@ -456,6 +464,24 @@ class InventoryManager(BaseManager):
             except KeyError:
                 continue
         return filtered_uid_name
+
+    def create_project_from_template(self, platform_id: str, project_template_uid: str,
+                                     project_name: str, target_langs: list) -> dict:
+
+        platforms_qs = self.get_translation_platforms(ci=True)
+        platforms_qs.filter(**{"platform_id": platform_id})
+        platform = platforms_qs.first()
+
+        kwargs = dict()
+        kwargs['data'] = json.dumps({"name": project_name, "targetLangs": target_langs})
+
+        api_resp_status, create_project_resp = self.api_resources.create_project(
+            platform.engine_name, platform.api_url, project_template_uid, **kwargs
+        )
+
+        if api_resp_status:
+            return create_project_resp
+        return {}
 
 
 class SyncStatsManager(BaseManager):

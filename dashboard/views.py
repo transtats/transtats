@@ -941,6 +941,12 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
         kwargs.update(dict(pkg_release_choices=pkg_release_choices))
         kwargs.update(dict(package_name=package.package_name))
         kwargs.update(dict(package_platform=package.platform_slug.engine_name))
+
+        # Currently CI Pipeline is built specific to Memsource
+        ci_platforms_qs = ci_platforms.filter(**{"platform_slug": MEMSOURCE_SLUGS[0]})
+        ci_platform = ci_platforms_qs.first()
+        default_template_dict = self.inventory_manager.get_default_project_template(platform=ci_platform)
+        kwargs.update(dict(default_template_dict=default_template_dict))
         if data:
             kwargs.update({'data': data})
         return PackagePipelineForm(**kwargs)
@@ -957,8 +963,31 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
         package_name = self.kwargs.get('slug')
         context_data.update(dict(package_name=package_name))
 
+        create_project_resp = None
+        if post_data.get('ci_platform') and post_data.get('ci_project_template') and \
+                post_data.get('ci_project_name') and post_data.get('target_languages') and \
+                not post_data.get('ci_project_web_url'):
+            create_project_resp = self.inventory_manager.create_project_from_template(
+                platform_id=post_data['ci_platform'],
+                project_template_uid=post_data['ci_project_template'],
+                project_name=post_data['ci_project_name'],
+                target_langs=post_data['target_languages']
+            )
+            if not create_project_resp:
+                errors = form._errors.setdefault('ci_project_name', ErrorList())
+                errors.append("Project could not be created at the selected platform.")
+                return render(request, self.template_name, context=context_data)
+
         if form.is_valid():
             post_params = form.cleaned_data
+            if create_project_resp and not post_params.get('ci_project_web_url'):
+                post_params['ci_project_web_url'] = "{}/project2/show/{}".format(
+                    post_params['ci_platform'].api_url, create_project_resp['uid']
+                )
+            # Let's clean post_params
+            extra_params = ['ci_project_template', 'ci_project_name', 'target_languages']
+            [post_params.pop(param) for param in extra_params if param in post_params]
+
             # Assumption: Project URL starts with Platform API URL (which is saved in db)
             if post_params['ci_platform'].api_url not in post_params['ci_project_web_url']:
                 errors = form._errors.setdefault('ci_project_web_url', ErrorList())
