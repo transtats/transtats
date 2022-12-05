@@ -355,6 +355,14 @@ class TransplatformResources(ResourcesBase):
         return response
 
     @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[4])
+    def _create_memsource_project(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        if response['raw'].ok:
+            return response['raw'].ok, response['json_content']
+        return response['raw'].ok, response['content']
+
+    @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
     def _fetch_damnedlies_project_details(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
@@ -708,6 +716,11 @@ class TransplatformResources(ResourcesBase):
                 'method': self._create_transifex_project,
                 'base_url': instance_url,
                 'resources': ['create_project'],
+            },
+            TRANSPLATFORM_ENGINES[4]: {
+                'method': self._create_memsource_project,
+                'base_url': instance_url,
+                'resources': ['create_project_from_template'],
             }
         }
         selected_config = method_mapper[translation_platform]
