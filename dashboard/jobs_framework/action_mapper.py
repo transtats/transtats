@@ -955,6 +955,32 @@ class Upload(JobCommandBase):
 
         return collected_files
 
+    def simplify_plural_forms_in_po_header(self, input: dict, task_log: dict) -> None:
+        """
+        Pre hook: simplify_plural_forms_in_po_header
+            - change Plural-Forms to 'nplurals=1; plural=0;' in PO header.
+        """
+        task_subject = "Upload Prehook: simplify_plural_forms_in_po_header"
+        simple_plural_form = "nplurals=1; plural=0;"
+
+        if not input.get('trans_files'):
+            return
+
+        for trans_file in input['trans_files']:
+            try:
+                po_file = polib.pofile(trans_file)
+            except IOError as e:
+                task_log.update(self._log_task(input['log_f'], task_subject, str(e)))
+                continue
+            except Exception as e:
+                task_log.update(self._log_task(
+                    input['log_f'], task_subject, f'{trans_file} is not a PO file. Details {str(e)}')
+                )
+                continue
+            else:
+                po_file.metadata['Plural-Forms'] = simple_plural_form
+                po_file.save()
+
     def copy_template_for_target_langs(self, input: dict, task_log: dict) -> None:
         """
         Pre hook: copy_template_for_target_langs
