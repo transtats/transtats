@@ -974,7 +974,7 @@ class Upload(JobCommandBase):
                 continue
             except Exception as e:
                 task_log.update(self._log_task(
-                    input['log_f'], task_subject, f'{trans_file} is not a PO file. Details {str(e)}')
+                    input['log_f'], task_subject, f'{trans_file} is not a PO file. Details {e}')
                 )
                 continue
             else:
