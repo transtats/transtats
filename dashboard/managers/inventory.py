@@ -38,7 +38,8 @@ from django.utils import timezone
 # dashboard
 from dashboard.managers import BaseManager
 from dashboard.models import (
-    Platform, Language, LanguageSet, Product, Release, SyncStats
+    Platform, Language, LanguageSet, Product, Release,
+    SyncStats, PlatformProjectTemplates
 )
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, ZANATA_SLUGS, DAMNEDLIES_SLUGS,
@@ -182,7 +183,7 @@ class InventoryManager(BaseManager):
             )
         return required_locales
 
-    def get_translation_platforms(self, engine=None, only_active=None, ci=None):
+    def get_translation_platforms(self, engine=None, only_active=None, ci=None, slug=None):
         """fetch all translation platforms from db"""
         filter_kwargs = {}
         if engine:
@@ -193,6 +194,8 @@ class InventoryManager(BaseManager):
             filter_kwargs.update(dict(ci_status=True))
         if ci is False:
             filter_kwargs.update(dict(ci_status=False))
+        if slug:
+            filter_kwargs.update(dict(platform_slug=slug))
 
         platforms = None
         try:
@@ -370,6 +373,115 @@ class InventoryManager(BaseManager):
         if release_stream:
             return release_stream.first().product_build_system
         return ''
+
+    def get_project_templates(self, platform=None):
+        """Get Platform Project Templates from db"""
+        filter_kwargs = {}
+        if platform:
+            filter_kwargs.update(dict(platform=platform))
+
+        try:
+            pp_templates = PlatformProjectTemplates.objects.filter(**filter_kwargs)
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Platform project templates could not be fetched, details: " + str(e)
+            )
+        else:
+            return pp_templates
+
+    def get_default_project_template(self, platform=None) -> dict:
+        """Get Default Platform Project Templates from db"""
+        project_templates_qs = self.get_project_templates(platform=platform)
+        if not project_templates_qs:
+            return {}
+        project_template = project_templates_qs.first()
+        return project_template.default_project_template_json
+
+    def create_or_update_project_template(self, platform: Platform,
+                                          default_template_uid: str,
+                                          project_templates_dict: dict = None) -> bool:
+        """
+        Save Platform Project Templates to db
+        :param platform: platform db model
+        :param default_template_uid: str
+        :param project_templates_dict: project_templates dict
+        :return: boolean
+        """
+        if not platform and not default_template_uid:
+            raise TypeError()
+        default_params = {}
+        match_params = {
+            'platform': platform
+        }
+        default_params.update(match_params)
+        default_params['default_project_template'] = default_template_uid
+        if project_templates_dict and not isinstance(project_templates_dict, dict):
+            raise TypeError()
+        if project_templates_dict:
+            default_params['project_template_json_str'] = json.dumps(project_templates_dict)
+        try:
+            PlatformProjectTemplates.objects.update_or_create(
+                **match_params, defaults=default_params
+            )
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Platform project templates could not be saved or updated, details: " + str(e)
+            )
+            return False
+        else:
+            return True
+
+    def fetch_latest_platform_project_templates(self, platform_slug: str) -> list:
+        """Fetch project templates from CI platforms by calling API"""
+        if not platform_slug:
+            raise TypeError()
+        latest_project_templates = []
+        ci_platforms = self.get_translation_platforms(ci=True)
+        ci_platform_qs = ci_platforms.filter(platform_slug=platform_slug)
+        if not ci_platform_qs:
+            return latest_project_templates
+        ci_platform = ci_platform_qs.get()
+        latest_project_templates = self.api_resources.fetch_project_templates(
+            ci_platform.engine_name, ci_platform.api_url
+        )
+        if not isinstance(latest_project_templates, (list, tuple, set)):
+            return []
+        return latest_project_templates
+
+    @staticmethod
+    def filter_uid_name_from_project_templates(project_templates: list) -> dict:
+        """
+        Filter UID and Name from Platform Project Templates
+        :param project_templates: dict
+        : returns: dict
+        """
+        if not isinstance(project_templates, list):
+            raise ValueError()
+        filtered_uid_name = {}
+        for template in project_templates:
+            try:
+                filtered_uid_name[template['uid']] = template['templateName']
+            except KeyError:
+                continue
+        return filtered_uid_name
+
+    def create_project_from_template(self, platform_id: str, project_template_uid: str,
+                                     project_name: str, target_langs: list) -> dict:
+
+        platforms_qs = self.get_translation_platforms(ci=True)
+        platforms_qs.filter(**{"platform_id": platform_id})
+        platform = platforms_qs.first()
+
+        kwargs = dict()
+        kwargs['data'] = json.dumps({"name": project_name, "targetLangs": target_langs})
+
+        api_resp_status, create_project_resp = self.api_resources.create_project(
+            platform.engine_name, platform.api_url, project_template_uid, **kwargs
+        )
+
+        if api_resp_status:
+            return create_project_resp
+        return {}
 
 
 class SyncStatsManager(BaseManager):

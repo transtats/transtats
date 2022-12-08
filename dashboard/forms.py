@@ -71,6 +71,7 @@ class NewPackageForm(forms.Form):
     """Add new package to package list"""
     platform_choices = ()
     products_choices = ()
+    format_choices = ()
 
     package_name = forms.CharField(
         label='Package Name', help_text='Package id as-in translation platform. Use hyphen (-) to separate words.', required=True,
@@ -94,13 +95,19 @@ class NewPackageForm(forms.Form):
         label='Products', widget=forms.CheckboxSelectMultiple, choices=products_choices,
         help_text="Translation progress for selected products will be tracked."
     )
+    translation_file_ext = TextArrayField(
+        label='Translation Format', widget=forms.RadioSelect, choices=format_choices,
+        help_text="File format translations are stored in the project."
+    )
 
     def __init__(self, *args, **kwargs):
         self.platform_choices = kwargs.pop('platform_choices')
         self.products_choices = kwargs.pop('products_choices')
+        self.format_choices = kwargs.pop('format_choices')
         super(NewPackageForm, self).__init__(*args, **kwargs)
         self.fields['transplatform_slug'].choices = self.platform_choices
         self.fields['release_streams'].choices = self.products_choices
+        self.fields['translation_file_ext'].choices = self.format_choices
         super(NewPackageForm, self).full_clean()
 
     helper = FormHelper()
@@ -115,6 +122,7 @@ class NewPackageForm(forms.Form):
             Field('package_name', css_class='form-control', onkeyup="showPackageSlug()"),
             Field('upstream_url', css_class='form-control'),
             Field('upstream_l10n_url', css_class='form-control'),
+            Field('translation_file_ext'),
             Field('transplatform_slug', css_class='selectpicker'),
             InlineCheckboxes('auto_create_project'),
             InlineCheckboxes('release_streams'),
@@ -129,6 +137,15 @@ class NewPackageForm(forms.Form):
 
     def is_valid(self):
         return not len(self.errors) >= 1
+
+    def clean_translation_file_ext(self):
+        """Check if translation_file_ext is in required format"""
+        cleaned_data = super().clean()
+        translation_file_ext = cleaned_data['translation_file_ext']
+        if isinstance(translation_file_ext, (list, tuple)) and translation_file_ext:
+            return translation_file_ext[0]
+        else:
+            return self.cleaned_data.get('translation_file_ext', None)
 
 
 class UpdatePackageForm(forms.ModelForm):
@@ -635,12 +652,23 @@ class PackagePipelineForm(forms.ModelForm):
 
     ci_project_web_url = forms.URLField(
         label='CI Platform Project URL', required=True,
-        help_text='CI Pipeline will be associated with this project.'
+        help_text="CI Pipeline will be associated with this project."
     )
-
+    ci_project_template = forms.ChoiceField(
+        label='CI Platform Project Template', required=False, disabled=True,
+        help_text="Project at CI Platform will be created with this template."
+    )
+    ci_project_name = forms.CharField(
+        label='CI Platform Project Name', required=False, disabled=True,
+        help_text="Project at CI Platform will be created with this name."
+    )
+    target_languages = TextArrayField(
+        label='Target Languages', widget=forms.CheckboxSelectMultiple, disabled=True,
+        required=False, help_text="Project at CI Platform will be created for these languages."
+    )
     ci_pipeline_default_branch = forms.ChoiceField(required=False)
     ci_pipeline_auto_create_config = forms.BooleanField(
-        required=False, initial=True, label='Auto Create Pipeline Configurations'
+        required=False, initial=True, label="Auto Create Pipeline Configurations"
     )
 
     def __init__(self, *args, **kwargs):
@@ -649,6 +677,7 @@ class PackagePipelineForm(forms.ModelForm):
         pkg_platform_branch_choices = kwargs.pop('pkg_platform_branch_choices')
         pkg_branch_display_name = kwargs.pop('pkg_branch_display_name')
         pkg_name, pkg_platform = kwargs.pop('package_name'), kwargs.pop('package_platform')
+        default_template_dict = kwargs.pop('default_template_dict')
         super(PackagePipelineForm, self).__init__(*args, **kwargs)
         self.fields['ci_platform'].choices = ci_platform_choices
         self.fields['ci_release'].choices = pkg_release_choices
@@ -658,6 +687,19 @@ class PackagePipelineForm(forms.ModelForm):
         self.fields['ci_pipeline_default_branch'].help_text = \
             f'This will be the default {pkg_branch_display_name.lower()}. ' \
             f'Resync {pkg_name} with {pkg_platform} for the latest.'
+        if default_template_dict:
+            self.fields['ci_project_web_url'].disabled = True
+            self.fields['ci_project_web_url'].required = False
+            self.fields['ci_project_template'].disabled = False
+            self.fields['ci_project_template'].choices = (
+                (default_template_dict['uid'], default_template_dict['templateName']),
+            )
+            self.fields['ci_project_name'].disabled = False
+            self.fields['target_languages'].disabled = False
+            self.fields['target_languages'].choices = (
+                [(lang, lang) for lang in default_template_dict['targetLangs']]
+            )
+            self.fields['target_languages'].initial = default_template_dict['targetLangs']
 
     class Meta:
         model = CIPipeline
@@ -675,6 +717,9 @@ class PackagePipelineForm(forms.ModelForm):
             Field('ci_pull_job_template', css_class='selectpicker'),
             Field('ci_pipeline_default_branch', css_class='selectpicker'),
             Field('ci_project_web_url', css_class='form-control'),
+            Field('ci_project_template', css_class='form-control'),
+            Field('ci_project_name', css_class='form-control'),
+            InlineCheckboxes('target_languages'),
             PrependedText('ci_pipeline_auto_create_config', ''),
             FormActions(
                 Submit('addCIPipeline', 'Add CI Pipeline'),
@@ -739,3 +784,39 @@ class CreateCIPipelineForm(forms.ModelForm):
             parsed_url = urlparse(self.cleaned_data['ci_project_web_url'])
             return "{}://{}{}".format(parsed_url.scheme, parsed_url.netloc, parsed_url.path)
         return ""
+
+
+class PlatformProjectTemplatesForm(forms.Form):
+    """PlatformProjectTemplates Create or Update Form"""
+
+    default_project_template = forms.ChoiceField(
+        label='Default Project Template',
+        help_text='This will be the project template used while creating a pipeline.',
+        required=True
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.template_choices = kwargs.pop('template_choices')
+        super(PlatformProjectTemplatesForm, self).__init__(*args, **kwargs)
+        self.fields['default_project_template'].choices = self.template_choices
+        super(PlatformProjectTemplatesForm, self).full_clean()
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.form_class = 'dynamic-form'
+    helper.error_text_inline = True
+    helper.form_show_errors = True
+
+    helper.layout = Layout(
+        Div(
+            Field('default_project_template'),
+            HTML("<hr/>"),
+            FormActions(
+                Submit('setDefault', 'Set Default'),
+                Reset('reset', 'Reset', css_class='btn-danger')
+            )
+        )
+    )
+
+    def is_valid(self):
+        return not len(self.errors) >= 1

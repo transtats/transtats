@@ -1,6 +1,10 @@
-##### Thu Oct 6 2022 Sundeep Anand <suanand@redhat.com>
-* Add copy_template_for_target_langs upload prehook in push jobs.
-* Auto Create Transifex Project from package creation form.
+##### Thu Dec 1 2022 Sundeep Anand <suanand@redhat.com>
+* Enable selecting Phrase Project Template as default
+* Implement merge request actions in jobs mapper
+* Add required GitHub API endpoints and provision API token
+* Add new job template to pull translations and submit merge request
+* Add copy_template_for_target_langs upload prehook in push jobs
+* Auto Create Transifex Project from package creation form
 * Update Memsource API Authentication
 
 ##### Mon Jun 6 2022 Sundeep Anand <suanand@redhat.com> - release_0.8.6

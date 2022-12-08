@@ -249,6 +249,39 @@ resource_config_dict = {
             },
         }),
     ]),
+    'ProjectTemplatesResource': OrderedDict([
+        # https://cloud.memsource.com/web/api2/v1/projectTemplates
+        ('/projectTemplates', {
+            http_methods[0]: {
+                'path_params': None,
+                'query_params': None,
+                'request_media_type': media_types[0],
+                'response_media_type': media_types[0],
+            },
+        }),
+    ]),
+    'ProjectTemplateResource': OrderedDict([
+        # https://cloud.memsource.com/web/api2/v1/projectTemplates/{projectTemplateUid}
+        ('/projectTemplates/{project_template_uid}', {
+            http_methods[0]: {
+                'path_params': ('project_template_uid', ),
+                'query_params': None,
+                'request_media_type': media_types[0],
+                'response_media_type': media_types[0],
+            },
+        }),
+    ]),
+    'CreateProjectFromTemplateResource': OrderedDict([
+        # https://cloud.memsource.com/web/api2/v2/projects/applyTemplate/{templateUid}
+        ('/projects/applyTemplate/{template_uid}', {
+            http_methods[1]: {
+                'path_params': ('template_uid', ),
+                'query_params': None,
+                'request_media_type': media_types[0],
+                'response_media_type': media_types[0],
+            },
+        }),
+    ]),
 }
 
 resource = namedtuple('service', 'rest_resource mount_point http_method')
@@ -297,6 +330,16 @@ import_setting_details = resource(
 )
 create_job = resource('JobResourcePOST', list(resource_config_dict['JobResourcePOST'].keys())[0], http_methods[1])
 update_source = resource('JobResourcePOST', list(resource_config_dict['JobResourcePOST'].keys())[1], http_methods[1])
+list_project_templates = resource(
+    'ProjectTemplatesResource', list(resource_config_dict['ProjectTemplatesResource'].keys())[0], http_methods[0]
+)
+project_template_details = resource(
+    'ProjectTemplateResource', list(resource_config_dict['ProjectTemplateResource'].keys())[0], http_methods[0]
+)
+create_project_from_template = resource(
+    'CreateProjectFromTemplateResource',
+    list(resource_config_dict['CreateProjectFromTemplateResource'].keys())[0], http_methods[1]
+)
 
 # Transtats Memsource support operates on resources listed here
 resources = {
@@ -324,4 +367,7 @@ resources = {
     'import_setting_details': import_setting_details,
     'create_job': create_job,
     'update_source': update_source,
+    'list_project_templates': list_project_templates,
+    'project_template_details': project_template_details,
+    'create_project_from_template': create_project_from_template,
 }

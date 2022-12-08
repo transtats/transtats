@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/transtats
     docker:
-      - image: registry.fedoraproject.org/fedora:latest
+      - image: registry.fedoraproject.org/fedora:36
         environment:
           TEST_DATABASE_URL: postgresql://root@localhost/transtats?sslmode=disable
       - image: circleci/postgres:12.0

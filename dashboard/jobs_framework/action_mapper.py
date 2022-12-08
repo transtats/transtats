@@ -17,9 +17,9 @@
 # Every command has its own class and task gets matched
 #   with most appropriate method therein
 
+import json
 import re
 import os
-import shutil
 import time
 import difflib
 from requests.auth import HTTPBasicAuth
@@ -37,20 +37,23 @@ from shutil import copy2, rmtree
 from subprocess import Popen, PIPE, call
 from urllib.parse import urlparse
 
+from django.conf import settings
+
 # dashboard
 from dashboard.constants import (
-    TRANSPLATFORM_ENGINES, BRANCH_MAPPING_KEYS,
-    BUILD_SYSTEMS, API_TOKEN_PREFIX
+    TRANSPLATFORM_ENGINES, BRANCH_MAPPING_KEYS, BUILD_SYSTEMS,
+    API_TOKEN_PREFIX, GIT_PLATFORMS, RH_EMAIL_ADDR, GIT_REPO_TYPE
 )
 from dashboard.converters.specfile import RpmSpecFile
 from dashboard.managers import BaseManager
+from dashboard.managers.utilities import parse_git_url, determine_git_platform
+from dashboard.jobs_framework.mixins import LanguageFormatterMixin, JobHooksMixin
 
 __all__ = ['ActionMapper']
 
 
 class JobCommandBase(BaseManager):
 
-    comma_delimiter = ","
     double_underscore_delimiter = "__"
 
     def __init__(self):
@@ -94,32 +97,17 @@ class JobCommandBase(BaseManager):
                 if dirname in dirs:
                     return os.path.join(root, dirname)
 
-    def format_target_langs(self, langs):
-        target_langs = []
-        if isinstance(langs, (list, tuple)):
-            target_langs = langs
-        elif isinstance(langs, str):
-            target_langs = langs.split(self.comma_delimiter) \
-                if self.comma_delimiter in langs \
-                else [langs]
-        return target_langs
-
-    @staticmethod
-    def _format_locale(locale, alias_zh=False):
-
-        zh_alias = {
-            'CN': 'Hans',
-            'TW': 'Hant'
-        }
-
-        parsed_locale = re.split(r'[_.@]', locale)
-        if '_' in locale and len(parsed_locale) >= 2:
-            lang = parsed_locale[0].lower()
-            territory = parsed_locale[1].upper()
-            if alias_zh and zh_alias.get(territory):
-                territory = zh_alias[territory]
-            return "{}_{}".format(lang, territory)
-        return locale
+    @property
+    def github_user(self):
+        github_user = settings.GITHUB_USER
+        kwargs = {}
+        kwargs.update(dict(no_cache_api=True))
+        github_user_details = self.api_resources.user_details(
+            GIT_PLATFORMS[0], instance_url='', **kwargs
+        )
+        if github_user_details and github_user_details.get("login"):
+            github_user = github_user_details["login"]
+        return github_user
 
 
 class Get(JobCommandBase):
@@ -170,7 +158,7 @@ class Get(JobCommandBase):
         return {'task': task_result}, {task_subject: task_log}
 
 
-class Download(JobCommandBase):
+class Download(LanguageFormatterMixin, JobCommandBase):
     """Handles all operations for DOWNLOAD Command"""
 
     def _download_file(self, file_link, file_path=None, headers=None, auth=None):
@@ -356,6 +344,8 @@ class Download(JobCommandBase):
         ci_lang_job_map = input.get('ci_lang_job_map', {})
 
         file_ext = 'po'
+        if input.get('trans_file_ext') and input['trans_file_ext'] != file_ext:
+            file_ext = input['trans_file_ext'].lstrip(".")
         if kwargs.get('ext'):
             file_ext = kwargs['ext'].lower()
 
@@ -395,6 +385,9 @@ class Download(JobCommandBase):
                 input.get('repo_branch') or \
                 input.get('pkg_branch_map', {}).get(input.get('ci_release'), {}).get('platform_version')
 
+            remote_file_names = list({v[1] for k, v in ci_lang_job_map.items() for x in v if t_lang in x})
+            remote_file_name = remote_file_names[0] if remote_file_names else "{}.{}".format(t_lang, file_ext)
+
             if isinstance(project_version, list) and len(project_version) > 0:
                 project_version = project_version[0]
 
@@ -409,12 +402,12 @@ class Download(JobCommandBase):
 
             # Transifex
             if platform_engine == TRANSPLATFORM_ENGINES[1]:
-                service_args.append(self._format_locale(t_lang))
+                service_args.append(self.format_locale(t_lang))
                 service_kwargs.update(dict(ext=True))
 
             # Weblate
             if platform_engine == TRANSPLATFORM_ENGINES[3]:
-                service_args.append(self._format_locale(t_lang, alias_zh=kwargs.get('alias_zh', False)))
+                service_args.append(self.format_locale(t_lang, alias_zh=kwargs.get('alias_zh', False)))
 
             try:
                 pull_status, pull_resp = self.api_resources.pull_translations(
@@ -427,7 +420,7 @@ class Download(JobCommandBase):
                 ))
             else:
                 if pull_status:
-                    downloaded_file_name = "{}.{}".format(t_lang, file_ext)
+                    downloaded_file_name = remote_file_name
                     d_file_path = os.path.join(download_folder, downloaded_file_name)
                     try:
                         if not os.path.exists(download_folder):
@@ -481,6 +474,49 @@ class Clone(JobCommandBase):
             input_params['pkg_tp_auth_token'], parsed_url.netloc + parsed_url.path
         )
 
+    def _is_fork_exist(self, repo_clone_url):
+        instance_url, git_owner_repo = parse_git_url(repo_clone_url)
+        git_platform = determine_git_platform(instance_url)
+        git_owner, git_repo = git_owner_repo
+        kwargs = {}
+        kwargs.update(dict(no_cache_api=True))
+
+        git_user = settings.GITHUB_USER
+        if git_platform == GIT_PLATFORMS[0]:
+            git_user = self.github_user
+
+        repositories = self.api_resources.list_repos(
+            git_platform, instance_url, git_user, **kwargs
+        )
+        for repository in repositories:
+            if repository.get('name', '') == git_repo and repository.get('fork'):
+                return True
+        return False
+
+    def _delete_fork(self, repo_clone_url):
+        instance_url, git_owner_repo = parse_git_url(repo_clone_url)
+        git_platform = determine_git_platform(instance_url)
+        git_owner, git_repo = git_owner_repo
+        kwargs = {}
+        kwargs.update(dict(no_cache_api=True))
+
+        git_user = settings.GITHUB_USER
+        if git_platform == GIT_PLATFORMS[0]:
+            git_user = self.github_user
+
+        delete_repo_resp = self.api_resources.delete_repo(
+            git_platform, instance_url, *(git_user, git_repo), **kwargs
+        )
+        return delete_repo_resp
+
+    def _create_fork(self, repo_clone_url):
+        instance_url, git_owner_repo = parse_git_url(repo_clone_url)
+        git_platform, kwargs = determine_git_platform(instance_url), {}
+        create_fork_api_response = self.api_resources.create_fork(
+            git_platform, instance_url, *git_owner_repo, **kwargs
+        )
+        return create_fork_api_response.get("html_url", "")
+
     def git_repository(self, input, kwargs):
         """Clone GIT repository"""
         task_subject = "Clone Repository"
@@ -496,13 +532,27 @@ class Clone(JobCommandBase):
             clone_kwargs.update(dict(branch=kwargs['branch']))
 
         repo_clone_url = input['upstream_repo_url']
+        if kwargs.get('type') and kwargs['type'] == GIT_REPO_TYPE[1] \
+                and input.get('upstream_l10n_repo_url'):
+            repo_clone_url = input['upstream_l10n_repo_url']
+
+        if kwargs.get("fork"):
+            # delete the fork if exists already
+            fork_exists = self._is_fork_exist(repo_clone_url)
+            if fork_exists:
+                self._delete_fork(repo_clone_url)
+            # create a new fork and proceed cloning
+            fork_url = self._create_fork(repo_clone_url)
+            if fork_url:
+                repo_clone_url = fork_url
+
         if kwargs.get('type') == TRANSPLATFORM_ENGINES[3]:
             repo_clone_url = self._format_weblate_git_url(input)
 
         try:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
-                'Start cloning %s repository.' % input['upstream_repo_url']
+                'Start cloning %s repository.' % repo_clone_url
             ))
             clone_result = Repo.clone_from(
                 repo_clone_url, src_tar_dir, **clone_kwargs
@@ -510,7 +560,7 @@ class Clone(JobCommandBase):
         except Exception as e:
             trace_back = str(e)
             # hide auth_token in logs
-            if input['pkg_tp_auth_token'] in trace_back:
+            if input.get('pkg_tp_auth_token') and input['pkg_tp_auth_token'] in trace_back:
                 trace_back = trace_back.replace(input['pkg_tp_auth_token'], 'XXX')
             task_log.update(self._log_task(
                 input['log_f'], task_subject, 'Cloning failed. Details: %s' % trace_back
@@ -522,7 +572,7 @@ class Clone(JobCommandBase):
                     input['log_f'], task_subject, os.listdir(src_tar_dir),
                     text_prefix='Cloning git repo completed.'
                 ))
-            return {'src_tar_dir': src_tar_dir}, {task_subject: task_log}
+        return {'src_tar_dir': src_tar_dir}, {task_subject: task_log}
 
 
 class Generate(JobCommandBase):
@@ -827,7 +877,7 @@ class Apply(JobCommandBase):
 
             if not patches and not src_trans:
                 task_log.update(self._log_task(input['log_f'], task_subject, 'No patches found.'))
-                return tar_dir
+                return tar_dir, {task_subject: task_log}
 
             # apply patches
             [copy2(patch, input['src_tar_dir']) for patch in patches]
@@ -890,6 +940,8 @@ class Filter(JobCommandBase):
         """Filter files from tarball"""
         file_ext = 'po'
         result_dict = {}
+        if input.get('trans_file_ext') and input['trans_file_ext'] != file_ext:
+            file_ext = input['trans_file_ext'].lstrip(".")
         if kwargs.get('ext'):
             file_ext = kwargs['ext'].lower()
 
@@ -935,7 +987,7 @@ class Filter(JobCommandBase):
         return result_dict, {task_subject: task_log}
 
 
-class Upload(JobCommandBase):
+class Upload(JobHooksMixin, JobCommandBase):
     """Handles all operations for UPLOAD Command"""
 
     @staticmethod
@@ -955,75 +1007,6 @@ class Upload(JobCommandBase):
 
         return collected_files
 
-    def simplify_plural_forms_in_po_header(self, input: dict, task_log: dict) -> None:
-        """
-        Pre hook: simplify_plural_forms_in_po_header
-            - change Plural-Forms to 'nplurals=1; plural=0;' in PO header.
-        """
-        task_subject = "Upload Prehook: simplify_plural_forms_in_po_header"
-        simple_plural_form = "nplurals=1; plural=0;"
-
-        if not input.get('trans_files'):
-            return
-
-        for trans_file in input['trans_files']:
-            try:
-                po_file = polib.pofile(trans_file)
-            except IOError as e:
-                task_log.update(self._log_task(input['log_f'], task_subject, str(e)))
-                continue
-            except Exception as e:
-                task_log.update(self._log_task(
-                    input['log_f'], task_subject, f'{trans_file} is not a PO file. Details {e}')
-                )
-                continue
-            else:
-                po_file.metadata['Plural-Forms'] = simple_plural_form
-                po_file.save()
-
-    def copy_template_for_target_langs(self, input: dict, task_log: dict) -> None:
-        """
-        Pre hook: copy_template_for_target_langs
-            - copy a template for all the target langs
-        """
-        task_subject = "Upload Prehook: copy_template_for_target_langs"
-
-        if not input.get('trans_files'):
-            task_log.update(self._log_task(
-                input['log_f'], task_subject, 'No template found.')
-            )
-            return
-
-        first_trans_file = input['trans_files'][0]
-        if isinstance(first_trans_file, str) and \
-                'template' in first_trans_file.lower() or 'pot' in first_trans_file.lower():
-            translation_template = first_trans_file
-            task_log.update(self._log_task(
-                input['log_f'], task_subject, translation_template, text_prefix='Template collected'
-            ))
-
-            target_langs = []
-            if input.get('ci_target_langs'):
-                target_langs = self.format_target_langs(langs=input['ci_target_langs'])
-
-            source_file = os.path.join(input['base_dir'], translation_template)
-            for lang in target_langs:
-                translation_lang_file = translation_template
-                if 'template' in translation_template:
-                    translation_lang_file = translation_template.replace('template', lang)
-                if 'pot' in translation_template:
-                    translation_lang_file = translation_template.replace('pot', 'po')
-                dist_file = os.path.join(input['base_dir'], translation_lang_file)
-                # copy template to language file
-                shutil.copyfile(source_file, dist_file)
-                # add an entry in input values
-                input['trans_files'].append(translation_lang_file)
-
-            task_log.update(self._log_task(
-                input['log_f'], task_subject, '{} files copied for {}.'.format(
-                    len(target_langs), ", ".join(target_langs))
-            ))
-
     def push_files(self, input, kwargs):
         """
         Push translations to a Platform
@@ -1032,11 +1015,12 @@ class Upload(JobCommandBase):
         task_subject = "Push translations files"
         task_log = OrderedDict()
 
+        # locate and execute pre-hook function
         if kwargs.get('prehook'):
             pre_hook = kwargs['prehook']
             pre_hook_fn = getattr(self, pre_hook, None)
             if pre_hook_fn:
-                pre_hook_fn(input, task_log)
+                pre_hook_fn(input, self._log_task, task_log)
 
         job_post_resp = OrderedDict()
         platform_project = input.get('ci_project_uid') or input.get('package')
@@ -1050,7 +1034,7 @@ class Upload(JobCommandBase):
 
         target_langs = []
         if kwargs.get('target_langs'):
-            target_langs = self.format_target_langs(langs=kwargs['target_langs'])
+            target_langs = self.language_formatter.format_target_langs(langs=kwargs['target_langs'])
 
         if target_langs and input.get('ci_pipeline_uuid') and input.get('ci_target_langs'):
             if not set(target_langs).issubset(set(input['ci_target_langs'])):
@@ -1137,8 +1121,12 @@ class Upload(JobCommandBase):
                         new_filename = "{}{}{}".format(input.get('repo_branch'),
                                                        self.double_underscore_delimiter,
                                                        file_name)
-                        os.rename(os.path.join(input['base_dir'], input['download_dir'], file_name),
-                                  os.path.join(input['base_dir'], input['download_dir'], new_filename))
+                        if input.get('download_dir'):
+                            os.rename(os.path.join(input['base_dir'], input['download_dir'], file_name),
+                                      os.path.join(input['base_dir'], input['download_dir'], new_filename))
+                        elif input.get('src_tar_dir'):
+                            os.rename(os.path.join(input['base_dir'], input['src_tar_dir'], file_name),
+                                      os.path.join(input['base_dir'], input['src_tar_dir'], new_filename))
                         file_name = new_filename
 
                     api_kwargs['headers']["Memsource"] = str(memsource_kwargs)
@@ -1197,7 +1185,7 @@ class Upload(JobCommandBase):
 
         target_langs = []
         if input.get('target_langs'):
-            target_langs = self.format_target_langs(langs=input['target_langs'])
+            target_langs = self.language_formatter.format_target_langs(langs=input['target_langs'])
 
         if target_langs and input.get('ci_pipeline_uuid') and input.get('ci_target_langs'):
             if not set(target_langs).issubset(set(input['ci_target_langs'])):
@@ -1230,7 +1218,7 @@ class Upload(JobCommandBase):
                         input.get('pkg_tp_auth_usr'), input.get('pkg_tp_auth_token')
 
                     # format lang zh_cn to zh_CN, alias_zh could be used for weblate
-                    lang = self._format_locale(lang, alias_zh=kwargs.get('alias_zh', False))
+                    lang = self.language_formatter.format_locale(lang, alias_zh=kwargs.get('alias_zh', False))
 
                     with open(file_path, 'rb') as f:
                         api_kwargs['files'] = dict(file=f.read())
@@ -1365,20 +1353,162 @@ class Calculate(JobCommandBase):
         return {'pot_diff': diff_msg, 'full_diff': diff_lines, 'diff_count': diff_count}, {task_subject: task_log}
 
 
+class Copy(JobCommandBase):
+    """Handles all operations for COPY Command"""
+
+    def downloaded_files(self, input, kwargs):
+        """Copy downloaded files to provided dir"""
+
+        task_subject = "Copy Downloaded Files"
+        task_log = OrderedDict()
+
+        if not kwargs.get('dir'):
+            task_log.update(self._log_task(
+                input['log_f'], task_subject,
+                'Dir value was empty, copying to root.'
+            ))
+            kwargs['dir'] = ''
+
+        # copy files
+        copy_target_dir = os.path.join(input['src_tar_dir'], kwargs['dir'])
+        downloaded_translation_files = input['trans_files']
+
+        copied_files = []
+        for trans_file in downloaded_translation_files:
+            source = os.path.join(input['base_dir'], trans_file)
+            destination_dir = os.path.join(input['base_dir'], copy_target_dir)
+            copied_file_path = copy2(source, destination_dir)
+            copied_file = list(filter(None, copied_file_path.split(os.sep)))[-1]
+            copied_files.append(os.path.join(kwargs['dir'], copied_file))
+
+        task_log.update(self._log_task(
+            input['log_f'], task_subject, copied_files,
+            text_prefix=f"{len(copied_files)} files copied to the repository."
+        ))
+        return {'copied_files': copied_files,
+                'repo_dir': input['src_tar_dir']}, {task_subject: task_log}
+
+
+class Pullrequest(JobCommandBase):
+    """Handles all operations for PULLREQUEST Command"""
+
+    def git_repo(self, input, kwargs):
+        """Prepare merge request and submit"""
+
+        task_subject = "Pull Request"
+        task_log = OrderedDict()
+
+        repo_clone_url = input['upstream_repo_url']
+        if kwargs.get('type') and kwargs['type'] == GIT_REPO_TYPE[1] \
+                and input.get('upstream_l10n_repo_url'):
+            repo_clone_url = input['upstream_l10n_repo_url']
+        instance_url, git_owner_repo = parse_git_url(repo_clone_url)
+        git_platform = determine_git_platform(instance_url)
+
+        # Prepare Merge Request
+        modified_repo = Repo(input['src_tar_dir'])
+
+        git_user = settings.GITHUB_USER
+        if git_platform == GIT_PLATFORMS[0]:
+            git_user = self.github_user
+
+        modified_repo.config_writer().set_value(
+            "user", "name", git_user).release()
+        modified_repo.config_writer().set_value(
+            "user", "email", RH_EMAIL_ADDR).release()
+        for copied_file in input['copied_files']:
+            modified_repo.index.add(copied_file)
+        commit_object = modified_repo.index.commit("Add or Update Translations")
+
+        if commit_object and commit_object.hexsha:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, input['copied_files'],
+                text_prefix=f"Files have been committed. SHA: {commit_object.hexsha}"
+            ))
+
+        # set git push origin url
+        git_api_token = ""
+        if git_platform == GIT_PLATFORMS[0]:
+            git_api_token = settings.GITHUB_TOKEN
+        origin_urls = [url for url in modified_repo.remotes.origin.urls]
+        if not origin_urls:
+            raise Exception('Push URL cannot be blank.')
+        origin_url = origin_urls[0]
+        origin_url_parts = urlparse(origin_url)
+        origin_url_with_token = "{}://{}:x-oauth-basic@{}{}".format(
+            origin_url_parts.scheme, git_api_token, origin_url_parts.netloc, origin_url_parts.path
+        )
+        modified_repo.remotes.origin.set_url(origin_url_with_token)
+
+        # push contents to GitHub
+        push_results = modified_repo.remotes.origin.push()
+        push_summary = push_results[0].summary if push_results else ""
+
+        if push_summary:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, f"Files have been pushed to {git_platform}."
+            ))
+
+        # Submit a Git Pull Request
+        pull_request_api_payload = dict()
+        if git_platform == GIT_PLATFORMS[0]:
+            pull_request_api_payload['title'] = commit_object.summary
+            pull_request_api_payload['body'] = "Translations for {} languages.".format(
+                ", ".join(input['ci_target_langs'])
+            )
+            pull_request_branch_from = modified_repo.active_branch.name
+            pull_request_api_payload['head'] = "{}:{}".format(
+                self.github_user, pull_request_branch_from
+            )
+            pull_request_branch_to = kwargs['branch']
+            pull_request_api_payload['base'] = pull_request_branch_to
+
+        kwargs = dict()
+        kwargs['data'] = json.dumps(pull_request_api_payload)
+        kwargs.update(dict(no_cache_api=True))
+        api_resp_status, create_pull_request_resp = self.api_resources.create_merge_request(
+            git_platform, instance_url, *git_owner_repo, **kwargs
+        )
+
+        pull_request_url = ''
+        if api_resp_status:
+            pull_request_url = create_pull_request_resp['html_url']
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, f"Pull request has been created. Visit {pull_request_url}"
+            ))
+        else:
+            create_pull_request_failure_reason = create_pull_request_resp
+            if git_platform == GIT_PLATFORMS[0]:
+                try:
+                    create_pull_request_failure_reason = create_pull_request_resp['errors'][0]['message']
+                except (IndexError, KeyError):
+                    task_log.update(self._log_task(
+                        input['log_f'], task_subject, "GitHub response parsing failed."
+                    ))
+
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, f"Pull request could not be created. "
+                                              f"{create_pull_request_failure_reason}"
+            ))
+        return {'pull_request_url': pull_request_url}, {task_subject: task_log}
+
+
 class ActionMapper(BaseManager):
     """YML Parsed Objects to Actions Mapper"""
-    COMMANDS = [
-        'GET',          # Call some method
-        'DOWNLOAD',     # Download some resource
-        'UNPACK',       # Extract an archive
-        'LOAD',         # Load into python object
-        'FILTER',       # Filter files recursively
-        'APPLY',        # Apply patch on source tree
-        'CALCULATE',    # Do some maths/try formulae
-        'CLONE',        # Clone source repository
-        'GENERATE',     # Exec command to create
-        'UPLOAD',       # Upload some resource
-    ]
+    COMMANDS = {
+        'GET': Get,                     # Fetch information
+        'DOWNLOAD': Download,           # Download resources
+        'UNPACK': Unpack,               # Extract an archive
+        'LOAD': Load,                   # Load into python object
+        'FILTER': Filter,               # Filter files recursively
+        'APPLY': Apply,                 # Apply patch on source tree
+        'CALCULATE': Calculate,         # Do some maths/try formulae
+        'CLONE': Clone,                 # Clone source repository
+        'GENERATE': Generate,           # Exec commands to create
+        'UPLOAD': Upload,               # Upload resources
+        'COPY': Copy,                   # Copy files from one dir to another
+        'PULLREQUEST': Pullrequest,     # Create and submit pull request
+    }
 
     def __init__(self,
                  tasks_structure,
@@ -1391,6 +1521,7 @@ class ActionMapper(BaseManager):
                  repo_branch,
                  ci_pipeline_uuid,
                  upstream_url,
+                 upstream_l10n_url,
                  trans_file_ext,
                  pkg_upstream_name,
                  pkg_downstream_name,
@@ -1419,6 +1550,7 @@ class ActionMapper(BaseManager):
         self.repo_branch = repo_branch
         self.ci_pipeline_uuid = ci_pipeline_uuid
         self.upstream_url = upstream_url
+        self.upstream_l10n_url = upstream_l10n_url
         self.trans_file_ext = trans_file_ext
         self.pkg_upstream_name = pkg_upstream_name
         self.pkg_downstream_name = pkg_downstream_name
@@ -1444,8 +1576,8 @@ class ActionMapper(BaseManager):
     def skip(self, abc, pqr, xyz):
         try:
             command = abc.__doc__.strip().split()[-2]
-        except Exception as e:
-            pass
+        except IndexError:
+            self.__log.update({"ERROR": "something failed in skip"})
         else:
             raise Exception('Action mapping failed for %s command.' % command)
 
@@ -1455,10 +1587,10 @@ class ActionMapper(BaseManager):
         current_node = self.tasks.head
         while current_node is not None:
             count += 1
-            cmd = current_node.command or ''
-            if cmd.upper() in self.COMMANDS:
-                current_node.set_namespace(cmd.title())
-            available_methods = [member[0] for member in getmembers(eval(cmd.title()))
+            cmd = current_node.command.upper() or ''
+            if cmd in self.COMMANDS:
+                current_node.set_namespace(self.COMMANDS[cmd])
+            available_methods = [member[0] for member in getmembers(self.COMMANDS[cmd])
                                  if isfunction(member[1])]
             cur_node_task = current_node.task
             if isinstance(cur_node_task, list) and len(cur_node_task) > 0:
@@ -1491,7 +1623,8 @@ class ActionMapper(BaseManager):
             'pkg_ci_auth_usr': self.pkg_ci_auth_usr, 'pkg_ci_auth_token': self.pkg_ci_auth_token,
             'ci_release': self.ci_release, 'ci_target_langs': self.ci_target_langs,
             'ci_project_uid': self.ci_project_uid, 'ci_lang_job_map': self.ci_lang_job_map,
-            'pkg_downstream_name': self.pkg_downstream_name, 'repo_branch': self.repo_branch
+            'pkg_downstream_name': self.pkg_downstream_name, 'repo_branch': self.repo_branch,
+            'upstream_l10n_repo_url': self.upstream_l10n_url
         }
 
         while current_node is not None:
@@ -1501,9 +1634,9 @@ class ActionMapper(BaseManager):
                 current_node.input = {**initials, **current_node.previous.output}
             count += 1
             current_node.output, current_node.log = getattr(
-                eval(current_node.get_namespace()),
+                current_node.get_namespace(),
                 current_node.get_method(), self.skip
-            )(eval(current_node.get_namespace())(), current_node.input, current_node.kwargs)
+            )(current_node.get_namespace()(), current_node.input, current_node.kwargs)
 
             if current_node.log:
                 self.__log.update(current_node.log)

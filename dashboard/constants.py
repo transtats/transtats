@@ -48,9 +48,9 @@ DB_ENV_VARS = ('DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWD',
 # Job Types
 TS_JOB_TYPES = ('synctransplatform', 'syncrelschedule', 'syncupstream', 'syncdownstream',
                 'syncbuildtags', 'stringchange', 'verifytrans', 'pushtrans', 'pulltrans',
-                'dpushtrans')
+                'dpushtrans', 'pulltransmerge')
 
-TS_CI_JOBS = (TS_JOB_TYPES[7], TS_JOB_TYPES[8], TS_JOB_TYPES[9])
+TS_CI_JOBS = (TS_JOB_TYPES[7], TS_JOB_TYPES[8], TS_JOB_TYPES[9], TS_JOB_TYPES[10])
 PIPELINE_CONFIG_EVENTS = ('Push Translations', 'Pull Translations', 'Update Source')
 JOB_MULTIPLE_BRANCHES_VAR = "%RESPECTIVE%"
 
@@ -59,6 +59,9 @@ BRANCH_MAPPING_KEYS = ('platform_version', 'buildsys', 'buildsys_tag', 'upstream
 
 # Supported Build Systems
 BUILD_SYSTEMS = ('brew', 'koji')
+
+# Supported File Formats
+TRANSLATION_FILE_FORMATS = ('po', 'json')
 
 # YML Jobs Execution Types
 JOB_EXEC_TYPES = ('sequential', 'parallel')
@@ -75,3 +78,4 @@ GIT_REPO_TYPE = ('default', 'localization', TRANSPLATFORM_ENGINES[3], TRANSPLATF
                  TRANSPLATFORM_ENGINES[2])
 
 SYS_EMAIL_ADDR = "system@transtats.org"
+RH_EMAIL_ADDR = "transtats@redhat.com"

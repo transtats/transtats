@@ -43,13 +43,14 @@ from django.urls import reverse, reverse_lazy
 from dashboard.constants import (
     TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
     WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS,
-    JOB_MULTIPLE_BRANCHES_VAR, TP_BRANCH_CALLING_NAME, SYS_EMAIL_ADDR
+    JOB_MULTIPLE_BRANCHES_VAR, TP_BRANCH_CALLING_NAME, SYS_EMAIL_ADDR,
+    TRANSLATION_FILE_FORMATS, MEMSOURCE_SLUGS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
     NewLanguageForm, UpdateLanguageForm, LanguageSetForm, PackagePipelineForm,
     NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm,
-    CreateCIPipelineForm
+    CreateCIPipelineForm, PlatformProjectTemplatesForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager, SyncStatsManager
@@ -434,11 +435,13 @@ class NewPackageView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
+        initials.update(dict(translation_file_ext=TRANSLATION_FILE_FORMATS[0]))
         if self.request.tenant in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[1]):
             initials.update(dict(transplatform_slug=WEBLATE_SLUGS[1]))
         if self.request.tenant in (RELSTREAM_SLUGS[3], RELSTREAM_SLUGS[4]):
             if self.request.tenant == RELSTREAM_SLUGS[4]:
                 initials.update(dict(auto_create_project='True'))
+                initials.update(dict(translation_file_ext=TRANSLATION_FILE_FORMATS[1]))
             initials.update(dict(transplatform_slug=TRANSIFEX_SLUGS[0]))
         default_product = self.request.tenant
         initials.update(dict(release_streams=default_product))
@@ -451,6 +454,9 @@ class NewPackageView(ManagersMixin, FormView):
         active_streams = self.inventory_manager.get_relstream_slug_name()
         kwargs.update({'platform_choices': active_platforms})
         kwargs.update({'products_choices': active_streams})
+        file_formats = [(file_format, file_format.upper())
+                        for file_format in TRANSLATION_FILE_FORMATS]
+        kwargs.update({'format_choices': file_formats})
         kwargs.update({'initial': self.get_initial()})
         if data:
             kwargs.update({'data': data})
@@ -467,7 +473,8 @@ class NewPackageView(ManagersMixin, FormView):
                 'One of the required fields is missing.'))
             return render(request, self.template_name, {'form': form})
 
-        if post_params.get('auto_create_project', ['False'])[0] == 'True':
+        if post_params.get('auto_create_project') and \
+                post_params['auto_create_project'][0] == 'True':
             # Attempt project creation at translation platform
             self.packages_manager.create_platform_project(
                 project_slug=post_params['package_name'],
@@ -811,6 +818,10 @@ class PipelineConfigurationView(ManagersMixin, PipelineDetailView):
     def get_context_data(self, **kwargs):
         context_data = super(PipelineConfigurationView, self).get_context_data(**kwargs)
         context_data['pipeline_config_events'] = PIPELINE_CONFIG_EVENTS
+        context_data['allow_config_copy'] = False
+        if self.object.ci_push_job_template.job_template_type == TS_JOB_TYPES[9] and \
+                self.object.ci_pull_job_template.job_template_type == TS_JOB_TYPES[8]:
+            context_data['allow_config_copy'] = True
         return context_data
 
 
@@ -930,6 +941,12 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
         kwargs.update(dict(pkg_release_choices=pkg_release_choices))
         kwargs.update(dict(package_name=package.package_name))
         kwargs.update(dict(package_platform=package.platform_slug.engine_name))
+
+        # Currently CI Pipeline is built specific to Memsource
+        ci_platforms_qs = ci_platforms.filter(**{"platform_slug": MEMSOURCE_SLUGS[0]})
+        ci_platform = ci_platforms_qs.first()
+        default_template_dict = self.inventory_manager.get_default_project_template(platform=ci_platform)
+        kwargs.update(dict(default_template_dict=default_template_dict))
         if data:
             kwargs.update({'data': data})
         return PackagePipelineForm(**kwargs)
@@ -946,8 +963,31 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
         package_name = self.kwargs.get('slug')
         context_data.update(dict(package_name=package_name))
 
+        create_project_resp = None
+        if post_data.get('ci_platform') and post_data.get('ci_project_template') and \
+                post_data.get('ci_project_name') and post_data.get('target_languages') and \
+                not post_data.get('ci_project_web_url'):
+            create_project_resp = self.inventory_manager.create_project_from_template(
+                platform_id=post_data['ci_platform'],
+                project_template_uid=post_data['ci_project_template'],
+                project_name=post_data['ci_project_name'],
+                target_langs=post_data['target_languages']
+            )
+            if not create_project_resp:
+                errors = form._errors.setdefault('ci_project_name', ErrorList())
+                errors.append("Project could not be created at the selected platform.")
+                return render(request, self.template_name, context=context_data)
+
         if form.is_valid():
             post_params = form.cleaned_data
+            if create_project_resp and not post_params.get('ci_project_web_url'):
+                post_params['ci_project_web_url'] = "{}/project2/show/{}".format(
+                    post_params['ci_platform'].api_url, create_project_resp['uid']
+                )
+            # Let's clean post_params
+            extra_params = ['ci_project_template', 'ci_project_name', 'target_languages']
+            [post_params.pop(param) for param in extra_params if param in post_params]
+
             # Assumption: Project URL starts with Platform API URL (which is saved in db)
             if post_params['ci_platform'].api_url not in post_params['ci_project_web_url']:
                 errors = form._errors.setdefault('ci_project_web_url', ErrorList())
@@ -1162,6 +1202,77 @@ class AddCIPipeline(ManagersMixin, FormView):
         return render(request, self.template_name, context=context_data)
 
 
+class PlatformProjectTemplatesView(ManagersMixin, FormView):
+    """Platform Project Templates"""
+    template_name = 'ci/project_templates.html'
+    latest_templates = None
+    ci_platform_slug = MEMSOURCE_SLUGS[0]
+
+    def get_success_url(self):
+        return reverse('platform-project-templates')
+
+    def _fetch_latest_templates(self):
+        """Restrict fetching templates to Memsource, for now."""
+        latest_templates = \
+            self.inventory_manager.fetch_latest_platform_project_templates(self.ci_platform_slug)
+        return latest_templates
+
+    def _templates_uid_name_dict(self):
+        if not self.latest_templates:
+            self.latest_templates = self._fetch_latest_templates()
+        latest_templates_dict = \
+            self.inventory_manager.filter_uid_name_from_project_templates(self.latest_templates)
+        return latest_templates_dict
+
+    def _get_ci_platform(self):
+        ci_platform_qs = self.inventory_manager.get_translation_platforms(slug=self.ci_platform_slug)
+        if ci_platform_qs:
+            return ci_platform_qs.first()
+
+    def get_form(self, form_class=None, data=None):
+        templates = self._templates_uid_name_dict()
+        kwargs = dict()
+        kwargs['template_choices'] = tuple([(uid, name) for uid, name in templates.items()])
+        return PlatformProjectTemplatesForm(**kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(PlatformProjectTemplatesView, self).get_context_data(**kwargs)
+        context['templates_uid_name_dict'] = self._templates_uid_name_dict()
+        project_template_qs = self.inventory_manager.get_project_templates(platform=self._get_ci_platform())
+        if project_template_qs:
+            default_project_template_uid = project_template_qs.first().default_project_template
+            context['default_project_template_uid'] = default_project_template_uid
+        return context
+
+    def post(self, request, *args, **kwargs):
+        post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_data)
+
+        context_data = dict()
+        context_data['form'] = form
+        context_data['templates_uid_name_dict'] = self._templates_uid_name_dict()
+
+        if form.is_valid() and post_data.get('default_project_template'):
+            default_template_uid = post_data['default_project_template']
+            ci_platform = self._get_ci_platform()
+            if ci_platform:
+                project_templates_dict = {template['uid']: template for template in self.latest_templates}
+                save_project_template = self.inventory_manager.create_or_update_project_template(
+                    platform=ci_platform, default_template_uid=default_template_uid,
+                    project_templates_dict=project_templates_dict
+                )
+                if not save_project_template:
+                    messages.add_message(request, messages.ERROR, (
+                        'Alas! Something unexpected happened. Please try saving again!'
+                    ))
+                else:
+                    messages.add_message(request, messages.SUCCESS, (
+                        'Great! Default template saved successfully.'
+                    ))
+            return HttpResponseRedirect(self.get_success_url())
+        return render(request, self.template_name, context=context_data)
+
+
 def schedule_job(request):
     """Handles job schedule AJAX POST request"""
     message = "&nbsp;&nbsp;<span class='text-warning'>Request could not be processed.</span>"
@@ -1189,7 +1300,7 @@ def schedule_job(request):
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
         elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5], TS_JOB_TYPES[6], TS_JOB_TYPES[7],
-                          TS_JOB_TYPES[8], TS_JOB_TYPES[9], 'YMLbasedJob'):
+                          TS_JOB_TYPES[8], TS_JOB_TYPES[9], TS_JOB_TYPES[10], 'YMLbasedJob'):
 
             if job_type in TS_CI_JOBS and 'anonymous' in active_user_email:
                 message = "&nbsp;&nbsp;<span class='text-warning'>Please login to continue.</span>"

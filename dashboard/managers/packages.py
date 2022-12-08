@@ -23,7 +23,6 @@ import difflib
 import operator
 from collections import OrderedDict
 from functools import reduce
-from urllib.parse import urlparse
 
 # django
 from django.utils import timezone
@@ -31,13 +30,15 @@ from django.utils import timezone
 # dashboard
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, DAMNEDLIES_SLUGS, GIT_REPO_TYPE,
-    RELSTREAM_SLUGS, BRANCH_MAPPING_KEYS, GIT_PLATFORMS
+    RELSTREAM_SLUGS, BRANCH_MAPPING_KEYS
 )
 from dashboard.managers.inventory import (
     InventoryManager, SyncStatsManager, ReleaseBranchManager
 )
 from dashboard.models import Platform, Package, CacheBuildDetails
-from dashboard.managers.utilities import parse_project_details_json
+from dashboard.managers.utilities import (
+    parse_project_details_json, parse_git_url, determine_git_platform
+)
 
 
 __all__ = ['PackagesManager', 'PackageBranchMapping']
@@ -864,30 +865,6 @@ class PackagesManager(InventoryManager):
             })
         return pkg_latest_builds
 
-    @staticmethod
-    def _parse_git_url(git_url):
-        """
-        Parses Git URL for instance_url, owner and repo
-        :param git_url: git repository URL
-        :return: instance_url, owner_repo tuple
-        """
-        parsed_url = urlparse(git_url)
-        instance_url = "{}://{}".format(parsed_url.scheme, parsed_url.netloc)
-        owner_repo = tuple(filter(None, parsed_url.path.split('/')))
-        if owner_repo:
-            # handle .git extension for upstream url
-            owner_repo = [item[:-4] if item.endswith(".git")
-                          else item for item in owner_repo]
-            return instance_url, owner_repo
-        return instance_url, ()
-
-    @staticmethod
-    def _determine_git_platform(instance_url):
-        for platform in GIT_PLATFORMS:
-            if platform.lower() in instance_url:
-                return platform
-        return ''
-
     def git_branches(self, package_name, repo_type='default', release=None):
         """
         Calculates package upstream git repo branch as per given release
@@ -917,11 +894,11 @@ class PackagesManager(InventoryManager):
             return [item['id'] for item in package.package_details_json['iterations'] if item.get('id')] \
                 if package.package_details_json and package.package_details_json.get('iterations') \
                 else default_branch
-        instance_url, git_owner_repo = self._parse_git_url(upstream_url)
+        instance_url, git_owner_repo = parse_git_url(upstream_url)
         kwargs = {}
         kwargs.update(dict(no_cache_api=True))
         branches = self.api_resources.fetch_repo_branches(
-            self._determine_git_platform(instance_url), instance_url, *git_owner_repo, **kwargs
+            determine_git_platform(instance_url), instance_url, *git_owner_repo, **kwargs
         )
         if not branches:
             return default_branch

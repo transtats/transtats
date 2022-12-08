@@ -14,17 +14,10 @@
 
 {% block pagecontent %}
 <div class="row row-cards-pf">
-  <div class="col-xs-12">
+  <div class="col-md-12">
     <div class="card-pf card-pf-utilization" id="card-packages-summary">
       <div class="card-pf-heading">
-        <h2 class="card-pf-title">Job Templates
-            <small>
-            {% if jobs_count > 0 and job_last_ran_on %}
-                <span class="pull-right">Last successful job ran on <span class="text-info">{{ job_last_ran_on }}</span>
-                    of type <span class="text-info">{{ job_last_ran_type }}</span>.</span>
-            {% endif %}
-            </small>
-        </h2>
+        <h2 class="card-pf-title">Job Templates</h2>
       </div>
       <div class="card-pf-body">
 

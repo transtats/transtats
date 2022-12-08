@@ -140,6 +140,31 @@ class Platform(ModelMixin, models.Model):
         verbose_name = "Translation Platform"
 
 
+class PlatformProjectTemplates(ModelMixin, models.Model):
+    """Translation Platform Project Templates Model"""
+    platform = models.ForeignKey(
+        Platform, on_delete=models.PROTECT,
+        to_field='platform_slug', verbose_name="Translation Platform"
+    )
+    project_template_json_str = models.TextField(null=True, blank=True)
+    default_project_template = models.CharField(
+        null=True, blank=True, max_length=200, verbose_name="Project Template UID")
+
+    @property
+    def project_template_json(self):
+        return self.str2json(self.project_template_json_str)
+
+    @property
+    def default_project_template_json(self):
+        if not self.project_template_json:
+            return {}
+        return self.project_template_json.get(self.default_project_template, {})
+
+    class Meta:
+        db_table = TABLE_PREFIX + 'platformprojecttemplates'
+        verbose_name = "Platform Project Templates"
+
+
 class Product(models.Model):
     """Product Model"""
     product_id = models.AutoField(primary_key=True)
