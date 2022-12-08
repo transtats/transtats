@@ -1,4 +1,6 @@
-##### Thu Dec 1 2022 Sundeep Anand <suanand@redhat.com>
+##### Thu Dec 8 2022 Sundeep Anand <suanand@redhat.com> - release_0.8.7
+* Add simplify_plural_forms_in_po_header upload prehook in push jobs
+* Enable Phrase Project creation from Package Pipeline form
 * Enable selecting Phrase Project Template as default
 * Implement merge request actions in jobs mapper
 * Add required GitHub API endpoints and provision API token
