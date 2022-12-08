@@ -131,4 +131,3 @@ class JobHooksMixin(object):
             else:
                 po_file.metadata['Plural-Forms'] = simple_plural_form
                 po_file.save()
-

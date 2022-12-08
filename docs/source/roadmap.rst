@@ -20,10 +20,10 @@ Upcoming Releases
 | And releases are scheduled every quarter end.
 
 
-Transtats 0.8.7
+Transtats 0.8.8
 ---------------
 
-| Target delivery: End of Sept 2022
+| Target delivery: End of March 2023
 
 
 ToDo List
@@ -49,7 +49,6 @@ ToDo List
         - Java files (``properties``, ``dtd``)
         - PHP, JS (``ini``, ``json``, ``js``)
     - More YAML Job Template Implementations
-        - ``verifytrans``
 
 - Automation
     - Batch processing of pipeline actions.
