@@ -36,7 +36,9 @@ from dashboard.managers.inventory import (
     InventoryManager, SyncStatsManager, ReleaseBranchManager
 )
 from dashboard.models import Platform, Package, CacheBuildDetails
-from dashboard.managers.utilities import parse_project_details_json
+from dashboard.managers.utilities import (
+    parse_project_details_json, parse_git_url, determine_git_platform
+)
 
 
 __all__ = ['PackagesManager', 'PackageBranchMapping']
@@ -892,11 +894,11 @@ class PackagesManager(InventoryManager):
             return [item['id'] for item in package.package_details_json['iterations'] if item.get('id')] \
                 if package.package_details_json and package.package_details_json.get('iterations') \
                 else default_branch
-        instance_url, git_owner_repo = self._parse_git_url(upstream_url)
+        instance_url, git_owner_repo = parse_git_url(upstream_url)
         kwargs = {}
         kwargs.update(dict(no_cache_api=True))
         branches = self.api_resources.fetch_repo_branches(
-            self._determine_git_platform(instance_url), instance_url, *git_owner_repo, **kwargs
+            determine_git_platform(instance_url), instance_url, *git_owner_repo, **kwargs
         )
         if not branches:
             return default_branch

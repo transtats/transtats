@@ -159,11 +159,7 @@ class JobsLogManager(BaseManager):
             filters.update(dict(ci_pipeline__isnull=True))
         else:
             filters.update(dict(ci_pipeline__isnull=False))
-        try:
-            job_logs = Job.objects.filter(**filters).order_by('-job_start_time')
-        except Exception:
-            # log event, passing for now
-            pass
+        job_logs = Job.objects.filter(**filters).order_by('-job_start_time')
         return job_logs
 
     def get_job_detail(self, job_id):
@@ -175,11 +171,7 @@ class JobsLogManager(BaseManager):
         job_log = None
         if not job_id:
             return job_log
-        try:
-            job_log = Job.objects.filter(job_uuid=job_id).first()
-        except Exception:
-            # log event, passing for now
-            pass
+        job_log = Job.objects.filter(job_uuid=job_id).first()
         return job_log
 
     def get_joblog_stats(self):
@@ -277,8 +269,10 @@ class JobsLogManager(BaseManager):
                                 try:
                                     completion_percentage = int((filter_stat.get('translated', 0) * 100 /
                                                                  filter_stat.get('total', 0)))
-                                except ZeroDivisionError:
-                                    pass
+                                except ZeroDivisionError as e:
+                                    self.app_logger(
+                                        'ERROR', "Error while calculating completion_percentage, details: " + str(e)
+                                    )
                                 stats_chunk.append(completion_percentage)
                                 if stats_chunk:
                                     non_zero_stats = [i for i in stats_chunk[1:] if i > 0]
@@ -603,6 +597,9 @@ class YMLBasedJobManager(BaseManager):
         )
 
     def __bootstrap(self, package=None, build_system=None, ci_pipeline=None):
+        """
+        Creates required env (values) as per job category.
+        """
         if build_system:
             try:
                 release_streams = \
@@ -696,7 +693,7 @@ class YMLBasedJobManager(BaseManager):
                 self.package_manager.update_package(self.package, {
                     'upstream_last_updated': timezone.now()
                 })
-            # If its for rawhide, update downstream sync time for the package
+            # If it's for rawhide, update downstream sync time for the package
             if getattr(self, 'tag', ''):
                 self.package_manager.update_package(self.package, {
                     'downstream_last_updated': timezone.now()
@@ -715,15 +712,10 @@ class YMLBasedJobManager(BaseManager):
                 if isinstance(build_details, list) and build_details and len(build_details) > 0:
                     latest_build = build_details[0]
                 cache_params['build_details_json_str'] = json.dumps(latest_build)
-                try:
-                    CacheBuildDetails.objects.update_or_create(
-                        package_name=self._get_package(), build_system=self.buildsys,
-                        build_tag=self.tag, defaults=cache_params
-                    )
-                except Exception as e:
-                    # log error
-                    pass
-
+                CacheBuildDetails.objects.update_or_create(
+                    package_name=self._get_package(), build_system=self.buildsys,
+                    build_tag=self.tag, defaults=cache_params
+                )
         except Exception as e:
             self.app_logger(
                 'ERROR', "Package could not be updated, details: " + str(e)
@@ -758,14 +750,11 @@ class YMLBasedJobManager(BaseManager):
             os.remove(self.job_log_file)
         for file in os.listdir(self.sandbox_path):
             file_path = os.path.join(self.sandbox_path, file)
-            try:
-                if os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
-                elif os.path.isfile(file_path) and not file_path.endswith('.py') \
-                        and '.log.' not in file_path:
-                    os.unlink(file_path)
-            except Exception as e:
-                pass
+            if os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+            elif os.path.isfile(file_path) and not file_path.endswith('.py') \
+                    and '.log.' not in file_path:
+                os.unlink(file_path)
 
     def execute_job(self):
         """

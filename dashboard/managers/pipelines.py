@@ -390,17 +390,15 @@ class PipelineConfigManager(CIPipelineManager):
             upload_update_field = "<input id='uploadUpdate' name='uploadUpdate' type='checkbox' checked>"
 
         filter_dir = ''
-        file_filter_ext = 'PO'
+        file_filter_ext = pipeline.ci_package.translation_file_ext or ''
+        if file_filter_ext:
+            file_filter_ext = file_filter_ext.upper()
 
-        upload_pre_hook = ''
+        upload_pre_hook, copy_div_val = '', ''
         if tenant == RELSTREAM_SLUGS[4]:
             file_filter_ext, filter_dir = 'JSON', 'locales'
-            upload_pre_hook = 'copy_template_for_target_langs'
-
-        copy_div_val = ''
-        if tenant == RELSTREAM_SLUGS[4]:
-            file_filter_ext = 'JSON'
             copy_div_val = 'src/locales'
+            upload_pre_hook = 'copy_template_for_target_langs'
 
         key_val_map = {
             "ci_pipeline": _format_val("ciPipeline", pipeline.ci_pipeline_uuid),
