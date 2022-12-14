@@ -15,7 +15,13 @@ In a software release cycle, some of the necessary localization steps lack atten
 
 Transtats Server is a simple django application with PostgreSQL backend, which analyses and processes the translation data for meaningful representations. It has a CLI and some ansible playbooks for deployments. And, can be deployed on shared, dedicated or container based environments.
 
-The ``Jobs framework`` is a centralized processor through which we can solve multiple sets of problems in a flexible way. Because, it has information about Product Release (*and its Schedule*), Package Source Repo, Package Translation Platform, and Package Build System; and interestingly we can expand the support. Multiple sets of problems can be captured and executed in the form of Job Templates. Moreover, as the jobs are YAML based, they're flexible.
+The ``Jobs framework`` is a centralized processor through which we can solve multiple sets of problems in a flexible way. Because, it has information about Product Release (*and its Schedule*), Package Source Repo, Package Translation Platform and Package Build System. Multiple sets of problems can be captured and executed in the form of Job Templates. Moreover, as the jobs are YAML based, they're flexible.
+
+Transtats can..
+ - Tell us how we're doing on delivering translations for product releases.
+    - From a language and a package perspective.
+ - Transport translations from one place to another.
+ - Help spot differences: source repository vs translation platform vs build system.
 
 
 Help
@@ -29,6 +35,7 @@ Join **#transtats** channel at Libera.Chat, write to transtats@redhat.com
     :maxdepth: 2
 
     overview
+    server
     api
     client
     getinvolved

@@ -69,8 +69,8 @@ Hack and Develop
 - Generate docs :code:`make docs`
 
 
-Contribution
-------------
+Contribute
+----------
 
 * The *devel* branch is the release actively under development.
 * The *master* branch corresponds to the latest stable release.
