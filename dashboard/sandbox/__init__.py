@@ -13,9 +13,7 @@ HASH_ALGO = {
 
 
 def get_hash(string_value, algorithm):
-    """
-    Create hash for the given string and algorithm
-    """
+    """Create hash for the given string and algorithm"""
     if not isinstance(string_value, str) and not algorithm:
         return string_value
     hash_object = HASH_ALGO.get(algorithm)(string_value.encode())

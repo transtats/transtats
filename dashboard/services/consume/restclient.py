@@ -60,15 +60,10 @@ __all__ = ['ServiceConfig', 'RestHandle', 'RestClient']
 
 
 class ServiceConfig(object):
-    """
-    REST communication service configuration
-    """
+    """REST communication service configuration"""
 
     def _set_initials(self, service, resource, auth=None):
-        """
-        Sets initial params
-        """
-
+        """Sets initial params"""
         master_config_dict = {
             GIT_PLATFORMS[0]: {
                 '_config_dict': github_config,
@@ -124,9 +119,7 @@ class ServiceConfig(object):
             setattr(self, str(attrib), value)
 
     def __init__(self, service, resource, auth=None):
-        """
-        entry point
-        """
+        """entry point"""
         self._set_initials(service, resource, auth)
         for attrib, value in (self._config_dict[self._service.rest_resource]
                               [self._service.mount_point][self._service.http_method].items()):
@@ -158,15 +151,15 @@ class ServiceConfig(object):
 
 
 class RestHandle(object):
-    """
-    handle for REST communication
-    """
+    """handle for REST communication"""
 
     def __init__(self, *args, **kwargs):
         """
         RestHandle constructor
         :param args: base="http://localhost", uri="/zanata", method="GET"
-        :param kwargs: body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS, connection_type=None,
+        :param kwargs: body=None, headers=None,
+                        redirections=DEFAULT_MAX_REDIRECTS,
+                        connection_type=None,
                         cache=".cache", ext="?lang=hi"
         """
         if len([arg for arg in args if arg]) != 3:
@@ -180,8 +173,8 @@ class RestHandle(object):
     def _get_url(self):
         if self.base_url[-1:] == '/':
             self.base_url = self.base_url[:-1]
-        return '%s%s%s' % (self.base_url, self.uri, getattr(self, 'ext')) \
-            if hasattr(self, 'ext') else '%s%s' % (self.base_url, self.uri)
+        return f"{self.base_url}{self.uri}{getattr(self, 'ext')}" \
+            if hasattr(self, 'ext') else f"{self.base_url}{self.uri}"
 
     def _call_request(self, uri, http_method, **kwargs):
         # TS gateway to services
@@ -250,10 +243,7 @@ class RestHandle(object):
 
 
 class RestClient(object):
-
-    """
-    REST Client for all Managers
-    """
+    """REST Client for all Managers"""
 
     SAVE_RESPONSE = True
     cache_manager = CacheAPIManager()
@@ -299,9 +289,6 @@ class RestClient(object):
             resource = resource + "?" + ext
         elif isinstance(extension, str):
             resource = resource + "?" + extension
-        if 'auth_token_ext' in kwargs and kwargs.get('auth_token_ext'):
-            separator = "&" if "?" in resource else "?"
-            resource = resource + separator + kwargs.get('auth_token_ext')
         # Lets check with cache, if it's a GET request
         if service_details.http_method == 'GET' and not kwargs.get('no_cache_api'):
             c_content, c_json_content = self.cache_manager.get_cached_response(base_url, resource)

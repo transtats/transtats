@@ -22,7 +22,9 @@ __all__ = [
     'OIDC_OP_JWKS_ENDPOINT',
     'OIDC_RP_SIGN_ALGO',
     'LOGOUT_REDIRECT_URL',
-    'CORS_ORIGIN_ALLOW_ALL'
+    'CORS_ORIGIN_ALLOW_ALL',
+    'GITHUB_USER',
+    'GITHUB_TOKEN'
 ]
 
 FAS_AUTH = app_config_vars('TS_AUTH_SYSTEM') == 'fedora'
@@ -54,4 +56,7 @@ REST_FRAMEWORK.update({
     )
 })
 
-CORS_ORIGIN_ALLOW_ALL = True if FAS_AUTH else False
+CORS_ORIGIN_ALLOW_ALL = bool(FAS_AUTH)
+
+GITHUB_USER = "transtats-bot"
+GITHUB_TOKEN = app_config_vars('GITHUB_TOKEN')

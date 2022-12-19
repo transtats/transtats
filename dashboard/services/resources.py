@@ -14,7 +14,10 @@
 # under the License.
 
 # Service Layer: Process and cache REST resource's responses here.
+# ToDo: Refactor the code to adhere Strategy Design Pattern.
 
+import json
+import logging
 from subprocess import Popen, PIPE
 from collections import OrderedDict
 try:
@@ -33,16 +36,14 @@ from dashboard.services.consume import call_service
 
 __all__ = ['APIResources']
 
+logger = logging.getLogger(__name__)
+
 
 class ResourcesBase(object):
-    """
-    Base class for resources
-    """
+    """Base class for resources"""
     @staticmethod
     def _execute_method(api_config, *args, **kwargs):
-        """
-        Executes located method with required params
-        """
+        """Executes located method with required params"""
         try:
             if api_config.get('ext'):
                 kwargs.update(dict(ext=True))
@@ -54,16 +55,13 @@ class ResourcesBase(object):
             return api_config['method'](
                 api_config['base_url'], service_resource, *args, **kwargs
             )
-        except (KeyError, Exception):
-            # log error
-            pass
+        except Exception as exp:
+            logger.log(level=10, msg=f"Resource execution caught an exception. Details: {str(exp)}")
         return {}
 
 
 class GitPlatformResources(ResourcesBase):
-    """
-    Git Platform related Resources
-    """
+    """Git Platform related Resources"""
 
     @staticmethod
     @call_service(GIT_PLATFORMS[0])
@@ -120,6 +118,38 @@ class GitPlatformResources(ResourcesBase):
         response = kwargs.get('rest_response', {})
         return response.get('json_content', {}).get('branches', [])
 
+    @staticmethod
+    @call_service(GIT_PLATFORMS[0])
+    def _fetch_github_repos(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('json_content', {})
+
+    @staticmethod
+    @call_service(GIT_PLATFORMS[0])
+    def _create_github_fork(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('json_content', {})
+
+    @staticmethod
+    @call_service(GIT_PLATFORMS[0])
+    def _delete_github_repo(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('status_code', 0) == 204
+
+    @staticmethod
+    @call_service(GIT_PLATFORMS[0])
+    def _create_github_pull_request(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        json_response = json.loads(response['content']) \
+            if not response['raw'].ok else response.get('json_content', {})
+        return response['raw'].ok, json_response
+
+    @staticmethod
+    @call_service(GIT_PLATFORMS[0])
+    def _fetch_github_user(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response.get('json_content', {})
+
     def fetch_repo_branches(self, git_platform, instance_url, *args, **kwargs):
         """
         Fetches all projects or modules json from API
@@ -150,11 +180,104 @@ class GitPlatformResources(ResourcesBase):
         selected_config = method_mapper[git_platform]
         return self._execute_method(selected_config, *args, **kwargs)
 
+    def list_repos(self, git_platform, instance_url, *args, **kwargs):
+        """
+        Fetches all repositories json from API
+        :param git_platform: Git Platform API URL
+        :param instance_url: Git Platform Instance URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: list
+        """
+        method_mapper = {
+            GIT_PLATFORMS[0]: {
+                'method': self._fetch_github_repos,
+                'base_url': 'https://api.github.com',
+                'resources': ['list_repos'],
+            },
+        }
+        selected_config = method_mapper[git_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def delete_repo(self, git_platform, instance_url, *args, **kwargs):
+        """
+        Delete repository json from API
+        :param git_platform: Git Platform API URL
+        :param instance_url: Git Platform Instance URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: list
+        """
+        method_mapper = {
+            GIT_PLATFORMS[0]: {
+                'method': self._delete_github_repo,
+                'base_url': 'https://api.github.com',
+                'resources': ['delete_repository'],
+            },
+        }
+        selected_config = method_mapper[git_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def create_fork(self, git_platform, instance_url, *args, **kwargs):
+        """
+        Create a new fork from API
+        :param git_platform: Git Platform API URL
+        :param instance_url: Git Platform Instance URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: list
+        """
+        method_mapper = {
+            GIT_PLATFORMS[0]: {
+                'method': self._create_github_fork,
+                'base_url': 'https://api.github.com',
+                'resources': ['create_forks'],
+            },
+        }
+        selected_config = method_mapper[git_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def create_merge_request(self, git_platform, instance_url, *args, **kwargs):
+        """
+        Create a new fork from API
+        :param git_platform: Git Platform API URL
+        :param instance_url: Git Platform Instance URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: list
+        """
+        method_mapper = {
+            GIT_PLATFORMS[0]: {
+                'method': self._create_github_pull_request,
+                'base_url': 'https://api.github.com',
+                'resources': ['create_pull_requests'],
+            },
+        }
+        selected_config = method_mapper[git_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def user_details(self, git_platform, instance_url, *args, **kwargs):
+        """
+        Fetches user details json from API
+        :param git_platform: Git Platform API URL
+        :param instance_url: Git Platform Instance URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: list
+        """
+        method_mapper = {
+            GIT_PLATFORMS[0]: {
+                'method': self._fetch_github_user,
+                'base_url': 'https://api.github.com',
+                'resources': ['user_details'],
+            },
+        }
+        selected_config = method_mapper[git_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
 
 class TransplatformResources(ResourcesBase):
-    """
-    Translation Platform related Resources
-    """
+    """Translation Platform related Resources"""
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
@@ -195,10 +318,10 @@ class TransplatformResources(ResourcesBase):
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _fetch_memsource_projects(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        if response.get("json_content").get("content"):
+        if response.get("json_content", {}).get("content"):
             kwargs['combine_results'].extend(response['json_content']['content'])
-        resp_page_number = response.get("json_content").get("pageNumber", 0)
-        resp_total_pages = response.get("json_content").get("totalPages", 0)
+        resp_page_number = response.get("json_content", {}).get("pageNumber", 0)
+        resp_total_pages = response.get("json_content", {}).get("totalPages", 0)
         if resp_total_pages > 1 and resp_page_number < resp_total_pages:
             kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
             TransplatformResources._fetch_memsource_projects(
@@ -224,6 +347,20 @@ class TransplatformResources(ResourcesBase):
                     pick_releases.append(release['fields']['name'])
                     first_stable_pk = None
         return {'releases': pick_releases}
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[1])
+    def _create_transifex_project(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        return response
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[4])
+    def _create_memsource_project(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        if response['raw'].ok:
+            return response['raw'].ok, response['json_content']
+        return response['raw'].ok, response['content']
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
@@ -315,10 +452,10 @@ class TransplatformResources(ResourcesBase):
     @call_service(TRANSPLATFORM_ENGINES[4])
     def _fetch_memsource_project_jobs(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        if response.get("json_content").get("content"):
+        if response.get("json_content", {}).get("content"):
             kwargs['combine_results'].extend(response['json_content']['content'])
-        resp_page_number = response.get("json_content").get("pageNumber", 0)
-        resp_total_pages = response.get("json_content").get("totalPages", 0)
+        resp_page_number = response.get("json_content", {}).get("pageNumber", 0)
+        resp_total_pages = response.get("json_content", {}).get("totalPages", 0)
         if resp_total_pages > 1 and resp_page_number < resp_total_pages:
             kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
             TransplatformResources._fetch_memsource_project_jobs(
@@ -346,7 +483,7 @@ class TransplatformResources(ResourcesBase):
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[0])
     def _fetch_damnedlies_locale_release_stats(base_url, resource, *url_params, **kwargs):
-        locale_stat_dict = dict()
+        locale_stat_dict = {}
         locale_stat_dict["unit"] = "MESSAGE"
         locale_stat_dict["locale"] = url_params[0]
         response = kwargs.get('rest_response', {})
@@ -403,10 +540,10 @@ class TransplatformResources(ResourcesBase):
     def __push_response(service_resp):
         if service_resp.get('json_content'):
             return True, service_resp['json_content']
-        elif service_resp.get('err_content') or service_resp.get('text'):
+        if service_resp.get('err_content') or service_resp.get('text'):
             return False, service_resp.get('err_content') or \
                 {service_resp.get('status_code', 'Error'): service_resp.get('text')}
-        return False, dict()
+        return False, {}
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[1])
@@ -461,6 +598,21 @@ class TransplatformResources(ResourcesBase):
     def _memsource_import_setting_details(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
         return response.get('json_content')
+
+    @staticmethod
+    @call_service(TRANSPLATFORM_ENGINES[4])
+    def _memsource_fetch_project_templates(base_url, resource, *url_params, **kwargs):
+        response = kwargs.get('rest_response', {})
+        if response.get("json_content", {}).get("content"):
+            kwargs['combine_results'].extend(response['json_content']['content'])
+        resp_page_number = response.get("json_content", {}).get("pageNumber", 0)
+        resp_total_pages = response.get("json_content", {}).get("totalPages", 0)
+        if resp_total_pages > 1 and resp_page_number < resp_total_pages:
+            kwargs['ext'] = "{}={}".format("pageNumber", resp_page_number + 1)
+            TransplatformResources._memsource_fetch_project_templates(
+                base_url, resource, *url_params, **kwargs
+            )
+        return kwargs['combine_results']
 
     def fetch_all_projects(self, translation_platform, instance_url, *args, **kwargs):
         """
@@ -545,6 +697,30 @@ class TransplatformResources(ResourcesBase):
                 'resources': ['project_details', 'project_jobs'],
                 'combine_results': True,
                 'project': args[0],
+            }
+        }
+        selected_config = method_mapper[translation_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
+    def create_project(self, translation_platform, instance_url, *args, **kwargs):
+        """
+        Create a Project at Translation or CI Platform
+        :param translation_platform: Translation Platform API
+        :param instance_url: Translation Platform Server URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: dict
+        """
+        method_mapper = {
+            TRANSPLATFORM_ENGINES[1]: {
+                'method': self._create_transifex_project,
+                'base_url': instance_url,
+                'resources': ['create_project'],
+            },
+            TRANSPLATFORM_ENGINES[4]: {
+                'method': self._create_memsource_project,
+                'base_url': instance_url,
+                'resources': ['create_project_from_template'],
             }
         }
         selected_config = method_mapper[translation_platform]
@@ -692,11 +868,29 @@ class TransplatformResources(ResourcesBase):
         selected_config = method_mapper[translation_platform]
         return self._execute_method(selected_config, *args, **kwargs)
 
+    def fetch_project_templates(self, translation_platform, instance_url, *args, **kwargs):
+        """
+        Fetch project templates from CI Platform
+        :param translation_platform: Translation Platform API
+        :param instance_url: Translation Platform Server URL
+        :param args: URL Params: list
+        :param kwargs: Keyword Args: dict
+        :return: dict
+        """
+        method_mapper = {
+            TRANSPLATFORM_ENGINES[4]: {
+                'method': self._memsource_fetch_project_templates,
+                'base_url': instance_url,
+                'resources': ['list_project_templates'],
+                'combine_results': True,
+            }
+        }
+        selected_config = method_mapper[translation_platform]
+        return self._execute_method(selected_config, *args, **kwargs)
+
 
 class KojiResources(object):
-    """
-    Koji Resources
-    """
+    """Koji Resources"""
 
     @staticmethod
     def _session(hub):
@@ -711,9 +905,7 @@ class KojiResources(object):
         # self.session.gssapi_login()
 
     def establish_kerberos_ticket(self):
-        """
-        Get kerberos ticket in-place
-        """
+        """Get kerberos ticket in-place"""
         userid = "transtats"
         realm = "FEDORAPROJECT.ORG"
 
@@ -724,9 +916,7 @@ class KojiResources(object):
         kinit.wait()
 
     def build_tags(self, hub_url, product):
-        """
-        Get build tags
-        """
+        """Get build tags"""
         all_tags = []
         active_repos = self._session(hub_url).getActiveRepos()
         tag_starts_with = ''
@@ -739,6 +929,8 @@ class KojiResources(object):
                 tag_starts_with = 'rhevm'
             elif product.product_slug == RELSTREAM_SLUGS[3]:
                 tag_starts_with = 'satellite'
+            elif product.product_slug == RELSTREAM_SLUGS[4]:
+                tag_starts_with = 'insights'
         elif product.product_slug == RELSTREAM_SLUGS[1]:
             tag_starts_with = 'f'
 
@@ -799,9 +991,9 @@ class KojiResources(object):
         if build and not srpm and not task:
             path = koji.pathinfo.build(build)
             return path[0] if isinstance(path, list) and len(path) > 0 else path
-        elif srpm and not build and not task:
+        if srpm and not build and not task:
             return koji.pathinfo.rpm(srpm)
-        elif task and not build and not srpm:
+        if task and not build and not srpm:
             return koji.pathinfo.task(task)
 
 

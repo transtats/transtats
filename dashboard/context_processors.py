@@ -19,9 +19,7 @@ from transtats import __appname__, __release__, __description__, __title__
 
 
 def app_info(request):
-    """
-    Application Info
-    """
+    """Application Info"""
     return {
         "app_name": __appname__,
         "app_version": __release__,

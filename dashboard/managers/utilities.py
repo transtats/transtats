@@ -18,12 +18,13 @@
 # python
 import time
 from collections import OrderedDict
+from urllib.parse import urlparse
 
 # dashboard
-from dashboard.constants import (TRANSPLATFORM_ENGINES, CALENDAR_VERBS)
+from dashboard.constants import (TRANSPLATFORM_ENGINES, CALENDAR_VERBS, GIT_PLATFORMS)
 
 
-__all__ = ['parse_project_details_json', 'parse_ical_file',
+__all__ = ['parse_project_details_json', 'parse_ical_file', 'parse_git_url', 'determine_git_platform',
            'COUNTRY_CODE_3to2_LETTERS', 'COUNTRY_CODE_2to3_LETTERS']
 
 
@@ -117,9 +118,7 @@ COUNTRY_CODE_2to3_LETTERS = {"BD": "BGD", "BE": "BEL", "BF": "BFA", "BG": "BGR",
 
 
 def parse_project_details_json(engine, json_dict):
-    """
-    Parse project details json
-    """
+    """Parse project details json"""
     if not isinstance(json_dict, dict):
         json_dict = {}
     project = ''
@@ -193,3 +192,27 @@ def time_it(func):
         print(func.__name__ + " took " + str((end - start) * 1000) + " mil sec to execute.")
         return result
     return wrapper
+
+
+def parse_git_url(git_url) -> (str, tuple):
+    """
+    Parses Git URL for instance_url, owner and repo
+    :param git_url: git repository URL
+    :return: instance_url, owner_repo tuple
+    """
+    parsed_url = urlparse(git_url)
+    instance_url = "{}://{}".format(parsed_url.scheme, parsed_url.netloc)
+    owner_repo = tuple(filter(None, parsed_url.path.split('/')))
+    if owner_repo:
+        # handle .git extension for upstream url
+        owner_repo = [item[:-4] if item.endswith(".git")
+                      else item for item in owner_repo]
+        return instance_url, owner_repo
+    return instance_url, ()
+
+
+def determine_git_platform(instance_url) -> str:
+    for platform in GIT_PLATFORMS:
+        if platform.lower() in instance_url:
+            return platform
+    return ''

@@ -57,10 +57,12 @@
           <span class="fa fa-ellipsis-v"></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-right">
-          <li><a href="{% url 'package-add-ci-pipeline' package.package_name %}">
-            <span class="pficon pficon-add-circle-o" aria-hidden="true"></span> CI Pipeline</a>
-          </li>
-<!--          <li class="disabled"><a href="#"><span class="fa fa-calendar" aria-hidden="true"></span> Schedules</a></li>-->
+          {% if user.is_staff %}
+            <li><a href="{% url 'package-add-ci-pipeline' package.package_name %}">
+              <span class="pficon pficon-add-circle-o" aria-hidden="true"></span> CI Pipeline</a>
+            </li>
+          {% endif %}
+          <li class="disabled"><a href="#"><span class="fa fa-calendar" aria-hidden="true"></span> Schedules</a></li>
           <li role="separator" class="divider"></li>
           <li><a href="{% url 'jobs-cleanup' %}">
                 <span class="fa fa-eye-slash" aria-hidden="true"></span> Hide Branches

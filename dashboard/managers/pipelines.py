@@ -22,7 +22,8 @@ from django.utils import timezone
 
 # dadhboard
 from dashboard.constants import (
-    TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS, PIPELINE_CONFIG_EVENTS
+    TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
+    PIPELINE_CONFIG_EVENTS, GIT_REPO_TYPE
 )
 from dashboard.managers.packages import PackagesManager
 from dashboard.managers import BaseManager
@@ -33,9 +34,7 @@ __all__ = ['CIPipelineManager', 'PipelineConfigManager']
 
 
 class CIPipelineManager(BaseManager):
-    """
-    Continuous Integration Pipeline Manager
-    """
+    """Continuous Integration Pipeline Manager"""
 
     package_manager = PackagesManager()
 
@@ -86,8 +85,8 @@ class CIPipelineManager(BaseManager):
         project_uuid = project_url
         if ci_platform.engine_name == TRANSPLATFORM_ENGINES[4] and "/" in project_url:
             project_uuid = project_url.split("/")[-1:][0]
-        response_dict = dict()
-        kwargs = dict()
+        response_dict = {}
+        kwargs = {}
         kwargs.update(dict(no_cache_api=True))
         response_dict = self.api_resources.fetch_project_details(
             ci_platform.engine_name, ci_platform.api_url, project_uuid, **kwargs
@@ -115,7 +114,7 @@ class CIPipelineManager(BaseManager):
                         if toggle_visibility and self.toggle_visibility(pipeline_id):
                             return True
                 else:
-                    pipeline_params = dict()
+                    pipeline_params = {}
                     pipeline_params['ci_project_web_url'] = ci_pipeline.ci_project_web_url
                     pipeline_params['ci_project_details_json_str'] = json.dumps(resp_dict)
                     pipeline_params['ci_platform_jobs_json_str'] = json.dumps(
@@ -237,12 +236,12 @@ class CIPipelineManager(BaseManager):
         :param workflow_step: Str
         :return: dict
         """
-        ci_lang_job_map = dict()
+        ci_lang_job_map = {}
         if not pipelines:
             return ci_lang_job_map
         for pipeline in pipelines:
             if pipeline.ci_platform_jobs_json:
-                ci_lang_job_map[pipeline.ci_pipeline_uuid] = dict()
+                ci_lang_job_map[pipeline.ci_pipeline_uuid] = {}
                 for job_detail in pipeline.ci_platform_jobs_json:
                     if job_detail.get('targetLang') and job_detail.get('uid') and job_detail.get('filename'):
 
@@ -285,9 +284,7 @@ class CIPipelineManager(BaseManager):
 
 
 class PipelineConfigManager(CIPipelineManager):
-    """
-    Pipeline Configurations Manager
-    """
+    """Pipeline Configurations Manager"""
 
     def get_pipeline_configs(self, fields=None, ci_pipelines=None, pipeline_config_ids=None):
         """
@@ -340,6 +337,15 @@ class PipelineConfigManager(CIPipelineManager):
         :return: dict
         """
 
+        upstream_repo_type = GIT_REPO_TYPE[0]
+        if pipeline.ci_package.upstream_l10n_url:
+            upstream_repo_type = GIT_REPO_TYPE[1]
+
+        upstream_repo_branches = self.package_manager.git_branches(
+            package_name=pipeline.ci_package.package_name,
+            repo_type=upstream_repo_type
+        )
+
         repo_branches = self.package_manager.git_branches(
             package_name=pipeline.ci_package.package_name,
             repo_type=pipeline.ci_package.platform_slug.engine_name
@@ -349,8 +355,8 @@ class PipelineConfigManager(CIPipelineManager):
                 pipeline.ci_pipeline_default_branch in repo_branches:
             repo_branches = [pipeline.ci_pipeline_default_branch]
 
-        def _format_val(value_str):
-            return "<strong>{}</strong>".format(str(value_str))
+        def _format_val(field_id, value_str):
+            return "<strong id={}>{}</strong>".format(field_id, str(value_str))
 
         def _format_choices(field_id, values):
             html_select = ""
@@ -383,29 +389,45 @@ class PipelineConfigManager(CIPipelineManager):
         if action == PIPELINE_CONFIG_EVENTS[2]:
             upload_update_field = "<input id='uploadUpdate' name='uploadUpdate' type='checkbox' checked>"
 
+        filter_dir = ''
+        file_filter_ext = pipeline.ci_package.translation_file_ext or ''
+        if file_filter_ext:
+            file_filter_ext = file_filter_ext.upper()
+
+        upload_pre_hook, copy_div_val = '', ''
+        if tenant == RELSTREAM_SLUGS[4]:
+            file_filter_ext, filter_dir = 'JSON', 'locales'
+            copy_div_val = 'src/locales'
+            upload_pre_hook = 'copy_template_for_target_langs'
+
         key_val_map = {
-            "ci_pipeline": _format_val(pipeline.ci_pipeline_uuid),
-            "package": _format_val(pipeline.ci_package.package_name),
-            "clone.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
-            "clone.branch": _format_choices("repoCloneBranch", repo_branches),
+            "ci_pipeline": _format_val("ciPipeline", pipeline.ci_pipeline_uuid),
+            "package": _format_val("packageName", pipeline.ci_package.package_name),
+            "clone.type": _format_val("cloneType", upstream_repo_type),
+            "clone.branch": _format_choices("repoCloneBranch", upstream_repo_branches),
             "clone.recursive": "<input type='checkbox' id='cloneRecursive' name='cloneRecursive'>",
             "filter.domain": "<input id='filterDomain' type='text' value='{}'>".format(
                 pipeline.ci_package.package_name),
-            "filter.dir": "<input id='filterDir' type='text' value=''>",
+            "filter.ext": "<input id='filterExt' type='text' value='{}'>".format(file_filter_ext),
+            "filter.dir": "<input id='filterDir' type='text' value='{}'>".format(filter_dir),
             "download.target_langs": _format_checkboxes(
                 'downloadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
-            "download.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
+            "download.type": _format_val("downloadType", pipeline.ci_package.platform_slug.engine_name),
             "download.branch": _choose_checkboxes_or_dropdown("downloadRepoBranch", repo_branches),
             "download.workflow_step": _format_choices(
                 "workflowStep", self.get_ci_platform_workflow_steps(pipeline.ci_pipeline_uuid)
             ),
             "download.prepend_branch": prepend_branch_field,
-            "upload.type": _format_val(pipeline.ci_package.platform_slug.engine_name),
+            "upload.type": _format_val("uploadType", pipeline.ci_package.platform_slug.engine_name),
             "upload.branch": _choose_checkboxes_or_dropdown("uploadRepoBranch", repo_branches),
             "upload.target_langs": _format_checkboxes(
                 'uploadTargetLangs', pipeline.ci_project_details_json.get("targetLangs", [])),
+            "upload.prehook": "<input id='preHook' type='text' value='{}'>".format(upload_pre_hook),
             "upload.import_settings": "<input id='importSettings' type='text' value='project'>",
+            "copy.dir": f"<input id='copyDir' type='text' value='{copy_div_val}'>",
             "upload.update": upload_update_field,
+            "pullrequest.type": _format_val("pullrequestType", upstream_repo_type),
+            "pullrequest.branch": _format_choices("repoPullRequestBranch", upstream_repo_branches),
             "upload.prepend_branch": prepend_branch_field,
         }
         return key_val_map
@@ -434,6 +456,7 @@ class PipelineConfigManager(CIPipelineManager):
             "clone.branch": config_values.get('cloneBranch', ''),
             "clone.recursive": self.__true_false_type(config_values.get('cloneRecursive', '')),
             "filter.domain": config_values.get('filterDomain', ''),
+            "filter.ext": config_values.get('filterExt', ''),
             "filter.dir": config_values.get('filterDir', ''),
             "download.target_langs": config_values.get('downloadTargetLangs', '').split(','),
             "download.type": config_values.get('downloadType', ''),
@@ -443,9 +466,13 @@ class PipelineConfigManager(CIPipelineManager):
             "upload.type": config_values.get('uploadType', ''),
             "upload.branch": config_values.get('uploadBranch', ''),
             "upload.target_langs": config_values.get('uploadTargetLangs', '').split(','),
+            "upload.prehook": config_values.get('uploadPreHook', ''),
             "upload.import_settings": config_values.get('uploadImportSettings', ''),
             "upload.update": self.__true_false_type(config_values.get('uploadUpdate', '')),
             "upload.prepend_branch": self.__true_false_type(config_values.get('uploadPrependBranch', '')),
+            "copy.dir": config_values.get('copyDir', ''),
+            "pullrequest.type": config_values.get("pullrequestType", ''),
+            "pullrequest.branch": config_values.get("repoPullRequestBranch", ''),
         }
         return key_val_map
 
@@ -467,11 +494,11 @@ class PipelineConfigManager(CIPipelineManager):
         :param tenant: str or None
         :return: dict
         """
-        key_val_map = dict()
+        key_val_map = {}
         if not pipeline and not action:
             return key_val_map
 
-        respective_job_template_json = self.get_job_action_template(pipeline, action).job_template_json or dict()
+        respective_job_template_json = self.get_job_action_template(pipeline, action).job_template_json or {}
         pipeline_config = respective_job_template_json.copy()
 
         if output_format and output_format == 'html_form':
@@ -521,7 +548,7 @@ class PipelineConfigManager(CIPipelineManager):
         ci_pipeline = self.get_ci_pipelines(uuids=[pipeline_uuid]).get()
 
         def _save_pipeline_config(*params):
-            pc_kwargs = dict()
+            pc_kwargs = {}
             pc_kwargs.update(dict(ci_pipeline=params[0]))
             pc_kwargs.update(dict(pipeline_config_event=params[1]))
             pc_kwargs.update(dict(pipeline_config_active=True))

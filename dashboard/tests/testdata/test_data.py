@@ -20,9 +20,7 @@ from json import loads
 
 
 class mock_response:
-    """
-    Mock object for patched response.get
-    """
+    """Mock object for patched response.get"""
     rest_text = None
     rest_url = None
 
@@ -55,9 +53,7 @@ class mock_response:
 
 
 class mock_response_add_package(mock_response):
-    """
-    Mock object for 'mock_values.mock_requests_get_add_package'
-    """
+    """Mock object for 'mock_values.mock_requests_get_add_package'"""
     resp_text = '{"id":"authconfig",' \
                 '"defaultType":"Gettext",' \
                 '"name":"authconfig",' \
@@ -71,9 +67,7 @@ class mock_response_add_package(mock_response):
 
 
 class mock_response_validate_package(mock_response):
-    """
-    Mock object for 'mock_values.mock_request_get_validate_package'
-    """
+    """Mock object for 'mock_values.mock_request_get_validate_package'"""
     resp_text = '[{"id":"candlepin",' \
                 '"name":"candlepin",' \
                 '"links":[{"rel":"self","href":"p/candlepin","type":"application/vnd.zanata.project+json"}],' \
@@ -83,9 +77,7 @@ class mock_response_validate_package(mock_response):
 
 
 class mock_response_repo_branches(mock_response):
-    """
-    Mock object for 'mock_values.mock_request_get_validate_package'
-    """
+    """Mock object for 'mock_values.mock_request_get_validate_package'"""
     resp_text = '[{"name":"autoupdate-potfiles","commit":{"sha":"911be667af645fe1db70018295f5d7aed759b916",' \
                 '"url":"https://api.github.com/repos/rhinstaller/anaconda-l10n/commits/911be667af645fe1db70018295f5d7aed759b916"},' \
                 '"protected":false},{"name":"master","commit":{"sha":"59bd18f076e04692607dc74539f8f84f31809a99",' \

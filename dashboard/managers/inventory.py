@@ -38,7 +38,8 @@ from django.utils import timezone
 # dashboard
 from dashboard.managers import BaseManager
 from dashboard.models import (
-    Platform, Language, LanguageSet, Product, Release, SyncStats
+    Platform, Language, LanguageSet, Product, Release,
+    SyncStats, PlatformProjectTemplates
 )
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, ZANATA_SLUGS, DAMNEDLIES_SLUGS,
@@ -52,14 +53,10 @@ __all__ = ['InventoryManager', 'SyncStatsManager', 'ReleaseBranchManager']
 
 
 class InventoryManager(BaseManager):
-    """
-    Manage application inventories
-    """
+    """Manage application inventories"""
 
     def get_locales(self, only_active=None, pick_locales=None, pick_alias=None):
-        """
-        fetch all languages from db
-        """
+        """fetch all languages from db"""
         filter_kwargs = {}
         if only_active:
             filter_kwargs.update(dict(lang_status=True))
@@ -80,9 +77,7 @@ class InventoryManager(BaseManager):
         return locales
 
     def get_active_locales_count(self):
-        """
-        Return count of active locales
-        """
+        """Return count of active locales"""
         try:
             return Language.objects.filter(lang_status=True).count()
         except Exception as e:
@@ -110,9 +105,7 @@ class InventoryManager(BaseManager):
         return locale_qset.get().locale_id if locale_qset else alias
 
     def get_locale_lang_tuple(self, locales=None):
-        """
-        Creates locale
-        """
+        """Creates locale"""
         locales = self.get_locales(pick_locales=locales) \
             if locales else self.get_locales(only_active=True)
         return tuple([(locale.locale_id, locale.lang_name)
@@ -132,9 +125,7 @@ class InventoryManager(BaseManager):
         return active_locales, inactive_locales, aliases
 
     def get_langset(self, langset_slug, fields=None):
-        """
-        fetch desired language set from db
-        """
+        """fetch desired language set from db"""
         langset = None
         fetch_fields = []
         if fields and isinstance(fields, (tuple, list)):
@@ -149,9 +140,7 @@ class InventoryManager(BaseManager):
         return langset
 
     def get_langsets(self, fields=None):
-        """
-        fetch all language sets from db
-        """
+        """fetch all language sets from db"""
         langsets = None
         filter_fields = fields if isinstance(fields, (tuple, list)) else ()
         filter_kwargs = {}
@@ -164,9 +153,7 @@ class InventoryManager(BaseManager):
         return langsets
 
     def get_locale_groups(self, locale):
-        """
-        fetch list of langlist, a locale belongs to
-        """
+        """fetch list of langlist, a locale belongs to"""
         groups_locale_belongs_to = []
         lang_sets = self.get_langsets()
         for langset in lang_sets:
@@ -175,18 +162,14 @@ class InventoryManager(BaseManager):
         return {locale: groups_locale_belongs_to}
 
     def get_all_locales_groups(self):
-        """
-        get_locale_groups for all available locales
-        """
+        """get_locale_groups for all available locales"""
         all_locales_groups = {}
         for locale in self.get_locales():
             all_locales_groups.update(self.get_locale_groups(locale.locale_id))
         return all_locales_groups
 
     def get_relbranch_locales(self, release_branch):
-        """
-        Fetch locales specific to release branch
-        """
+        """Fetch locales specific to release branch"""
         required_locales = []
         try:
             release_branch_specific_lang_set = \
@@ -200,10 +183,8 @@ class InventoryManager(BaseManager):
             )
         return required_locales
 
-    def get_translation_platforms(self, engine=None, only_active=None, ci=None):
-        """
-        fetch all translation platforms from db
-        """
+    def get_translation_platforms(self, engine=None, only_active=None, ci=None, slug=None):
+        """fetch all translation platforms from db"""
         filter_kwargs = {}
         if engine:
             filter_kwargs.update(dict(engine_name=engine))
@@ -211,6 +192,10 @@ class InventoryManager(BaseManager):
             filter_kwargs.update(dict(server_status=True))
         if ci:
             filter_kwargs.update(dict(ci_status=True))
+        if ci is False:
+            filter_kwargs.update(dict(ci_status=False))
+        if slug:
+            filter_kwargs.update(dict(platform_slug=slug))
 
         platforms = None
         try:
@@ -252,12 +237,12 @@ class InventoryManager(BaseManager):
         engine = [i for i, j in platform_relation.items() if platform_slug in j]
         return engine[0] if isinstance(engine, list) and len(engine) > 0 else ''
 
-    def get_transplatform_slug_url(self):
+    def get_transplatform_slug_url(self, ci=None):
         """
         Get slug and api_url for active transplatform
         :return: tuple
         """
-        active_platforms = self.get_translation_platforms(only_active=True)
+        active_platforms = self.get_translation_platforms(only_active=True, ci=ci)
         return tuple([(platform.platform_slug, platform.api_url)
                       for platform in active_platforms]) or ()
 
@@ -305,11 +290,40 @@ class InventoryManager(BaseManager):
                     self._get_lang_contact(platform, language)
         return language_team_contact
 
+    def create_platform_project(self, project_slug, repo_url, platform_slug):
+        """
+        Create a Project at Translation Platform
+        :param project_slug: str
+        :param repo_url: str
+        :param platform_slug: str
+        :return: dict
+        """
+        request_kwargs = {}
+        platform = Platform.objects.filter(platform_slug=platform_slug).get()
+        if platform.engine_name == TRANSPLATFORM_ENGINES[1]:
+            # Transifex payload for new project
+            request_kwargs['data'] = '{"slug":"%s","name":"%s","source_language_code":"en",' \
+                                     '"description":"%s", "repository_url": "%s"}' % \
+                                     (project_slug, project_slug, project_slug, repo_url)
+        request_kwargs.update(dict(
+            auth_user=platform.auth_login_id, auth_token=platform.auth_token_key
+        ))
+
+        api_response = None
+        try:
+            api_response = self.api_resources.create_project(
+                translation_platform=platform.engine_name,
+                instance_url=platform.api_url, **request_kwargs
+            )
+        except Exception as e:
+            self.logger("Something unexpected happened while creating a project "
+                        "at platform, details: " + str(e))
+
+        return api_response
+
     def get_release_streams(self, stream_slug=None, only_active=None,
                             built=None, fields=None):
-        """
-        Fetch all products from the db
-        """
+        """Fetch all products from the db"""
         filter_kwargs = {}
         if only_active:
             filter_kwargs.update(dict(product_status=True))
@@ -360,11 +374,118 @@ class InventoryManager(BaseManager):
             return release_stream.first().product_build_system
         return ''
 
+    def get_project_templates(self, platform=None):
+        """Get Platform Project Templates from db"""
+        filter_kwargs = {}
+        if platform:
+            filter_kwargs.update(dict(platform=platform))
+
+        try:
+            pp_templates = PlatformProjectTemplates.objects.filter(**filter_kwargs)
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Platform project templates could not be fetched, details: " + str(e)
+            )
+        else:
+            return pp_templates
+
+    def get_default_project_template(self, platform=None) -> dict:
+        """Get Default Platform Project Templates from db"""
+        project_templates_qs = self.get_project_templates(platform=platform)
+        if not project_templates_qs:
+            return {}
+        project_template = project_templates_qs.first()
+        return project_template.default_project_template_json
+
+    def create_or_update_project_template(self, platform: Platform,
+                                          default_template_uid: str,
+                                          project_templates_dict: dict = None) -> bool:
+        """
+        Save Platform Project Templates to db
+        :param platform: platform db model
+        :param default_template_uid: str
+        :param project_templates_dict: project_templates dict
+        :return: boolean
+        """
+        if not platform and not default_template_uid:
+            raise TypeError()
+        default_params = {}
+        match_params = {
+            'platform': platform
+        }
+        default_params.update(match_params)
+        default_params['default_project_template'] = default_template_uid
+        if project_templates_dict and not isinstance(project_templates_dict, dict):
+            raise TypeError()
+        if project_templates_dict:
+            default_params['project_template_json_str'] = json.dumps(project_templates_dict)
+        try:
+            PlatformProjectTemplates.objects.update_or_create(
+                **match_params, defaults=default_params
+            )
+        except Exception as e:
+            self.app_logger(
+                'ERROR', "Platform project templates could not be saved or updated, details: " + str(e)
+            )
+            return False
+        else:
+            return True
+
+    def fetch_latest_platform_project_templates(self, platform_slug: str) -> list:
+        """Fetch project templates from CI platforms by calling API"""
+        if not platform_slug:
+            raise TypeError()
+        latest_project_templates = []
+        ci_platforms = self.get_translation_platforms(ci=True)
+        ci_platform_qs = ci_platforms.filter(platform_slug=platform_slug)
+        if not ci_platform_qs:
+            return latest_project_templates
+        ci_platform = ci_platform_qs.get()
+        latest_project_templates = self.api_resources.fetch_project_templates(
+            ci_platform.engine_name, ci_platform.api_url
+        )
+        if not isinstance(latest_project_templates, (list, tuple, set)):
+            return []
+        return latest_project_templates
+
+    @staticmethod
+    def filter_uid_name_from_project_templates(project_templates: list) -> dict:
+        """
+        Filter UID and Name from Platform Project Templates
+        :param project_templates: dict
+        : returns: dict
+        """
+        if not isinstance(project_templates, list):
+            raise ValueError()
+        filtered_uid_name = {}
+        for template in project_templates:
+            try:
+                filtered_uid_name[template['uid']] = template['templateName']
+            except KeyError:
+                continue
+        return filtered_uid_name
+
+    def create_project_from_template(self, platform_id: str, project_template_uid: str,
+                                     project_name: str, target_langs: list) -> dict:
+
+        platforms_qs = self.get_translation_platforms(ci=True)
+        platforms_qs.filter(**{"platform_id": platform_id})
+        platform = platforms_qs.first()
+
+        kwargs = dict()
+        kwargs['data'] = json.dumps({"name": project_name, "targetLangs": target_langs})
+
+        api_resp_status, create_project_resp = self.api_resources.create_project(
+            platform.engine_name, platform.api_url, project_template_uid, **kwargs
+        )
+
+        if api_resp_status:
+            return create_project_resp
+        return {}
+
 
 class SyncStatsManager(BaseManager):
-    """
-    Sync Translation Stats Manager
-    """
+    """Sync Translation Stats Manager"""
 
     def get_sync_stats(self, pkgs=None, fields=None, versions=None, sources=None):
         """
@@ -491,7 +612,6 @@ class SyncStatsManager(BaseManager):
         :param p_stats: processed stats dict
         :return: boolean
         """
-
         filter_kwargs = dict(package_name=project,
                              project_version=version,
                              source=stats_source)
@@ -564,9 +684,7 @@ class SyncStatsManager(BaseManager):
 
 
 class ReleaseBranchManager(InventoryManager):
-    """
-    Release Stream Branch Manager
-    """
+    """Release Stream Branch Manager"""
 
     def get_release_branches(self, relstream=None, relbranch=None, fields=None):
         """
@@ -594,9 +712,7 @@ class ReleaseBranchManager(InventoryManager):
         return relbranches
 
     def is_relbranch_exist(self, release_branch):
-        """
-        Checks release branch existence
-        """
+        """Checks release branch existence"""
         if self.get_release_branches(relbranch=release_branch):
             return True
         return False
@@ -686,12 +802,12 @@ class ReleaseBranchManager(InventoryManager):
         DELIMITER = ":"
         branch_schedule_dict = OrderedDict()
 
-        if product_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2], RELSTREAM_SLUGS[3]):
+        if product_slug in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[2], RELSTREAM_SLUGS[3], RELSTREAM_SLUGS[4]):
             try:
                 for event in required_events:
                     for event_dict in ical_events:
                         if (event.lower() in event_dict.get('SUMMARY').lower() and
-                                relbranch_slug in event_dict.get('SUMMARY').lower()):
+                                relbranch_slug in event_dict.get('SUMMARY').lower().replace('_', '-')):
                             key = DELIMITER.join(event_dict.get('SUMMARY').split(DELIMITER)[1:])
                             branch_schedule_dict[key] = event_dict.get('DTEND', '')
 
@@ -751,9 +867,9 @@ class ReleaseBranchManager(InventoryManager):
             kwargs['product_slug'] = product
             kwargs['scm_branch'] = kwargs.get('scm_branch')
             kwargs['created_on'] = timezone.now()
-            kwargs['sync_calendar'] = True if 'sync_calendar' in flags else False
-            kwargs['notifications_flag'] = True if 'notifications_flag' in flags else False
-            kwargs['track_trans_flag'] = True if 'track_trans_flag' in flags else False
+            kwargs['sync_calendar'] = 'sync_calendar' in flags
+            kwargs['notifications_flag'] = 'notifications_flag' in flags
+            kwargs['track_trans_flag'] = 'track_trans_flag' in flags
             new_release_branch = Release(**kwargs)
             new_release_branch.save()
         except Exception as e:

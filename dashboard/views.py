@@ -43,13 +43,14 @@ from django.urls import reverse, reverse_lazy
 from dashboard.constants import (
     TS_JOB_TYPES, TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
     WEBLATE_SLUGS, TRANSIFEX_SLUGS, TS_CI_JOBS, PIPELINE_CONFIG_EVENTS,
-    JOB_MULTIPLE_BRANCHES_VAR, TP_BRANCH_CALLING_NAME, SYS_EMAIL_ADDR
+    JOB_MULTIPLE_BRANCHES_VAR, TP_BRANCH_CALLING_NAME, SYS_EMAIL_ADDR,
+    TRANSLATION_FILE_FORMATS, MEMSOURCE_SLUGS
 )
 from dashboard.forms import (
     NewPackageForm, UpdatePackageForm, NewReleaseBranchForm, NewGraphRuleForm,
     NewLanguageForm, UpdateLanguageForm, LanguageSetForm, PackagePipelineForm,
     NewTransPlatformForm, UpdateTransPlatformForm, UpdateGraphRuleForm,
-    CreateCIPipelineForm
+    CreateCIPipelineForm, PlatformProjectTemplatesForm
 )
 from dashboard.managers.inventory import (
     InventoryManager, ReleaseBranchManager, SyncStatsManager
@@ -72,9 +73,7 @@ from dashboard.models import (
 
 
 class ManagersMixin(object):
-    """
-    Managers Mixin
-    """
+    """Managers Mixin"""
     inventory_manager = InventoryManager()
     packages_manager = PackagesManager()
     jobs_log_manager = JobsLogManager()
@@ -87,9 +86,7 @@ class ManagersMixin(object):
     pipeline_config_manager = PipelineConfigManager()
 
     def get_summary(self):
-        """
-        Application Inventory Stats
-        """
+        """Application Inventory Stats"""
         locales_set = self.inventory_manager.get_locales_set()
         summary = {}
         summary['locales_len'] = len(locales_set[0]) \
@@ -109,9 +106,7 @@ class ManagersMixin(object):
 
     @staticmethod
     def log_visitor(http_meta):
-        """
-        log visitors
-        """
+        """log visitors"""
         x_forwarded_for = http_meta.get('HTTP_X_FORWARDED_FOR')
         ip = x_forwarded_for.split(',')[-1].strip() \
             if x_forwarded_for else http_meta.get('REMOTE_ADDR')
@@ -134,9 +129,7 @@ class ManagersMixin(object):
 
 
 class TranStatusPackageView(ManagersMixin, TemplateView):
-    """
-    Translation Status Package View
-    """
+    """Translation Status Package View"""
     template_name = "packages/package_view.html"
 
     def get(self, request, *args, **kwargs):
@@ -148,9 +141,7 @@ class TranStatusPackageView(ManagersMixin, TemplateView):
         return response
 
     def get_context_data(self, **kwargs):
-        """
-        Build the Context Data
-        """
+        """Build the Context Data"""
         context = super(TranStatusPackageView, self).get_context_data(**kwargs)
         packages = self.packages_manager.get_package_name_tuple()
         langs = self.inventory_manager.get_locale_lang_tuple()
@@ -174,9 +165,7 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
         return super(TranStatusReleasesView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        """
-        Build the Context Data
-        """
+        """Build the Context Data"""
         context = super(TranStatusReleasesView, self).get_context_data(**kwargs)
         relbranches = self.release_branch_manager.get_relbranch_name_slug_tuple()
         context['releases'] = relbranches
@@ -196,9 +185,7 @@ class TranStatusReleasesView(ManagersMixin, TemplateView):
 
 
 class TranStatusReleaseView(ManagersMixin, TemplateView):
-    """
-    Translation Status Release View
-    """
+    """Translation Status Release View"""
     template_name = "releases/release_view.html"
 
     def get_context_data(self, **kwargs):
@@ -220,9 +207,7 @@ class TranStatusReleaseView(ManagersMixin, TemplateView):
 
 
 class TransCoverageView(ManagersMixin, TemplateView):
-    """
-    Translation Coverage View
-    """
+    """Translation Coverage View"""
     template_name = "coverage/coverage_rule_view.html"
 
     def get(self, request, *args, **kwargs):
@@ -231,16 +216,14 @@ class TransCoverageView(ManagersMixin, TemplateView):
         )
         if not rule:
             raise Http404("Coverage rule does not exist.")
-        elif not rule.get().rule_visibility_public and \
+        if not rule.get().rule_visibility_public and \
                 not request.user.is_authenticated:
             raise PermissionDenied
         return super(TransCoverageView, self).get(
             request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        """
-        Build the Context Data
-        """
+        """Build the Context Data"""
         context = super(TransCoverageView, self).get_context_data(**kwargs)
         graph_rules = self.graph_manager.get_graph_rules(only_active=True)
         if graph_rules:
@@ -249,9 +232,7 @@ class TransCoverageView(ManagersMixin, TemplateView):
 
 
 class LanguagesSettingsView(ManagersMixin, ListView):
-    """
-    Languages List View
-    """
+    """Languages List View"""
     template_name = "languages/language_list.html"
     context_object_name = 'locales'
 
@@ -278,9 +259,7 @@ class LanguagesSettingsView(ManagersMixin, ListView):
 
 
 class LanguageDetailView(ManagersMixin, DetailView):
-    """
-    Languages Detail View
-    """
+    """Languages Detail View"""
     template_name = "languages/language_view.html"
     context_object_name = 'language'
     model = Language
@@ -311,9 +290,7 @@ class LanguageDetailView(ManagersMixin, DetailView):
 
 
 class LanguageReleaseView(ManagersMixin, TemplateView):
-    """
-    Language Release View
-    """
+    """Language Release View"""
 
     template_name = "languages/language_release_view.html"
 
@@ -327,9 +304,7 @@ class LanguageReleaseView(ManagersMixin, TemplateView):
 
 
 class TransPlatformSettingsView(ManagersMixin, ListView):
-    """
-    Translation Platform Settings View
-    """
+    """Translation Platform Settings View"""
     template_name = "platforms/platform_list.html"
     context_object_name = 'platforms'
 
@@ -349,9 +324,7 @@ class TransPlatformSettingsView(ManagersMixin, ListView):
 
 
 class StreamBranchesSettingsView(ManagersMixin, TemplateView):
-    """
-    Stream Branches Settings View
-    """
+    """Stream Branches Settings View"""
     template_name = "releases/product_release_list.html"
 
     def get_context_data(self, **kwargs):
@@ -370,9 +343,7 @@ class StreamBranchesSettingsView(ManagersMixin, TemplateView):
 
 
 class NewReleaseBranchView(ManagersMixin, FormView):
-    """
-    New Release Branch View
-    """
+    """New Release Branch View"""
     template_name = "releases/product_release_new.html"
 
     def _get_relstream(self):
@@ -447,9 +418,7 @@ class NewReleaseBranchView(ManagersMixin, FormView):
 
 
 class PackageSettingsView(ManagersMixin, ListView):
-    """
-    Packages Settings View
-    """
+    """Packages Settings View"""
     template_name = "packages/package_list.html"
     context_object_name = 'packages'
 
@@ -458,9 +427,7 @@ class PackageSettingsView(ManagersMixin, ListView):
 
 
 class NewPackageView(ManagersMixin, FormView):
-    """
-    New Package Form View
-    """
+    """New Package Form View"""
     template_name = "packages/package_new.html"
 
     def get_success_url(self):
@@ -468,9 +435,13 @@ class NewPackageView(ManagersMixin, FormView):
 
     def get_initial(self):
         initials = {}
-        if self.request.tenant == RELSTREAM_SLUGS[0] or self.request.tenant == RELSTREAM_SLUGS[1]:
+        initials.update(dict(translation_file_ext=TRANSLATION_FILE_FORMATS[0]))
+        if self.request.tenant in (RELSTREAM_SLUGS[0], RELSTREAM_SLUGS[1]):
             initials.update(dict(transplatform_slug=WEBLATE_SLUGS[1]))
-        if self.request.tenant == RELSTREAM_SLUGS[3]:
+        if self.request.tenant in (RELSTREAM_SLUGS[3], RELSTREAM_SLUGS[4]):
+            if self.request.tenant == RELSTREAM_SLUGS[4]:
+                initials.update(dict(auto_create_project='True'))
+                initials.update(dict(translation_file_ext=TRANSLATION_FILE_FORMATS[1]))
             initials.update(dict(transplatform_slug=TRANSIFEX_SLUGS[0]))
         default_product = self.request.tenant
         initials.update(dict(release_streams=default_product))
@@ -479,10 +450,13 @@ class NewPackageView(ManagersMixin, FormView):
     def get_form(self, form_class=None, data=None):
         kwargs = {}
         active_platforms = \
-            self.inventory_manager.get_transplatform_slug_url()
+            self.inventory_manager.get_transplatform_slug_url(ci=False)
         active_streams = self.inventory_manager.get_relstream_slug_name()
         kwargs.update({'platform_choices': active_platforms})
         kwargs.update({'products_choices': active_streams})
+        file_formats = [(file_format, file_format.upper())
+                        for file_format in TRANSLATION_FILE_FORMATS]
+        kwargs.update({'format_choices': file_formats})
         kwargs.update({'initial': self.get_initial()})
         if data:
             kwargs.update({'data': data})
@@ -498,6 +472,15 @@ class NewPackageView(ManagersMixin, FormView):
             messages.add_message(request, messages.ERROR, (
                 'One of the required fields is missing.'))
             return render(request, self.template_name, {'form': form})
+
+        if post_params.get('auto_create_project') and \
+                post_params['auto_create_project'][0] == 'True':
+            # Attempt project creation at translation platform
+            self.packages_manager.create_platform_project(
+                project_slug=post_params['package_name'],
+                repo_url=post_params['upstream_url'],
+                platform_slug=post_params['transplatform_slug'],
+            )
         # Validate package with translation platform
         validate_package = self.packages_manager.validate_package(**post_params)
         if not validate_package:
@@ -527,9 +510,7 @@ class NewPackageView(ManagersMixin, FormView):
 
 
 class UpdatePackageView(ManagersMixin, SuccessMessageMixin, UpdateView):
-    """
-    Update Package view
-    """
+    """Update Package view"""
     template_name = 'packages/package_update.html'
     model = Package
     slug_field = 'package_name'
@@ -549,9 +530,7 @@ class UpdatePackageView(ManagersMixin, SuccessMessageMixin, UpdateView):
 
 
 class DeletePackageView(ManagersMixin, SuccessMessageMixin, DeleteView):
-    """
-    Delete Package view
-    """
+    """Delete Package view"""
     template_name = 'packages/package_delete.html'
     model = Package
     slug_field = 'package_name'
@@ -581,9 +560,7 @@ class DeletePackageView(ManagersMixin, SuccessMessageMixin, DeleteView):
 
 
 class GraphRulesSettingsView(ManagersMixin, ListView):
-    """
-    Graph Rules Settings View
-    """
+    """Graph Rules Settings View"""
     template_name = "coverage/coverage_rule_list.html"
     context_object_name = 'rules'
 
@@ -592,9 +569,7 @@ class GraphRulesSettingsView(ManagersMixin, ListView):
 
 
 class NewGraphRuleView(ManagersMixin, FormView):
-    """
-    New Graph Rule View
-    """
+    """New Graph Rule View"""
     template_name = "coverage/coverage_rule_new.html"
 
     def get_success_url(self):
@@ -682,9 +657,7 @@ class NewGraphRuleView(ManagersMixin, FormView):
 
 
 class UpdateGraphRuleView(ManagersMixin, SuccessMessageMixin, UpdateView):
-    """
-    Update Graph Rule view
-    """
+    """Update Graph Rule view"""
     template_name = 'coverage/coverage_rule_update.html'
     model = GraphRule
     slug_field = 'rule_name'
@@ -705,9 +678,7 @@ class UpdateGraphRuleView(ManagersMixin, SuccessMessageMixin, UpdateView):
 
 
 class DeleteGraphRuleView(DeleteView):
-    """
-    Delete Graph Rule View
-    """
+    """Delete Graph Rule View"""
     template_name = 'coverage/coverage_rule_delete.html'
     model = GraphRule
     slug_field = 'rule_name'
@@ -723,9 +694,7 @@ class DeleteGraphRuleView(DeleteView):
 
 
 class JobsView(ManagersMixin, TemplateView):
-    """
-    Predefined Jobs View
-    """
+    """Predefined Jobs View"""
     template_name = "jobs/jobs_home.html"
 
     def get_context_data(self, **kwargs):
@@ -742,9 +711,7 @@ class JobsView(ManagersMixin, TemplateView):
 
 
 class CleanUpJobs(ManagersMixin, TemplateView):
-    """
-    Predefined Jobs View
-    """
+    """Predefined Jobs View"""
     template_name = "jobs/jobs_cleanup.html"
 
     def post(self, request, *args, **kwargs):
@@ -774,16 +741,12 @@ class CleanUpJobs(ManagersMixin, TemplateView):
 
 
 class YMLBasedJobs(JobsView):
-    """
-    YML Based Jobs View
-    """
+    """YML Based Jobs View"""
     template_name = "jobs/jobs_yml_based.html"
 
 
 class JobsLogsView(ManagersMixin, ListView):
-    """
-    Logs List View
-    """
+    """Logs List View"""
     template_name = "jobs/logs.html"
     context_object_name = 'logs'
 
@@ -793,9 +756,7 @@ class JobsLogsView(ManagersMixin, ListView):
 
 
 class JobsArchiveView(ManagersMixin, ListView):
-    """
-    Archive List View
-    """
+    """Archive List View"""
     template_name = "jobs/archive.html"
     context_object_name = 'logs'
 
@@ -805,9 +766,7 @@ class JobsArchiveView(ManagersMixin, ListView):
 
 
 class JobsLogsPackageView(ManagersMixin, ListView):
-    """
-    Logs List per Package View
-    """
+    """Logs List per Package View"""
     template_name = "jobs/logs.html"
     context_object_name = 'logs'
 
@@ -822,9 +781,7 @@ class JobsLogsPackageView(ManagersMixin, ListView):
 
 
 class JobDetailView(DetailView):
-    """
-    Job Log Detail View
-    """
+    """Job Log Detail View"""
     template_name = "jobs/log_detail.html"
     context_object_name = 'log'
     model = Job
@@ -833,9 +790,7 @@ class JobDetailView(DetailView):
 
 
 class PipelineDetailView(DetailView):
-    """
-    Pipeline Detail View
-    """
+    """Pipeline Detail View"""
     template_name = "ci/pipeline_jobs.html"
     context_object_name = 'ci_pipeline'
     model = CIPipeline
@@ -844,9 +799,7 @@ class PipelineDetailView(DetailView):
 
 
 class PipelineHistoryView(ManagersMixin, PipelineDetailView):
-    """
-    Pipeline Sync Logs View
-    """
+    """Pipeline Sync Logs View"""
     template_name = "ci/pipeline_history.html"
 
     def get_context_data(self, **kwargs):
@@ -859,21 +812,21 @@ class PipelineHistoryView(ManagersMixin, PipelineDetailView):
 
 
 class PipelineConfigurationView(ManagersMixin, PipelineDetailView):
-    """
-    Pipeline Configurations View
-    """
+    """Pipeline Configurations View"""
     template_name = "ci/pipeline_configuration.html"
 
     def get_context_data(self, **kwargs):
         context_data = super(PipelineConfigurationView, self).get_context_data(**kwargs)
         context_data['pipeline_config_events'] = PIPELINE_CONFIG_EVENTS
+        context_data['allow_config_copy'] = False
+        if self.object.ci_push_job_template.job_template_type == TS_JOB_TYPES[9] and \
+                self.object.ci_pull_job_template.job_template_type == TS_JOB_TYPES[8]:
+            context_data['allow_config_copy'] = True
         return context_data
 
 
 class NewLanguageView(SuccessMessageMixin, CreateView):
-    """
-    New language view
-    """
+    """New language view"""
     template_name = "languages/language_new.html"
     form_class = NewLanguageForm
     success_message = '%(lang_name)s was added successfully!'
@@ -883,9 +836,7 @@ class NewLanguageView(SuccessMessageMixin, CreateView):
 
 
 class UpdateLanguageView(SuccessMessageMixin, UpdateView):
-    """
-    Update language view
-    """
+    """Update language view"""
     template_name = 'languages/language_update.html'
     model = Language
     form_class = UpdateLanguageForm
@@ -896,9 +847,7 @@ class UpdateLanguageView(SuccessMessageMixin, UpdateView):
 
 
 class NewLanguageSetView(SuccessMessageMixin, CreateView):
-    """
-    New language set view
-    """
+    """New language set view"""
     template_name = "languages/language_set_new.html"
     form_class = LanguageSetForm
     success_message = '%(lang_set_name)s was added successfully!'
@@ -908,9 +857,7 @@ class NewLanguageSetView(SuccessMessageMixin, CreateView):
 
 
 class UpdateLanguageSetView(SuccessMessageMixin, UpdateView):
-    """
-    Update language set view
-    """
+    """Update language set view"""
     template_name = "languages/language_set_update.html"
     model = LanguageSet
     form_class = LanguageSetForm
@@ -922,9 +869,7 @@ class UpdateLanguageSetView(SuccessMessageMixin, UpdateView):
 
 
 class NewTransPlatformView(SuccessMessageMixin, CreateView):
-    """
-    New TransPlatform view
-    """
+    """New TransPlatform view"""
     template_name = "platforms/platform_new.html"
     form_class = NewTransPlatformForm
     success_message = '%(platform_slug)s was added successfully!'
@@ -934,9 +879,7 @@ class NewTransPlatformView(SuccessMessageMixin, CreateView):
 
 
 class UpdateTransPlatformView(SuccessMessageMixin, UpdateView):
-    """
-    Update TransPlatform view
-    """
+    """Update TransPlatform view"""
     template_name = "platforms/platform_update.html"
     form_class = UpdateTransPlatformForm
     success_message = '%(platform_slug)s was updated successfully!'
@@ -948,9 +891,7 @@ class UpdateTransPlatformView(SuccessMessageMixin, UpdateView):
 
 
 class AddPackageCIPipeline(ManagersMixin, FormView):
-    """
-    Add Package CI Pipeline View
-    """
+    """Add Package CI Pipeline View"""
     template_name = 'ci/add_pipeline.html'
     success_message = '%(ci_pipeline_uuid)s was added successfully!'
 
@@ -1000,6 +941,12 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
         kwargs.update(dict(pkg_release_choices=pkg_release_choices))
         kwargs.update(dict(package_name=package.package_name))
         kwargs.update(dict(package_platform=package.platform_slug.engine_name))
+
+        # Currently CI Pipeline is built specific to Memsource
+        ci_platforms_qs = ci_platforms.filter(**{"platform_slug": MEMSOURCE_SLUGS[0]})
+        ci_platform = ci_platforms_qs.first()
+        default_template_dict = self.inventory_manager.get_default_project_template(platform=ci_platform)
+        kwargs.update(dict(default_template_dict=default_template_dict))
         if data:
             kwargs.update({'data': data})
         return PackagePipelineForm(**kwargs)
@@ -1011,13 +958,36 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
         post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
         form = self.get_form(data=post_data)
 
-        context_data = dict()
+        context_data = {}
         context_data['form'] = form
         package_name = self.kwargs.get('slug')
         context_data.update(dict(package_name=package_name))
 
+        create_project_resp = None
+        if post_data.get('ci_platform') and post_data.get('ci_project_template') and \
+                post_data.get('ci_project_name') and post_data.get('target_languages') and \
+                not post_data.get('ci_project_web_url'):
+            create_project_resp = self.inventory_manager.create_project_from_template(
+                platform_id=post_data['ci_platform'],
+                project_template_uid=post_data['ci_project_template'],
+                project_name=post_data['ci_project_name'],
+                target_langs=post_data['target_languages']
+            )
+            if not create_project_resp:
+                errors = form._errors.setdefault('ci_project_name', ErrorList())
+                errors.append("Project could not be created at the selected platform.")
+                return render(request, self.template_name, context=context_data)
+
         if form.is_valid():
             post_params = form.cleaned_data
+            if create_project_resp and not post_params.get('ci_project_web_url'):
+                post_params['ci_project_web_url'] = "{}/project2/show/{}".format(
+                    post_params['ci_platform'].api_url, create_project_resp['uid']
+                )
+            # Let's clean post_params
+            extra_params = ['ci_project_template', 'ci_project_name', 'target_languages']
+            [post_params.pop(param) for param in extra_params if param in post_params]
+
             # Assumption: Project URL starts with Platform API URL (which is saved in db)
             if post_params['ci_platform'].api_url not in post_params['ci_project_web_url']:
                 errors = form._errors.setdefault('ci_project_web_url', ErrorList())
@@ -1090,9 +1060,7 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
 
 
 class TerritoryView(ManagersMixin, TemplateView):
-    """
-    Territory View
-    """
+    """Territory View"""
     template_name = "geolocation/territory_view.html"
 
     def get_context_data(self, **kwargs):
@@ -1128,9 +1096,7 @@ class TerritoryView(ManagersMixin, TemplateView):
 
 
 class PipelinesView(ManagersMixin, ListView):
-    """
-    Pipelines View
-    """
+    """Pipelines View"""
     template_name = "ci/list_pipelines.html"
     context_object_name = 'pipelines'
 
@@ -1144,9 +1110,7 @@ class PipelinesView(ManagersMixin, ListView):
 
 
 class ReleasePipelinesView(ManagersMixin, ListView):
-    """
-    Release Pipelines View
-    """
+    """Release Pipelines View"""
     template_name = "ci/list_pipelines.html"
     context_object_name = 'pipelines'
 
@@ -1160,9 +1124,7 @@ class ReleasePipelinesView(ManagersMixin, ListView):
 
 
 class AddCIPipeline(ManagersMixin, FormView):
-    """
-    Add CI Pipeline View
-    """
+    """Add CI Pipeline View"""
     template_name = 'ci/add_pipeline.html'
     success_message = '%(ci_pipeline_uuid)s was added successfully!'
 
@@ -1187,7 +1149,7 @@ class AddCIPipeline(ManagersMixin, FormView):
                                      for platform in ci_platforms])
         kwargs.update(dict(ci_platform_choices=ci_platform_choices))
         packages = self.packages_manager.get_packages()
-        releases = self.release_branch_manager.get_release_branches()
+        releases = self.release_branch_manager.get_release_branches(relstream=self.request.tenant)
         package_choices = tuple([(package.package_id, package.package_name) for package in packages])
         release_choices = tuple([(release.release_id, release.__str__) for release in releases])
         kwargs.update(dict(package_choices=_sort_choices_by_name(package_choices)))
@@ -1203,7 +1165,7 @@ class AddCIPipeline(ManagersMixin, FormView):
         post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
         form = self.get_form(data=post_data)
 
-        context_data = dict()
+        context_data = {}
         context_data['form'] = form
 
         if form.is_valid():
@@ -1240,10 +1202,79 @@ class AddCIPipeline(ManagersMixin, FormView):
         return render(request, self.template_name, context=context_data)
 
 
+class PlatformProjectTemplatesView(ManagersMixin, FormView):
+    """Platform Project Templates"""
+    template_name = 'ci/project_templates.html'
+    latest_templates = None
+    ci_platform_slug = MEMSOURCE_SLUGS[0]
+
+    def get_success_url(self):
+        return reverse('platform-project-templates')
+
+    def _fetch_latest_templates(self):
+        """Restrict fetching templates to Memsource, for now."""
+        latest_templates = \
+            self.inventory_manager.fetch_latest_platform_project_templates(self.ci_platform_slug)
+        return latest_templates
+
+    def _templates_uid_name_dict(self):
+        if not self.latest_templates:
+            self.latest_templates = self._fetch_latest_templates()
+        latest_templates_dict = \
+            self.inventory_manager.filter_uid_name_from_project_templates(self.latest_templates)
+        return latest_templates_dict
+
+    def _get_ci_platform(self):
+        ci_platform_qs = self.inventory_manager.get_translation_platforms(slug=self.ci_platform_slug)
+        if ci_platform_qs:
+            return ci_platform_qs.first()
+
+    def get_form(self, form_class=None, data=None):
+        templates = self._templates_uid_name_dict()
+        kwargs = dict()
+        kwargs['template_choices'] = tuple([(uid, name) for uid, name in templates.items()])
+        return PlatformProjectTemplatesForm(**kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(PlatformProjectTemplatesView, self).get_context_data(**kwargs)
+        context['templates_uid_name_dict'] = self._templates_uid_name_dict()
+        project_template_qs = self.inventory_manager.get_project_templates(platform=self._get_ci_platform())
+        if project_template_qs:
+            default_project_template_uid = project_template_qs.first().default_project_template
+            context['default_project_template_uid'] = default_project_template_uid
+        return context
+
+    def post(self, request, *args, **kwargs):
+        post_data = {k: v[0] if len(v) == 1 else v for k, v in request.POST.lists()}
+        form = self.get_form(data=post_data)
+
+        context_data = dict()
+        context_data['form'] = form
+        context_data['templates_uid_name_dict'] = self._templates_uid_name_dict()
+
+        if form.is_valid() and post_data.get('default_project_template'):
+            default_template_uid = post_data['default_project_template']
+            ci_platform = self._get_ci_platform()
+            if ci_platform:
+                project_templates_dict = {template['uid']: template for template in self.latest_templates}
+                save_project_template = self.inventory_manager.create_or_update_project_template(
+                    platform=ci_platform, default_template_uid=default_template_uid,
+                    project_templates_dict=project_templates_dict
+                )
+                if not save_project_template:
+                    messages.add_message(request, messages.ERROR, (
+                        'Alas! Something unexpected happened. Please try saving again!'
+                    ))
+                else:
+                    messages.add_message(request, messages.SUCCESS, (
+                        'Great! Default template saved successfully.'
+                    ))
+            return HttpResponseRedirect(self.get_success_url())
+        return render(request, self.template_name, context=context_data)
+
+
 def schedule_job(request):
-    """
-    Handles job schedule AJAX POST request
-    """
+    """Handles job schedule AJAX POST request"""
     message = "&nbsp;&nbsp;<span class='text-warning'>Request could not be processed.</span>"
     if request.is_ajax():
         job_type = request.POST.dict().get('job')
@@ -1269,7 +1300,7 @@ def schedule_job(request):
             else:
                 message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
         elif job_type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3], TS_JOB_TYPES[5], TS_JOB_TYPES[6], TS_JOB_TYPES[7],
-                          TS_JOB_TYPES[8], TS_JOB_TYPES[9], 'YMLbasedJob'):
+                          TS_JOB_TYPES[8], TS_JOB_TYPES[9], TS_JOB_TYPES[10], 'YMLbasedJob'):
 
             if job_type in TS_CI_JOBS and 'anonymous' in active_user_email:
                 message = "&nbsp;&nbsp;<span class='text-warning'>Please login to continue.</span>"
@@ -1339,9 +1370,7 @@ def read_file_logs(request):
 
 
 def tabular_data(request):
-    """
-    Prepares and dispatch tabular data
-    """
+    """Prepares and dispatch tabular data"""
     if request.is_ajax():
         post_params = request.POST.dict()
         if 'package' in request.POST.dict():
@@ -1358,9 +1387,7 @@ def tabular_data(request):
 
 
 def graph_data(request):
-    """
-    Prepares and dispatch graph data
-    """
+    """Prepares and dispatch graph data"""
     graph_dataset = {}
     if request.is_ajax():
         graph_manager = GraphManager()
@@ -1378,9 +1405,7 @@ def graph_data(request):
 
 
 def refresh_package(request):
-    """
-    Package sync and re-build mappings
-    """
+    """Package sync and re-build mappings"""
     if request.is_ajax():
         post_params = request.POST.dict()
         package_manager = PackagesManager()
@@ -1457,9 +1482,7 @@ def refresh_package(request):
 
 
 def export_packages(request, **kwargs):
-    """
-    Exports packages to CSV
-    """
+    """Exports packages to CSV"""
     if request.method == 'GET' and kwargs.get('format', '') == 'csv':
         file_name = "ts-packages-%s.csv" % datetime.today().strftime('%d-%m-%Y')
         packages_manager = PackagesManager()
@@ -1481,9 +1504,7 @@ def export_packages(request, **kwargs):
 
 
 def release_graph(request):
-    """
-    Generates release graph
-    """
+    """Generates release graph"""
     graph_dataset = {}
     if request.is_ajax():
         post_params = request.POST.dict()
@@ -1536,9 +1557,7 @@ def release_graph(request):
 
 
 def generate_reports(request):
-    """
-    Generates Reports
-    """
+    """Generates Reports"""
     if request.is_ajax():
         post_params = request.POST.dict()
         report_subject = post_params.get('subject', '')
@@ -1593,9 +1612,7 @@ def generate_reports(request):
 
 
 def get_build_tags(request):
-    """
-    Get Build System Tags
-    """
+    """Get Build System Tags"""
     if request.is_ajax():
         post_params = request.POST.dict()
         product_build = post_params.get('buildsys', '')
@@ -1620,9 +1637,7 @@ def get_build_tags(request):
 
 
 def get_repo_branches(request):
-    """
-    Get Repository Branch(es)
-    """
+    """Get Repository Branch(es)"""
 
     if request.is_ajax():
         post_params = request.POST.dict()
@@ -1642,9 +1657,7 @@ def get_repo_branches(request):
 
 
 def job_template(request):
-    """
-    Select Job Template
-    """
+    """Select Job Template"""
     if request.is_ajax():
         post_params = request.POST.dict()
         selected_template = post_params.get('template', '')
@@ -1683,7 +1696,7 @@ def change_lang_status(request):
                 return HttpResponse("Status should be 'enable' or 'disable'", status=422)
             try:
                 language_object = Language.objects.get(locale_id=language)
-                language_object.lang_status = True if new_lang_status == 'enable' else False
+                language_object.lang_status = new_lang_status == 'enable'
                 language_object.save()
             except Exception as status_change_error:
                 return HttpResponse("Something went wrong.", status=500)

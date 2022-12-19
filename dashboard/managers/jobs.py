@@ -54,9 +54,7 @@ __all__ = ['JobTemplateManager', 'JobManager', 'JobsLogManager',
 
 
 class JobTemplateManager(BaseManager):
-    """
-    Job Templates Manager
-    """
+    """Job Templates Manager"""
     def get_job_templates(self, *fields, **filters):
         """
         Get Job Templates from db
@@ -76,13 +74,9 @@ class JobTemplateManager(BaseManager):
 
 
 class JobManager(object):
-    """
-    Base Manager for Jobs
-    """
+    """Base Manager for Jobs"""
     def _new_job_id(self):
-        """
-        a UUID based on the host ID and current time
-        """
+        """a UUID based on the host ID and current time"""
         return uuid4()
 
     def __init__(self, job_type):
@@ -125,9 +119,7 @@ class JobManager(object):
             return True
 
     def mark_job_finish(self, remove=None):
-        """
-        Update job with finish details
-        """
+        """Update job with finish details"""
         try:
             if remove:
                 Job.objects.filter(job_uuid=self.uuid).delete()
@@ -151,16 +143,12 @@ class JobManager(object):
 
 
 class JobsLogManager(BaseManager):
-    """
-    Maintains Job Logs
-    """
+    """Maintains Job Logs"""
 
     package_manager = PackagesManager()
 
     def get_job_logs(self, remarks=None, result=None, no_pipeline=True):
-        """
-        Fetch all job logs from the db
-        """
+        """Fetch all job logs from the db"""
         job_logs = None
         filters = {}
         if remarks:
@@ -171,11 +159,7 @@ class JobsLogManager(BaseManager):
             filters.update(dict(ci_pipeline__isnull=True))
         else:
             filters.update(dict(ci_pipeline__isnull=False))
-        try:
-            job_logs = Job.objects.filter(**filters).order_by('-job_start_time')
-        except Exception:
-            # log event, passing for now
-            pass
+        job_logs = Job.objects.filter(**filters).order_by('-job_start_time')
         return job_logs
 
     def get_job_detail(self, job_id):
@@ -187,17 +171,11 @@ class JobsLogManager(BaseManager):
         job_log = None
         if not job_id:
             return job_log
-        try:
-            job_log = Job.objects.filter(job_uuid=job_id).first()
-        except Exception:
-            # log event, passing for now
-            pass
+        job_log = Job.objects.filter(job_uuid=job_id).first()
         return job_log
 
     def get_joblog_stats(self):
-        """
-        Stats about jobs log
-        """
+        """Stats about jobs log"""
         last_ran_on = None
         last_ran_type = None
         jobs_logs = self.get_job_logs()
@@ -291,8 +269,10 @@ class JobsLogManager(BaseManager):
                                 try:
                                     completion_percentage = int((filter_stat.get('translated', 0) * 100 /
                                                                  filter_stat.get('total', 0)))
-                                except ZeroDivisionError:
-                                    pass
+                                except ZeroDivisionError as e:
+                                    self.app_logger(
+                                        'ERROR', "Error while calculating completion_percentage, details: " + str(e)
+                                    )
                                 stats_chunk.append(completion_percentage)
                                 if stats_chunk:
                                     non_zero_stats = [i for i in stats_chunk[1:] if i > 0]
@@ -311,29 +291,21 @@ class JobsLogManager(BaseManager):
 
 
 class TransplatformSyncManager(BaseManager):
-    """
-    Translation Platform Sync Manager
-    """
+    """Translation Platform Sync Manager"""
 
     def __init__(self, *args, **kwargs):
-        """
-        entry point
-        """
+        """entry point"""
         super(TransplatformSyncManager, self).__init__(self, *args, **kwargs)
         self.job_manager = JobManager(TS_JOB_TYPES[0])
 
     def syncstats_initiate_job(self):
-        """
-        Creates a Sync Job
-        """
+        """Creates a Sync Job"""
         if self.job_manager.create_job(user_email=self.active_user_email):
             return self.job_manager.uuid
         return None
 
     def sync_trans_stats(self):
-        """
-        Run Sync process in sequential steps
-        """
+        """Run Sync process in sequential steps"""
         stages = (
             self.update_trans_projects,
             self.update_project_details,
@@ -343,9 +315,7 @@ class TransplatformSyncManager(BaseManager):
         [method() for method in stages]
 
     def update_trans_projects(self):
-        """
-        Update projects json for transplatform in db
-        """
+        """Update projects json for transplatform in db"""
         self.job_manager.log_json['Projects'] = OrderedDict()
         try:
             transplatforms = Platform.objects.only('engine_name', 'api_url',
@@ -391,9 +361,7 @@ class TransplatformSyncManager(BaseManager):
         return self.job_manager.job_result
 
     def update_project_details(self):
-        """
-        Update project details json in db
-        """
+        """Update project details json in db"""
         self.job_manager.log_json['Project-Details'] = OrderedDict()
         try:
             project_urls = Package.objects.select_related()
@@ -435,30 +403,22 @@ class TransplatformSyncManager(BaseManager):
 
 
 class ReleaseScheduleSyncManager(BaseManager):
-    """
-    Release Schedule Sync Manager
-    """
+    """Release Schedule Sync Manager"""
 
     def __init__(self, *args, **kwargs):
-        """
-        entry point
-        """
+        """entry point"""
         super(ReleaseScheduleSyncManager, self).__init__(self, *args, **kwargs)
         self.job_manager = JobManager(TS_JOB_TYPES[1])
         self.release_branch_manager = ReleaseBranchManager()
 
     def syncschedule_initiate_job(self):
-        """
-        Creates a Sync Job
-        """
+        """Creates a Sync Job"""
         if self.job_manager.create_job(user_email=self.active_user_email):
             return self.job_manager.uuid
         return None
 
     def sync_release_schedule(self):
-        """
-        Run Sync process in sequential steps
-        """
+        """Run Sync process in sequential steps"""
         stages = (
             self.update_event_dates,
             self.job_manager.mark_job_finish,
@@ -467,9 +427,7 @@ class ReleaseScheduleSyncManager(BaseManager):
         [method() for method in stages]
 
     def update_event_dates(self):
-        """
-        Update schedule_json for all release branches
-        """
+        """Update schedule_json for all release branches"""
         SUBJECT = 'Release Branches'
         self.job_manager.log_json[SUBJECT] = OrderedDict()
 
@@ -516,30 +474,22 @@ class ReleaseScheduleSyncManager(BaseManager):
 
 
 class BuildTagsSyncManager(BaseManager):
-    """
-    Build Tags Sync Manager
-    """
+    """Build Tags Sync Manager"""
 
     def __init__(self, *args, **kwargs):
-        """
-        entry point
-        """
+        """entry point"""
         super(BuildTagsSyncManager, self).__init__(self, *args, **kwargs)
         self.job_manager = JobManager(TS_JOB_TYPES[4])
         self.release_branch_manager = ReleaseBranchManager()
 
     def syncbuildtags_initiate_job(self):
-        """
-        Creates a Sync Job
-        """
+        """Creates a Sync Job"""
         if self.job_manager.create_job(user_email=self.active_user_email):
             return self.job_manager.uuid
         return None
 
     def sync_build_tags(self):
-        """
-        Run Sync process in sequential steps
-        """
+        """Run Sync process in sequential steps"""
         stages = (
             self.update_build_system_tags,
             self.job_manager.mark_job_finish,
@@ -548,9 +498,7 @@ class BuildTagsSyncManager(BaseManager):
         [method() for method in stages]
 
     def update_build_system_tags(self):
-        """
-        Update build system tags
-        """
+        """Update build system tags"""
         SUBJECT = 'Build System Tags'
         self.job_manager.log_json[SUBJECT] = OrderedDict()
 
@@ -603,6 +551,7 @@ class YMLBasedJobManager(BaseManager):
             - pushtrans
             - pulltrans
             - dpushtrans
+            - pulltransmerge
     """
 
     sandbox_path = 'dashboard/sandbox/'
@@ -616,9 +565,7 @@ class YMLBasedJobManager(BaseManager):
         return "-".join(args)
 
     def __init__(self, *args, **kwargs):
-        """
-        Set Job Environment here
-        """
+        """Set Job Environment here"""
         super(YMLBasedJobManager, self).__init__(**kwargs)
         self.suffix = self.job_suffix(
             [getattr(self, param, '') for param in self.params][:3]
@@ -650,6 +597,9 @@ class YMLBasedJobManager(BaseManager):
         )
 
     def __bootstrap(self, package=None, build_system=None, ci_pipeline=None):
+        """
+        Creates required env (values) as per job category.
+        """
         if build_system:
             try:
                 release_streams = \
@@ -674,6 +624,7 @@ class YMLBasedJobManager(BaseManager):
                     raise Exception('Upstream URL could NOT be located for %s package.' % package)
             else:
                 upstream_repo_url = package_detail.upstream_url
+                upstream_l10n_url = package_detail.upstream_l10n_url
                 if getattr(self, 'REPO_TYPE', '') and self.REPO_TYPE == GIT_REPO_TYPE[1]:
                     if not package_detail.upstream_l10n_url:
                         raise Exception('Localization repo URL not found.')
@@ -684,6 +635,8 @@ class YMLBasedJobManager(BaseManager):
                     self.upstream_repo_url = self._weblate_git_url(package_detail)
                 else:
                     self.upstream_repo_url = self._check_git_ext(upstream_repo_url)
+                    if upstream_l10n_url:
+                        self.upstream_l10n_url = self._check_git_ext(upstream_l10n_url)
                 t_ext = package_detail.translation_file_ext
                 file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
                 self.trans_file_ext = file_ext.lower()
@@ -740,7 +693,7 @@ class YMLBasedJobManager(BaseManager):
                 self.package_manager.update_package(self.package, {
                     'upstream_last_updated': timezone.now()
                 })
-            # If its for rawhide, update downstream sync time for the package
+            # If it's for rawhide, update downstream sync time for the package
             if getattr(self, 'tag', ''):
                 self.package_manager.update_package(self.package, {
                     'downstream_last_updated': timezone.now()
@@ -759,15 +712,10 @@ class YMLBasedJobManager(BaseManager):
                 if isinstance(build_details, list) and build_details and len(build_details) > 0:
                     latest_build = build_details[0]
                 cache_params['build_details_json_str'] = json.dumps(latest_build)
-                try:
-                    CacheBuildDetails.objects.update_or_create(
-                        package_name=self._get_package(), build_system=self.buildsys,
-                        build_tag=self.tag, defaults=cache_params
-                    )
-                except Exception as e:
-                    # log error
-                    pass
-
+                CacheBuildDetails.objects.update_or_create(
+                    package_name=self._get_package(), build_system=self.buildsys,
+                    build_tag=self.tag, defaults=cache_params
+                )
         except Exception as e:
             self.app_logger(
                 'ERROR', "Package could not be updated, details: " + str(e)
@@ -775,9 +723,7 @@ class YMLBasedJobManager(BaseManager):
             raise Exception('Stats could NOT be saved in db.')
 
     def _save_push_results_in_db(self, job_details):
-        """
-        Save jobs which are created/updated in CI Platform for a project
-        """
+        """Save jobs which are created/updated in CI Platform for a project"""
         try:
             for platform_project, jobs in job_details.items():
                 if platform_project != self.ci_project_uid:
@@ -798,22 +744,17 @@ class YMLBasedJobManager(BaseManager):
             raise Exception('Details could NOT be saved in db.')
 
     def _wipe_workspace(self):
-        """
-        This makes sandbox clean for a new job to run
-        """
+        """This makes sandbox clean for a new job to run"""
         # remove log file if exists
         if os.path.exists(self.job_log_file):
             os.remove(self.job_log_file)
         for file in os.listdir(self.sandbox_path):
             file_path = os.path.join(self.sandbox_path, file)
-            try:
-                if os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
-                elif os.path.isfile(file_path) and not file_path.endswith('.py') \
-                        and '.log.' not in file_path:
-                    os.unlink(file_path)
-            except Exception as e:
-                pass
+            if os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+            elif os.path.isfile(file_path) and not file_path.endswith('.py') \
+                    and '.log.' not in file_path:
+                os.unlink(file_path)
 
     def execute_job(self):
         """
@@ -887,6 +828,7 @@ class YMLBasedJobManager(BaseManager):
             getattr(self, 'repo_branch', ''),
             getattr(self, 'ci_pipeline_uuid', ''),
             getattr(self, 'upstream_repo_url', ''),
+            getattr(self, 'upstream_l10n_url', ''),
             getattr(self, 'trans_file_ext', ''),
             getattr(self, 'pkg_upstream_name', ''),
             getattr(self, 'pkg_downstream_name', ''),
@@ -940,7 +882,7 @@ class YMLBasedJobManager(BaseManager):
                 job_manager.mark_job_finish()
             else:
                 job_manager.mark_job_finish(remove=True)
-            time.sleep(2)
+            time.sleep(3)
         # if not a dry run, save results is db
         if action_mapper.result and not getattr(self, 'DRY_RUN', None):
             if self.type in (TS_JOB_TYPES[2], TS_JOB_TYPES[3]):

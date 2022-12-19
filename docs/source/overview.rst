@@ -30,9 +30,9 @@ Workflow Automation
 -------------------
 
 1. Job templates
-    Currently, six templates are to choose from. They can be used as-is.
+    Currently, seven templates are to choose from. They can be used as-is.
 
-    ``syncupstream``, ``syncdownstream``, ``stringchange``, ``pushtrans``, ``dpushtrans`` and ``pulltrans``
+    ``syncupstream``, ``syncdownstream``, ``stringchange``, ``pushtrans``, ``dpushtrans``, ``pulltrans`` and ``pulltransmerge``
 
     - `syncupstream`
         clone package source repository, filter translation files and calculate statistics
@@ -46,6 +46,8 @@ Workflow Automation
         download translations from package translation platform and upload to the CI platform.
     - `pulltrans`
          download translations from CI platform and submit back.
+    - `pulltransmerge`
+         download translations from CI platform and creates merge request.
 
 
     Requires four values:
@@ -56,7 +58,7 @@ Workflow Automation
      - Pipeline UUID (*gets generated as soon as a pipeline is created*)
 
     **SyncDownstream**
-    could be run for any package (also for those not added in transtats) and for any build tag available. This makes the job really wonderful tool to inspect SRPM.
+    could be run for any package (also for those not added in Transtats) and for any build tag available. This makes the job really wonderful tool to inspect SRPM.
 
     Dry runs are also supported. Each YAML job has a unique URL to see details and share!
 

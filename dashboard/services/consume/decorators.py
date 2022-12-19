@@ -14,10 +14,11 @@
 # under the License.
 
 # django
+from django.conf import settings
 from django.utils import timezone
 
 # dashboard
-from dashboard.constants import TRANSPLATFORM_ENGINES, API_TOKEN_PREFIX
+from dashboard.constants import TRANSPLATFORM_ENGINES, API_TOKEN_PREFIX, GIT_PLATFORMS
 from dashboard.models import CacheAPI
 from dashboard.services.consume.cache import CacheAPIManager
 
@@ -55,16 +56,15 @@ def set_api_auth():
     def service_decorator(caller):
         def inner_decorator(rest_client, url, resource, *args, **kwargs):
             if 'headers' not in kwargs:
-                kwargs['headers'] = dict()
+                kwargs['headers'] = {}
             if rest_client.service == TRANSPLATFORM_ENGINES[4]:
-                # Memsource needs active token as an extension.
+                # Memsource needs token in Authorization header.
                 cache_api_manager = CacheAPIManager()
                 latest_token = cache_api_manager.tally_auth_token(url)
-                kwargs.update(dict(
-                    auth_token_ext="token={}".format(latest_token)
-                ))
+                memsource_auth_user = API_TOKEN_PREFIX.get(rest_client.service) or kwargs['auth_user']
+                kwargs['headers']['Authorization'] = f"{memsource_auth_user} {latest_token}"
             if kwargs.get('auth_user') and kwargs.get('auth_token'):
-                auth_tuple = tuple()
+                auth_tuple = ()
                 if rest_client.service == TRANSPLATFORM_ENGINES[1]:
                     # Transifex need auth_tuple for HTTPBasicAuth.
                     auth_tuple = (
@@ -77,11 +77,12 @@ def set_api_auth():
                     kwargs['headers']['X-Auth-Token'] = kwargs['auth_token']
                 elif rest_client.service == TRANSPLATFORM_ENGINES[3]:
                     # Weblate needs credentials in the headers either.
-                    kwargs['headers']['Authorization'] = "{} {}".format(
-                        API_TOKEN_PREFIX.get(rest_client.service) or kwargs['auth_user'],
-                        kwargs['auth_token']
-                    )
+                    weblate_auth_user = API_TOKEN_PREFIX.get(rest_client.service) or kwargs['auth_user']
+                    kwargs['headers']['Authorization'] = f"{weblate_auth_user} {kwargs['auth_token']}"
                 kwargs.update(dict(auth_tuple=auth_tuple))
+            if rest_client.service == GIT_PLATFORMS[0]:
+                # Setting up auth header for GitHub
+                kwargs['headers']['Authorization'] = f"Bearer {settings.GITHUB_TOKEN}"
             return caller(rest_client, url, resource, *args, **kwargs)
         return inner_decorator
     return service_decorator
