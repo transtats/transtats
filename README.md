@@ -1,7 +1,5 @@
 [![Website](https://img.shields.io/badge/website-transtats.org-orange.svg)](http://transtats.org)
 [![CircleCI](https://circleci.com/gh/transtats/transtats/tree/devel.svg?style=svg)](https://circleci.com/gh/transtats/transtats/tree/devel)
-[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/transtats/transtats.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/transtats/transtats/context:javascript)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/transtats/transtats.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/transtats/transtats/context:python)
 [![Documentation Status](https://readthedocs.org/projects/transtats/badge/?version=latest)](http://transtats.readthedocs.io/en/latest/?badge=latest)
 
 ## Transtats
