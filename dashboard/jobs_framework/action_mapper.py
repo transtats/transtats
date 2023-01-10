@@ -715,6 +715,14 @@ class Unpack(JobCommandBase):
                     with tarfile.open(r_tarball) as tar_file:
                         tar_file.extractall(path=src_tar_dir)
 
+            # specific operation as per gem files
+            if input['src_tar_file'].endswith('.gem') and tar_members and \
+                    'data.tar.gz' in [tar.get_info().get('name', '') for tar in tar_members]:
+                gem_data_tar_file = os.path.join(input['extract_dir'], 'data.tar.gz')
+                src_tar_dir = os.path.join(input['extract_dir'], 'data')
+                with tarfile.open(gem_data_tar_file) as tar_file:
+                    tar_file.extractall(path=src_tar_dir)
+
         except Exception as e:
             task_log.update(self._log_task(
                 input['log_f'], task_subject,
@@ -752,7 +760,7 @@ class Load(JobCommandBase):
                 for file in files:
                     if file.endswith('.spec') and not file.startswith('.'):
                         spec_file = os.path.join(root, file)
-                    zip_ext = ('.tar', '.tar.gz', '.tar.bz2', '.tar.xz', '.tgz')
+                    zip_ext = ('.tar', '.tar.gz', '.tar.bz2', '.tar.xz', '.tgz', '.gem')
                     # assuming translations are not packaged in tests tarball
                     if file.endswith(zip_ext) and 'test' not in file:
                         tarballs.append(file)
@@ -768,7 +776,9 @@ class Load(JobCommandBase):
                     "%{name}": spec_obj.name,
                     "%{version}": spec_obj.version,
                     "%{realname}": spec_obj.name,
-                    "%{realversion}": spec_obj.version
+                    "%{realversion}": spec_obj.version,
+                    "%{gem_name}": getattr(spec_obj, "gem_name", ''),
+                    "%{?prerelease}": "." + getattr(spec_obj, "prereleasesource", ''),
                 }
 
                 for replacement_key, replacement_val in replacements.items():
@@ -1277,7 +1287,7 @@ class Calculate(JobCommandBase):
             trans_stats['stats'] = []
             for po_file in input['trans_files']:
                 try:
-                    po = polib.pofile(po_file)
+                    po = polib.mofile(po_file) if po_file.endswith('mo') else polib.pofile(po_file)
                 except Exception as e:
                     task_log.update(self._log_task(
                         input['log_f'], task_subject,

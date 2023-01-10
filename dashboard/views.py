@@ -1325,8 +1325,8 @@ def schedule_job(request):
                 )
                 try:
                     job_uuid = job_manager.execute_job()
-                except Exception:
-                    message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+                except Exception as e:
+                    message = "&nbsp;&nbsp;<span class='text-danger'>{}</span>".format(e)
                     return HttpResponse(message, status=500)
                 else:
                     if not request.POST.dict().get('SCRATCH', '') == 'ScratchRun':

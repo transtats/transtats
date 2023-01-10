@@ -678,7 +678,7 @@ class YMLBasedJobManager(BaseManager):
         :param stats_dict: translation stats calculated
         """
         if not self.package_manager.is_package_exist(package_name=self.package):
-            raise Exception("Stats NOT saved. Package does not exist.")
+            raise Exception("Derived stats could NOT be saved. Check Dry Run.")
         stats_version, stats_source = '', ''
         if self.type == TS_JOB_TYPES[2]:
             stats_version, stats_source = 'Upstream', 'upstream'
@@ -720,7 +720,7 @@ class YMLBasedJobManager(BaseManager):
             self.app_logger(
                 'ERROR', "Package could not be updated, details: " + str(e)
             )
-            raise Exception('Stats could NOT be saved in db.')
+            raise Exception('Derived stats could NOT be saved in db.')
 
     def _save_push_results_in_db(self, job_details):
         """Save jobs which are created/updated in CI Platform for a project"""

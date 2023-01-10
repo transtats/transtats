@@ -1,3 +1,6 @@
+##### Thu Jan 5 2023 Sundeep Anand <suanand@redhat.com>
+* Add gem files unpacking support in syncdownstream jobs
+
 ##### Thu Dec 8 2022 Sundeep Anand <suanand@redhat.com> - release_0.8.7
 * Add simplify_plural_forms_in_po_header upload prehook in push jobs
 * Enable Phrase Project creation from Package Pipeline form
