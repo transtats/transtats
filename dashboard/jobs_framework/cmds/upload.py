@@ -156,8 +156,17 @@ class Upload(JobHooksMixin, JobCommandBase):
                         new_filename = "{}{}{}".format(input.get('repo_branch'),
                                                        self.double_underscore_delimiter,
                                                        file_name)
-                        os.rename(file_path, os.path.join(file_path_except_name, new_filename))
-                        file_name = new_filename
+                        new_file_path = os.path.join(file_path_except_name, new_filename)
+                        os.rename(file_path, new_file_path)
+                        file_name, file_path = new_filename, new_file_path
+
+                    if kwargs.get('prepend_package'):
+                        new_filename = "{}{}{}".format(input.get('package'),
+                                                       self.double_underscore_delimiter,
+                                                       file_name)
+                        new_file_path = os.path.join(file_path_except_name, new_filename)
+                        os.rename(file_path, new_file_path)
+                        file_name, file_path = new_filename, new_file_path
 
                     api_kwargs['headers']["Memsource"] = str(memsource_kwargs)
                     api_kwargs['headers']["Content-Disposition"] = 'attachment; filename="{}"'.format(file_name)

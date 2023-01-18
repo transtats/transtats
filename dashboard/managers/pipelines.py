@@ -20,7 +20,7 @@ import functools
 from django.db.models import Case, Value, When
 from django.utils import timezone
 
-# dadhboard
+# dashboard
 from dashboard.constants import (
     TRANSPLATFORM_ENGINES, RELSTREAM_SLUGS,
     PIPELINE_CONFIG_EVENTS, GIT_REPO_TYPE
@@ -115,6 +115,7 @@ class CIPipelineManager(BaseManager):
                             return True
                 else:
                     pipeline_params = {}
+                    pipeline_params['ci_pipeline_uuid'] = ci_pipeline.ci_pipeline_uuid
                     pipeline_params['ci_project_web_url'] = ci_pipeline.ci_project_web_url
                     pipeline_params['ci_project_details_json_str'] = json.dumps(resp_dict)
                     pipeline_params['ci_platform_jobs_json_str'] = json.dumps(
@@ -148,9 +149,8 @@ class CIPipelineManager(BaseManager):
             return
 
         match_params = {}
-        match_params.update(dict(
-            ci_project_web_url=ci_pipeline.get('ci_project_web_url'))
-        )
+        match_params.update(dict(ci_pipeline_uuid=ci_pipeline['ci_pipeline_uuid']))
+        match_params.update(dict(ci_project_web_url=ci_pipeline['ci_project_web_url']))
 
         try:
             ci_pipeline['ci_pipeline_visibility'] = True
@@ -385,6 +385,10 @@ class PipelineConfigManager(CIPipelineManager):
         if tenant == RELSTREAM_SLUGS[3]:
             prepend_branch_field = "<input id='prependBranch' name='prependBranch' type='checkbox' checked>"
 
+        prepend_package_field = "<input id='prependPackage' name='prependPackage' type='checkbox'>"
+        if tenant == RELSTREAM_SLUGS[4]:
+            prepend_package_field = "<input id='prependPackage' name='prependPackage' type='checkbox' checked>"
+
         upload_update_field = "<input id='uploadUpdate' name='uploadUpdate' type='checkbox'>"
         if action == PIPELINE_CONFIG_EVENTS[2]:
             upload_update_field = "<input id='uploadUpdate' name='uploadUpdate' type='checkbox' checked>"
@@ -418,6 +422,7 @@ class PipelineConfigManager(CIPipelineManager):
                 "workflowStep", self.get_ci_platform_workflow_steps(pipeline.ci_pipeline_uuid)
             ),
             "download.prepend_branch": prepend_branch_field,
+            "download.prepend_package": prepend_package_field,
             "upload.type": _format_val("uploadType", pipeline.ci_package.platform_slug.engine_name),
             "upload.branch": _choose_checkboxes_or_dropdown("uploadRepoBranch", repo_branches),
             "upload.target_langs": _format_checkboxes(
@@ -429,6 +434,7 @@ class PipelineConfigManager(CIPipelineManager):
             "pullrequest.type": _format_val("pullrequestType", upstream_repo_type),
             "pullrequest.branch": _format_choices("repoPullRequestBranch", upstream_repo_branches),
             "upload.prepend_branch": prepend_branch_field,
+            "upload.prepend_package": prepend_package_field,
         }
         return key_val_map
 
@@ -463,6 +469,7 @@ class PipelineConfigManager(CIPipelineManager):
             "download.branch": config_values.get('downloadBranch', ''),
             "download.workflow_step": config_values.get('downloadWorkflowStep', ''),
             "download.prepend_branch": self.__true_false_type(config_values.get('downloadPrependBranch', '')),
+            "download.prepend_package": self.__true_false_type(config_values.get('downloadPrependPackage', '')),
             "upload.type": config_values.get('uploadType', ''),
             "upload.branch": config_values.get('uploadBranch', ''),
             "upload.target_langs": config_values.get('uploadTargetLangs', '').split(','),
@@ -470,6 +477,7 @@ class PipelineConfigManager(CIPipelineManager):
             "upload.import_settings": config_values.get('uploadImportSettings', ''),
             "upload.update": self.__true_false_type(config_values.get('uploadUpdate', '')),
             "upload.prepend_branch": self.__true_false_type(config_values.get('uploadPrependBranch', '')),
+            "upload.prepend_package": self.__true_false_type(config_values.get('uploadPrependPackage', '')),
             "copy.dir": config_values.get('copyDir', ''),
             "pullrequest.type": config_values.get("pullrequestType", ''),
             "pullrequest.branch": config_values.get("repoPullRequestBranch", ''),

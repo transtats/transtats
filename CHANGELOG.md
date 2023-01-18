@@ -1,4 +1,5 @@
-##### Thu Jan 5 2023 Sundeep Anand <suanand@redhat.com>
+##### Wed Jan 18 2023 Sundeep Anand <suanand@redhat.com>
+* Implement prepend_package option in YAML job templates.
 * Add gem files unpacking support in syncdownstream jobs
 
 ##### Thu Dec 8 2022 Sundeep Anand <suanand@redhat.com> - release_0.8.7
