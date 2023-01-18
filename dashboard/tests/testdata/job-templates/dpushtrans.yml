@@ -2,7 +2,7 @@ job:
   ci_pipeline: %PIPELINE_UUID%
   exception: raise
   execution: sequential
-  name: pull translations
+  name: download and push translations
   package: %PACKAGE_NAME%
   return_type: json
   tasks:
@@ -19,4 +19,5 @@ job:
     - import_settings: project
     - update: false
     - prepend_branch: false
+    - prepend_package: false
   type: dpushtrans

@@ -2,7 +2,7 @@ job:
   ci_pipeline: %PIPELINE_UUID%
   exception: raise
   execution: sequential
-  name: pull translations and request merge
+  name: push translations
   package: %PACKAGE_NAME%
   return_type: json
   tasks:
@@ -11,19 +11,18 @@ job:
     - type: %REPO_TYPE%
     - branch: %REPO_BRANCH%
     - recursive: false
-    - fork: true
-  - download:
-    - name: Pull translated files
+  - filter:
+    - name: files
+    - domain: %PACKAGE_NAME%
+    - ext: PO
+    - dir: ''
+  - upload:
+    - name: Push files
     - target_langs: %TARGET_LANGS%
-    - workflow_step: %WORKFLOW_STEP%
     - prehook: skip
     - posthook: skip
+    - import_settings: project
+    - update: false
     - prepend_branch: false
-  - copy:
-    - name: Downloaded files
-    - dir: %COPY_DIR%
-  - pullrequest:
-    - name: git repo
-    - type: %REPO_TYPE%
-    - branch: %REPO_BRANCH%
-  type: pulltransmerge
+    - prepend_package: false
+  type: pushtrans
