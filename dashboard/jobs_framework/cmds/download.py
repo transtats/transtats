@@ -245,7 +245,9 @@ class Download(LanguageFormatterMixin, JobCommandBase):
 
             if kwargs.get('prepend_branch') and input.get('repo_branch'):
                 ci_lang_job_map = {k: v for k, v in ci_lang_job_map.items() for x in v if input['repo_branch'] in x}
-            elif not kwargs.get('prepend_branch'):
+            elif kwargs.get('prepend_package'):
+                ci_lang_job_map = {k: v for k, v in ci_lang_job_map.items() for x in v if input['package'] in x}
+            elif not kwargs.get('prepend_branch') and not kwargs.get('prepend_package'):
                 ci_lang_job_map = {k: v for k, v in ci_lang_job_map.items()
                                    if self.double_underscore_delimiter not in v[1]}
 
@@ -289,6 +291,17 @@ class Download(LanguageFormatterMixin, JobCommandBase):
             else:
                 if pull_status:
                     downloaded_file_name = remote_file_name
+
+                    # clean file name a bit, remove prepends
+                    if kwargs.get('prepend_package') and input['package'] in downloaded_file_name and \
+                            self.double_underscore_delimiter in downloaded_file_name:
+                        task_log.update(self._log_task(
+                            input['log_f'], task_subject, '{} to be downloaded and renamed.'.format(
+                                downloaded_file_name)
+                        ))
+                        downloaded_file_name = downloaded_file_name.replace(input['package'], '').replace(
+                            self.double_underscore_delimiter, '')
+
                     d_file_path = os.path.join(download_folder, downloaded_file_name)
                     try:
                         if not os.path.exists(download_folder):
