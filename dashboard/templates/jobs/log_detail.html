@@ -77,7 +77,7 @@
                         {% for task, details in log.job_log_json.items %}
                         <div class="list-group-item">
                           <h3 class="list-group-item-heading">{{ task }}</h3>
-                            {% for datetime, event in details.items|dictsortreversed:0 %}
+                            {% for datetime, event in details.items %}
                                 <p class="list-group-item-text">
                                     <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
                                     <span class="text-muted">
