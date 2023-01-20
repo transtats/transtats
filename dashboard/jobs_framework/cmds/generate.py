@@ -64,7 +64,7 @@ class Generate(JobCommandBase):
                 os.unlink(pot_file)
             try:
                 os.chdir(input['src_tar_dir'])
-                generate_pot = Popen(command, stdout=PIPE)
+                generate_pot = Popen(command, stdout=PIPE, shell=True)
                 output, error = generate_pot.communicate()
             except Exception as e:
                 os.chdir(input['base_dir'])

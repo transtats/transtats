@@ -98,7 +98,7 @@ class Calculate(JobCommandBase):
                 diff_count = len(set(diff_entries))
             if src_pot and platform_pot:
                 git_diff_command = 'git diff --no-index %s %s' % (platform_pot, src_pot)
-                calculated_diff = Popen(git_diff_command, stdout=PIPE)
+                calculated_diff = Popen(git_diff_command, stdout=PIPE, shell=True)
                 output, error = calculated_diff.communicate()
                 diff_lines = output.decode("utf-8")
         except Exception as e:
