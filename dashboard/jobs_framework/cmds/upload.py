@@ -102,7 +102,7 @@ class Upload(JobHooksMixin, JobCommandBase):
                 platform_auth_token = input.get('pkg_ci_auth_token') or input.get('pkg_tp_auth_token')
 
                 if kwargs.get('update') and input.get('ci_lang_job_map') \
-                        and lang not in set([i[0] for i in ci_lang_job_map.values()]):
+                        and lang not in {i[0] for i in ci_lang_job_map.values()}:
                     raise Exception("Job ID NOT found for lang: {}. Please refresh the pipeline.".format(lang))
 
                 api_kwargs['headers'] = {}

@@ -66,7 +66,7 @@ class Pullrequest(JobCommandBase):
         git_api_token = ""
         if git_platform == GIT_PLATFORMS[0]:
             git_api_token = settings.GITHUB_TOKEN
-        origin_urls = [url for url in modified_repo.remotes.origin.urls]
+        origin_urls = list(modified_repo.remotes.origin.urls)
         if not origin_urls:
             raise Exception('Push URL cannot be blank.')
         origin_url = origin_urls[0]
@@ -86,7 +86,7 @@ class Pullrequest(JobCommandBase):
             ))
 
         # Submit a Git Pull Request
-        pull_request_api_payload = dict()
+        pull_request_api_payload = {}
         if git_platform == GIT_PLATFORMS[0]:
             pull_request_api_payload['title'] = commit_object.summary
             pull_request_api_payload['body'] = "Translations for {} languages.".format(

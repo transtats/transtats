@@ -137,7 +137,7 @@ class Download(LanguageFormatterMixin, JobCommandBase):
 
         platform_pot_path = ''
         if input.get('pkg_tp_engine'):
-            platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
+            platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine'], '').format(**url_kwargs)
             auth = None
             headers = {}
             if input.get('pkg_tp_auth_usr') and input.get('pkg_tp_auth_token') \
@@ -164,7 +164,7 @@ class Download(LanguageFormatterMixin, JobCommandBase):
                     input['package'] != input.get('pkg_upstream_name', '') and \
                         input['package'] == input.get('i18n_domain'):
                     url_kwargs['domain'] = doc_prefix + input['pkg_upstream_name']
-                    platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
+                    platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine'], '').format(**url_kwargs)
                     platform_pot_path = self._download_file(
                         platform_pot_url,
                         self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot',
@@ -174,7 +174,7 @@ class Download(LanguageFormatterMixin, JobCommandBase):
                 while_loop_counter = 0
                 while platform_pot_path == '404' and while_loop_counter < len(probable_versions):
                     url_kwargs['version'] = probable_versions[while_loop_counter]
-                    platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine']).format(**url_kwargs)
+                    platform_pot_url = platform_pot_urls.get(input['pkg_tp_engine'], '').format(**url_kwargs)
                     platform_pot_path = self._download_file(
                         platform_pot_url,
                         self.sandbox_path + 'platform.' + input.get('i18n_domain') + '.pot',
@@ -183,12 +183,10 @@ class Download(LanguageFormatterMixin, JobCommandBase):
                     while_loop_counter += 1
                 if platform_pot_path == '404':
                     raise Exception('POT file could not be located at platform.')
-                try:
-                    polib.pofile(platform_pot_path)
-                except Exception:
-                    raise
+                # load POT file
+                polib.pofile(platform_pot_path)
             except Exception as e:
-                err_msg = 'POT download failed. Details: %s' % str(e)
+                err_msg = f'POT download failed. Details: {e}'
                 task_log.update(self._log_task(input['log_f'], task_subject, err_msg))
                 raise Exception(err_msg)
             else:
@@ -226,7 +224,7 @@ class Download(LanguageFormatterMixin, JobCommandBase):
             target_langs = self.format_target_langs(langs=kwargs['target_langs'])
 
         if input.get('ci_project_uid') and \
-                not set(target_langs).issubset(set([i[0] for i in ci_lang_job_map.values()])):
+                not set(target_langs).issubset({i[0] for i in ci_lang_job_map.values()}):
             raise Exception('Job UID could NOT be found for target langs.')
 
         if not target_langs and kwargs.get('target_langs'):

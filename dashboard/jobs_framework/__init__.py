@@ -20,7 +20,8 @@ class JobCommandBase(BaseManager):
         }
         super(JobCommandBase, self).__init__(**kwargs)
 
-    def _format_log_text(self, delimiter, text, text_prefix):
+    @staticmethod
+    def _format_log_text(delimiter, text, text_prefix):
         log_text = ''
         if isinstance(text, str):
             log_text = text
@@ -41,7 +42,7 @@ class JobCommandBase(BaseManager):
         return {str(datetime.now()): '%s' % self._format_log_text(", ", text, text_prefix)}
 
     def _run_shell_cmd(self, command):
-        process = Popen(command, stdout=PIPE, shell=True)
+        process = Popen(command, stdout=PIPE)
         while True:
             line = process.stdout.readline().rstrip()
             if not line:
