@@ -154,12 +154,6 @@ function csrfSafeMethod(e){return/^(GET|HEAD|OPTIONS|TRACE)$/.test(e)}var poll_t
                 {% tag_workflow_steps_dropdown '' %}
             </div>
             {% endif %}
-            {% if 'workflow_step' in job_params %}
-            <div class="form-group" id="div-workflow-step">
-                <label class="control-label">Workflow Step</label>
-                <input id="workflowStep" placeholder="default" class="form-control">
-            </div>
-            {% endif %}
             {% if 'copy_dir' in job_params %}
             <div class="form-group" id="div-copy-dir">
                 <label class="control-label">Copy Directory</label>
