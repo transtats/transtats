@@ -122,7 +122,7 @@ class CIPipelineManager(BaseManager):
                         resp_dict.get('project_jobs', {})
                     )
                     pipeline_params['ci_pipeline_last_updated'] = timezone.now()
-                    if self.save_ci_pipeline(pipeline_params):
+                    if self.update_ci_pipeline(pipeline_params):
                         return True
         return False
 
@@ -138,35 +138,50 @@ class CIPipelineManager(BaseManager):
             self.refresh_ci_pipeline(pipeline_id=pipeline.ci_pipeline_id,
                                      toggle_visibility=False)
 
-    def save_ci_pipeline(self, ci_pipeline, get_obj=None):
+    def create_ci_pipeline(self, ci_pipeline_params: dict, get_obj: bool = False) -> bool or CIPipeline:
         """
-        Save CI Pipeline in db
-        :param ci_pipeline: dict
-        :param get_obj: boolean
+        Creates CI Pipeline in db
+        :param ci_pipeline_params: dict
+        :param get_obj: bool
         :return: boolean
         """
-        if not ci_pipeline:
-            return
-
-        match_params = {}
-        if ci_pipeline.get('ci_pipeline_uuid'):
-            match_params.update(dict(ci_pipeline_uuid=ci_pipeline['ci_pipeline_uuid']))
-        match_params.update(dict(ci_project_web_url=ci_pipeline['ci_project_web_url']))
+        if not ci_pipeline_params:
+            return False
 
         try:
-            ci_pipeline['ci_pipeline_visibility'] = True
-            db_response = CIPipeline.objects.update_or_create(
-                **match_params, defaults=ci_pipeline
-            )
+            ci_pipeline_params['ci_pipeline_visibility'] = True
+            new_pipeline = CIPipeline(**ci_pipeline_params)
+            new_pipeline.save()
             if get_obj:
-                return db_response[0], "Created" if db_response[1] else "Updated"
+                return new_pipeline
         except Exception as e:
             self.app_logger(
-                'ERROR', "CI Pipeline could not be saved, details: " + str(e)
+                'ERROR', "CI Pipeline could not be created, details: " + str(e)
             )
+            return False
         else:
             return True
-        return False
+
+    def update_ci_pipeline(self, ci_pipeline_params: dict) -> bool:
+        """
+        Updates CI Pipeline in db
+        :param ci_pipeline_params: dict
+        :return: boolean
+        """
+        if not ci_pipeline_params:
+            return False
+
+        match_params = {}
+        match_params.update(dict(ci_pipeline_uuid=ci_pipeline_params['ci_pipeline_uuid']))
+        match_params.update(dict(ci_project_web_url=ci_pipeline_params['ci_project_web_url']))
+
+        try:
+            CIPipeline.objects.filter(**match_params).update(**ci_pipeline_params)
+        except Exception as e:
+            self.app_logger('ERROR', "CI Pipeline could not be updated, details: " + str(e))
+            return False
+        else:
+            return True
 
     def toggle_visibility(self, pipeline_id):
         """

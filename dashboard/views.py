@@ -1007,7 +1007,7 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
                 post_params['ci_platform_jobs_json_str'] = json.dumps(p_details['project_jobs'])
 
             if not post_params["ci_pipeline_auto_create_config"]:
-                if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
+                if not self.ci_pipeline_manager.create_ci_pipeline(post_params):
                     messages.add_message(request, messages.ERROR, (
                         'Alas! Something unexpected happened. Please try adding pipeline again!'
                     ))
@@ -1016,8 +1016,7 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
                         'Great! CI Pipeline added successfully.'
                     ))
             else:
-                new_pipeline_obj, _ = \
-                    self.ci_pipeline_manager.save_ci_pipeline(post_params, get_obj=True)
+                new_pipeline_obj = self.ci_pipeline_manager.create_ci_pipeline(post_params, True)
                 if not new_pipeline_obj:
                     messages.add_message(request, messages.ERROR, (
                         'Alas! Something unexpected happened. Please try adding pipeline again!'
@@ -1190,7 +1189,7 @@ class AddCIPipeline(ManagersMixin, FormView):
             post_params['ci_project_details_json_str'] = json.dumps(p_details)
             if p_details.get('project_jobs'):
                 post_params['ci_platform_jobs_json_str'] = json.dumps(p_details['project_jobs'])
-            if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
+            if not self.ci_pipeline_manager.create_ci_pipeline(post_params):
                 messages.add_message(request, messages.ERROR, (
                     'Alas! Something unexpected happened. Please try adding pipeline again!'
                 ))
