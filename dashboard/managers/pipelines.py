@@ -149,7 +149,8 @@ class CIPipelineManager(BaseManager):
             return
 
         match_params = {}
-        match_params.update(dict(ci_pipeline_uuid=ci_pipeline['ci_pipeline_uuid']))
+        if ci_pipeline.get('ci_pipeline_uuid'):
+            match_params.update(dict(ci_pipeline_uuid=ci_pipeline['ci_pipeline_uuid']))
         match_params.update(dict(ci_project_web_url=ci_pipeline['ci_project_web_url']))
 
         try:
