@@ -48,8 +48,8 @@ class Calculate(JobCommandBase):
                 else:
                     temp_trans_stats = {}
                     temp_trans_stats['unit'] = "MESSAGE"
-                    temp_trans_stats['locale'] = po_file.split(os.sep)[-2] if input.get('podir') \
-                        else po_file.split(os.sep)[-1].split('.')[0]
+                    temp_trans_stats['locale'] = po_file.split(os.sep)[input.get('locale_index', -2)] \
+                        if input.get('podir') else po_file.split(os.sep)[-1].split('.')[0]
                     temp_trans_stats['translated'] = len(po.translated_entries())
                     temp_trans_stats['untranslated'] = len(po.untranslated_entries())
                     temp_trans_stats['fuzzy'] = len(
