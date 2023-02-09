@@ -57,7 +57,7 @@
           <span class="fa fa-ellipsis-v"></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-right">
-          {% if user.is_staff %}
+          {% if user.is_staff and request_tenant == 'RHEL' %}
             <li><a href="{% url 'package-add-ci-pipeline' package.package_name %}">
               <span class="pficon pficon-add-circle-o" aria-hidden="true"></span> CI Pipeline</a>
             </li>
