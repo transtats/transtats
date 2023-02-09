@@ -924,16 +924,25 @@ class Filter(JobCommandBase):
     """Handles all operations for FILTER Command"""
 
     @staticmethod
-    def _determine_podir(files, domain):
+    def _determine_podir(files: list, domain: str) -> (bool, int):
+        """
+        PODIRs can have a set of folder hierarchy
+            - locale/ru/{gettext_domain}.po
+            - locale/ru/LC_MESSAGES/{gettext_domain}.mo
+        """
         if not domain:
-            return False
+            return False, 0
         for file in files:
             file_path_parts = file.split(os.sep)
-            expected_locale = file_path_parts[-1].split('.')[0]
-            super_dir = file_path_parts[-3]
-            if expected_locale == domain and super_dir == 'locale':
-                return True
-        return False
+            expected_domain = file_path_parts[-1].split('.')[0]
+            if expected_domain != domain:
+                return False, 0
+            if file_path_parts[-3] == 'locale':
+                return True, -2
+            elif file_path_parts[-4] == 'locale' and \
+                    file_path_parts[-2] == 'LC_MESSAGES':
+                return True, -3
+        return False, 0
 
     @staticmethod
     def _test_multiple_trans_dir(t_files, is_podir):
@@ -976,7 +985,7 @@ class Filter(JobCommandBase):
                 'Something went wrong in filtering {} files: {}'.format(file_ext, str(e))
             ))
         else:
-            is_podir = self._determine_podir(trans_files, kwargs.get('domain'))
+            is_podir, locale_index = self._determine_podir(trans_files, kwargs.get('domain'))
             is_multiple_trans_dir, trans_dirs = self._test_multiple_trans_dir(trans_files, is_podir)
             if is_multiple_trans_dir:
                 trans_dirs = [trans_dir.replace(search_dir, "") if trans_dir.replace(search_dir, "") else trans_dir
@@ -993,6 +1002,7 @@ class Filter(JobCommandBase):
             result_dict.update({'trans_files': trans_files, 'file_ext': file_ext})
             if is_podir:
                 result_dict.update(dict(podir=True))
+                result_dict.update(dict(locale_index=locale_index))
 
         return result_dict, {task_subject: task_log}
 
@@ -1296,8 +1306,8 @@ class Calculate(JobCommandBase):
                 else:
                     temp_trans_stats = {}
                     temp_trans_stats['unit'] = "MESSAGE"
-                    temp_trans_stats['locale'] = po_file.split(os.sep)[-2] if input.get('podir') \
-                        else po_file.split(os.sep)[-1].split('.')[0]
+                    temp_trans_stats['locale'] = po_file.split(os.sep)[input.get('locale_index', -2)] \
+                        if input.get('podir') else po_file.split(os.sep)[-1].split('.')[0]
                     temp_trans_stats['translated'] = len(po.translated_entries())
                     temp_trans_stats['untranslated'] = len(po.untranslated_entries())
                     temp_trans_stats['fuzzy'] = len(
