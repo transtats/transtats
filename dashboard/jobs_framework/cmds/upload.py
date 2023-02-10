@@ -196,6 +196,11 @@ class Upload(JobHooksMixin, JobCommandBase):
                                 lang, platform_engine.title(), upload_resp
                             )
                         )
+        else:
+            task_log.update(self._log_task(
+                input['log_f'], task_subject, '[WARN] Files could not be collected to upload. '
+                                              'Filename should have either locale or template.'
+            ))
 
         return {'push_files_resp': {platform_project: job_post_resp}}, {task_subject: task_log}
 
