@@ -22,11 +22,11 @@
         <h1 class="card-pf-title">Job ID: {{ log.job_uuid }}
             {% if log.job_visible_on_url %}
                 <span class="pull-right">
+                    <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-default" data-toggle="tooltip"
+                       data-placement="bottom" title="Go Back"><span class="fa fa-chevron-left"></span> Go Back</a>
                     <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
                             data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
                             title="Copy URL"><span class="fa fa-clipboard"></span> Copy URL</button>
-                    <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-default" data-toggle="tooltip"
-                       data-placement="bottom" title="Go Back"><span class="fa fa-chevron-left"></span> Go Back</a>
                     {% if log.job_remarks|is_pkg_exist %}
                      |<a href="{% url 'package-view' log.job_remarks %}" class="btn btn-default" style="margin-left: 5px;">
                         Go to {{ log.job_remarks|title }} </a>

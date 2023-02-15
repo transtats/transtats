@@ -14,6 +14,8 @@
 # under the License.
 
 import os
+import time
+import shutil
 from collections import OrderedDict
 from urllib.parse import urlparse
 
@@ -86,6 +88,8 @@ class Clone(JobCommandBase):
         task_log = OrderedDict()
 
         src_tar_dir = os.path.join(self.sandbox_path, input['package'])
+        if os.path.isdir(src_tar_dir) and os.listdir(src_tar_dir):
+            shutil.rmtree(src_tar_dir, ignore_errors=True)
 
         clone_kwargs = {}
         clone_kwargs.update(dict(config='http.sslVerify=false'))
@@ -101,12 +105,13 @@ class Clone(JobCommandBase):
 
         if kwargs.get("fork"):
             # delete the fork if exists already
-            fork_exists = self._is_fork_exist(repo_clone_url)
-            if fork_exists:
+            if self._is_fork_exist(repo_clone_url):
                 self._delete_fork(repo_clone_url)
             # create a new fork and proceed cloning
             fork_url = self._create_fork(repo_clone_url)
             if fork_url:
+                # forked repo takes time for setting up in GitHub
+                time.sleep(2)
                 repo_clone_url = fork_url
 
         if kwargs.get('type') == TRANSPLATFORM_ENGINES[3]:
@@ -128,7 +133,7 @@ class Clone(JobCommandBase):
             task_log.update(self._log_task(
                 input['log_f'], task_subject, 'Cloning failed. Details: %s' % trace_back
             ))
-            raise Exception("Cloning '%s' branch failed." % kwargs.get('branch', 'main'))
+            raise Exception("Cloning '%s' branch failed. Details: %s" % (kwargs.get('branch', ''), e.stderr))
         else:
             if vars(clone_result).get('git_dir'):
                 task_log.update(self._log_task(
