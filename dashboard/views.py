@@ -476,11 +476,15 @@ class NewPackageView(ManagersMixin, FormView):
         if post_params.get('auto_create_project') and \
                 post_params['auto_create_project'][0] == 'True':
             # Attempt project creation at translation platform
-            self.packages_manager.create_platform_project(
-                project_slug=post_params['package_name'],
-                repo_url=post_params['upstream_url'],
-                platform_slug=post_params['transplatform_slug'],
-            )
+            is_project_created, api_response = \
+                self.packages_manager.create_platform_project(
+                    project_slug=post_params['package_name'],
+                    repo_url=post_params['upstream_url'],
+                    platform_slug=post_params['transplatform_slug'],
+                )
+            if not is_project_created:
+                errors = form._errors.setdefault('auto_create_project', ErrorList())
+                errors.append(f"Package creation failed with slug: {post_params['package_name']}.")
         # Validate package with translation platform
         validate_package = self.packages_manager.validate_package(**post_params)
         if not validate_package:
