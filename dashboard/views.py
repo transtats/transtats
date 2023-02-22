@@ -933,8 +933,10 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
             package.package_name, package.platform_slug.engine_name
         )
         pkg_platform_branch_choices = \
-            tuple([(branch, branch) for branch in pkg_platform_branches])
-        kwargs.update(dict(pkg_platform_branch_choices=pkg_platform_branch_choices))
+            [(branch, branch) for branch in pkg_platform_branches]
+        if self.request.tenant == RELSTREAM_SLUGS[3]:
+            pkg_platform_branch_choices.insert(0, ('', ''))
+        kwargs.update(dict(pkg_platform_branch_choices=tuple(pkg_platform_branch_choices)))
         pkg_branch_display_name = dict(TP_BRANCH_CALLING_NAME).get(
             package.platform_slug.engine_name, 'Branch')
         if pkg_branch_display_name.endswith("s"):
@@ -951,6 +953,12 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
         ci_platform = ci_platforms_qs.first()
         default_template_dict = self.inventory_manager.get_default_project_template(platform=ci_platform)
         kwargs.update(dict(default_template_dict=default_template_dict))
+
+        ci_pipeline_auto_create_config_initial = False
+        if self.request.tenant == RELSTREAM_SLUGS[0]:
+            ci_pipeline_auto_create_config_initial = True
+        kwargs.update(dict(auto_create_initial=ci_pipeline_auto_create_config_initial))
+
         if data:
             kwargs.update({'data': data})
         return PackagePipelineForm(**kwargs)
