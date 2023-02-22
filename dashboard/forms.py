@@ -173,7 +173,7 @@ class UpdatePackageForm(forms.ModelForm):
             Field('upstream_l10n_url', css_class='form-control'),
             Field('downstream_name', css_class='form-control'),
             Field('platform_slug', css_class='selectpicker'),
-            Field('platform_url', css_class='form-control', readonly=True),
+            Field('platform_url', css_class='form-control'),
             InlineCheckboxes('products'),
             Field('release_branch_mapping', css_class='form-control', rows=4, readonly=True),
             FormActions(
@@ -202,7 +202,7 @@ class UpdatePackageForm(forms.ModelForm):
         packages_manager = PackagesManager()
         pkg_platform_url, _ = packages_manager.get_project_details(cleaned_data['platform_slug'],
                                                                    package_name)
-        if not platform_url == pkg_platform_url:
+        if pkg_platform_url not in platform_url:
             cleaned_data['platform_url'] = pkg_platform_url
         validate_package = packages_manager.validate_package(package_name=package_name,
                                                              transplatform_slug=platform_slug)
