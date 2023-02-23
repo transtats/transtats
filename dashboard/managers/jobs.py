@@ -638,8 +638,9 @@ class YMLBasedJobManager(BaseManager):
                     if upstream_l10n_url:
                         self.upstream_l10n_url = self._check_git_ext(upstream_l10n_url)
                 t_ext = package_detail.translation_file_ext
-                file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
-                self.trans_file_ext = file_ext.lower()
+                if t_ext:
+                    file_ext = t_ext if t_ext.startswith('.') else '.' + t_ext
+                    self.trans_file_ext = file_ext.lower()
                 self.pkg_upstream_name = package_detail.upstream_name
                 self.pkg_downstream_name = package_detail.downstream_name
                 self.pkg_tp_engine = package_detail.platform_slug.engine_name

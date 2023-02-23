@@ -11,6 +11,7 @@ job:
     - target_langs: %TARGET_LANGS%
     - workflow_step: %WORKFLOW_STEP%
     - prepend_branch: false
+    - prepend_package: false
   - upload:
       - name: Submit translations
       - type: %REPO_TYPE%

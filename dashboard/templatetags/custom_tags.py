@@ -134,7 +134,7 @@ def locale_to_languages(locales):
 @register.inclusion_tag(
     os.path.join("packages", "_package_details.html")
 )
-def tag_package_details(package_name, user):
+def tag_package_details(package_name, user, request_tenant):
     package_manager = PackagesManager()
     return_value = OrderedDict()
     try:
@@ -150,7 +150,8 @@ def tag_package_details(package_name, user):
     else:
         return_value.update(
             {'package': package,
-             'user': user}
+             'user': user,
+             'request_tenant': request_tenant}
         )
     return return_value
 
