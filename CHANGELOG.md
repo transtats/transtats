@@ -1,4 +1,5 @@
-##### Wed Jan 18 2023 Sundeep Anand <suanand@redhat.com>
+##### Fri Feb 24 2023 Sundeep Anand <suanand@redhat.com> - release_0.8.8
+* Refactor jobs_framework following command design pattern.
 * Implement prepend_package option in YAML job templates.
 * Add gem files unpacking support in syncdownstream jobs
 
