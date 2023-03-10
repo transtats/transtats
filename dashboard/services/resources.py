@@ -14,7 +14,9 @@
 # under the License.
 
 # Service Layer: Process and cache REST resource's responses here.
-# ToDo: Refactor the code to adhere Strategy Design Pattern.
+# ToDo: Refactor the code to adhere..
+#  Factory Design Pattern to group calls for operation(s)
+#  Strategy Design Pattern to transform data
 
 import json
 import logging
