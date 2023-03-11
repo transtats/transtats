@@ -6,7 +6,7 @@
 
 **Track translations and automate workflow.**
 
-Transtats web interface helps make packages ready to ship with translation completeness. It seems meaningful to localization teams, package maintainers, developers and quality engineers.
+Transtats web interface helps developers to ship projects with translation completeness, localization managers to automate workflow and oversee the effort progress by product releases as well as language maintainers to estimate translation volume.
 
 To learn about using Transtats, please point your browser to [docs](http://docs.transtats.org).
 
