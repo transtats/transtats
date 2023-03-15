@@ -12,6 +12,7 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+# ToDo: Refactor the code to adhere Plugin Design Pattern to extend support.
 
 from requests.auth import HTTPBasicAuth
 import requests

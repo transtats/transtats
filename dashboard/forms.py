@@ -668,7 +668,7 @@ class PackagePipelineForm(forms.ModelForm):
     )
     ci_pipeline_default_branch = forms.ChoiceField(required=False)
     ci_pipeline_auto_create_config = forms.BooleanField(
-        required=False, initial=True, label="Auto Create Pipeline Configurations"
+        required=False, label="Auto Create Pipeline Configurations"
     )
 
     def __init__(self, *args, **kwargs):
@@ -678,6 +678,7 @@ class PackagePipelineForm(forms.ModelForm):
         pkg_branch_display_name = kwargs.pop('pkg_branch_display_name')
         pkg_name, pkg_platform = kwargs.pop('package_name'), kwargs.pop('package_platform')
         default_template_dict = kwargs.pop('default_template_dict')
+        auto_create_initial = kwargs.pop('auto_create_initial')
         super(PackagePipelineForm, self).__init__(*args, **kwargs)
         self.fields['ci_platform'].choices = ci_platform_choices
         self.fields['ci_release'].choices = pkg_release_choices
@@ -700,6 +701,7 @@ class PackagePipelineForm(forms.ModelForm):
                 [(lang, lang) for lang in default_template_dict['targetLangs']]
             )
             self.fields['target_languages'].initial = default_template_dict['targetLangs']
+        self.fields['ci_pipeline_auto_create_config'].initial = auto_create_initial
 
     class Meta:
         model = CIPipeline
