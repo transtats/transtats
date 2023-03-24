@@ -1,14 +1,12 @@
 [![Website](https://img.shields.io/badge/website-transtats.org-orange.svg)](http://transtats.org)
 [![CircleCI](https://circleci.com/gh/transtats/transtats/tree/devel.svg?style=svg)](https://circleci.com/gh/transtats/transtats/tree/devel)
-[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/transtats/transtats.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/transtats/transtats/context:javascript)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/transtats/transtats.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/transtats/transtats/context:python)
 [![Documentation Status](https://readthedocs.org/projects/transtats/badge/?version=latest)](http://transtats.readthedocs.io/en/latest/?badge=latest)
 
 ## Transtats
 
 **Track translations and automate workflow.**
 
-Transtats web interface helps make packages ready to ship with translation completeness. It seems meaningful to localization teams, package maintainers, developers and quality engineers.
+Transtats web interface helps developers to ship projects with translation completeness, localization managers to automate workflow and oversee the effort progress by product releases as well as language maintainers to estimate translation volume.
 
 To learn about using Transtats, please point your browser to [docs](http://docs.transtats.org).
 

@@ -264,6 +264,8 @@ class PackagesManager(InventoryManager):
             if resp_dict:
                 tx_org_slug = resp_dict['organization']['slug']
                 platform_url = transplatform.api_url + "/" + tx_org_slug + "/" + package_name
+            else:
+                platform_url = transplatform.api_url
         elif transplatform.engine_name == TRANSPLATFORM_ENGINES[2]:
             platform_url = transplatform.api_url + "/project/view/" + package_name
             resp_dict = self.api_resources.fetch_project_details(
@@ -333,6 +335,10 @@ class PackagesManager(InventoryManager):
         elif isinstance(projects, dict) and engine == TRANSPLATFORM_ENGINES[1]:
             ids.append(projects.get('slug'))
             names.append(projects.get('name'))
+        elif isinstance(projects, list) and engine == TRANSPLATFORM_ENGINES[1]:
+            for project in projects:
+                ids.append(project.get('slug'))
+                names.append(project.get('name'))
         elif isinstance(projects, list) and engine == TRANSPLATFORM_ENGINES[2]:
             for project in projects:
                 ids.append(project['id'])
@@ -374,13 +380,8 @@ class PackagesManager(InventoryManager):
             auth_dict = dict(
                 auth_user=platform.auth_login_id, auth_token=platform.auth_token_key
             )
-            if platform.engine_name == TRANSPLATFORM_ENGINES[1]:
-                response_dict = self.api_resources.fetch_project_details(
-                    platform.engine_name, platform.api_url, package_name.lower(), **auth_dict
-                )
-            elif platform.engine_name in (TRANSPLATFORM_ENGINES[0],
-                                          TRANSPLATFORM_ENGINES[2],
-                                          TRANSPLATFORM_ENGINES[3]):
+            if platform.engine_name in (TRANSPLATFORM_ENGINES[0], TRANSPLATFORM_ENGINES[1],
+                                        TRANSPLATFORM_ENGINES[2], TRANSPLATFORM_ENGINES[3]):
                 response_dict = self.api_resources.fetch_all_projects(
                     platform.engine_name, platform.api_url, **auth_dict
                 ) or {}

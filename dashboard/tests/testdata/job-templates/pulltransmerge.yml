@@ -1,0 +1,30 @@
+job:
+  ci_pipeline: %PIPELINE_UUID%
+  exception: raise
+  execution: sequential
+  name: pull translations and request merge
+  package: %PACKAGE_NAME%
+  return_type: json
+  tasks:
+  - clone:
+    - name: git repo
+    - type: %REPO_TYPE%
+    - branch: %REPO_BRANCH%
+    - recursive: false
+    - fork: true
+  - download:
+    - name: Pull translated files
+    - target_langs: %TARGET_LANGS%
+    - workflow_step: %WORKFLOW_STEP%
+    - prehook: skip
+    - posthook: skip
+    - prepend_branch: false
+    - prepend_package: false
+  - copy:
+    - name: Downloaded files
+    - dir: %COPY_DIR%
+  - pullrequest:
+    - name: git repo
+    - type: %REPO_TYPE%
+    - branch: %REPO_BRANCH%
+  type: pulltransmerge

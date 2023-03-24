@@ -22,11 +22,11 @@
         <h1 class="card-pf-title">Job ID: {{ log.job_uuid }}
             {% if log.job_visible_on_url %}
                 <span class="pull-right">
+                    <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-default" data-toggle="tooltip"
+                       data-placement="bottom" title="Go Back"><span class="fa fa-chevron-left"></span> Go Back</a>
                     <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
                             data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
                             title="Copy URL"><span class="fa fa-clipboard"></span> Copy URL</button>
-                    <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-default" data-toggle="tooltip"
-                       data-placement="bottom" title="Go Back"><span class="fa fa-chevron-left"></span> Go Back</a>
                     {% if log.job_remarks|is_pkg_exist %}
                      |<a href="{% url 'package-view' log.job_remarks %}" class="btn btn-default" style="margin-left: 5px;">
                         Go to {{ log.job_remarks|title }} </a>
@@ -77,7 +77,7 @@
                         {% for task, details in log.job_log_json.items %}
                         <div class="list-group-item">
                           <h3 class="list-group-item-heading">{{ task }}</h3>
-                            {% for datetime, event in details.items|dictsortreversed:0 %}
+                            {% for datetime, event in details.items %}
                                 <p class="list-group-item-text">
                                     <strong>{{ datetime|truncatechars:22 }}&nbsp;&nbsp;&nbsp;</strong>
                                     <span class="text-muted">
@@ -114,11 +114,11 @@
       <div class="card-pf-footer">
         {% if log.job_visible_on_url %}
             <span class="pull-right">
+                <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-default" data-toggle="tooltip"
+                   data-placement="bottom" title="Go Back"><span class="fa fa-chevron-left"></span>Go Back</a>
                 <button class="btn btn-default btn-copy js-tooltip js-copy" type="button" data-toggle="tooltip"
                         data-placement="bottom" data-copy="{{ request.build_absolute_uri }}{{ object.get_absolute_url }}"
                         title="Copy URL"><span class="fa fa-clipboard"></span> Copy URL</button>
-                <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-default" data-toggle="tooltip"
-                   data-placement="bottom" title="Go Back"><span class="fa fa-chevron-left"></span>Go Back</a>
                 {% if log.job_remarks|is_pkg_exist %}
                  |<a href="{% url 'package-view' log.job_remarks %}" class="btn btn-default" style="margin-left: 5px;">
                     Go to {{ log.job_remarks|title }} </a>

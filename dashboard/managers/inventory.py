@@ -290,13 +290,13 @@ class InventoryManager(BaseManager):
                     self._get_lang_contact(platform, language)
         return language_team_contact
 
-    def create_platform_project(self, project_slug, repo_url, platform_slug):
+    def create_platform_project(self, project_slug, repo_url, platform_slug) -> (bool, dict):
         """
         Create a Project at Translation Platform
         :param project_slug: str
         :param repo_url: str
         :param platform_slug: str
-        :return: dict
+        :return: bool, dict
         """
         request_kwargs = {}
         platform = Platform.objects.filter(platform_slug=platform_slug).get()
@@ -309,7 +309,7 @@ class InventoryManager(BaseManager):
             auth_user=platform.auth_login_id, auth_token=platform.auth_token_key
         ))
 
-        api_response = None
+        api_response = False, {}
         try:
             api_response = self.api_resources.create_project(
                 translation_platform=platform.engine_name,

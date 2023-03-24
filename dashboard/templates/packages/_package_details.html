@@ -58,9 +58,11 @@
         </button>
         <ul class="dropdown-menu dropdown-menu-right">
           {% if user.is_staff %}
+            {% if request_tenant == 'RHEL' or request_tenant == 'satellite' %}
             <li><a href="{% url 'package-add-ci-pipeline' package.package_name %}">
               <span class="pficon pficon-add-circle-o" aria-hidden="true"></span> CI Pipeline</a>
             </li>
+            {% endif %}
           {% endif %}
           <li class="disabled"><a href="#"><span class="fa fa-calendar" aria-hidden="true"></span> Schedules</a></li>
           <li role="separator" class="divider"></li>

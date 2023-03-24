@@ -476,11 +476,15 @@ class NewPackageView(ManagersMixin, FormView):
         if post_params.get('auto_create_project') and \
                 post_params['auto_create_project'][0] == 'True':
             # Attempt project creation at translation platform
-            self.packages_manager.create_platform_project(
-                project_slug=post_params['package_name'],
-                repo_url=post_params['upstream_url'],
-                platform_slug=post_params['transplatform_slug'],
-            )
+            is_project_created, api_response = \
+                self.packages_manager.create_platform_project(
+                    project_slug=post_params['package_name'],
+                    repo_url=post_params['upstream_url'],
+                    platform_slug=post_params['transplatform_slug'],
+                )
+            if not is_project_created:
+                errors = form._errors.setdefault('auto_create_project', ErrorList())
+                errors.append(f"Package creation failed with slug: {post_params['package_name']}.")
         # Validate package with translation platform
         validate_package = self.packages_manager.validate_package(**post_params)
         if not validate_package:
@@ -929,8 +933,10 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
             package.package_name, package.platform_slug.engine_name
         )
         pkg_platform_branch_choices = \
-            tuple([(branch, branch) for branch in pkg_platform_branches])
-        kwargs.update(dict(pkg_platform_branch_choices=pkg_platform_branch_choices))
+            [(branch, branch) for branch in pkg_platform_branches]
+        if self.request.tenant == RELSTREAM_SLUGS[3]:
+            pkg_platform_branch_choices.insert(0, ('', ''))
+        kwargs.update(dict(pkg_platform_branch_choices=tuple(pkg_platform_branch_choices)))
         pkg_branch_display_name = dict(TP_BRANCH_CALLING_NAME).get(
             package.platform_slug.engine_name, 'Branch')
         if pkg_branch_display_name.endswith("s"):
@@ -947,6 +953,12 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
         ci_platform = ci_platforms_qs.first()
         default_template_dict = self.inventory_manager.get_default_project_template(platform=ci_platform)
         kwargs.update(dict(default_template_dict=default_template_dict))
+
+        ci_pipeline_auto_create_config_initial = False
+        if self.request.tenant == RELSTREAM_SLUGS[0]:
+            ci_pipeline_auto_create_config_initial = True
+        kwargs.update(dict(auto_create_initial=ci_pipeline_auto_create_config_initial))
+
         if data:
             kwargs.update({'data': data})
         return PackagePipelineForm(**kwargs)
@@ -1007,7 +1019,7 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
                 post_params['ci_platform_jobs_json_str'] = json.dumps(p_details['project_jobs'])
 
             if not post_params["ci_pipeline_auto_create_config"]:
-                if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
+                if not self.ci_pipeline_manager.create_ci_pipeline(post_params):
                     messages.add_message(request, messages.ERROR, (
                         'Alas! Something unexpected happened. Please try adding pipeline again!'
                     ))
@@ -1016,8 +1028,7 @@ class AddPackageCIPipeline(ManagersMixin, FormView):
                         'Great! CI Pipeline added successfully.'
                     ))
             else:
-                new_pipeline_obj, _ = \
-                    self.ci_pipeline_manager.save_ci_pipeline(post_params, get_obj=True)
+                new_pipeline_obj = self.ci_pipeline_manager.create_ci_pipeline(post_params, True)
                 if not new_pipeline_obj:
                     messages.add_message(request, messages.ERROR, (
                         'Alas! Something unexpected happened. Please try adding pipeline again!'
@@ -1190,7 +1201,7 @@ class AddCIPipeline(ManagersMixin, FormView):
             post_params['ci_project_details_json_str'] = json.dumps(p_details)
             if p_details.get('project_jobs'):
                 post_params['ci_platform_jobs_json_str'] = json.dumps(p_details['project_jobs'])
-            if not self.ci_pipeline_manager.save_ci_pipeline(post_params):
+            if not self.ci_pipeline_manager.create_ci_pipeline(post_params):
                 messages.add_message(request, messages.ERROR, (
                     'Alas! Something unexpected happened. Please try adding pipeline again!'
                 ))
@@ -1325,8 +1336,8 @@ def schedule_job(request):
                 )
                 try:
                     job_uuid = job_manager.execute_job()
-                except Exception:
-                    message = "&nbsp;&nbsp;<span class='text-danger'>Alas! Something unexpected happened.</span>"
+                except Exception as e:
+                    message = "&nbsp;&nbsp;<span class='text-danger'>{}</span>".format(e)
                     return HttpResponse(message, status=500)
                 else:
                     if not request.POST.dict().get('SCRATCH', '') == 'ScratchRun':

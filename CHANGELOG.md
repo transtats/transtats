@@ -1,3 +1,8 @@
+##### Fri Feb 24 2023 Sundeep Anand <suanand@redhat.com> - release_0.8.8
+* Refactor jobs_framework following command design pattern.
+* Implement prepend_package option in YAML job templates.
+* Add gem files unpacking support in syncdownstream jobs
+
 ##### Thu Dec 8 2022 Sundeep Anand <suanand@redhat.com> - release_0.8.7
 * Add simplify_plural_forms_in_po_header upload prehook in push jobs
 * Enable Phrase Project creation from Package Pipeline form

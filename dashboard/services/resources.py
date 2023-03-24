@@ -14,7 +14,9 @@
 # under the License.
 
 # Service Layer: Process and cache REST resource's responses here.
-# ToDo: Refactor the code to adhere Strategy Design Pattern.
+# ToDo: Refactor the code to adhere..
+#  Factory Design Pattern to group calls for operation(s)
+#  Strategy Design Pattern to transform data
 
 import json
 import logging
@@ -352,7 +354,9 @@ class TransplatformResources(ResourcesBase):
     @call_service(TRANSPLATFORM_ENGINES[1])
     def _create_transifex_project(base_url, resource, *url_params, **kwargs):
         response = kwargs.get('rest_response', {})
-        return response
+        if response['raw'].ok:
+            return response['raw'].ok, response['json_content']
+        return response['raw'].ok, response['content']
 
     @staticmethod
     @call_service(TRANSPLATFORM_ENGINES[4])

@@ -202,6 +202,18 @@
           <span class="list-group-item-value">Dashboard</span>
         </a>
       </li>
+      <li class="list-group-item" id="li-languages">
+        <a href="{% url 'settings-languages' %}">
+          <span class="fa fa-language" data-toggle="tooltip" title="Languages"></span>
+          <span class="list-group-item-value">Languages</span>
+        </a>
+      </li>
+      <li class="list-group-item" id="li-packages">
+        <a href="{% url 'settings-packages' %}">
+          <span class="pficon pficon-bundle" data-toggle="tooltip" title="Packages"></span>
+          <span class="list-group-item-value">Packages</span>
+        </a>
+      </li>
       <li class="list-group-item secondary-nav-item-pf" id="li-jobs" data-target="div-jobs-secondary-nav">
 	    <a href="#0">
           <span class="fa fa-bolt" data-toggle="tooltip" title="Jobs"></span>
@@ -245,18 +257,6 @@
           {% endif %}
         </div>
       </li>
-      <li class="list-group-item" id="li-languages">
-        <a href="{% url 'settings-languages' %}">
-          <span class="fa fa-language" data-toggle="tooltip" title="Languages"></span>
-          <span class="list-group-item-value">Languages</span>
-        </a>
-      </li>
-      <li class="list-group-item" id="li-packages">
-        <a href="{% url 'settings-packages' %}">
-          <span class="pficon pficon-bundle" data-toggle="tooltip" title="Packages"></span>
-          <span class="list-group-item-value">Packages</span>
-        </a>
-      </li>
       <li class="list-group-item" id="li-pipelines">
         <a href="{% url 'pipelines' %}">
           <span class="pficon pficon-automation" data-toggle="tooltip" title="Pipelines"></span>
@@ -272,7 +272,7 @@
       <li class="list-group-item" id="li-coverage">
         <a href="{% url 'settings-graph-rules' %}">
           <span class="fa fa-area-chart" data-toggle="tooltip" title="Translation Coverage"></span>
-          <span class="list-group-item-value">Coverage</span>
+          <span class="list-group-item-value">Reports</span>
         </a>
       </li>
 

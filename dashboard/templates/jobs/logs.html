@@ -10,6 +10,11 @@
 {% if logs %}
 <div class="panel-group" id="accordion">
     {% for log in logs %}
+        {% ifchanged %}
+            <div style="font-size: large; margin-top: 1.5%; margin-bottom: .5%;" class="text-info">
+              {{ log.job_start_time|date }}
+            </div>
+        {% endifchanged %}
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4 class="panel-title">
