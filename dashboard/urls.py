@@ -37,10 +37,11 @@ from dashboard.views import (
     refresh_ci_pipeline, graph_data, job_template, PipelineDetailView, PipelineHistoryView, PipelineConfigurationView,
     ReleasePipelinesView, PipelinesView, AddCIPipeline, get_workflow_steps, get_pipeline_job_template,
     ajax_save_pipeline_config, ajax_run_pipeline_config, ajax_toggle_pipeline_config, ajax_delete_pipeline_config,
-    PlatformProjectTemplatesView
+    PlatformProjectTemplatesView, FedoraAuthRequestView
 )
 
-LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
+# LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
+LOGIN_URL = "fedora-authentication" if settings.FAS_AUTH else "admin:index"
 
 
 app_job_urls = [
@@ -206,4 +207,6 @@ urlpatterns = [
     url(r'^coverage/', include(coverage_urls)),
     # geolocation section urls (location_urls)
     url(r'^territory/', include(geolocation_urls)),
+    # fedora authentication
+    url(r'^fas/', FedoraAuthRequestView.as_view(), "fedora-authentication")
 ]
