@@ -40,8 +40,7 @@ from dashboard.views import (
     PlatformProjectTemplatesView, FedoraAuthRequestView
 )
 
-# LOGIN_URL = "oidc_authentication_init" if settings.FAS_AUTH else "admin:index"
-LOGIN_URL = "fedora-authentication" if settings.FAS_AUTH else "admin:index"
+LOGIN_URL = "oidc_fedora_auth" if settings.FAS_AUTH else "admin:index"
 
 
 app_job_urls = [
@@ -208,5 +207,5 @@ urlpatterns = [
     # geolocation section urls (location_urls)
     url(r'^territory/', include(geolocation_urls)),
     # fedora authentication
-    url(r'^fas/', FedoraAuthRequestView.as_view(), "fedora-authentication")
+    url(r'^fedauth/$', FedoraAuthRequestView.as_view(), name="oidc_fedora_auth"),
 ]
