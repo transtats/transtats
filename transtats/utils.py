@@ -52,7 +52,3 @@ class TranstatsOIDCBackend(OIDCAuthenticationBackend):
         except Exception as e:
             self.logger.log(40, str(e))
             raise Exception(str(e))
-
-    def get_token(self, payload):
-        payload.update({"redirect_uri": payload.get("redirect_uri").replace("http:", "https:")})
-        return super().get_token(payload)
