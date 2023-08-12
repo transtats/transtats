@@ -38,6 +38,8 @@ from django.views.generic import (
 from django.views.generic.edit import (CreateView, UpdateView, DeleteView)
 from django.urls import reverse, reverse_lazy
 
+from mozilla_django_oidc.views import OIDCAuthenticationRequestView
+
 # dashboard
 
 from dashboard.constants import (
@@ -1282,6 +1284,71 @@ class PlatformProjectTemplatesView(ManagersMixin, FormView):
                     ))
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, context=context_data)
+
+
+class FedoraAuthRequestView(OIDCAuthenticationRequestView):
+
+    def get(self, request):
+        """OIDC client authentication initialization HTTP endpoint"""
+        state = get_random_string(self.get_settings("OIDC_STATE_SIZE", 32))
+        redirect_field_name = self.get_settings("OIDC_REDIRECT_FIELD_NAME", "next")
+        reverse_url = self.get_settings(
+            "OIDC_AUTHENTICATION_CALLBACK_URL", "oidc_authentication_callback"
+        )
+
+        params = {
+            "response_type": "code",
+            "scope": self.get_settings("OIDC_RP_SCOPES", "openid email"),
+            "client_id": self.OIDC_RP_CLIENT_ID,
+            "redirect_uri": absolutify(request, reverse(reverse_url)),
+            "state": state,
+        }
+
+        params.update({"redirect_uri": params.get("redirect_uri").replace("http:", "https:")})
+        params.update(self.get_extra_params(request))
+
+        if self.get_settings("OIDC_USE_NONCE", True):
+            nonce = get_random_string(self.get_settings("OIDC_NONCE_SIZE", 32))
+            params.update({"nonce": nonce})
+
+        if self.get_settings("OIDC_USE_PKCE", True):
+            code_verifier_length = self.get_settings("OIDC_PKCE_CODE_VERIFIER_SIZE", 64)
+            # Check that code_verifier_length is between the min and max length
+            # defined in https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
+            if not (43 <= code_verifier_length <= 128):
+                raise ValueError("code_verifier_length must be between 43 and 128")
+
+            # Generate code_verifier and code_challenge pair
+            code_verifier = get_random_string(code_verifier_length)
+            code_challenge_method = self.get_settings(
+                "OIDC_PKCE_CODE_CHALLENGE_METHOD", "S256"
+            )
+            code_challenge = generate_code_challenge(
+                code_verifier, code_challenge_method
+            )
+
+            # Append code_challenge to authentication request parameters
+            params.update(
+                {
+                    "code_challenge": code_challenge,
+                    "code_challenge_method": code_challenge_method,
+                }
+            )
+
+        else:
+            code_verifier = None
+
+        add_state_and_verifier_and_nonce_to_session(
+            request, state, params, code_verifier
+        )
+
+        request.session["oidc_login_next"] = get_next_url(request, redirect_field_name)
+
+        query = urlencode(params)
+        redirect_url = "{url}?{query}".format(
+            url=self.OIDC_OP_AUTH_ENDPOINT, query=query
+        )
+        return HttpResponseRedirect(redirect_url)
 
 
 def schedule_job(request):
