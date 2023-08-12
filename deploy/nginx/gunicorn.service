@@ -6,7 +6,10 @@ After=network.target
 User=transtats
 Group=nginx
 WorkingDirectory=/home/transtats/transtats
-ExecStart=/home/transtats/transtats/projectenv/bin/gunicorn --workers 3 --bind unix:/home/transtats/transtats/transtats/transtats.sock transtats.wsgi:application --timeout 300
+ExecStart=/home/transtats/transtats/projectenv/bin/gunicorn --workers 3 --bind unix:/home/transtats/transtats/transtats/transtats.sock transtats.wsgi:application --timeout 1200
+
+ExecStartPre=+/bin/chown -R transtats:transtats /home/transtats/transtats/transtats/logs
+ExecStartPost=/bin/sh -c "/usr/bin/supervisord -c /etc/supervisord.conf -j /home/transtats/transtats/run/supervisord.pid &"
 
 [Install]
 WantedBy=multi-user.target

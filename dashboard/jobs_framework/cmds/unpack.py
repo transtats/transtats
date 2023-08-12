@@ -107,5 +107,5 @@ class Unpack(JobCommandBase):
                 text_prefix='Tarball [ %s ] Extracted Successfully' % input['src_tar_file'].split('/')[-1]
             ))
             return {'src_tar_dir': src_tar_dir, 'src_translations': input['src_translations'],
-                    'spec_obj': input['spec_obj'], 'spec_sections': input['spec_sections']},\
+                    'spec_obj': input['spec_obj'], 'spec_sections': input['spec_sections']}, \
                    {task_subject: task_log}
