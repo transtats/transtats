@@ -20,10 +20,10 @@ Upcoming Releases
 | And releases are scheduled every quarter end.
 
 
-Transtats 0.8.8
+Transtats 0.9.0
 ---------------
 
-| Target delivery: End of March 2023
+| Target delivery: End of Dec 2023
 
 
 ToDo List
@@ -33,11 +33,10 @@ ToDo List
     - Provision for package sets.
     - Search a job log.
     - Translation snapshots.
-    - Tenants specific changes.
-    - Translation files in multiple tarballs.
+    - Handle translation files in multiple tarballs.
 
 - Technical Tasks
-    - Error handling, test cases.
+    - Error handling, improve test coverage.
     - Simultaneous jobs run (and multi-threading).
     - Prepare deployment for OpenShift 4.
         - Move from docker to buildah, single container to a pod.
@@ -56,7 +55,7 @@ ToDo List
     - Scheduling of pipeline configurations.
 
 - User Personalization
-    - Multiple Authentication: FAS, SAML, Social.
+    - Expand Authentication Methods: SAML, Social.
     - API sync for package, language-group ownerships.
     - User panel to configure package and other settings.
     - Customization of interfaces as per logged in user.

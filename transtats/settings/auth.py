@@ -34,12 +34,17 @@ ADMINS = (
     ('transtats', 'admin@transtats.org'),
 )
 
+USE_X_FORWARDED_HOST = True
+SESSION_COOKIE_SECURE = True
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 ADMIN_INITIAL_PASSWORD = app_config_vars('ADMIN_PASSWORD')
 
 # OpenID Connect
 # NOTE: This client ID only works on localhost:8080.
 INSTALLED_APPS += ('mozilla_django_oidc', 'rest_framework.authtoken')
+OIDC_AUTHENTICATE_CLASS = 'dashboard.views.FedoraAuthRequestView'
 AUTHENTICATION_BACKENDS += ('transtats.utils.TranstatsOIDCBackend', )
 OIDC_RP_CLIENT_ID = app_config_vars('OIDC_RP_CLIENT_ID')
 OIDC_RP_CLIENT_SECRET = app_config_vars('OIDC_RP_CLIENT_SECRET')

@@ -180,7 +180,7 @@
         </li>
         {% else %}
         <li>
-          <a class="nav-item-iconic" href="{% if auth == 'fas' %}{% url 'oidc_authentication_init' %}
+          <a class="nav-item-iconic" href="{% if auth == 'fas' %}{% url 'oidc_fedora_auth' %}
           {% else %}{% url 'admin:login' %}?next={{request.path}}{% endif %}">
             <span title="Login" class="fa pficon-users"></span>
             Login
@@ -304,7 +304,7 @@
             </li>
             {% endif %}
             <li class="list-group-item">
-              <a href="{% if auth == 'fas' %}{% url 'oidc_authentication_init' %}{% else %}{% url 'admin:login' %}{% endif %}">
+              <a href="{% if auth == 'fas' %}{% url 'oidc_fedora_auth' %}{% else %}{% url 'admin:login' %}{% endif %}">
                 <span class="list-group-item-value">Login</span>
               </a>
             </li>

@@ -21,6 +21,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 import threading
+from urllib.parse import urlencode
 
 # django
 from django.contrib import messages
@@ -37,6 +38,13 @@ from django.views.generic import (
 )
 from django.views.generic.edit import (CreateView, UpdateView, DeleteView)
 from django.urls import reverse, reverse_lazy
+from django.utils.crypto import get_random_string
+
+from mozilla_django_oidc.views import OIDCAuthenticationRequestView, get_next_url
+from mozilla_django_oidc.utils import (
+    absolutify,
+    add_state_and_nonce_to_session,
+)
 
 # dashboard
 
@@ -1282,6 +1290,44 @@ class PlatformProjectTemplatesView(ManagersMixin, FormView):
                     ))
             return HttpResponseRedirect(self.get_success_url())
         return render(request, self.template_name, context=context_data)
+
+
+class FedoraAuthRequestView(OIDCAuthenticationRequestView):
+
+    def get(self, request):
+        """OIDC client authentication initialization HTTP endpoint"""
+        state = get_random_string(self.get_settings('OIDC_STATE_SIZE', 32))
+        redirect_field_name = self.get_settings('OIDC_REDIRECT_FIELD_NAME', 'next')
+        reverse_url = self.get_settings('OIDC_AUTHENTICATION_CALLBACK_URL',
+                                        'oidc_authentication_callback')
+
+        params = {
+            'response_type': 'code',
+            'scope': self.get_settings('OIDC_RP_SCOPES', 'openid email'),
+            'client_id': self.OIDC_RP_CLIENT_ID,
+            'redirect_uri': absolutify(
+                request,
+                reverse(reverse_url)
+            ),
+            'state': state,
+        }
+
+        params.update({"redirect_uri": params.get("redirect_uri").replace("http:", "https:")})
+        params.update(self.get_extra_params(request))
+
+        if self.get_settings('OIDC_USE_NONCE', True):
+            nonce = get_random_string(self.get_settings('OIDC_NONCE_SIZE', 32))
+            params.update({
+                'nonce': nonce
+            })
+
+        add_state_and_nonce_to_session(request, state, params)
+
+        request.session['oidc_login_next'] = get_next_url(request, redirect_field_name)
+
+        query = urlencode(params)
+        redirect_url = '{url}?{query}'.format(url=self.OIDC_OP_AUTH_ENDPOINT, query=query)
+        return HttpResponseRedirect(redirect_url)
 
 
 def schedule_job(request):

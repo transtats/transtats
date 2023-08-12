@@ -41,7 +41,8 @@ from dashboard.constants import (
 __all__ = ['NewPackageForm', 'UpdatePackageForm', 'NewReleaseBranchForm',
            'NewGraphRuleForm', 'NewLanguageForm', 'UpdateLanguageForm',
            'LanguageSetForm', 'NewTransPlatformForm', 'UpdateTransPlatformForm',
-           'UpdateGraphRuleForm', 'PackagePipelineForm', 'CreateCIPipelineForm']
+           'UpdateGraphRuleForm', 'PackagePipelineForm', 'CreateCIPipelineForm',
+           'PlatformProjectTemplatesForm']
 
 ENGINE_CHOICES = tuple([(engine, engine.upper())
                         for engine in TRANSPLATFORM_ENGINES])
