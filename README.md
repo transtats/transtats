@@ -37,6 +37,3 @@ Get docker daemon running. Build `transtats` image and get started.
 ### License
 
 [Apache License](http://www.apache.org/licenses/LICENSE-2.0), Version 2.0
-
-*************************************************************************
-*************************************************************************
