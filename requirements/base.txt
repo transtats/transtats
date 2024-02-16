@@ -25,5 +25,6 @@ requests
 six
 smmap2
 sqlparse
+typing_extensions==4.9.0
 Unidecode
 whitenoise

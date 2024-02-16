@@ -154,7 +154,7 @@ def task_sync_packages_with_build_system():
                 pass
             else:
                 if settings.FAS_AUTH:
-                    fedmsg_config.conf.load_config("deploy/docker/conf/fedora-messaging/transtats.toml")
+                    fedmsg_config.conf.load_config("deploy/docker/conf/transtats.toml")
                     job_url = reverse("log-detail", args=[job_uuid])
                     topic_msg = fedmsg_msg.Message(
                         topic=u'org.fedoraproject.transtats.build_system.sync_job_run',

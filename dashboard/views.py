@@ -1394,7 +1394,7 @@ def schedule_job(request):
 
                     # -- TEMP Block for Testing Fedora Messaging
                     if settings.FAS_AUTH:
-                        fedmsg_config.conf.load_config("deploy/docker/conf/fedora-messaging/transtats.toml")
+                        fedmsg_config.conf.load_config("deploy/docker/conf/transtats.toml")
                         job_url = request.build_absolute_uri(reverse("log-detail", args=[job_uuid]))
                         topic_msg = fedmsg_msg.Message(
                             topic=u'org.fedoraproject.transtats.build_system.sync_job_run',
