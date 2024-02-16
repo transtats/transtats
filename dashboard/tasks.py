@@ -120,7 +120,7 @@ def task_sync_packages_with_build_system():
             # pass for now
             pass
 
-    def _post_fedora_messaging(package_name, build_tag, job_uuid):
+    def _post_fedora_messaging(package_name, build_sys, build_tag, job_uuid):
         """Post to fedora messaging system."""
         server_domain = "http://localhost:8080"
         if os.environ.get("DEPLOY_ENV") == "prod":
@@ -133,7 +133,7 @@ def task_sync_packages_with_build_system():
         topic_msg = fedmsg_msg.Message(
             topic=u'org.fedoraproject.transtats.build_system.sync_job_run',
             headers={u'package': package_name,
-                     u'build_system': u'koji',
+                     u'build_system': build_sys,
                      u'build_tag': build_tag},
             body={u'url': job_url}
         )
@@ -144,6 +144,9 @@ def task_sync_packages_with_build_system():
         if package_manager.is_package_build_latest(params):
             return
 
+        # TODO: derive latest releases from ReleaseManager
+        is_job_logged: bool = params[2] in ('f41', 'f42', 'f43')
+
         t_params = template.job_template_params
         if len(t_params) == len(params):
             job_data = {field.upper(): param
@@ -152,7 +155,11 @@ def task_sync_packages_with_build_system():
                 'YML_FILE': yaml.dump(template.job_template_json,
                                       default_flow_style=False).replace("\'", "")
             })
-            job_data.update({'SCRATCH': False})
+
+            if is_job_logged:
+                job_data.update({'SCRATCH': False})
+            else:
+                job_data.update({'SCRATCH': True})
 
             temp_path = 'false/{0}/'.format('-'.join(params))
             job_manager = YMLBasedJobManager(
@@ -172,8 +179,8 @@ def task_sync_packages_with_build_system():
                 # pass for now
                 pass
             else:
-                if settings.FAS_AUTH:
-                    _post_fedora_messaging(params[0], params[2], job_uuid)
+                if settings.FAS_AUTH and is_job_logged:
+                    _post_fedora_messaging(params[0], params[1], params[2], job_uuid)
             finally:
                 shutil.rmtree(temp_path)
 
