@@ -6,9 +6,9 @@ amqp_url = "amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
 callback = "fedora_messaging.example:printer"
 
 [tls]
-ca_cert = "deploy/docker/conf/fedora-messaging/cacert.pem"
-keyfile = "deploy/docker/conf/fedora-messaging/fedora-key.pem"
-certfile = "deploy/docker/conf/fedora-messaging/fedora-cert.pem"
+ca_cert = "/workspace/deploy/docker/conf/fedora-messaging/cacert.pem"
+keyfile = "/workspace/deploy/docker/conf/fedora-messaging/fedora-key.pem"
+certfile = "/workspace/deploy/docker/conf/fedora-messaging/fedora-cert.pem"
 
 [client_properties]
 app = "Transtats"
