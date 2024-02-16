@@ -127,7 +127,7 @@ def task_sync_packages_with_build_system():
                 'YML_FILE': yaml.dump(template.job_template_json,
                                       default_flow_style=False).replace("\'", "")
             })
-            job_data.update({'SCRATCH': True})
+            job_data.update({'SCRATCH': False})
 
             temp_path = 'false/{0}/'.format('-'.join(params))
             job_manager = YMLBasedJobManager(

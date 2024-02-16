@@ -2,7 +2,10 @@
 {% if latest_builds %}
 <div class="panel panel-default">
   <div class="panel-heading">
-    <h4><strong>Latest Builds</strong> {% if builds_lastupdated %}<small class="pull-right text-muted">Updated
+    <h4><strong>Latest Builds</strong>&nbsp;
+        <a type="button" class="btn btn-default" href="{% url 'jobs-logs-package' package_name %}"
+             data-toggle="tooltip" title="{{ package_name }} logs">Details</a>&nbsp;&nbsp;
+        {% if builds_lastupdated %}<small class="pull-right text-muted">Updated
       <span class="text-info">{{ builds_lastupdated|timesince }}</span> ago</small>{% endif %}</h4>
       <span class="text-info">Click on the tag to run syncdownstream job.</span>
   </div>
