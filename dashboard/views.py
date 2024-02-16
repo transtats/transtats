@@ -24,6 +24,7 @@ import threading
 from urllib.parse import urlencode
 
 # django
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import PermissionDenied
@@ -1392,14 +1393,15 @@ def schedule_job(request):
                 else:
 
                     # -- TEMP Block for Testing Fedora Messaging
-                    fedmsg_config.conf.load_config("deploy/docker/conf/fedora-messaging/transtats.toml")
-                    job_url = reverse("log-detail", args=[job_uuid])
-                    topic_msg = fedmsg_msg.Message(
-                        topic=u'org.fedoraproject.transtats.build_system.sync_job_run',
-                        headers={u'package': request.POST.dict().get('PACKAGE_NAME'), u'build_system': u'koji'},
-                        body={u'url': job_url}
-                    )
-                    fedmsg_api.publish(topic_msg)
+                    if settings.FAS_AUTH:
+                        fedmsg_config.conf.load_config("deploy/docker/conf/fedora-messaging/transtats.toml")
+                        job_url = request.build_absolute_uri(reverse("log-detail", args=[job_uuid]))
+                        topic_msg = fedmsg_msg.Message(
+                            topic=u'org.fedoraproject.transtats.build_system.sync_job_run',
+                            headers={u'package': request.POST.dict().get('PACKAGE_NAME'), u'build_system': u'koji'},
+                            body={u'url': job_url}
+                        )
+                        fedmsg_api.publish(topic_msg)
                     # --
 
                     if not request.POST.dict().get('SCRATCH', '') == 'ScratchRun':
