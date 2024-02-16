@@ -23,7 +23,7 @@ Upcoming Releases
 Transtats 0.9.0
 ---------------
 
-| Target delivery: End of Dec 2023
+| Target delivery: End of Mar 2024
 
 
 ToDo List

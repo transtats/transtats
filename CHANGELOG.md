@@ -1,3 +1,10 @@
+##### Sun Feb 18 2024 Sundeep Anand <sundeep.anand> - release_0.9.0
+* Restore broken celery worker and beat for background tasks.
+* Enable build_system sync task URL publish to fedora_messaging.
+
+##### Sun Aug 13 2023 Sundeep Anand <sundeep.anand> - release_0.8.9
+* Restore Fedora Authentication and bug fixes.
+
 ##### Fri Feb 24 2023 Sundeep Anand <suanand@redhat.com> - release_0.8.8
 * Refactor jobs_framework following command design pattern.
 * Implement prepend_package option in YAML job templates.
