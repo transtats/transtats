@@ -12,7 +12,7 @@ spec:
       USER root
       RUN useradd -ms /bin/bash tsuser
       RUN dnf -y update && \
-          dnf -y install git make cpio koji file patch intltool libtool gtk3-devel npm supervisor redis libxcrypt-compat python3-pip && \
+          dnf -y install git make cpio koji file patch intltool libtool gtk3-devel npm supervisor redis libxcrypt-compat python3-pip fedora-messaging && \
           dnf clean all
       RUN mkdir /workspace
       ENV PYTHONUNBUFFERED 1

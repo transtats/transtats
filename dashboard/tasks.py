@@ -25,7 +25,13 @@ from random import randrange
 from celery import shared_task
 from celery.utils.log import get_task_logger
 
+from django.conf import settings
+from django.urls import reverse
 from django.utils import timezone
+
+from fedora_messaging import config as fedmsg_config
+from fedora_messaging import api as fedmsg_api
+from fedora_messaging import message as fedmsg_msg
 
 from dashboard.constants import (
     TS_JOB_TYPES, BRANCH_MAPPING_KEYS, WEBLATE_SLUGS, SYS_EMAIL_ADDR
@@ -142,10 +148,20 @@ def task_sync_packages_with_build_system():
                 if os.path.isdir(temp_path):
                     shutil.rmtree(temp_path)
                 os.mkdir(temp_path)
-                job_manager.execute_job()
+                job_uuid = job_manager.execute_job()
             except Exception as e:
                 # pass for now
                 pass
+            else:
+                if settings.FAS_AUTH:
+                    fedmsg_config.conf.load_config("deploy/docker/conf/fedora-messaging/transtats.toml")
+                    job_url = reverse("log-detail", args=[job_uuid])
+                    topic_msg = fedmsg_msg.Message(
+                        topic=u'org.fedoraproject.transtats.build_system.sync_job_run',
+                        headers={u'package': params[0], u'build_system': u'koji'},
+                        body={u'url': job_url}
+                    )
+                    fedmsg_api.publish(topic_msg)
             finally:
                 shutil.rmtree(temp_path)
 

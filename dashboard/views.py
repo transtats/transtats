@@ -40,6 +40,10 @@ from django.views.generic.edit import (CreateView, UpdateView, DeleteView)
 from django.urls import reverse, reverse_lazy
 from django.utils.crypto import get_random_string
 
+from fedora_messaging import config as fedmsg_config
+from fedora_messaging import api as fedmsg_api
+from fedora_messaging import message as fedmsg_msg
+
 from mozilla_django_oidc.views import OIDCAuthenticationRequestView, get_next_url
 from mozilla_django_oidc.utils import (
     absolutify,
@@ -1386,6 +1390,18 @@ def schedule_job(request):
                     message = "&nbsp;&nbsp;<span class='text-danger'>{}</span>".format(e)
                     return HttpResponse(message, status=500)
                 else:
+
+                    # -- TEMP Block for Testing Fedora Messaging
+                    fedmsg_config.conf.load_config("deploy/docker/conf/fedora-messaging/transtats.toml")
+                    job_url = reverse("log-detail", args=[job_uuid])
+                    topic_msg = fedmsg_msg.Message(
+                        topic=u'org.fedoraproject.transtats.build_system.sync_job_run',
+                        headers={u'package': request.POST.dict().get('PACKAGE_NAME'), u'build_system': u'koji'},
+                        body={u'url': job_url}
+                    )
+                    fedmsg_api.publish(topic_msg)
+                    # --
+
                     if not request.POST.dict().get('SCRATCH', '') == 'ScratchRun':
                         message = "&nbsp;&nbsp;<span class='text-success'>Success. Job URL: " \
                                   "<a href='/jobs/log/" + str(job_uuid) + "/detail'" \
