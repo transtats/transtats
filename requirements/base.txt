@@ -18,7 +18,7 @@ polib
 psycopg2-binary==2.8.6
 python-rpm-spec
 python-slugify
-pytz
+pytz==2020.5
 pyyaml
 redis
 requests
