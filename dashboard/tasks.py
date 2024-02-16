@@ -120,6 +120,25 @@ def task_sync_packages_with_build_system():
             # pass for now
             pass
 
+    def _post_fedora_messaging(package_name, build_tag, job_uuid):
+        """Post to fedora messaging system."""
+        server_domain = "http://localhost:8080"
+        if os.environ.get("DEPLOY_ENV") == "prod":
+            server_domain = "https://transtats.fedoraproject.org"
+        elif os.environ.get("DEPLOY_ENV") == "staging":
+            server_domain = "https://transtats.stg.fedoraproject.org"
+
+        fedmsg_config.conf.load_config("deploy/docker/conf/transtats.toml")
+        job_url = f"{server_domain}{reverse('log-detail', args=[job_uuid])}"
+        topic_msg = fedmsg_msg.Message(
+            topic=u'org.fedoraproject.transtats.build_system.sync_job_run',
+            headers={u'package': package_name,
+                     u'build_system': u'koji',
+                     u'build_tag': build_tag},
+            body={u'url': job_url}
+        )
+        fedmsg_api.publish(topic_msg)
+
     def _sync_build_system(template, params):
 
         if package_manager.is_package_build_latest(params):
@@ -154,14 +173,7 @@ def task_sync_packages_with_build_system():
                 pass
             else:
                 if settings.FAS_AUTH:
-                    fedmsg_config.conf.load_config("deploy/docker/conf/transtats.toml")
-                    job_url = reverse("log-detail", args=[job_uuid])
-                    topic_msg = fedmsg_msg.Message(
-                        topic=u'org.fedoraproject.transtats.build_system.sync_job_run',
-                        headers={u'package': params[0], u'build_system': u'koji'},
-                        body={u'url': job_url}
-                    )
-                    fedmsg_api.publish(topic_msg)
+                    _post_fedora_messaging(params[0], params[2], job_uuid)
             finally:
                 shutil.rmtree(temp_path)
 
