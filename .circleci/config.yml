@@ -20,7 +20,6 @@ jobs:
             sudo pip3 install virtualenv
             virtualenv --python=/usr/bin/python3 --system-site-packages .venv
             pip3 install -r requirements/ci.txt
-            pip3 install fedora-messaging
       - run:
           name: Run tests
           command: |
