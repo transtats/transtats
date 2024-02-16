@@ -1,6 +1,6 @@
 celery
 coreapi
-django-celery-beat==2.1.0
+django-celery-beat
 django-cors-headers
 django-crispy-forms
 django-debug-toolbar
@@ -18,7 +18,7 @@ polib
 psycopg2-binary==2.8.6
 python-rpm-spec
 python-slugify
-pytz==2020.5
+pytz
 pyyaml
 redis
 requests
