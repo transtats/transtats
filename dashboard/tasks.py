@@ -130,12 +130,13 @@ def task_sync_packages_with_build_system():
 
         fedmsg_config.conf.load_config("deploy/docker/conf/transtats.toml")
         job_url = f"{server_domain}{reverse('log-detail', args=[job_uuid])}"
+        api_url = f"{server_domain}{reverse('api_job_log', args=[job_uuid])}"
         topic_msg = fedmsg_msg.Message(
             topic=u'org.fedoraproject.transtats.build_system.sync_job_run',
             headers={u'package': package_name,
                      u'build_system': build_sys,
                      u'build_tag': build_tag},
-            body={u'url': job_url}
+            body={u'url': job_url, u'api_url': api_url}
         )
         fedmsg_api.publish(topic_msg)
 
