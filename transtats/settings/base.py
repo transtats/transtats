@@ -160,11 +160,11 @@ CELERY_ENABLE_UTC = True
 CELERY_BEAT_SCHEDULE = {
     'task_sync_packages_with_platform': {
         'task': 'dashboard.tasks.task_sync_packages_with_platform',
-        'schedule': crontab(minute=0, hour='19'),
+        'schedule': crontab(minute='0', hour='19'),
     },
     'task_sync_packages_with_build_system': {
         'task': 'dashboard.tasks.task_sync_packages_with_build_system',
-        'schedule': crontab(minute=0, hour='7'),
+        'schedule': crontab(minute='30', hour='0'),
     },
 }
 
