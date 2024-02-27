@@ -1386,7 +1386,7 @@ def schedule_job(request):
                     **{'active_user_email': active_user_email}
                 )
                 try:
-                    job_uuid = job_manager.execute_job()
+                    job_uuid, _ = job_manager.execute_job()
                 except Exception as e:
                     message = "&nbsp;&nbsp;<span class='text-danger'>{}</span>".format(e)
                     return HttpResponse(message, status=500)
@@ -1962,7 +1962,7 @@ def ajax_run_pipeline_config(request):
             if os.path.isdir(temp_path):
                 shutil.rmtree(temp_path)
             os.mkdir(temp_path)
-            job_log_id = job_manager.execute_job()
+            job_log_id, _ = job_manager.execute_job()
             ajax_run_pipeline_config.message = "&nbsp;&nbsp;<span class='pficon pficon-ok'></span>" + \
                 "&nbsp;<span class='text-success'>Success</span>. " + \
                 "See the <a href='/jobs/log/{}/detail'>Log</a> and History.".format(str(job_log_id))

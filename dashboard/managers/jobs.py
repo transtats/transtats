@@ -767,6 +767,8 @@ class YMLBasedJobManager(BaseManager):
         3. Discover namespace and method for each task and fill in TaskNode
         4. Perform actions (execute tasks) and return responses
         """
+        can_publish_job = False
+
         self._wipe_workspace()
 
         yml_preprocessed = YMLPreProcessor(self.YML_FILE, **{
@@ -880,7 +882,14 @@ class YMLBasedJobManager(BaseManager):
                 job_manager.ci_pipeline = self._get_ci_pipeline()
             action_mapper.clean_workspace()
             if not getattr(self, 'SCRATCH', None):
-                job_manager.mark_job_finish()
+                # If this is a background task and no build details found,
+                # its better not to log the job.
+                if (getattr(self, 'BG_TASK', None) and
+                        'No build details found' in str(job_manager.log_json)):
+                    job_manager.mark_job_finish(remove=True)
+                else:
+                    job_manager.mark_job_finish()
+                    can_publish_job = True
             else:
                 job_manager.mark_job_finish(remove=True)
             time.sleep(3)
@@ -892,4 +901,4 @@ class YMLBasedJobManager(BaseManager):
                 self._save_push_results_in_db(action_mapper.result.get('push_files_resp', {}))
         if os.path.exists(log_file):
             os.unlink(log_file)
-        return self.job_id
+        return self.job_id, can_publish_job

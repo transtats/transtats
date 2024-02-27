@@ -162,6 +162,9 @@ def task_sync_packages_with_build_system():
             else:
                 job_data.update({'SCRATCH': True})
 
+            # Indicate this is a background task.
+            job_data.update({'BG_TASK': True})
+
             temp_path = 'false/{0}/'.format('-'.join(params))
             job_manager = YMLBasedJobManager(
                 **job_data, **{'params': [p.upper() for p in t_params],
@@ -175,12 +178,12 @@ def task_sync_packages_with_build_system():
                 if os.path.isdir(temp_path):
                     shutil.rmtree(temp_path)
                 os.mkdir(temp_path)
-                job_uuid = job_manager.execute_job()
+                job_uuid, can_publish = job_manager.execute_job()
             except Exception as e:
                 # pass for now
                 pass
             else:
-                if settings.FAS_AUTH and is_job_logged:
+                if settings.FAS_AUTH and is_job_logged and can_publish:
                     _post_fedora_messaging(params[0], params[1], params[2], job_uuid)
             finally:
                 shutil.rmtree(temp_path)

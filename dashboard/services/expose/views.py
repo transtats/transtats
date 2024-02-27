@@ -335,7 +335,7 @@ class RunJob(JobManagerMixin, APIView):
                         **{'active_user_email': active_user_email}
                     )
                     try:
-                        job_uuid = job_manager.execute_job()
+                        job_uuid, _ = job_manager.execute_job()
                     except Exception as e:
                         return Response({
                             "Exception": "Something went wrong while job execution."
